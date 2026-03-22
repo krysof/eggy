@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>蛋仔冲冲冲</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="game-container">
+  <div id="three-root"></div>
+
+  <!-- Title screen -->
+  <div id="start-screen" class="screen active">
+    <div class="title-area">
+      <div class="egg-bounce">🥚</div>
+      <h1>蛋仔冲冲冲</h1>
+      <p class="subtitle">E G G &nbsp; P A R T Y &nbsp; R U S H</p>
+    </div>
+    <button id="start-btn" class="btn btn-primary">🎮 开始游戏</button>
+  </div>
+
+  <!-- Character select — SF2 style -->
+  <div id="select-screen" class="screen">
+    <div class="select-title">— 选 择 角 色 —</div>
+    <div class="select-layout">
+      <div class="portrait-box">
+        <canvas id="portrait-canvas" width="220" height="260"></canvas>
+        <div class="portrait-name" id="portrait-name">经典蛋</div>
+      </div>
+      <div class="char-grid" id="char-grid"></div>
+    </div>
+    <button id="confirm-btn" class="btn btn-primary">⚔️ 确认出战</button>
+  </div>
+
+  <!-- Portal prompt -->
+  <div id="portal-prompt" class="portal-prompt" style="display:none">
+    <span id="portal-prompt-text"></span>
+  </div>
+
+  <!-- Portal confirm dialog -->
+  <div id="portal-confirm" class="portal-confirm" style="display:none">
+    <div class="portal-confirm-box">
+      <div id="portal-confirm-name" class="portal-confirm-name"></div>
+      <div id="portal-confirm-desc" class="portal-confirm-desc"></div>
+      <div class="portal-confirm-btns">
+        <button id="portal-yes" class="btn btn-primary">✅ 进入 (Y/回车)</button>
+        <button id="portal-no" class="btn portal-btn-no">❌ 取消 (N/ESC)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sound toggle -->
+  <button id="sound-btn" class="sound-toggle">🔊</button>
+
+  <!-- City HUD -->
+  <div id="city-hud" class="hidden">
+    <div class="hud-top">
+      <span class="hud-pill">🏙️ 蛋仔城</span>
+      <span class="hud-pill" id="coin-hud">⭐ 0</span>
+      <span class="hud-pill">F 抓/扔</span>
+    </div>
+  </div>
+
+  <!-- Race countdown -->
+  <div id="round-screen" class="screen">
+    <div class="round-card">
+      <p class="round-label" id="round-label">第 1 轮</p>
+      <h2 id="round-name">疯狂赛道</h2>
+      <p class="round-desc" id="round-desc">冲向终点！</p>
+      <div class="player-count" id="player-count">🥚 × 20</div>
+      <div class="countdown" id="countdown">3</div>
+    </div>
+  </div>
+
+  <!-- Race HUD -->
+  <div id="race-hud" class="hidden">
+    <div class="hud-top">
+      <span class="hud-pill" id="round-hud">🏆 第1轮</span>
+      <span class="hud-pill" id="alive-hud">🥚 20</span>
+      <span class="hud-pill" id="place-hud">📍 第1名</span>
+      <span class="hud-pill" id="race-coin-hud">🪙 0</span>
+      <button id="race-back-btn" class="hud-pill hud-btn">🏙️ 返回</button>
+    </div>
+    <div class="hud-progress">
+      <div class="pbar-bg"><div class="pbar-fill" id="pbar-fill"></div><div class="pbar-flag">🏁</div></div>
+    </div>
+  </div>
+
+  <!-- Race result -->
+  <div id="result-screen" class="screen">
+    <div class="result-card">
+      <div class="result-emoji" id="result-emoji">🎉</div>
+      <h2 id="result-title">完成！</h2>
+      <p class="result-sub" id="result-sub"></p>
+      <button id="back-city-btn" class="btn btn-primary">🏙️ 返回城市</button>
+    </div>
+  </div>
+
+  <!-- Touch controls -->
+  <div id="touch-controls" class="hidden">
+    <div id="joystick-area"><div id="joystick-base"><div id="joystick-knob"></div></div></div>
+    <button id="grab-btn" class="touch-grab">抓</button>
+    <button id="jump-btn" class="touch-jump">跳</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
