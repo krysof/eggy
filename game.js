@@ -17,8 +17,24 @@ toonTex.minFilter = THREE.NearestFilter; toonTex.magFilter = THREE.NearestFilter
 function toon(color, opts={}) { return new THREE.MeshToonMaterial({color, gradientMap:toonTex, ...opts}); }
 
 // ---- Audio System (procedural, no files needed) ----
-let audioCtx=null, soundEnabled=true;
+let audioCtx=null, soundEnabled=true, _audioUnlocked=false;
 function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
+// Mobile audio unlock — must resume AudioContext inside a user gesture
+function _unlockAudio(){
+    if(_audioUnlocked)return;
+    _audioUnlocked=true;
+    var ctx=ensureAudio();
+    if(ctx.state==='suspended'){
+        ctx.resume().then(function(){
+            // Play a silent buffer to fully unlock on iOS
+            var b=ctx.createBuffer(1,1,22050);
+            var s=ctx.createBufferSource();s.buffer=b;s.connect(ctx.destination);s.start(0);
+        });
+    }
+}
+document.addEventListener('touchstart',_unlockAudio,{once:true});
+document.addEventListener('touchend',_unlockAudio,{once:true});
+document.addEventListener('click',_unlockAudio,{once:true});
 
 // Sound toggle button
 const soundBtn=document.getElementById("sound-btn");
