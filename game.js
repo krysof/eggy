@@ -888,7 +888,11 @@ const RACES = [
     {name:'\u{1f525} \u706b\u7130\u5c71\u8c37', desc:'\u52a0\u901f\u5e26\u4e0e\u5ca9\u6d46\u5730\u5f62\uff01', x:55, z:-20, color:0xFF4400},
     {name:'\u2744\ufe0f \u51b0\u971c\u6ed1\u9053', desc:'\u6ed1\u51b0\u5730\u5f62\u4e0e\u5f39\u7c27\uff01', x:-60, z:50, color:0x44CCFF},
     {name:'\u{1f308} \u5f69\u8679\u5929\u7a7a', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u91d1\u5e01\u96e8\uff01', x:60, z:50, color:0xFF88FF}
-
+,
+    {name:'\u{1f344} \u8611\u83c7\u738b\u56fd', desc:'\u7ecf\u5178\u6c34\u7ba1\u4e0e\u677f\u6817\uff01', x:35, z:60, color:0x44BB44},
+    {name:'\u{1f525} \u5ca9\u6d46\u57ce\u5821', desc:'\u5ca9\u6d46\u5730\u5f62\u4e0e\u706b\u7403\uff01', x:-35, z:60, color:0xDD4400},
+    {name:'\u2601\ufe0f \u4e91\u7aef\u5929\u5802', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u5f39\u7c27\uff01', x:70, z:20, color:0x88CCFF},
+    {name:'\u{1f3f0} \u5e93\u5df4\u57ce\u5821', desc:'\u6700\u7ec8\u5173\u5361\uff01\u5168\u969c\u788d\uff01', x:-70, z:20, color:0x884422}
 ];
 
 function buildPortals() {
@@ -1090,7 +1094,7 @@ function buildRaceTrack(ri){
         add(18,'platforms',{count:8});add(10,'coins',{count:15});
         add(14,'ramp',{endY:4});add(10,'boost');add(14,'ramp',{endY:0});
         add(16,'pendulums',{count:3});add(12,'coins',{count:20});add(10,'flat');
-    } else {
+    } else if(ri===7){
         // Rainbow Sky — aerial platforms, coins everywhere
         add(14,'flat');add(10,'coins',{count:15});add(10,'boost');
         add(16,'ramp',{endY:6});add(24,'platforms',{count:10});
@@ -1102,7 +1106,56 @@ function buildRaceTrack(ri){
         add(10,'springs',{count:4});add(10,'coins',{count:20});
         add(16,'pendulums',{count:3});add(10,'boost');
         add(12,'coins',{count:15});add(10,'flat');
+    } else if(ri===8){
+        // Mushroom Kingdom — Mario pipes, goombas, classic platforming
+        add(20,'flat');add(14,'pipes',{count:4});add(8,'flat');
+        add(10,'coins',{count:12});add(12,'goombas',{count:5});
+        add(8,'flat');add(12,'ramp',{endY:3});
+        add(16,'platforms',{count:5});add(12,'ramp',{endY:0});
+        add(10,'pipes',{count:3});add(8,'coins',{count:10});
+        add(14,'goombas',{count:6});add(8,'flat');
+        add(10,'boost');add(12,'coins',{count:15});
+        add(16,'spinners',{count:2});add(8,'flat');
+        add(10,'pipes',{count:5});add(12,'goombas',{count:4});
+        add(10,'coins',{count:18});add(10,'flat');
+    } else if(ri===9){
+        // Lava Castle — conveyors, falling blocks, pipes, fast pace
+        add(16,'flat');add(10,'pipes',{count:3});
+        add(14,'ramp',{endY:4});add(10,'goombas',{count:4});add(14,'ramp',{endY:0});
+        add(18,'conveyor',{count:5});add(6,'flat');
+        add(12,'pipes',{count:6});add(10,'coins',{count:12});
+        add(16,'fallingBlocks',{count:8});add(6,'flat');
+        add(10,'boost');add(12,'goombas',{count:6});
+        add(8,'coins',{count:15});add(10,'pipes',{count:4});
+        add(14,'hammers',{count:4});add(8,'flat');
+        add(10,'springs',{count:4});add(12,'coins',{count:20});
+        add(10,'goombas',{count:5});add(10,'flat');
+    } else if(ri===10){
+        // Cloud Heaven — lots of platforms, springs, coins
+        add(18,'flat',{width:14});add(10,'coins',{count:20});
+        add(10,'springs',{count:5});add(8,'flat');
+        add(16,'ramp',{endY:5});add(20,'platforms',{count:8});
+        add(10,'coins',{count:15});add(16,'ramp',{endY:2});
+        add(10,'pipes',{count:3});add(12,'goombas',{count:4});
+        add(10,'boost');add(8,'flat');
+        add(14,'ramp',{endY:6});add(22,'platforms',{count:10});add(14,'ramp',{endY:0});
+        add(10,'springs',{count:6});add(12,'coins',{count:25});
+        add(10,'pipes',{count:4});add(10,'coins',{count:15});add(10,'flat');
+    } else {
+        // Bowser Castle — everything, max difficulty
+        add(14,'flat');add(12,'pipes',{count:5});add(10,'goombas',{count:6});
+        add(14,'ramp',{endY:5});add(10,'coins',{count:12});add(14,'ramp',{endY:0});
+        add(18,'spinners',{count:4});add(6,'flat');
+        add(14,'pipes',{count:6});add(12,'conveyor',{count:5});
+        add(10,'goombas',{count:8});add(8,'coins',{count:15});
+        add(16,'hammers',{count:5});add(6,'flat');
+        add(12,'fallingBlocks',{count:10});add(10,'boost');
+        add(14,'ramp',{endY:6});add(24,'platforms',{count:10});add(14,'ramp',{endY:0});
+        add(10,'springs',{count:5});add(12,'pendulums',{count:4});
+        add(10,'pipes',{count:4});add(12,'goombas',{count:6});
+        add(10,'coins',{count:25});add(10,'flat');
     }
+
 
     trackLength=cz; trackSegments=segs;
     const sm=1+ri*0.2;
@@ -1279,6 +1332,58 @@ function buildObs(seg,ri,sm){
         sg2.position.set(ox,fy,-oz);
         raceGroup.add(sg2);
         obstacleObjects.push({type:'spring',mesh:sg2,data:{z:oz,fy:fy,x:ox,radius:0.7,jumpForce:0.5,anim:0}});
+    }
+    // ---- Mario Pipes (green warp pipes as obstacles) ----
+    if(seg.type==='pipes') for(let i=0;i<(seg.count||3);i++){
+        const oz=seg.startZ+(i+1)*len/((seg.count||3)+1);
+        const ox=(i%2===0?-1:1)*hw*0.3*(0.5+Math.random()*0.5);
+        const pH=2.0+Math.random()*1.5;
+        const pg=new THREE.Group();
+        // Pipe body
+        const body2=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,pH,12),toon(0x33AA33));
+        body2.position.y=pH/2; body2.castShadow=true; pg.add(body2);
+        // Pipe rim (wider top)
+        const rim2=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.0,0.4,12),toon(0x228822));
+        rim2.position.y=pH+0.2; rim2.castShadow=true; pg.add(rim2);
+        // Dark inside
+        const hole=new THREE.Mesh(new THREE.CircleGeometry(0.7,12),toon(0x111111));
+        hole.rotation.x=-Math.PI/2; hole.position.y=pH+0.41; pg.add(hole);
+        // Highlight stripe
+        const stripe=new THREE.Mesh(new THREE.CylinderGeometry(0.82,0.82,0.15,12),toon(0x55CC55));
+        stripe.position.y=pH*0.6; pg.add(stripe);
+        pg.position.set(ox,fy,-oz);
+        raceGroup.add(pg);
+        obstacleObjects.push({type:'pipe',mesh:pg,data:{z:oz,fy:fy,x:ox,radius:1.0,height:pH}});
+    }
+    // ---- Goombas (walking mushroom enemies) ----
+    if(seg.type==='goombas') for(let i=0;i<(seg.count||3);i++){
+        const oz=seg.startZ+(i+1)*len/((seg.count||3)+1);
+        const ox=(Math.random()-0.5)*hw*1.0;
+        const gg=new THREE.Group();
+        // Body — brown mushroom cap
+        const cap=new THREE.Mesh(new THREE.SphereGeometry(0.55,10,8),toon(0x8B4513));
+        cap.scale.set(1.2,0.7,1.2); cap.position.y=0.7; cap.castShadow=true; gg.add(cap);
+        // Stem/body
+        const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.4,0.5,8),toon(0xFFDDAA));
+        stem.position.y=0.3; gg.add(stem);
+        // Angry eyes
+        [-1,1].forEach(function(s){
+            var ew2=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0xffffff));
+            ew2.position.set(s*0.2,0.75,0.4); gg.add(ew2);
+            var ep2=new THREE.Mesh(new THREE.SphereGeometry(0.07,4,4),toon(0x111111));
+            ep2.position.set(s*0.2,0.73,0.48); gg.add(ep2);
+            // Angry eyebrows
+            var brow=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.04,0.04),toon(0x111111));
+            brow.position.set(s*0.2,0.88,0.44); brow.rotation.z=s*0.4; gg.add(brow);
+        });
+        // Feet
+        [-1,1].forEach(function(s){
+            var ft=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),toon(0x222222));
+            ft.position.set(s*0.2,0.08,0); ft.scale.set(1,0.5,1.3); gg.add(ft);
+        });
+        gg.position.set(ox,fy,-oz);
+        raceGroup.add(gg);
+        obstacleObjects.push({type:'goomba',mesh:gg,data:{z:oz,fy:fy,x:ox,startX:ox,radius:0.6,walkDir:i%2===0?1:-1,walkRange:hw*0.6,walkSpeed:(0.02+ri*0.003)*sm,phase:i*Math.PI}});
     }
 }
 
@@ -1580,6 +1685,57 @@ function updateObstacles(){
                 }
             }
         }
+        if(ob.type==='pipe'){
+            for(const egg of allEggs){
+                if(!egg.alive||egg.finished||egg.cityNPC)continue;
+                const dx=egg.mesh.position.x-ob.data.x;
+                const dz=egg.mesh.position.z-(-ob.data.z);
+                const dist=Math.sqrt(dx*dx+dz*dz);
+                if(dist<ob.data.radius+egg.radius&&egg.mesh.position.y<ob.data.fy+ob.data.height){
+                    const push=ob.data.radius+egg.radius-dist;
+                    if(dist>0.01){egg.mesh.position.x+=dx/dist*push;egg.mesh.position.z+=dz/dist*push;}
+                    egg.vx+=(dx/(dist||1))*0.08;egg.vz+=(dz/(dist||1))*0.08;
+                }
+                // Stand on top of pipe
+                if(dist<ob.data.radius&&egg.mesh.position.y>=ob.data.fy+ob.data.height-0.5&&egg.vy<=0){
+                    egg.mesh.position.y=ob.data.fy+ob.data.height+0.42;egg.vy=0;egg.onGround=true;
+                }
+            }
+        }
+        if(ob.type==='goomba'){
+            ob.data.phase+=ob.data.walkSpeed;
+            var gx=ob.data.startX+Math.sin(ob.data.phase)*ob.data.walkRange;
+            ob.mesh.position.x=gx; ob.data.x=gx;
+            // Waddle animation
+            ob.mesh.rotation.z=Math.sin(ob.data.phase*3)*0.15;
+            ob.mesh.children.forEach(function(ch,ci){if(ci>=5){ch.position.y=0.08+Math.abs(Math.sin(ob.data.phase*3+ci))*0.06;}});
+            for(const egg of allEggs){
+                if(!egg.alive||egg.finished||egg.cityNPC)continue;
+                const dx=egg.mesh.position.x-gx;
+                const dz=egg.mesh.position.z-(-ob.data.z);
+                const dist=Math.sqrt(dx*dx+dz*dz);
+                if(dist<ob.data.radius+egg.radius){
+                    // If egg is above goomba — stomp it (bounce)
+                    if(egg.mesh.position.y>ob.data.fy+0.8&&egg.vy<0){
+                        egg.vy=0.3;egg.squash=0.6;
+                        ob.mesh.scale.y=0.2;ob.mesh.position.y=ob.data.fy-0.3;
+                        ob.data._squashed=true;ob.data._respawn=180;
+                        if(egg.isPlayer)playCoinSound();
+                    } else if(!ob.data._squashed){
+                        // Hit from side — knockback
+                        egg.vx+=(dx/(dist||1))*0.25;egg.vz+=(dz/(dist||1))*0.25;
+                        egg.vy=0.12;egg.squash=0.65;
+                        if(egg.isPlayer)playHitSound();
+                    }
+                }
+            }
+            // Respawn squashed goomba
+            if(ob.data._squashed){
+                ob.data._respawn--;
+                if(ob.data._respawn<=0){ob.data._squashed=false;ob.mesh.scale.y=1;ob.mesh.position.y=ob.data.fy;}
+            }
+        }
+
     }
 }
 
@@ -1637,6 +1793,16 @@ function updateRaceAI(egg){
 
         if(ob.type==='spring'&&dz<2&&Math.abs(egg.mesh.position.x-(ob.data.x||0))<1.5&&egg.onGround){
             egg.vy=ob.data.jumpForce*0.9;
+        }
+
+        if(ob.type==='pipe'&&dz<4&&Math.abs(egg.mesh.position.x-(ob.data.x||0))<2)
+            egg.vx+=(egg.mesh.position.x>(ob.data.x||0)?1:-1)*MOVE_ACCEL*egg.aiSkill*1.5;
+        if(ob.type==='goomba'&&dz<3&&!ob.data._squashed){
+            var gdx=egg.mesh.position.x-(ob.data.x||0);
+            if(Math.abs(gdx)<2){
+                if(egg.onGround&&Math.random()<egg.aiSkill*0.15){egg.vy=JUMP_FORCE*0.9;egg.aiJumpCD=25;}
+                else egg.vx+=(gdx>0?1:-1)*MOVE_ACCEL*0.8;
+            }
         }
             egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*1.5;
     }
