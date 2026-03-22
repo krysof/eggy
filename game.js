@@ -2415,6 +2415,12 @@ addEventListener('keydown',function(e){
 // Back to city (shared logic)
 function goBackToCity(){
     if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
+    // Reset all blocking states
+    _portalConfirmOpen=false;
+    _portalConfirmRace=-1;
+    document.getElementById('portal-confirm').style.display='none';
+    document.getElementById('portal-prompt').style.display='none';
+    finishedEggs=[];playerFinished=false;
     gameState='city';
     raceGroup.visible=false;
     clearRace();
@@ -2433,6 +2439,9 @@ function goBackToCity(){
         sz=r.z-dz2/dd*5;
     }
     enterCity(sx,sz);
+    // Reset any stale key states and ensure focus
+    for(var k in keys) keys[k]=false;
+    R.domElement.focus();
 }
 
 // Back to city from race result
