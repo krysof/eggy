@@ -1259,16 +1259,90 @@ function buildCity() {
         cityProps.push({group:tg, x:tx, z:tz, radius:1.2, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:3.0});
     }
 
-// ---- Fountain in center ----
-    const fBase=new THREE.Mesh(new THREE.CylinderGeometry(3,3.5,1,16),toon(0xBBBBBB));
-    fBase.position.y=0.5; cityGroup.add(fBase);
-    const fWater=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,0.3,16),toon(0x44AADD,{transparent:true,opacity:0.6}));
-    fWater.position.y=0.9; cityGroup.add(fWater);
-    const fPillar=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,3,8),toon(0xCCCCCC));
-    fPillar.position.y=2.5; cityGroup.add(fPillar);
-    const fTop=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),toon(0xFFDD44));
-    fTop.position.y=4.2; cityGroup.add(fTop);
-    cityColliders.push({x:0,z:0,hw:4,hd:4,h:3});
+// ---- Grand Roman Wishing Fountain (Trevi-style) ----
+    var stoneM=toon(0xCCBBAA);var stoneD=toon(0xAA9988);var marbleM=toon(0xEEE8DD);
+    var waterM=toon(0x44AADD,{transparent:true,opacity:0.55});
+    var goldM=toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
+    // Outer pool — large circular basin
+    var poolOuter=new THREE.Mesh(new THREE.TorusGeometry(7,0.8,8,24),stoneM);
+    poolOuter.position.y=0.4;poolOuter.rotation.x=Math.PI/2;cityGroup.add(poolOuter);
+    // Pool floor
+    var poolFloor=new THREE.Mesh(new THREE.CylinderGeometry(6.5,6.5,0.15,24),toon(0x88BBCC));
+    poolFloor.position.y=0.08;cityGroup.add(poolFloor);
+    // Water surface
+    var poolWater=new THREE.Mesh(new THREE.CylinderGeometry(6.2,6.2,0.2,24),waterM);
+    poolWater.position.y=0.6;cityGroup.add(poolWater);
+    // Steps around the pool (3 tiers)
+    for(var si=0;si<3;si++){
+        var stepR=8+si*1.2;var stepH=0.2;
+        var step=new THREE.Mesh(new THREE.TorusGeometry(stepR,0.5,6,24),stoneD);
+        step.position.y=0.15-si*0.12;step.rotation.x=Math.PI/2;cityGroup.add(step);
+    }
+    // Inner raised basin (second tier)
+    var innerRim=new THREE.Mesh(new THREE.TorusGeometry(3.5,0.5,8,16),marbleM);
+    innerRim.position.y=1.2;innerRim.rotation.x=Math.PI/2;cityGroup.add(innerRim);
+    var innerFloor=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.2,0.8,16),stoneM);
+    innerFloor.position.y=0.8;cityGroup.add(innerFloor);
+    var innerWater=new THREE.Mesh(new THREE.CylinderGeometry(3,3,0.15,16),waterM);
+    innerWater.position.y=1.35;cityGroup.add(innerWater);
+    // Central pillar — ornate column
+    var colBase=new THREE.Mesh(new THREE.CylinderGeometry(1,1.2,0.6,8),marbleM);
+    colBase.position.y=1.6;cityGroup.add(colBase);
+    var colShaft=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.55,4,12),marbleM);
+    colShaft.position.y=3.9;cityGroup.add(colShaft);
+    // Fluted column grooves (decorative cylinders around shaft)
+    for(var fi=0;fi<8;fi++){
+        var fa=fi/8*Math.PI*2;
+        var groove=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,3.6,4),stoneD);
+        groove.position.set(Math.cos(fa)*0.52,3.9,Math.sin(fa)*0.52);cityGroup.add(groove);
+    }
+    var colCap=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.55,0.5,8),marbleM);
+    colCap.position.y=6.1;cityGroup.add(colCap);
+    // Top statue — angel/figure holding a shell
+    var statueBody=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,1.2,8),marbleM);
+    statueBody.position.y=7;cityGroup.add(statueBody);
+    var statueHead=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),marbleM);
+    statueHead.position.y=7.8;cityGroup.add(statueHead);
+    // Shell/bowl on top that water pours from
+    var shell=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,4,0,Math.PI*2,0,Math.PI/2),goldM);
+    shell.position.y=8.2;shell.rotation.x=Math.PI;cityGroup.add(shell);
+    // 4 lion head spouts around inner basin
+    for(var li=0;li<4;li++){
+        var la=li/4*Math.PI*2;
+        var lx2=Math.cos(la)*3.3,lz2=Math.sin(la)*3.3;
+        // Lion head (simplified)
+        var lionHead=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.5,0.4),stoneD);
+        lionHead.position.set(lx2,1.5,lz2);lionHead.lookAt(0,1.5,0);cityGroup.add(lionHead);
+        var lionMane=new THREE.Mesh(new THREE.SphereGeometry(0.35,6,4),stoneM);
+        lionMane.position.set(lx2,1.6,lz2);cityGroup.add(lionMane);
+        // Water jet from lion mouth (static blue cylinder)
+        var jetDir={x:-Math.cos(la),z:-Math.sin(la)};
+        var jet=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.04,1.5,6),waterM);
+        jet.position.set(lx2+jetDir.x*0.8,1.3,lz2+jetDir.z*0.8);
+        jet.rotation.z=Math.PI/2*Math.sign(jetDir.x||0.1);
+        jet.rotation.x=Math.atan2(jetDir.z,jetDir.x);
+        cityGroup.add(jet);
+    }
+    // 8 small decorative columns around outer rim
+    for(var ci2=0;ci2<8;ci2++){
+        var ca=ci2/8*Math.PI*2;
+        var cx2=Math.cos(ca)*7.5,cz2=Math.sin(ca)*7.5;
+        var miniCol=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.18,2,6),marbleM);
+        miniCol.position.set(cx2,1,cz2);cityGroup.add(miniCol);
+        var miniCap=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,4),stoneM);
+        miniCap.position.set(cx2,2.1,cz2);cityGroup.add(miniCap);
+    }
+    // Scattered gold coins in the water
+    for(var gi=0;gi<20;gi++){
+        var ga=Math.random()*Math.PI*2;
+        var gr=Math.random()*5.5;
+        var coin=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,0.03,8),goldM);
+        coin.position.set(Math.cos(ga)*gr,0.55+Math.random()*0.15,Math.sin(ga)*gr);
+        coin.rotation.x=Math.PI/2+(Math.random()-0.5)*0.5;
+        coin.rotation.z=Math.random()*Math.PI;
+        cityGroup.add(coin);
+    }
+    cityColliders.push({x:0,z:0,hw:8.5,hd:8.5,h:3});
 
     // ---- Lamp posts ----
     for(let i=0;i<20;i++){
@@ -1517,13 +1591,52 @@ function startPipeTravel(fromX,fromZ,targetStyle){
     scene.add(_pipeTubeGroup);
     // Disable fog during travel so tube is visible
     scene.fog=null;
-    // Whoosh sound
+    // Pipe travel sound — suction entry + rushing wind + sparkle ticks
     if(sfxEnabled){
         var ctx=ensureAudio();var ct=ctx.currentTime;
-        var o=ctx.createOscillator();var g=ctx.createGain();
-        o.type='sine';o.frequency.setValueAtTime(200,ct);o.frequency.exponentialRampToValueAtTime(1200,ct+0.5);o.frequency.exponentialRampToValueAtTime(150,ct+2.5);
-        g.gain.setValueAtTime(0.12,ct);g.gain.exponentialRampToValueAtTime(0.001,ct+2.5);
-        o.connect(g);g.connect(ctx.destination);o.start(ct);o.stop(ct+2.5);
+        // 1) Suction entry — descending pitch "fwoop"
+        var suc=ctx.createOscillator();var sucG=ctx.createGain();
+        suc.type='sawtooth';suc.frequency.setValueAtTime(800,ct);suc.frequency.exponentialRampToValueAtTime(100,ct+0.4);
+        sucG.gain.setValueAtTime(0.15,ct);sucG.gain.exponentialRampToValueAtTime(0.001,ct+0.5);
+        suc.connect(sucG);sucG.connect(ctx.destination);suc.start(ct);suc.stop(ct+0.5);
+        // 2) Rushing wind — filtered noise for 3 seconds
+        var windBuf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*3),ctx.sampleRate);
+        var wd=windBuf.getChannelData(0);
+        for(var wi=0;wi<wd.length;wi++){
+            var wp=wi/wd.length;
+            var env=Math.sin(wp*Math.PI); // fade in and out
+            wd[wi]=(Math.random()-0.5)*0.12*env;
+        }
+        var windSrc=ctx.createBufferSource();windSrc.buffer=windBuf;
+        var windFilt=ctx.createBiquadFilter();windFilt.type='bandpass';windFilt.frequency.value=600;windFilt.Q.value=2;
+        var windG=ctx.createGain();windG.gain.value=0.2;
+        windSrc.connect(windFilt);windFilt.connect(windG);windG.connect(ctx.destination);
+        windSrc.start(ct+0.2);windSrc.stop(ct+3.2);
+        // 3) Sparkle ticks during flight — ascending pings
+        for(var ti=0;ti<8;ti++){
+            var tt=ct+0.4+ti*0.35;
+            var ping=ctx.createOscillator();var pingG=ctx.createGain();
+            ping.type='sine';
+            var pf=600+ti*150;
+            ping.frequency.setValueAtTime(pf,tt);ping.frequency.exponentialRampToValueAtTime(pf*1.5,tt+0.08);
+            pingG.gain.setValueAtTime(0.08,tt);pingG.gain.exponentialRampToValueAtTime(0.001,tt+0.12);
+            ping.connect(pingG);pingG.connect(ctx.destination);ping.start(tt);ping.stop(tt+0.12);
+        }
+        // 4) Arrival pop — at end of travel
+        var popTime=ct+2.8;
+        var pop=ctx.createOscillator();var popG=ctx.createGain();
+        pop.type='sine';pop.frequency.setValueAtTime(150,popTime);pop.frequency.exponentialRampToValueAtTime(600,popTime+0.1);pop.frequency.exponentialRampToValueAtTime(200,popTime+0.3);
+        popG.gain.setValueAtTime(0.18,popTime);popG.gain.exponentialRampToValueAtTime(0.001,popTime+0.4);
+        pop.connect(popG);popG.connect(ctx.destination);pop.start(popTime);pop.stop(popTime+0.4);
+        // Arrival chime
+        var chime1=ctx.createOscillator();var chG1=ctx.createGain();
+        chime1.type='triangle';chime1.frequency.value=880;
+        chG1.gain.setValueAtTime(0.1,popTime+0.1);chG1.gain.exponentialRampToValueAtTime(0.001,popTime+0.6);
+        chime1.connect(chG1);chG1.connect(ctx.destination);chime1.start(popTime+0.1);chime1.stop(popTime+0.6);
+        var chime2=ctx.createOscillator();var chG2=ctx.createGain();
+        chime2.type='triangle';chime2.frequency.value=1320;
+        chG2.gain.setValueAtTime(0.08,popTime+0.2);chG2.gain.exponentialRampToValueAtTime(0.001,popTime+0.7);
+        chime2.connect(chG2);chG2.connect(ctx.destination);chime2.start(popTime+0.2);chime2.stop(popTime+0.7);
     }
 }
 
