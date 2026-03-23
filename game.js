@@ -2692,7 +2692,8 @@ const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION
 
 function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     if(!egg.alive) return;
-    egg.vy -= GRAVITY;
+    var grav=(isCity&&currentCityStyle===5)?GRAVITY/6:GRAVITY;
+    egg.vy -= grav;
     egg.mesh.position.x += egg.vx + (egg.conveyorVx||0);
     egg.mesh.position.y += egg.vy;
     // Thrown egg bounce
