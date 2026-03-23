@@ -1119,10 +1119,10 @@ var CITY_STYLES=[
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
-    {x:0,z:-45,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
-    {x:45,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
-    {x:0,z:45,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
-    {x:-45,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
+    {x:0,z:-30,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
+    {x:30,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
+    {x:0,z:30,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
+    {x:-30,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
 ];
 var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
 
@@ -1322,7 +1322,7 @@ function buildWarpPipes(){
     }
     // Place up to 4 pipes at edges
     var positions=[
-        {x:0,z:-45},{x:45,z:0},{x:0,z:45},{x:-45,z:0}
+        {x:0,z:-30},{x:30,z:0},{x:0,z:30},{x:-30,z:0}
     ];
     var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
     for(var pi2=0;pi2<Math.min(targets.length,4);pi2++){
@@ -1332,23 +1332,26 @@ function buildWarpPipes(){
         var g=new THREE.Group();
         var pColor=pipeColors[tgt];
         var pMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.4,side:THREE.DoubleSide});
-        // Vertical tube
-        var tube=new THREE.Mesh(new THREE.CylinderGeometry(2,2,5,16,1,true),pMat);
-        tube.position.y=2.5;g.add(tube);
+        // Vertical tube — big and visible
+        var tube=new THREE.Mesh(new THREE.CylinderGeometry(3,3,8,16,1,true),pMat);
+        tube.position.y=4;g.add(tube);
         // Top rim
-        var rim=new THREE.Mesh(new THREE.TorusGeometry(2,0.3,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.2}));
-        rim.position.y=5;rim.rotation.x=Math.PI/2;g.add(rim);
+        var rim=new THREE.Mesh(new THREE.TorusGeometry(3,0.4,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.4}));
+        rim.position.y=8;rim.rotation.x=Math.PI/2;g.add(rim);
         // Bottom rim
-        var rim2=new THREE.Mesh(new THREE.TorusGeometry(2,0.25,8,16),toon(pColor));
+        var rim2=new THREE.Mesh(new THREE.TorusGeometry(3,0.35,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.3}));
         rim2.position.y=0.1;rim2.rotation.x=Math.PI/2;g.add(rim2);
-        // Inner glow spiral
-        var sMat=new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.35});
-        for(var si=0;si<8;si++){
-            var sp=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),sMat);
-            var a=si/8*Math.PI*2;
-            sp.position.set(Math.cos(a)*1.2,0.5+si*0.5,Math.sin(a)*1.2);
+        // Inner glow spiral — more orbs
+        var sMat=new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.5});
+        for(var si=0;si<12;si++){
+            var sp=new THREE.Mesh(new THREE.SphereGeometry(0.4,6,4),sMat);
+            var a=si/12*Math.PI*2;
+            sp.position.set(Math.cos(a)*1.8,0.5+si*0.6,Math.sin(a)*1.8);
             g.add(sp);
         }
+        // Beacon light on top
+        var beacon=new THREE.Mesh(new THREE.SphereGeometry(0.8,8,6),new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.7}));
+        beacon.position.y=9;g.add(beacon);
         // Label sign
         var canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
         var ctx2=canvas.getContext('2d');
@@ -1358,7 +1361,7 @@ function buildWarpPipes(){
         var tex=new THREE.CanvasTexture(canvas);
         var signMat=new THREE.SpriteMaterial({map:tex,transparent:true});
         var sign=new THREE.Sprite(signMat);
-        sign.scale.set(4,1,1);sign.position.y=6.5;
+        sign.scale.set(5,1.2,1);sign.position.y=10.5;
         g.add(sign);
         g.position.set(pos.x,0,pos.z);
         cityGroup.add(g);
@@ -1965,7 +1968,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var wp=warpPipeMeshes[wpi];
                 var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
                 var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                if(wdist<2.5&&!wp._cooldown){
+                if(wdist<3.5&&!wp._cooldown){
                     wp._cooldown=true;
                     switchCity(wp.targetStyle);
                     return; // egg reference is now invalid
@@ -2527,9 +2530,10 @@ function handlePlayerInput(){
     }
     _updateChargeBar();
     // Ascending butt smoke while rising from charged jump
-    if(_ascendSmoke&&playerEgg.vy>0.05&&!playerEgg.onGround){
-        if(Math.random()<0.5)_spawnButtSmoke(playerEgg,_ascendSmokePct*0.6);
-    } else if(playerEgg.vy<=0||playerEgg.onGround){
+    if(_ascendSmoke&&playerEgg.vy>0&&!playerEgg.onGround){
+        _spawnButtSmoke(playerEgg,_ascendSmokePct*0.7);
+    }
+    if(_ascendSmoke&&playerEgg.vy<=0&&!playerEgg.onGround){
         _ascendSmoke=false;
     }
     _updateSprintBar(sprinting);
@@ -2619,7 +2623,6 @@ function handlePlayerInput(){
                     }
                 }
             }
-            keys['KeyF']=false;
         }
     }
 }
