@@ -2601,6 +2601,17 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     const sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     egg.mesh.scale.set(1+(1-sq)*0.3,sq,1+(1-sq)*0.3);
 
+    // Egg tilts in movement direction (wobbly walk)
+    if(speed>0.01){
+        var tiltX=-egg.vz*2.5; // lean forward/back based on Z velocity
+        var tiltZ=egg.vx*2.5;  // lean left/right based on X velocity
+        egg.mesh.rotation.x+=(tiltX-egg.mesh.rotation.x)*0.08;
+        egg.mesh.rotation.z+=(tiltZ-egg.mesh.rotation.z)*0.08;
+    } else {
+        egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.1;
+        egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.1;
+    }
+
     if(speed>0.01){
         const ta=Math.atan2(egg.vx,egg.vz);
         let diff=ta-egg.mesh.rotation.y;
