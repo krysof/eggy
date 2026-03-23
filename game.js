@@ -1985,7 +1985,7 @@ function addClouds(){
     const cm=toon(0xffffff,{transparent:true,opacity:0.85});
     for(let i=0;i<30;i++){
         const g=new THREE.Group();
-        var maxW=0,maxD=0,maxTop=0;
+        var maxW=0,maxD=0,maxTop=0,maxS=0;
         var numParts=2+Math.floor(Math.random()*3);
         for(let j=0;j<numParts;j++){
             const s=2+Math.random()*3;
@@ -1997,8 +1997,9 @@ function addClouds(){
             if(j*2.5+s>maxW)maxW=j*2.5+s;
             var partD=Math.abs(pz)+s*0.7;
             if(partD>maxD)maxD=partD;
-            var partTop=s*0.45; // top of this sphere part
+            var partTop=s*0.45;
             if(partTop>maxTop)maxTop=partTop;
+            if(s>maxS)maxS=s;
         }
         // Center the group so collision aligns with visual center
         var halfW=maxW*0.5;
@@ -2008,7 +2009,8 @@ function addClouds(){
         var cz=(Math.random()-0.5)*200;
         g.position.set(cx, cy, cz);
         scene.add(g);
-        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:halfW+1.5, hd:Math.max(maxD,3), top:maxTop});
+        // hw/hd cover full visual extent: halfW + largest sphere radius in X, maxD covers Z
+        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:halfW+maxS, hd:Math.max(maxD,maxS*0.7), top:maxTop});
     }
 }
 addClouds();
