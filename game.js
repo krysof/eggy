@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.30 by \u767D\u6CB3\u6101',zht:'v20260323.30 by \u767D\u6CB3\u6101',ja:'v20260323.30 by \u767D\u6CB3\u6101',en:'v20260323.30 by Kryso'},
+    version:{zhs:'v20260323.31 by \u767D\u6CB3\u6101',zht:'v20260323.31 by \u767D\u6CB3\u6101',ja:'v20260323.31 by \u767D\u6CB3\u6101',en:'v20260323.31 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2491,7 +2491,7 @@ function _buildBabylonTower(){
     var towerX=10, towerZ=10;
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
-    _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY};
+    _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
 }
 
 function _triggerBabylonEvent(){
@@ -3370,6 +3370,90 @@ function updateObstacles(){
 // ============================================================
 function updateCityNPC(egg){if(egg.heldBy)return;
     if(!egg.alive)return;
+    // ---- NPC coin stealing (priority behavior) ----
+    if(!egg._stolenCoins)egg._stolenCoins=[];
+    if(!egg._stolenCoinMeshes)egg._stolenCoinMeshes=[];
+    // Actively seek nearby coins
+    if(egg._stolenCoins.length<3&&!egg._coinTarget&&Math.random()<0.04){
+        var bestCoin=null,bestCD=25;
+        for(var bci=0;bci<cityCoins.length;bci++){
+            var bc=cityCoins[bci];
+            if(bc.collected||bc._stolenBy)continue;
+            var bcdx=egg.mesh.position.x-bc.mesh.position.x;
+            var bcdz=egg.mesh.position.z-bc.mesh.position.z;
+            var bcd=Math.sqrt(bcdx*bcdx+bcdz*bcdz);
+            if(bcd<bestCD){bestCD=bcd;bestCoin=bci;}
+        }
+        if(bestCoin!==null){egg._coinTarget=bestCoin;egg._coinTargetTimer=360;}
+    }
+    var _chasingCoin=false;
+    // Move toward targeted coin (overrides normal AI)
+    if(egg._coinTarget!==null&&egg._coinTarget>=0&&egg._coinTarget<cityCoins.length){
+        var tc=cityCoins[egg._coinTarget];
+        if(tc.collected||tc._stolenBy){egg._coinTarget=null;}
+        else{
+            egg._coinTargetTimer=(egg._coinTargetTimer||0)-1;
+            if(egg._coinTargetTimer<=0){egg._coinTarget=null;}
+            else{
+                var tcdx=tc.mesh.position.x-egg.mesh.position.x;
+                var tcdz=tc.mesh.position.z-egg.mesh.position.z;
+                var tcd=Math.sqrt(tcdx*tcdx+tcdz*tcdz);
+                if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.7;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.7;}
+                _chasingCoin=true;
+            }
+        }
+    }
+    // Steal coins when close enough
+    if(egg._stolenCoins.length<3){
+        for(var sci=0;sci<cityCoins.length;sci++){
+            var sc=cityCoins[sci];
+            if(sc.collected||sc._stolenBy)continue;
+            var sdx=egg.mesh.position.x-sc.mesh.position.x;
+            var sdz=egg.mesh.position.z-sc.mesh.position.z;
+            var sdist=Math.sqrt(sdx*sdx+sdz*sdz);
+            if(sdist<2.5){
+                sc._stolenBy=egg;
+                sc.mesh.visible=false;
+                egg._stolenCoins.push(sci);
+                egg._coinTarget=null;
+                // Make NPC body semi-transparent so coins are visible inside
+                if(!egg._madeTransparent){
+                    egg._madeTransparent=true;
+                    egg.mesh.traverse(function(child){
+                        if(child.isMesh&&child.material){
+                            var m=child.material;
+                            if(!m._origOpacity){m._origOpacity=m.opacity;m._origTransparent=m.transparent;}
+                            m.transparent=true;
+                            m.opacity=0.45;
+                        }
+                    });
+                }
+                // Add visible coin mesh inside NPC body
+                var sCoin=new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.4,0.4,0.08,10),
+                    new THREE.MeshBasicMaterial({color:0xFFDD00,emissive:0xFFAA00})
+                );
+                var sIdx=egg._stolenCoinMeshes.length;
+                sCoin.rotation.x=Math.PI/2;
+                sCoin.position.set(0.35*(sIdx-1),0.3+sIdx*0.4,0);
+                egg.mesh.add(sCoin);
+                egg._stolenCoinMeshes.push(sCoin);
+                if(egg._stolenCoins.length>=3)break;
+            }
+        }
+    }
+    // Rotate stolen coin meshes for visibility
+    if(egg._stolenCoinMeshes){
+        for(var scr=0;scr<egg._stolenCoinMeshes.length;scr++){
+            egg._stolenCoinMeshes[scr].rotation.y+=0.05;
+        }
+    }
+    // Skip normal AI if chasing a coin
+    if(_chasingCoin){
+        var spd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+        if(spd2>MAX_SPEED*0.6){egg.vx=(egg.vx/spd2)*MAX_SPEED*0.6;egg.vz=(egg.vz/spd2)*MAX_SPEED*0.6;}
+        return;
+    }
     // Initialize AI state if needed
     if(!egg._aiState){
         var states=['wander','idle','chase','flee','dance','circle'];
@@ -3485,63 +3569,6 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     var npcSpd=(egg._aiSprint>0)?1.2:1;
     var maxSpd=st==='flee'?MAX_SPEED*0.7*npcSpd:st==='chase'?MAX_SPEED*0.6*npcSpd:MAX_SPEED*0.45*npcSpd;
     if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
-    // ---- NPC coin stealing ----
-    if(!egg._stolenCoins)egg._stolenCoins=[];
-    if(!egg._stolenCoinMeshes)egg._stolenCoinMeshes=[];
-    // Actively seek nearby coins sometimes
-    if(egg._stolenCoins.length<3&&!egg._coinTarget&&Math.random()<0.01){
-        var bestCoin=null,bestCD=15;
-        for(var bci=0;bci<cityCoins.length;bci++){
-            var bc=cityCoins[bci];
-            if(bc.collected||bc._stolenBy)continue;
-            var bcdx=egg.mesh.position.x-bc.mesh.position.x;
-            var bcdz=egg.mesh.position.z-bc.mesh.position.z;
-            var bcd=Math.sqrt(bcdx*bcdx+bcdz*bcdz);
-            if(bcd<bestCD){bestCD=bcd;bestCoin=bci;}
-        }
-        if(bestCoin!==null){egg._coinTarget=bestCoin;egg._coinTargetTimer=180;}
-    }
-    // Move toward targeted coin
-    if(egg._coinTarget!==null&&egg._coinTarget>=0&&egg._coinTarget<cityCoins.length){
-        var tc=cityCoins[egg._coinTarget];
-        if(tc.collected||tc._stolenBy){egg._coinTarget=null;}
-        else{
-            egg._coinTargetTimer=(egg._coinTargetTimer||0)-1;
-            if(egg._coinTargetTimer<=0){egg._coinTarget=null;}
-            else{
-                var tcdx=tc.mesh.position.x-egg.mesh.position.x;
-                var tcdz=tc.mesh.position.z-egg.mesh.position.z;
-                var tcd=Math.sqrt(tcdx*tcdx+tcdz*tcdz);
-                if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.5;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.5;}
-            }
-        }
-    }
-    // Steal coins when close enough
-    if(egg._stolenCoins.length<3){
-        for(var sci=0;sci<cityCoins.length;sci++){
-            var sc=cityCoins[sci];
-            if(sc.collected||sc._stolenBy)continue;
-            var sdx=egg.mesh.position.x-sc.mesh.position.x;
-            var sdz=egg.mesh.position.z-sc.mesh.position.z;
-            var sdy=egg.mesh.position.y-sc.mesh.position.y;
-            var sdist=Math.sqrt(sdx*sdx+sdz*sdz+sdy*sdy);
-            if(sdist<2.2){
-                sc._stolenBy=egg;
-                sc.mesh.visible=false;
-                egg._stolenCoins.push(sci);
-                egg._coinTarget=null;
-                // Add semi-transparent coin mesh on NPC body
-                var sCoinMat=new THREE.MeshBasicMaterial({color:0xFFDD00,transparent:true,opacity:0.4});
-                var sCoin=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.06,8),sCoinMat);
-                var sIdx=egg._stolenCoinMeshes.length;
-                sCoin.rotation.x=Math.PI/2;
-                sCoin.position.set(0.4*(sIdx-1),0.8+sIdx*0.35,0.5);
-                egg.mesh.add(sCoin);
-                egg._stolenCoinMeshes.push(sCoin);
-                if(egg._stolenCoins.length>=3)break;
-            }
-        }
-    }
 }
 
 // ---- Drop stolen coins from NPC ----
@@ -3569,6 +3596,16 @@ function _dropNpcStolenCoins(egg){
     }
     egg._stolenCoins=[];
     egg._stolenCoinMeshes=[];
+    // Restore NPC body opacity
+    if(egg._madeTransparent){
+        egg._madeTransparent=false;
+        egg.mesh.traverse(function(child){
+            if(child.isMesh&&child.material&&child.material._origOpacity!==undefined){
+                child.material.opacity=child.material._origOpacity;
+                child.material.transparent=child.material._origTransparent;
+            }
+        });
+    }
 }
 
 function updateRaceAI(egg){
@@ -4053,34 +4090,23 @@ function updateCity(){
         if(_babylonRiseY>=0){
             _babylonRiseY=0;
             _babylonRising=false;
+            // Add wall colliders now that tower is fully risen
+            if(!_babylonTower._collidersAdded){
+                _babylonTower._collidersAdded=true;
+                var bw=_babylonTower.baseW||16, bd=_babylonTower.baseD||16;
+                var tx=_babylonTower.x, tz=_babylonTower.z, tTop=_babylonTower.topY;
+                cityColliders.push({x:tx-bw/2,z:tz,hw:0.8,hd:bd/2+0.5,h:tTop,_babel:true});
+                cityColliders.push({x:tx+bw/2,z:tz,hw:0.8,hd:bd/2+0.5,h:tTop,_babel:true});
+                cityColliders.push({x:tx,z:tz-bd/2,hw:bw/2+0.5,hd:0.8,h:tTop,_babel:true});
+                cityColliders.push({x:tx-bw/4-1,z:tz+bd/2,hw:bw/4-0.8,hd:0.8,h:tTop,_babel:true});
+                cityColliders.push({x:tx+bw/4+1,z:tz+bd/2,hw:bw/4-0.8,hd:0.8,h:tTop,_babel:true});
+            }
         }
         _babylonTower.group.position.y=_babylonRiseY;
     }
     // ---- Tower of Babel door collision ----
     if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator){
         var bt=_babylonTower;
-        // Wall collision — block player from walking through tower walls (except door on +Z face)
-        var btHW=8; // half-width of base layer (baseW=16)
-        var relX=px-bt.x, relZ=pz-bt.z;
-        if(Math.abs(relX)<btHW+0.5&&Math.abs(relZ)<btHW+0.5&&py<bt.topY){
-            // Inside tower bounding box — check if entering through door
-            var isDoor=(relZ>btHW-1.5&&Math.abs(relX)<1.5); // door is on +Z face, 3 units wide
-            if(!isDoor){
-                // Push player out of tower walls
-                var pushX=0,pushZ=0;
-                var overlapL=btHW+0.5-(-relX), overlapR=btHW+0.5-relX;
-                var overlapB=btHW+0.5-(-relZ), overlapT=btHW+0.5-relZ;
-                var minOverlap=Math.min(overlapL,overlapR,overlapB,overlapT);
-                if(minOverlap===overlapL){pushX=-overlapL;}
-                else if(minOverlap===overlapR){pushX=overlapR;}
-                else if(minOverlap===overlapB){pushZ=-overlapB;}
-                else{pushZ=overlapT;}
-                playerEgg.mesh.position.x=bt.x+relX+pushX;
-                playerEgg.mesh.position.z=bt.z+relZ+pushZ;
-                px=playerEgg.mesh.position.x;
-                pz=playerEgg.mesh.position.z;
-            }
-        }
         // Door is on +Z face of tower (bottom entrance)
         var doorX=bt.x, doorZ=bt.z+8.5;
         var bdx=px-doorX, bdz=pz-doorZ;
@@ -4682,9 +4708,15 @@ function checkThrownEggImpact(eggList){
 //  MAIN LOOP
 // ============================================================
 const clock = new THREE.Clock();
+var _lastFrameTime=0;
+var _targetFrameInterval=1000/62; // ~60fps with small tolerance
 
-function animate(){
+function animate(now){
     requestAnimationFrame(animate);
+    // Frame rate limiter — skip frames on high refresh rate displays (120Hz etc.)
+    if(!now)now=performance.now();
+    if(now-_lastFrameTime<_targetFrameInterval)return;
+    _lastFrameTime=now-(now-_lastFrameTime)%_targetFrameInterval;
     const dt=Math.min(clock.getDelta(),0.05);
 
     if(gameState==='city'){
