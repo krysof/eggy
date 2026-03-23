@@ -2015,20 +2015,33 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
     return cl;
 }
 function addClouds(){
-    // Random scattered clouds
-    for(var i=0;i<20;i++){
-        var cx=(Math.random()-0.5)*200;
-        var cy=10+Math.random()*12;
-        var cz=(Math.random()-0.5)*200;
-        _makeCloud(cx,cy,cz,2,4,2,5);
-    }
-    // Cloud above each building roof — close enough to jump onto
+    // Cloud above each building roof — reachable with charge jump
+    var roofClouds=[];
     for(var bi=0;bi<cityColliders.length;bi++){
         var c=cityColliders[bi];
         var roofTop=(c.h||6)+(c.roofH||3);
-        _makeCloud(c.x,roofTop+2,c.z,2,3,2,4);
+        var rc=_makeCloud(c.x,roofTop+2,c.z,2,3,2,4);
+        roofClouds.push(rc);
     }
-    // ---- Cloud World (y=40-50) — large platform layer ----
+    // ---- Staircase clouds from roof level to cloud world ----
+    // Tallest roof is about y=19, cloud world at y=42
+    // Need steps every ~4 units (easy charge jump) from y=22 to y=40
+    // Place staircase columns near several buildings
+    var stairPositions=[
+        {x:-30,z:-30},{x:30,z:25},{x:-50,z:-15},{x:50,z:35},{x:0,z:55},{x:-20,z:40}
+    ];
+    for(var si=0;si<stairPositions.length;si++){
+        var sp=stairPositions[si];
+        var baseY=22; // just above typical roof clouds
+        var steps=5; // 5 steps to reach cloud world
+        for(var st=0;st<steps;st++){
+            var sy=baseY+st*4;
+            var sx=sp.x+(Math.random()-0.5)*8;
+            var sz=sp.z+(Math.random()-0.5)*8;
+            _makeCloud(sx,sy,sz,2,3,2,4);
+        }
+    }
+    // ---- Cloud World (y=42) — large platform layer ----
     var cwY=42;
     // Central large cloud platform
     _makeCloud(0,cwY,0,4,4,4,6);
@@ -2036,19 +2049,50 @@ function addClouds(){
     for(var ai=0;ai<8;ai++){
         var ang=ai/8*Math.PI*2;
         var r=25+Math.random()*10;
-        _makeCloud(Math.cos(ang)*r,cwY-2+Math.random()*4,Math.sin(ang)*r,3,4,3,5);
+        _makeCloud(Math.cos(ang)*r,cwY-1+Math.random()*2,Math.sin(ang)*r,3,4,3,5);
     }
-    // Stepping stone clouds connecting roof clouds to cloud world
-    for(var si=0;si<12;si++){
-        var sx=(Math.random()-0.5)*80;
-        var sz=(Math.random()-0.5)*80;
-        var sy=28+Math.random()*10;
-        _makeCloud(sx,sy,sz,2,3,2,4);
-    }
-    // Outer ring — more exploration
+    // Outer ring
     for(var oi=0;oi<6;oi++){
         var oa=oi/6*Math.PI*2;
-        _makeCloud(Math.cos(oa)*50,cwY+Math.random()*3,Math.sin(oa)*50,3,4,3,5);
+        _makeCloud(Math.cos(oa)*50,cwY+Math.random()*2,Math.sin(oa)*50,3,4,3,5);
+    }
+    // ---- Moving clouds (platforms that drift back and forth) ----
+    for(var mi=0;mi<8;mi++){
+        var ma=mi/8*Math.PI*2;
+        var mr=15+Math.random()*25;
+        var mx=Math.cos(ma)*mr;
+        var mz=Math.sin(ma)*mr;
+        var my=cwY-1+Math.random()*3;
+        var mc=_makeCloud(mx,my,mz,2,3,3,5);
+        // Mark as moving cloud
+        mc.moving=true;
+        mc.moveAxis=Math.random()<0.5?'x':'z'; // drift direction
+        mc.moveSpeed=0.01+Math.random()*0.02;
+        mc.moveRange=8+Math.random()*12;
+        mc.movePhase=Math.random()*Math.PI*2;
+        mc.baseX=mx;
+        mc.baseZ=mz;
+    }
+    // Some moving clouds in the staircase zone too
+    for(var mi2=0;mi2<4;mi2++){
+        var mx2=(Math.random()-0.5)*60;
+        var mz2=(Math.random()-0.5)*60;
+        var my2=26+Math.random()*12;
+        var mc2=_makeCloud(mx2,my2,mz2,2,3,2,4);
+        mc2.moving=true;
+        mc2.moveAxis=Math.random()<0.5?'x':'z';
+        mc2.moveSpeed=0.008+Math.random()*0.015;
+        mc2.moveRange=6+Math.random()*10;
+        mc2.movePhase=Math.random()*Math.PI*2;
+        mc2.baseX=mx2;
+        mc2.baseZ=mz2;
+    }
+    // Random decorative clouds (high, not for standing)
+    for(var di=0;di<10;di++){
+        var dx2=(Math.random()-0.5)*200;
+        var dz2=(Math.random()-0.5)*200;
+        var dy2=50+Math.random()*20;
+        _makeCloud(dx2,dy2,dz2,3,4,3,6);
     }
     // Coins in cloud world
     var coinGeo=new THREE.CylinderGeometry(0.4,0.4,0.1,12);
@@ -2625,6 +2669,14 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var cloudTop=cl.y+(cl.top||1.2);
                 if(egg.vy<=0&&egg.mesh.position.y<=cloudTop+0.05&&egg.mesh.position.y>=cloudTop-1.5){
                     egg.mesh.position.y=cloudTop+0.01;egg.vy=0;egg.onGround=true;
+                    // Moving cloud carries the egg
+                    if(cl.moving){
+                        var mOff=Math.sin(cl.movePhase)*cl.moveRange;
+                        var mOffPrev=Math.sin(cl.movePhase-cl.moveSpeed)*cl.moveRange;
+                        var delta=mOff-mOffPrev;
+                        if(cl.moveAxis==='x')egg.mesh.position.x+=delta;
+                        else egg.mesh.position.z+=delta;
+                    }
                 }
             }
         }
@@ -3328,9 +3380,9 @@ function handlePlayerInput(){
 // ============================================================
 var _cameraZoom=1.0; // 1.0 = default, smaller = closer, larger = farther
 document.addEventListener('wheel',function(e){
-    _cameraZoom+=e.deltaY*0.001;
+    _cameraZoom+=e.deltaY*0.001*Math.max(1,_cameraZoom*0.5);
     if(_cameraZoom<0.04)_cameraZoom=0.04;
-    if(_cameraZoom>2.5)_cameraZoom=2.5;
+    if(_cameraZoom>1000)_cameraZoom=1000;
 },{passive:true});
 function updateCamera(){
     if(!playerEgg)return;
@@ -3545,6 +3597,21 @@ function updateCity(){
     for(const npc of cityNPCs){
         updateCityNPC(npc);
         updateEggPhysics(npc, true);
+    }
+
+    // Moving clouds
+    for(var mci=0;mci<cityCloudPlatforms.length;mci++){
+        var mc=cityCloudPlatforms[mci];
+        if(!mc.moving)continue;
+        mc.movePhase+=mc.moveSpeed;
+        var offset=Math.sin(mc.movePhase)*mc.moveRange;
+        if(mc.moveAxis==='x'){
+            mc.group.position.x=mc.baseX+offset;
+            mc.x=mc.baseX+offset;
+        } else {
+            mc.group.position.z=mc.baseZ+offset;
+            mc.z=mc.baseZ+offset;
+        }
     }
 }
 
