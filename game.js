@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.29 by \u767D\u6CB3\u6101',zht:'v20260323.29 by \u767D\u6CB3\u6101',ja:'v20260323.29 by \u767D\u6CB3\u6101',en:'v20260323.29 by Kryso'},
+    version:{zhs:'v20260323.30 by \u767D\u6CB3\u6101',zht:'v20260323.30 by \u767D\u6CB3\u6101',ja:'v20260323.30 by \u767D\u6CB3\u6101',en:'v20260323.30 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1999,10 +1999,12 @@ var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=180, _pipeArrivalCooldown=
 var _pipeStartX=0, _pipeStartZ=0, _pipeEndX=0, _pipeEndZ=0;
 var _pipeTubeGroup=null, _pipeTargetStyle=0;
 var _pipeMidX=0, _pipeMidZ=0;
+var _pipeStartY=3; // starting Y height for pipe travel
 
-function startPipeTravel(fromX,fromZ,targetStyle){
+function startPipeTravel(fromX,fromZ,targetStyle,fromY){
     _pipeTraveling=true;_pipeTimer=0;_pipeTargetStyle=targetStyle;
     _pipeStartX=fromX;_pipeStartZ=fromZ;
+    _pipeStartY=(fromY!==undefined)?fromY:3;
     // Destination is far away — simulate flying to a distant continent
     // Direction from pipe position determines flight direction
     var dirX=fromX,dirZ=fromZ;
@@ -2028,14 +2030,14 @@ function startPipeTravel(fromX,fromZ,targetStyle){
         var u=1-t;
         var px=u*u*fromX+2*u*t*midX+t*t*_pipeEndX;
         var pz=u*u*fromZ+2*u*t*midZ+t*t*_pipeEndZ;
-        var py=3+Math.sin(t*Math.PI)*60; // high arc — 60 units up
+        var py=_pipeStartY+Math.sin(t*Math.PI)*60; // high arc — 60 units up
         var seg=new THREE.Mesh(new THREE.CylinderGeometry(3,3,3,10,1,true),tubeMat);
         seg.position.set(px,py,pz);
         if(i<steps-1){
             var t2=(i+1)/steps;var u2=1-t2;
             var nx=u2*u2*fromX+2*u2*t2*midX+t2*t2*_pipeEndX;
             var nz=u2*u2*fromZ+2*u2*t2*midZ+t2*t2*_pipeEndZ;
-            var ny=3+Math.sin(t2*Math.PI)*60;
+            var ny=_pipeStartY+Math.sin(t2*Math.PI)*60;
             seg.lookAt(nx,ny,nz);seg.rotateX(Math.PI/2);
         }
         _pipeTubeGroup.add(seg);
@@ -2045,7 +2047,7 @@ function startPipeTravel(fromX,fromZ,targetStyle){
             ring.position.set(px,py,pz);
             if(i<steps-1){
                 var t3=(i+1)/steps;var u3=1-t3;
-                ring.lookAt(u3*u3*fromX+2*u3*t3*midX+t3*t3*_pipeEndX,3+Math.sin(t3*Math.PI)*60,u3*u3*fromZ+2*u3*t3*midZ+t3*t3*_pipeEndZ);
+                ring.lookAt(u3*u3*fromX+2*u3*t3*midX+t3*t3*_pipeEndX,_pipeStartY+Math.sin(t3*Math.PI)*60,u3*u3*fromZ+2*u3*t3*midZ+t3*t3*_pipeEndZ);
             }
             _pipeTubeGroup.add(ring);
         }
@@ -2132,7 +2134,7 @@ function updatePipeTravel(){
     var u=1-st;
     var px=u*u*_pipeStartX+2*u*st*_pipeMidX+st*st*_pipeEndX;
     var pz=u*u*_pipeStartZ+2*u*st*_pipeMidZ+st*st*_pipeEndZ;
-    var py=3+Math.sin(st*Math.PI)*60;
+    var py=_pipeStartY+Math.sin(st*Math.PI)*60;
     playerEgg.mesh.position.set(px,py,pz);
     playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
     playerEgg.mesh.rotation.y+=0.15;
@@ -2142,7 +2144,7 @@ function updatePipeTravel(){
     var lu=1-lookAhead;
     var lx=lu*lu*_pipeStartX+2*lu*lookAhead*_pipeMidX+lookAhead*lookAhead*_pipeEndX;
     var lz=lu*lu*_pipeStartZ+2*lu*lookAhead*_pipeMidZ+lookAhead*lookAhead*_pipeEndZ;
-    var ly=3+Math.sin(lookAhead*Math.PI)*60;
+    var ly=_pipeStartY+Math.sin(lookAhead*Math.PI)*60;
     var cdx=px-lx,cdz=pz-lz;
     var cl=Math.sqrt(cdx*cdx+cdz*cdz)||1;
     camera.position.set(px+cdx/cl*camDist,py+6,pz+cdz/cl*camDist);
@@ -3486,6 +3488,35 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     // ---- NPC coin stealing ----
     if(!egg._stolenCoins)egg._stolenCoins=[];
     if(!egg._stolenCoinMeshes)egg._stolenCoinMeshes=[];
+    // Actively seek nearby coins sometimes
+    if(egg._stolenCoins.length<3&&!egg._coinTarget&&Math.random()<0.01){
+        var bestCoin=null,bestCD=15;
+        for(var bci=0;bci<cityCoins.length;bci++){
+            var bc=cityCoins[bci];
+            if(bc.collected||bc._stolenBy)continue;
+            var bcdx=egg.mesh.position.x-bc.mesh.position.x;
+            var bcdz=egg.mesh.position.z-bc.mesh.position.z;
+            var bcd=Math.sqrt(bcdx*bcdx+bcdz*bcdz);
+            if(bcd<bestCD){bestCD=bcd;bestCoin=bci;}
+        }
+        if(bestCoin!==null){egg._coinTarget=bestCoin;egg._coinTargetTimer=180;}
+    }
+    // Move toward targeted coin
+    if(egg._coinTarget!==null&&egg._coinTarget>=0&&egg._coinTarget<cityCoins.length){
+        var tc=cityCoins[egg._coinTarget];
+        if(tc.collected||tc._stolenBy){egg._coinTarget=null;}
+        else{
+            egg._coinTargetTimer=(egg._coinTargetTimer||0)-1;
+            if(egg._coinTargetTimer<=0){egg._coinTarget=null;}
+            else{
+                var tcdx=tc.mesh.position.x-egg.mesh.position.x;
+                var tcdz=tc.mesh.position.z-egg.mesh.position.z;
+                var tcd=Math.sqrt(tcdx*tcdx+tcdz*tcdz);
+                if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.5;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.5;}
+            }
+        }
+    }
+    // Steal coins when close enough
     if(egg._stolenCoins.length<3){
         for(var sci=0;sci<cityCoins.length;sci++){
             var sc=cityCoins[sci];
@@ -3494,10 +3525,11 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var sdz=egg.mesh.position.z-sc.mesh.position.z;
             var sdy=egg.mesh.position.y-sc.mesh.position.y;
             var sdist=Math.sqrt(sdx*sdx+sdz*sdz+sdy*sdy);
-            if(sdist<1.8){
+            if(sdist<2.2){
                 sc._stolenBy=egg;
                 sc.mesh.visible=false;
                 egg._stolenCoins.push(sci);
+                egg._coinTarget=null;
                 // Add semi-transparent coin mesh on NPC body
                 var sCoinMat=new THREE.MeshBasicMaterial({color:0xFFDD00,transparent:true,opacity:0.4});
                 var sCoin=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.06,8),sCoinMat);
@@ -4027,6 +4059,28 @@ function updateCity(){
     // ---- Tower of Babel door collision ----
     if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator){
         var bt=_babylonTower;
+        // Wall collision — block player from walking through tower walls (except door on +Z face)
+        var btHW=8; // half-width of base layer (baseW=16)
+        var relX=px-bt.x, relZ=pz-bt.z;
+        if(Math.abs(relX)<btHW+0.5&&Math.abs(relZ)<btHW+0.5&&py<bt.topY){
+            // Inside tower bounding box — check if entering through door
+            var isDoor=(relZ>btHW-1.5&&Math.abs(relX)<1.5); // door is on +Z face, 3 units wide
+            if(!isDoor){
+                // Push player out of tower walls
+                var pushX=0,pushZ=0;
+                var overlapL=btHW+0.5-(-relX), overlapR=btHW+0.5-relX;
+                var overlapB=btHW+0.5-(-relZ), overlapT=btHW+0.5-relZ;
+                var minOverlap=Math.min(overlapL,overlapR,overlapB,overlapT);
+                if(minOverlap===overlapL){pushX=-overlapL;}
+                else if(minOverlap===overlapR){pushX=overlapR;}
+                else if(minOverlap===overlapB){pushZ=-overlapB;}
+                else{pushZ=overlapT;}
+                playerEgg.mesh.position.x=bt.x+relX+pushX;
+                playerEgg.mesh.position.z=bt.z+relZ+pushZ;
+                px=playerEgg.mesh.position.x;
+                pz=playerEgg.mesh.position.z;
+            }
+        }
         // Door is on +Z face of tower (bottom entrance)
         var doorX=bt.x, doorZ=bt.z+8.5;
         var bdx=px-doorX, bdz=pz-doorZ;
@@ -4056,12 +4110,14 @@ function updateCity(){
             _babylonElevator=false;
             playerEgg.mesh.position.set(bt2.x,bt2.topY+1,bt2.z);
             playerEgg.onGround=true;
+            _babylonPromptDismissed=true; // don't immediately prompt to go back down
         }
         // Arrived at bottom
         if(_babylonElevDir===-1&&_babylonElevY<=1){
             _babylonElevator=false;
             playerEgg.mesh.position.set(bt2.x,1,bt2.z+9);
             playerEgg.onGround=false;
+            _babylonPromptDismissed=true; // don't immediately prompt to go back up
         }
     }
 
@@ -4413,7 +4469,7 @@ function _confirmMoonPipeEnter(){
     _portalConfirmOpen=false;
     document.getElementById('portal-confirm').style.display='none';
     if(_cloudWorldPipe){
-        startPipeTravel(_cloudWorldPipe.x,_cloudWorldPipe.z,_cloudWorldPipe.targetStyle);
+        startPipeTravel(_cloudWorldPipe.x,_cloudWorldPipe.z,_cloudWorldPipe.targetStyle,_cloudWorldPipe.y);
     }
 }
 addEventListener('keydown',function(e){
