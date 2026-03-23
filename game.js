@@ -635,6 +635,7 @@ let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 
 // ---- Jump charge system ----
 var _jumpCharging=false, _jumpCharge=0, _jumpChargeMax=60, _jumpChargeBar=null;
+var _chargeBeepTimer=0, _chargeHoldTimer=0, _chargeHoldMax=600; // 600 frames ≈ 10s at 60fps
 function _createChargeBar(){
     // Use a canvas texture on a Sprite — always faces camera automatically
     var canvas=document.createElement('canvas');
@@ -682,12 +683,32 @@ function _updateChargeBar(){
     if(_jumpCharging&&playerEgg.onGround){
         if(!_jumpChargeBar){_jumpChargeBar=_createChargeBar();scene.add(_jumpChargeBar);}
         _jumpChargeBar.visible=true;
-        // Position above player in world space
         _jumpChargeBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+2.5,playerEgg.mesh.position.z);
-        _drawChargeBar(_jumpChargeBar,pct);
+        var drawPct=_jumpCharge/_jumpChargeMax;
+        // If fully charged, show hold timer decay
+        if(_jumpCharge>=_jumpChargeMax&&_chargeHoldTimer>0){
+            var holdPct=1-_chargeHoldTimer/_chargeHoldMax;
+            drawPct=holdPct;
+        }
+        _drawChargeBar(_jumpChargeBar,drawPct);
     } else {
         if(_jumpChargeBar){_jumpChargeBar.visible=false;}
     }
+}
+
+function _playChargeBeep(pct){
+    if(!sfxEnabled)return;
+    var ctx=ensureAudio();var t=ctx.currentTime;
+    // Higher pitch and shorter as charge fills
+    var freq=400+pct*800;
+    var dur=0.06-pct*0.03;
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.type='square';o.frequency.setValueAtTime(freq,t);
+    o.frequency.exponentialRampToValueAtTime(freq*1.3,t+dur);
+    g.gain.setValueAtTime(0.12,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.connect(g);g.connect(ctx.destination);
+    o.start(t);o.stop(t+dur);
 }
 
 // ---- Input ----
@@ -2163,16 +2184,39 @@ function handlePlayerInput(){
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;}
     // Charge jump: hold Space to charge, release to jump
-    if(keys['Space']&&playerEgg.onGround&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;}
-    if(_jumpCharging&&keys['Space']&&playerEgg.onGround){_jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);}
+    if(keys['Space']&&playerEgg.onGround&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;_chargeBeepTimer=0;_chargeHoldTimer=0;}
+    if(_jumpCharging&&keys['Space']&&playerEgg.onGround){
+        if(_jumpCharge<_jumpChargeMax){
+            _jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);
+            // Beep sound — interval decreases as charge fills
+            var pct=_jumpCharge/_jumpChargeMax;
+            var beepInterval=Math.max(3,Math.floor(15-pct*12));
+            _chargeBeepTimer++;
+            if(_chargeBeepTimer>=beepInterval){_chargeBeepTimer=0;_playChargeBeep(pct);}
+        } else {
+            // Fully charged — hold timer counts down
+            _chargeHoldTimer++;
+            // Rapid warning beeps in last 3 seconds (180 frames)
+            var remain=_chargeHoldMax-_chargeHoldTimer;
+            if(remain<180){
+                var warnInterval=Math.max(2,Math.floor(remain/20));
+                _chargeBeepTimer++;
+                if(_chargeBeepTimer>=warnInterval){_chargeBeepTimer=0;_playChargeBeep(0.5+0.5*Math.random());}
+            }
+            if(_chargeHoldTimer>=_chargeHoldMax){
+                // Time's up — force release, charge decays to 0
+                _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
+            }
+        }
+    }
     if(_jumpCharging&&(!keys['Space']||!playerEgg.onGround)){
         if(playerEgg.onGround&&_jumpCharge>0){
-            var pct=_jumpCharge/_jumpChargeMax;
-            playerEgg.vy=JUMP_FORCE*(1+pct*2);
-            playerEgg.squash=0.65-pct*0.2;
+            var pct2=_jumpCharge/_jumpChargeMax;
+            playerEgg.vy=JUMP_FORCE*(1+pct2*2);
+            playerEgg.squash=0.65-pct2*0.2;
             playJumpSound();
         }
-        _jumpCharging=false;_jumpCharge=0;
+        _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
     }
     _updateChargeBar();
     const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
