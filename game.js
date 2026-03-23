@@ -17,7 +17,7 @@ toonTex.minFilter = THREE.NearestFilter; toonTex.magFilter = THREE.NearestFilter
 function toon(color, opts={}) { return new THREE.MeshToonMaterial({color, gradientMap:toonTex, ...opts}); }
 
 // ---- Audio System (procedural, no files needed) ----
-let audioCtx=null, soundEnabled=true, _audioUnlocked=false;
+let audioCtx=null, soundEnabled=true, sfxEnabled=true, _audioUnlocked=false;
 function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
 // Mobile audio unlock — must resume AudioContext inside a user gesture
 function _unlockAudio(){
@@ -36,14 +36,22 @@ document.addEventListener('touchstart',_unlockAudio,{once:true});
 document.addEventListener('touchend',_unlockAudio,{once:true});
 document.addEventListener('click',_unlockAudio,{once:true});
 
-// Sound toggle button
-const soundBtn=document.getElementById("sound-btn");
-if(soundBtn) soundBtn.addEventListener("click",function(){
+// Music toggle button
+var musicBtn=document.getElementById("music-btn");
+if(musicBtn) musicBtn.addEventListener("click",function(){
     soundEnabled=!soundEnabled;
-    soundBtn.textContent=soundEnabled?"🔊":"🔇";
-    soundBtn.classList.toggle("muted",!soundEnabled);
-    if(!soundEnabled) stopBGM();
-    else if(gameState==="city"||gameState==="racing"||gameState==="raceIntro") startBGM();
+    musicBtn.textContent=soundEnabled?"🎵":"🚫";
+    musicBtn.classList.toggle("muted",!soundEnabled);
+    if(!soundEnabled){stopBGM();stopRaceBGM();stopSelectBGM();}
+    else if(gameState==="city") startBGM();
+    else if(gameState==="racing"||gameState==="raceIntro") startRaceBGM(currentRaceIndex);
+});
+// SFX toggle button
+var sfxBtn=document.getElementById("sfx-btn");
+if(sfxBtn) sfxBtn.addEventListener("click",function(){
+    sfxEnabled=!sfxEnabled;
+    sfxBtn.textContent=sfxEnabled?"🔊":"🔇";
+    sfxBtn.classList.toggle("muted",!sfxEnabled);
 });
 
 // Background music — cheerful multi-layer procedural BGM
@@ -223,11 +231,108 @@ function _selectLoop(ctx){
 }
 function stopSelectBGM(){selectBgmPlaying=false;if(selectBgmTimer){clearTimeout(selectBgmTimer);selectBgmTimer=null;}selectBgmNodes.forEach(function(n){try{n.stop();}catch(e){}});selectBgmNodes=[];if(selectBgmGain){selectBgmGain.gain.value=0;selectBgmGain=null;}}
 
+// ============================================================
+// Race BGM — 3 styles for 12 levels
+// ============================================================
+var raceBgmPlaying=false, raceBgmGain=null, raceBgmNodes=[], raceBgmTimer=null;
+function stopRaceBGM(){raceBgmPlaying=false;if(raceBgmTimer){clearTimeout(raceBgmTimer);raceBgmTimer=null;}raceBgmNodes.forEach(function(n){try{n.stop();}catch(e){}});raceBgmNodes=[];if(raceBgmGain){raceBgmGain.gain.value=0;raceBgmGain=null;}}
+function startRaceBGM(ri){
+    if(raceBgmPlaying||!soundEnabled)return;
+    stopBGM();stopSelectBGM();
+    var ctx=ensureAudio();raceBgmPlaying=true;
+    if(ctx.state==='suspended'){ctx.resume().then(function(){if(raceBgmPlaying)_raceBgmLoop(ctx,ri);});return;}
+    _raceBgmLoop(ctx,ri);
+}
+function _raceBgmLoop(ctx,ri){
+    raceBgmGain=ctx.createGain();raceBgmGain.gain.value=0.15;raceBgmGain.connect(ctx.destination);
+    var style=(ri<4)?0:(ri<8)?1:2;
+    // Style 0: Original — energetic obstacle course (Dm-Bb-C-A)
+    var chords0=[[294,349,440],[233,294,349],[262,330,392],[220,277,330],[294,349,440],[262,330,392],[233,294,349],[247,311,370]];
+    var mel0A=[587,659,698,784,698,659,587,523,587,659,784,880,784,698,587,659];
+    var mel0B=[523,587,659,587,523,440,494,523,587,698,784,698,587,523,494,587];
+    // Style 1: Sonic — fast, driving, major key (E-A-B-C#m)
+    var chords1=[[330,415,494],[220,277,330],[247,311,370],[277,330,415],[330,415,494],[247,311,370],[220,277,330],[294,370,440]];
+    var mel1A=[988,880,784,880,988,1047,988,784,659,784,880,988,1047,988,880,784];
+    var mel1B=[659,784,880,784,659,587,659,784,880,988,1047,1175,1047,988,880,988];
+    // Style 2: Mario — bouncy, staccato, C major (C-F-G-Am)
+    var chords2=[[262,330,392],[175,220,262],[196,247,294],[220,262,330],[262,330,392],[196,247,294],[175,220,262],[233,294,349]];
+    var mel2A=[784,784,0,784,0,659,784,0,988,0,0,0,494,0,0,0];
+    var mel2B=[784,0,659,0,523,0,440,494,0,440,0,392,0,0,0,0];
+    var chords,melA,melB,noteLen,waveType,bassType,melVol,bassVol,tempo;
+    if(style===0){chords=chords0;melA=mel0A;melB=mel0B;noteLen=0.16;waveType='triangle';bassType='sine';melVol=0.13;bassVol=0.09;tempo=1;}
+    else if(style===1){chords=chords1;melA=mel1A;melB=mel1B;noteLen=0.13;waveType='sawtooth';bassType='square';melVol=0.10;bassVol=0.10;tempo=1;}
+    else{chords=chords2;melA=mel2A;melB=mel2B;noteLen=0.15;waveType='square';bassType='triangle';melVol=0.11;bassVol=0.08;tempo=1;}
+    var loopN=0;
+    function doLoop(){
+        if(!raceBgmPlaying)return;
+        var now=ctx.currentTime;
+        var mel=loopN%2===0?melA:melB;loopN++;
+        for(var i=0;i<mel.length;i++){
+            // Melody
+            if(mel[i]>0){
+                var o=ctx.createOscillator();var g=ctx.createGain();
+                o.type=waveType;o.frequency.setValueAtTime(mel[i],now+i*noteLen);
+                if(style===1)o.frequency.exponentialRampToValueAtTime(mel[i]*1.02,now+i*noteLen+noteLen*0.4);
+                g.gain.setValueAtTime(0,now+i*noteLen);
+                g.gain.linearRampToValueAtTime(melVol,now+i*noteLen+0.01);
+                if(style===2){g.gain.setValueAtTime(melVol,now+i*noteLen+noteLen*0.3);g.gain.linearRampToValueAtTime(0,now+i*noteLen+noteLen*0.5);}
+                else{g.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*0.9);}
+                o.connect(g);g.connect(raceBgmGain);o.start(now+i*noteLen);o.stop(now+i*noteLen+noteLen);
+                raceBgmNodes.push(o);
+            }
+            // Harmony — octave below on even notes
+            if(mel[i]>0&&i%2===0){
+                var h=ctx.createOscillator();var hg=ctx.createGain();
+                h.type='sine';h.frequency.value=mel[i]*0.5;
+                hg.gain.setValueAtTime(0.04,now+i*noteLen);
+                hg.gain.exponentialRampToValueAtTime(0.003,now+i*noteLen+noteLen*1.5);
+                h.connect(hg);hg.connect(raceBgmGain);h.start(now+i*noteLen);h.stop(now+i*noteLen+noteLen*1.5);
+                raceBgmNodes.push(h);
+            }
+            // Chords every 4 notes
+            if(i%4===0){var ci=Math.floor(i/4)%chords.length;
+            for(var cn=0;cn<chords[ci].length;cn++){var co=ctx.createOscillator();var cg=ctx.createGain();
+            co.type=style===1?'sawtooth':'triangle';co.frequency.value=chords[ci][cn];
+            cg.gain.setValueAtTime(0.035,now+i*noteLen);cg.gain.exponentialRampToValueAtTime(0.004,now+i*noteLen+noteLen*3.8);
+            co.connect(cg);cg.connect(raceBgmGain);co.start(now+i*noteLen);co.stop(now+i*noteLen+noteLen*4);
+            raceBgmNodes.push(co);}}
+            // Bass
+            if(i%4===0){var ci2=Math.floor(i/4)%chords.length;
+            var bo=ctx.createOscillator();var bg2=ctx.createGain();
+            bo.type=bassType;bo.frequency.value=chords[ci2][0]*(style===1?0.25:0.5);
+            bg2.gain.setValueAtTime(bassVol,now+i*noteLen);bg2.gain.exponentialRampToValueAtTime(0.006,now+i*noteLen+noteLen*3.5);
+            bo.connect(bg2);bg2.connect(raceBgmGain);bo.start(now+i*noteLen);bo.stop(now+i*noteLen+noteLen*4);
+            raceBgmNodes.push(bo);}
+            // Kick drum
+            if(style===1?(i%2===0):(i%4===0)){
+                var kb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.07),ctx.sampleRate);var kd=kb.getChannelData(0);
+                for(var s=0;s<kd.length;s++){var p=s/kd.length;kd[s]=Math.sin(p*Math.PI*(style===1?14:8)*(1-p*0.8))*0.4*Math.exp(-p*6);}
+                var ks=ctx.createBufferSource();var kg=ctx.createGain();kg.gain.value=style===1?0.16:0.12;
+                ks.buffer=kb;ks.connect(kg);kg.connect(raceBgmGain);ks.start(now+i*noteLen);ks.stop(now+i*noteLen+0.07);
+                raceBgmNodes.push(ks);
+            }
+            // Snare
+            if(i%4===2){var sb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.05),ctx.sampleRate);var sd=sb.getChannelData(0);
+            for(var s2=0;s2<sd.length;s2++) sd[s2]=(Math.random()-0.5)*0.3*Math.exp(-s2/(sd.length*0.12));
+            var ss=ctx.createBufferSource();var sg=ctx.createGain();sg.gain.value=0.10;
+            ss.buffer=sb;ss.connect(sg);sg.connect(raceBgmGain);ss.start(now+i*noteLen);ss.stop(now+i*noteLen+0.05);
+            raceBgmNodes.push(ss);}
+            // Hi-hat
+            if(i%2===1){var hb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.02),ctx.sampleRate);var hd2=hb.getChannelData(0);
+            for(var s3=0;s3<hd2.length;s3++) hd2[s3]=(Math.random()-0.5)*0.18*Math.exp(-s3/(hd2.length*0.08));
+            var hs=ctx.createBufferSource();var hg2=ctx.createGain();hg2.gain.value=style===1?0.10:0.06;
+            hs.buffer=hb;hs.connect(hg2);hg2.connect(raceBgmGain);hs.start(now+i*noteLen);hs.stop(now+i*noteLen+0.02);
+            raceBgmNodes.push(hs);}
+        }
+        raceBgmTimer=setTimeout(doLoop,mel.length*noteLen*1000);
+    }
+    doLoop();
+}
 
 // Walk sound — cute "pata pata" Doraemon style with cooldown
 let lastStepTime=0;
 function playStepSound(){
-    if(!soundEnabled) return;
+    if(!sfxEnabled) return;
     const now=performance.now();
     if(now-lastStepTime<180) return; // min 180ms between steps
     lastStepTime=now;
@@ -257,7 +362,7 @@ function playStepSound(){
 
 // Jump sound
 function playJumpSound(){
-    if(!soundEnabled) return;
+    if(!sfxEnabled) return;
     const ctx=ensureAudio();
     const osc=ctx.createOscillator();
     const g=ctx.createGain();
@@ -272,7 +377,7 @@ function playJumpSound(){
 
 // Coin collect sound
 function playCoinSound(){
-    if(!soundEnabled) return;
+    if(!sfxEnabled) return;
     const ctx=ensureAudio();
     [800,1200].forEach((f,i)=>{
         const osc=ctx.createOscillator();
@@ -287,6 +392,7 @@ function playCoinSound(){
 
 // Hit/bump sound
 function playHitSound(){
+    if(!sfxEnabled) return;
     const ctx=ensureAudio();
     const osc=ctx.createOscillator();
     const g=ctx.createGain();
@@ -299,7 +405,7 @@ function playHitSound(){
 
 // Grab sound — short "boop"
 function playGrabSound(){
-    if(!soundEnabled) return;
+    if(!sfxEnabled) return;
     const ctx=ensureAudio(); const t=ctx.currentTime;
     const osc=ctx.createOscillator(); const g=ctx.createGain();
     osc.type='sine'; osc.frequency.setValueAtTime(500,t); osc.frequency.exponentialRampToValueAtTime(350,t+0.1);
@@ -309,7 +415,7 @@ function playGrabSound(){
 
 // Throw sound — whoosh
 function playThrowSound(){
-    if(!soundEnabled) return;
+    if(!sfxEnabled) return;
     const ctx=ensureAudio(); const t=ctx.currentTime;
     const buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.15),ctx.sampleRate);
     const d=buf.getChannelData(0);
@@ -326,7 +432,7 @@ function playThrowSound(){
 
 // Menu sound effects
 function playMenuMove(){
-    if(!soundEnabled)return;var ctx=ensureAudio();var t=ctx.currentTime;
+    if(!sfxEnabled)return;var ctx=ensureAudio();var t=ctx.currentTime;
     // Punchy arcade move sound
     var o=ctx.createOscillator();var g=ctx.createGain();
     o.type='square';o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(660,t+0.04);
@@ -339,7 +445,7 @@ function playMenuMove(){
     o2.connect(g2);g2.connect(ctx.destination);o2.start(t);o2.stop(t+0.03);
 }
 function playMenuConfirm(){
-    if(!soundEnabled)return;var ctx=ensureAudio();var t=ctx.currentTime;
+    if(!sfxEnabled)return;var ctx=ensureAudio();var t=ctx.currentTime;
     // Epic rising confirm — 5 rapid notes ascending with power chord
     var notes=[523,659,784,988,1318];
     notes.forEach(function(f,i){
@@ -2439,6 +2545,7 @@ function enterCity(spawnX,spawnZ){
     gameState='city';
     showScreen(null);
     stopSelectBGM();
+    stopRaceBGM();
     startBGM();
     document.getElementById('city-hud').classList.remove('hidden');
     document.getElementById('race-hud').classList.add('hidden');
@@ -2509,6 +2616,7 @@ function enterRace(raceIndex){
 
     // Show countdown then start
     gameState='raceIntro';
+    stopBGM(); startRaceBGM(raceIndex);
     const race=RACES[raceIndex];
     document.getElementById('round-label').textContent=race.name;
     document.getElementById('round-name').textContent=race.desc;
