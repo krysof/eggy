@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.17 by \u767D\u6CB3\u6101',zht:'v20260323.17 by \u767D\u6CB3\u6101',ja:'v20260323.17 by \u767D\u6CB3\u6101',en:'v20260323.17 by Kryso'},
+    version:{zhs:'v20260323.18 by \u767D\u6CB3\u6101',zht:'v20260323.18 by \u767D\u6CB3\u6101',ja:'v20260323.18 by \u767D\u6CB3\u6101',en:'v20260323.18 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1937,7 +1937,7 @@ function addClouds(){
             if(Math.random()*1.5+s*0.7>maxD)maxD=Math.random()*1.5+s*0.7;
         }
         var cx=(Math.random()-0.5)*200;
-        var cy=18+Math.random()*10;
+        var cy=14+Math.random()*14;
         var cz=(Math.random()-0.5)*200;
         g.position.set(cx, cy, cz);
         scene.add(g);
@@ -2393,28 +2393,24 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         // Building collisions — can land on roof
         if(egg.throwTimer>0){} else for(const c of cityColliders){
             const dx=egg.mesh.position.x-c.x, dz=egg.mesh.position.z-c.z;
+            // Cone roof collision — checked independently of box AABB
+            if(c.roofR&&c.roofH){
+                var distFromCenter=Math.sqrt(dx*dx+dz*dz);
+                var ey=egg.mesh.position.y;
+                var roofBase=c.h||6;
+                // Cone surface: at distance d from center, surface Y = roofBase + (1 - d/roofR) * roofH
+                if(distFromCenter<c.roofR+egg.radius){
+                    var slopeT=Math.max(0,1-distFromCenter/c.roofR);
+                    var surfaceY=roofBase+slopeT*c.roofH;
+                    if(ey>=surfaceY-1.2&&ey<=surfaceY+1.5&&egg.vy<=0.05){
+                        egg.mesh.position.y=surfaceY+0.01;egg.vy=0;egg.onGround=true;
+                        continue;
+                    }
+                }
+            }
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
-                // Cone roof collision (if building has roofR)
-                if(c.roofR&&c.roofH){
-                    var distFromCenter=Math.sqrt(dx*dx+dz*dz);
-                    var ey=egg.mesh.position.y;
-                    // Cone: base at roofY, tip at roofY+roofH, radius shrinks linearly
-                    if(ey>=roofY-0.5&&ey<=roofY+c.roofH+0.5){
-                        var t=Math.max(0,Math.min(1,(ey-roofY)/c.roofH));
-                        var coneR=c.roofR*(1-t); // radius at this height
-                        if(distFromCenter<coneR+egg.radius&&egg.vy<=0){
-                            // Land on the cone slope — compute surface Y at this distance
-                            var slopeT=Math.max(0,1-distFromCenter/c.roofR);
-                            var surfaceY=roofY+slopeT*c.roofH;
-                            if(ey>=surfaceY-0.8&&ey<=surfaceY+1){
-                                egg.mesh.position.y=surfaceY+0.01;egg.vy=0;egg.onGround=true;
-                                continue;
-                            }
-                        }
-                    }
-                }
                 // On top of building body — land on roof
                 if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.mesh.position.y>=roofY-0.5&&egg.vy<=0){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
@@ -2454,13 +2450,13 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 }
             }
         }
-        // Cloud platform collisions — can land on clouds from below
+        // Cloud platform collisions — can land on clouds
         for(var cli=0;cli<cityCloudPlatforms.length;cli++){
             var cl=cityCloudPlatforms[cli];
             var cdx=egg.mesh.position.x-cl.x, cdz=egg.mesh.position.z-cl.z;
             if(Math.abs(cdx)<cl.hw&&Math.abs(cdz)<cl.hd){
-                // Only land when falling and near cloud top
-                if(egg.mesh.position.y>=cl.y-0.5&&egg.mesh.position.y<=cl.y+1.5&&egg.vy<=0){
+                // Land when falling and near cloud top (wider window for fast-moving eggs)
+                if(egg.mesh.position.y>=cl.y-1.5&&egg.mesh.position.y<=cl.y+2.5&&egg.vy<=0){
                     egg.mesh.position.y=cl.y+0.5;egg.vy=0;egg.onGround=true;
                 }
             }
