@@ -105,7 +105,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="game.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('start-btn').textContent='加载失败，请刷新';"></script>
+<script>if(typeof THREE==='undefined'){document.getElementById('start-btn').textContent='3D引擎加载中...';var s=document.createElement('script');s.src='https://unpkg.com/three@0.160.0/build/three.min.js';s.onload=function(){var g=document.createElement('script');g.src='game.js';document.body.appendChild(g);};s.onerror=function(){document.getElementById('start-btn').textContent='加载失败，请刷新';};document.body.appendChild(s);}else{document.write('<scr'+'ipt src="game.js"><\/scr'+'ipt>');}</script>
 </body>
 </html>
