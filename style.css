@@ -86,4 +86,6 @@ h1{font-size:clamp(28px,7vw,48px);color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.1
 #joystick-knob{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.3);position:absolute}
 .touch-jump{position:absolute;right:20px;bottom:30px;width:66px;height:66px;border-radius:50%;background:rgba(255,215,0,.3);border:2px solid rgba(255,215,0,.45);color:#fff;font-size:18px;font-weight:700;pointer-events:auto;cursor:pointer}
 .touch-grab{position:absolute;right:100px;bottom:30px;width:66px;height:66px;border-radius:50%;background:rgba(255,100,100,.3);border:2px solid rgba(255,100,100,.45);color:#fff;font-size:18px;font-weight:700;pointer-events:auto;cursor:pointer}
+.touch-sprint{position:absolute;right:100px;bottom:110px;width:56px;height:56px;border-radius:50%;background:rgba(100,200,255,.3);border:2px solid rgba(100,200,255,.45);color:#fff;font-size:18px;font-weight:700;pointer-events:auto;cursor:pointer}
+.touch-sprint.active{background:rgba(100,255,100,.4);border-color:rgba(100,255,100,.6)}
 .touch-grab.holding{background:rgba(100,200,255,.4);border-color:rgba(100,200,255,.6)}

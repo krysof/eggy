@@ -663,7 +663,7 @@ function _updateChargeBar(){
 
 // ---- Input ----
 const keys={};
-addEventListener('keydown',e=>{ keys[e.code]=true; if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF'].includes(e.code))e.preventDefault(); });
+addEventListener('keydown',e=>{ keys[e.code]=true; if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault(); });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 
 let joyVec={x:0,y:0}, joyActive=false, joyTouchId=null;
@@ -692,6 +692,12 @@ if(jumpBtn){
 }
 const grabBtn=document.getElementById('grab-btn');
 if(grabBtn) grabBtn.addEventListener('touchstart',e=>{e.preventDefault();keys['KeyF']=true;setTimeout(()=>keys['KeyF']=false,200);},{passive:false});
+var sprintBtn=document.getElementById('sprint-btn');
+if(sprintBtn){
+    sprintBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['ShiftLeft']=true;sprintBtn.classList.add('active');},{passive:false});
+    sprintBtn.addEventListener('touchend',function(e){e.preventDefault();keys['ShiftLeft']=false;sprintBtn.classList.remove('active');},{passive:false});
+    sprintBtn.addEventListener('touchcancel',function(e){keys['ShiftLeft']=false;sprintBtn.classList.remove('active');},{passive:false});
+}
 
 
 // Portal prompt removed — auto-enter on walk-in
@@ -2097,8 +2103,13 @@ function handlePlayerInput(){
     if(keys['KeyW']||keys['ArrowUp'])mz-=1;
     if(keys['KeyS']||keys['ArrowDown'])mz+=1;
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
+    // Sprint: hold Shift when not holding anything
+    var isHolding=playerEgg.holding||playerEgg.holdingObs||playerEgg.holdingProp;
+    var sprinting=!isHolding&&(keys['ShiftLeft']||keys['ShiftRight']);
+    var accelMul=sprinting?1.7:1;
+    var speedMul=sprinting?1.7:1;
     const len=Math.sqrt(mx*mx+mz*mz);
-    if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL;playerEgg.vz+=mz*MOVE_ACCEL;}
+    if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;}
     // Charge jump: hold Space to charge, release to jump
     if(keys['Space']&&playerEgg.onGround&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;}
     if(_jumpCharging&&keys['Space']&&playerEgg.onGround){_jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);}
@@ -2113,7 +2124,8 @@ function handlePlayerInput(){
     }
     _updateChargeBar();
     const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-    if(spd>MAX_SPEED){playerEgg.vx=(playerEgg.vx/spd)*MAX_SPEED;playerEgg.vz=(playerEgg.vz/spd)*MAX_SPEED;}
+    var curMax=MAX_SPEED*speedMul;
+    if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
     // Grab / Throw (F key or touch grab button)
     if(playerEgg.grabCD>0) playerEgg.grabCD--;
     if(keys['KeyF']&&playerEgg.grabCD<=0){
