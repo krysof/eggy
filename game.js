@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.11 by \u767D\u6CB3\u6101',zht:'v20260323.11 by \u767D\u6CB3\u6101',ja:'v20260323.11 by \u767D\u6CB3\u6101',en:'v20260323.11 by Kryso'},
+    version:{zhs:'v20260323.12 by \u767D\u6CB3\u6101',zht:'v20260323.12 by \u767D\u6CB3\u6101',ja:'v20260323.12 by \u767D\u6CB3\u6101',en:'v20260323.12 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -154,6 +154,50 @@ if(sfxBtn) sfxBtn.addEventListener("click",function(){
     sfxBtn.textContent=sfxEnabled?"🔊":"🔇";
     sfxBtn.classList.toggle("muted",!sfxEnabled);
 });
+
+// Language toggle button
+var _langOrder=['zhs','zht','ja','en'];
+var _langLabels={zhs:'简',zht:'繁',ja:'JP',en:'EN'};
+var langBtn=document.getElementById("lang-btn");
+function _applyLang(){
+    // Re-localize arrays
+    for(var i=0;i<CHARACTERS.length;i++){CHARACTERS[i].name=I18N.charNames[_langCode][i]||CHARACTERS[i].name;}
+    for(var i=0;i<CITY_STYLES.length;i++){CITY_STYLES[i].name=I18N.cityNames[_langCode][i]||CITY_STYLES[i].name;}
+    for(var i=0;i<RACES.length;i++){RACES[i].name=I18N.raceNames[_langCode][i]||RACES[i].name;RACES[i].desc=I18N.raceDescs[_langCode][i]||RACES[i].desc;}
+    // Re-localize HTML
+    document.documentElement.lang=_langCode==='zhs'?'zh-CN':_langCode==='zht'?'zh-TW':_langCode==='ja'?'ja':'en';
+    document.title=L('title');
+    var h1=document.querySelector('#start-screen h1');if(h1)h1.textContent=L('title');
+    var sub=document.querySelector('.subtitle');if(sub)sub.textContent=L('subtitle');
+    var ver=document.querySelector('.version-text');if(ver)ver.textContent=L('version');
+    var sb=document.getElementById('start-btn');if(sb)sb.textContent=L('startBtn');
+    var st=document.querySelector('.select-title');if(st)st.textContent=L('selectTitle');
+    var cb=document.getElementById('confirm-btn');if(cb)cb.textContent=L('confirmBtn');
+    var py=document.getElementById('portal-yes');if(py)py.textContent=L('portalYes');
+    var pn=document.getElementById('portal-no');if(pn)pn.textContent=L('portalNo');
+    var mb=document.getElementById('music-btn');if(mb)mb.title=L('music');
+    var sb2=document.getElementById('sfx-btn');if(sb2)sb2.title=L('sfx');
+    var pills=document.querySelectorAll('#city-hud .hud-pill');
+    if(pills.length>=3)pills[2].textContent=L('grabThrow');
+    var rb=document.getElementById('race-back-btn');if(rb)rb.textContent=L('raceBack');
+    var bc=document.getElementById('back-city-btn');if(bc)bc.textContent=L('backCity');
+    var rt=document.getElementById('result-title');if(rt)rt.textContent=L('resultDone');
+    var gb=document.getElementById('grab-btn');if(gb)gb.textContent=L('grab');
+    var jb=document.getElementById('jump-btn');if(jb)jb.textContent=L('jump');
+    var cn=document.getElementById('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
+    var pn2=document.getElementById('portrait-name');if(pn2&&CHARACTERS[selectedChar])pn2.textContent=CHARACTERS[selectedChar].name;
+    if(langBtn)langBtn.textContent='\uD83C\uDF10'+_langLabels[_langCode];
+    // Rebuild warp pipe signs with new city names
+    if(typeof buildWarpPipes==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildWarpPipes();}
+}
+if(langBtn){
+    langBtn.textContent='\uD83C\uDF10'+_langLabels[_langCode];
+    langBtn.addEventListener("click",function(){
+        var idx=_langOrder.indexOf(_langCode);
+        _langCode=_langOrder[(idx+1)%_langOrder.length];
+        _applyLang();
+    });
+}
 
 // Background music — cheerful multi-layer procedural BGM
 let bgmPlaying=false, bgmGain=null, bgmNodes=[], _bgmTimer=null;
@@ -1606,7 +1650,7 @@ function applyCityTheme(){
 }
 
 // ---- Pipe travel animation state ----
-var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=180; // 3 seconds at 60fps
+var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=180, _pipeArrivalCooldown=0; // 3 seconds at 60fps
 var _pipeStartX=0, _pipeStartZ=0, _pipeEndX=0, _pipeEndZ=0;
 var _pipeTubeGroup=null, _pipeTargetStyle=0;
 var _pipeMidX=0, _pipeMidZ=0;
@@ -1753,6 +1797,7 @@ function updatePipeTravel(){
     // Done
     if(_pipeTimer>=_pipeDuration){
         _pipeTraveling=false;
+        _pipeArrivalCooldown=60; // 1 second grace period before portal checks
         if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
         playerEgg.mesh.position.set(0,3,0);
         playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
@@ -3068,6 +3113,8 @@ function updateCity(){
     }
 
     // Check portal proximity — show prompt on base, enter when walk into ring
+    if(_pipeArrivalCooldown>0)_pipeArrivalCooldown--;
+    if(_pipeTraveling||_pipeArrivalCooldown>0){document.getElementById('portal-prompt').style.display='none';} else {
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
     var _nearP=null, _nearD=9999;
@@ -3087,6 +3134,7 @@ function updateCity(){
     } else if(!_portalConfirmOpen){
         _pp.style.display='none';
     }
+    } // end if !_pipeTraveling
 
     // Coins
     for(const c of cityCoins){
