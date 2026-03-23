@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.20 by \u767D\u6CB3\u6101',zht:'v20260323.20 by \u767D\u6CB3\u6101',ja:'v20260323.20 by \u767D\u6CB3\u6101',en:'v20260323.20 by Kryso'},
+    version:{zhs:'v20260323.21 by \u767D\u6CB3\u6101',zht:'v20260323.21 by \u767D\u6CB3\u6101',ja:'v20260323.21 by \u767D\u6CB3\u6101',en:'v20260323.21 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -794,6 +794,9 @@ if (portraitCtx) drawPortrait(CHARACTERS[0]);
 // ---- State ----
 let gameState = 'menu'; // menu, city, raceIntro, racing, raceResult
 let coins = 0, nearPortal = null, countdownTimer = null;
+// ---- Tower of Babel state ----
+var _babylonTriggered=false, _babylonTower=null, _babylonRising=false, _babylonRiseY=-35;
+var _earthquakeTimer=0, _earthquakeIntensity=0;
 let raceCoinScore = 0;
 let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 
@@ -1890,6 +1893,9 @@ function clearCity(){
     if(_cloudWorldPipe){scene.remove(_cloudWorldPipe.group);_cloudWorldPipe=null;}
     // Remove moon earth
     if(window._moonEarth){scene.remove(window._moonEarth);window._moonEarth=null;}
+    // Remove Tower of Babel
+    if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
+    _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-35;_earthquakeTimer=0;
 }
 
 function applyCityTheme(){
@@ -2270,6 +2276,127 @@ function _buildCloudWorldMoonPipe(px,py,pz){
     _cloudWorldPipe={group:g,x:px,z:pz,y:py,targetStyle:5,_cooldown:false};
 }
 addClouds();
+
+// ---- Tower of Babel (Ziggurat) ----
+function playRumbleSound(){
+    if(!sfxEnabled)return;
+    var ctx=ensureAudio();if(!ctx)return;
+    // Low frequency rumble — noise + low oscillator
+    var dur=3.0;
+    var bufSize=Math.floor(ctx.sampleRate*dur);
+    var buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+    var data=buf.getChannelData(0);
+    for(var i=0;i<bufSize;i++){
+        var t=i/ctx.sampleRate;
+        // Low rumble noise + sine wobble
+        data[i]=(Math.random()-0.5)*0.3*Math.sin(t*40)*Math.exp(-t*0.3)
+            +Math.sin(t*55)*0.15*Math.exp(-t*0.4)
+            +Math.sin(t*30+Math.sin(t*7)*3)*0.12*Math.exp(-t*0.35);
+    }
+    var src=ctx.createBufferSource();src.buffer=buf;
+    var g=ctx.createGain();g.gain.setValueAtTime(0.4,ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.5,ctx.currentTime+0.5);
+    g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+dur);
+    // Low-pass filter for deep rumble
+    var filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=120;filt.Q.value=1;
+    src.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    src.start();src.stop(ctx.currentTime+dur);
+}
+
+function _buildBabylonTower(){
+    if(_babylonTower)return;
+    var g=new THREE.Group();
+    // Ziggurat — 7 stacked layers, each smaller than the last
+    var layers=7;
+    var baseW=12, baseD=12, layerH=4;
+    var colors=[0xD4A460,0xC8963C,0xBB8833,0xAA7722,0x996611,0x885500,0x774400];
+    for(var i=0;i<layers;i++){
+        var w=baseW-i*1.4;
+        var d=baseD-i*1.4;
+        var h=layerH;
+        var geo=new THREE.BoxGeometry(w,h,d);
+        var mat=toon(colors[i]);
+        var mesh=new THREE.Mesh(geo,mat);
+        mesh.position.y=i*layerH+layerH/2;
+        mesh.castShadow=true;mesh.receiveShadow=true;
+        g.add(mesh);
+        // Decorative ledge on each layer
+        var ledge=new THREE.Mesh(new THREE.BoxGeometry(w+0.6,0.4,d+0.6),toon(colors[Math.max(0,i-1)]));
+        ledge.position.y=i*layerH+layerH;
+        g.add(ledge);
+    }
+    // Staircase ramp on front face
+    var stairW=3,stairD=baseD+4;
+    var stairGeo=new THREE.BoxGeometry(stairW,layers*layerH,stairD);
+    // Use a wedge-like approach: just a ramp box
+    var rampGeo=new THREE.BoxGeometry(stairW,0.5,stairD*0.7);
+    var rampMat=toon(0xC8963C);
+    for(var ri=0;ri<layers;ri++){
+        var ramp=new THREE.Mesh(new THREE.BoxGeometry(3,0.4,2),rampMat);
+        ramp.position.set(baseW/2-ri*0.7+1.5,ri*layerH+layerH*0.5,0);
+        g.add(ramp);
+    }
+    // Top platform with archway
+    var topY=layers*layerH;
+    var topW=baseW-layers*1.4+1;
+    var arch1=new THREE.Mesh(new THREE.BoxGeometry(0.8,4,0.8),toon(0x996611));
+    arch1.position.set(-topW/3,topY+2,0);g.add(arch1);
+    var arch2=new THREE.Mesh(new THREE.BoxGeometry(0.8,4,0.8),toon(0x996611));
+    arch2.position.set(topW/3,topY+2,0);g.add(arch2);
+    var archTop=new THREE.Mesh(new THREE.BoxGeometry(topW*0.8,0.8,1.2),toon(0x774400));
+    archTop.position.set(0,topY+4,0);g.add(archTop);
+    // Pipe elevator inside — green warp pipe at base that launches to cloud world
+    var pipeMat=new THREE.MeshPhongMaterial({color:0x44FF88,transparent:true,opacity:0.5,side:THREE.DoubleSide});
+    var pipeBody=new THREE.Mesh(new THREE.CylinderGeometry(1.8,1.8,layers*layerH+2,16,1,true),pipeMat);
+    pipeBody.position.y=(layers*layerH+2)/2;g.add(pipeBody);
+    var pipeRim=new THREE.Mesh(new THREE.TorusGeometry(1.8,0.3,8,16),toon(0x44FF88,{emissive:0x22AA44,emissiveIntensity:0.4}));
+    pipeRim.position.y=0.2;pipeRim.rotation.x=Math.PI/2;g.add(pipeRim);
+    var pipeRimTop=new THREE.Mesh(new THREE.TorusGeometry(1.8,0.3,8,16),toon(0x44FF88,{emissive:0x22AA44,emissiveIntensity:0.4}));
+    pipeRimTop.position.y=topY+1;pipeRimTop.rotation.x=Math.PI/2;g.add(pipeRimTop);
+    // Glowing orbs inside pipe
+    var orbMat=new THREE.MeshBasicMaterial({color:0x88FFAA,transparent:true,opacity:0.6});
+    for(var oi=0;oi<10;oi++){
+        var orb=new THREE.Mesh(new THREE.SphereGeometry(0.25,6,4),orbMat);
+        var oa=oi/10*Math.PI*2;
+        orb.position.set(Math.cos(oa)*1.0,oi*2.8+1,Math.sin(oa)*1.0);
+        g.add(orb);
+    }
+    // Arrow pointing up inside pipe
+    var arrowMat=toon(0xFFFF44,{emissive:0xFFAA00,emissiveIntensity:0.5});
+    for(var ai=0;ai<3;ai++){
+        var arrow=new THREE.Mesh(new THREE.ConeGeometry(0.6,1.2,6),arrowMat);
+        arrow.position.set(0,4+ai*8,0);
+        g.add(arrow);
+    }
+    // Label sign
+    var canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
+    var ctx2=canvas.getContext('2d');
+    ctx2.fillStyle='rgba(0,0,0,0.6)';ctx2.fillRect(0,0,256,64);
+    ctx2.fillStyle='#FFD700';ctx2.font='bold 22px sans-serif';ctx2.textAlign='center';
+    var towerLabel={zhs:'\u5DF4\u522B\u5854 \u2191 \u6708\u7403',zht:'\u5DF4\u5225\u5854 \u2191 \u6708\u7403',ja:'\u30D0\u30D9\u30EB\u306E\u5854 \u2191 \u6708',en:'Tower of Babel \u2191 Moon'};
+    ctx2.fillText(towerLabel[_langCode]||towerLabel.en,128,42);
+    var tex=new THREE.CanvasTexture(canvas);
+    var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+    sign.scale.set(5,1.2,1);sign.position.set(0,topY+6,0);
+    g.add(sign);
+    // Position: place at x=35, z=-35 (clear area)
+    g.position.set(35,_babylonRiseY,-35);
+    scene.add(g);
+    _babylonTower={group:g,x:35,z:-35,pipeX:35,pipeZ:-35,topY:layers*layerH};
+    // Add collider for the tower base when it finishes rising
+}
+
+function _triggerBabylonEvent(){
+    if(_babylonTriggered)return;
+    if(currentCityStyle===5)return; // not on moon
+    _babylonTriggered=true;
+    _earthquakeTimer=180; // 3 seconds at 60fps
+    _earthquakeIntensity=0.5;
+    _babylonRising=true;
+    _babylonRiseY=-35;
+    playRumbleSound();
+    _buildBabylonTower();
+}
 
 // ============================================================
 //  RACE TRACK SYSTEM
@@ -3511,6 +3638,14 @@ function updateCamera(){
     camera.position.x+=(tx-camera.position.x)*0.08;
     camera.position.y+=(ty-camera.position.y)*0.08;
     camera.position.z+=(tz-camera.position.z)*0.08;
+    // Earthquake shake
+    if(_earthquakeTimer>0){
+        var shakeAmt=_earthquakeIntensity*(_earthquakeTimer/180);
+        camera.position.x+=(Math.random()-0.5)*shakeAmt*2;
+        camera.position.y+=(Math.random()-0.5)*shakeAmt*1.5;
+        camera.position.z+=(Math.random()-0.5)*shakeAmt*2;
+        _earthquakeTimer--;
+    }
     camera.lookAt(p.x, p.y+1, p.z-4);
     sun.position.set(p.x+30,50,p.z+30);
     sun.target.position.set(p.x,0,p.z);
@@ -3709,6 +3844,8 @@ function updateCity(){
             c.collected=true; c.mesh.visible=false;
             coins++; document.getElementById('coin-hud').textContent='⭐ '+coins;
             playCoinSound();
+            // Tower of Babel trigger at 10 coins
+            if(coins>=10&&!_babylonTriggered){_triggerBabylonEvent();}
         }
     }
 
@@ -3716,6 +3853,40 @@ function updateCity(){
     for(const npc of cityNPCs){
         updateCityNPC(npc);
         updateEggPhysics(npc, true);
+    }
+
+    // ---- Tower of Babel rise animation ----
+    if(_babylonRising&&_babylonTower){
+        _babylonRiseY+=0.2; // rise speed
+        if(_babylonRiseY>=0){
+            _babylonRiseY=0;
+            _babylonRising=false;
+        }
+        _babylonTower.group.position.y=_babylonRiseY;
+    }
+    // ---- Tower of Babel pipe elevator collision ----
+    if(_babylonTower&&!_babylonRising&&!_pipeTraveling){
+        var bt=_babylonTower;
+        var bdx=px-bt.pipeX, bdz=pz-bt.pipeZ;
+        var bdist=Math.sqrt(bdx*bdx+bdz*bdz);
+        if(bdist<2.5&&py<3){
+            // Launch player up to cloud world
+            playerEgg.mesh.position.set(0,44,0);
+            playerEgg.vx=0;playerEgg.vy=0.15;playerEgg.vz=0;
+            playerEgg.onGround=false;
+            // Play pipe travel sound
+            if(sfxEnabled){
+                var ctx=ensureAudio();if(ctx){
+                    var o=ctx.createOscillator();var g=ctx.createGain();
+                    o.type='sine';o.frequency.setValueAtTime(200,ctx.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(800,ctx.currentTime+0.5);
+                    g.gain.setValueAtTime(0.15,ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+                    o.connect(g);g.connect(ctx.destination);
+                    o.start();o.stop(ctx.currentTime+0.6);
+                }
+            }
+        }
     }
 
     // Moving clouds
