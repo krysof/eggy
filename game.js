@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.18 by \u767D\u6CB3\u6101',zht:'v20260323.18 by \u767D\u6CB3\u6101',ja:'v20260323.18 by \u767D\u6CB3\u6101',en:'v20260323.18 by Kryso'},
+    version:{zhs:'v20260323.19 by \u767D\u6CB3\u6101',zht:'v20260323.19 by \u767D\u6CB3\u6101',ja:'v20260323.19 by \u767D\u6CB3\u6101',en:'v20260323.19 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1286,6 +1286,66 @@ function createEgg(x,z,color,accent,isPlayer,targetScene,charType){
     return egg;
 }
 
+// ---- Drop shadow (dark circle projected straight down) ----
+var _dropShadowMesh=null;
+function _ensureDropShadow(){
+    if(_dropShadowMesh)return;
+    var geo=new THREE.CircleGeometry(0.7,16);
+    var mat=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:0.35,depthWrite:false});
+    _dropShadowMesh=new THREE.Mesh(geo,mat);
+    _dropShadowMesh.rotation.x=-Math.PI/2;
+    _dropShadowMesh.renderOrder=1;
+    scene.add(_dropShadowMesh);
+}
+function _updateDropShadow(){
+    if(!playerEgg||!playerEgg.mesh){if(_dropShadowMesh)_dropShadowMesh.visible=false;return;}
+    _ensureDropShadow();
+    var px=playerEgg.mesh.position.x, py=playerEgg.mesh.position.y, pz=playerEgg.mesh.position.z;
+    var groundY=0;
+    var isCity=(gameState==='city');
+    if(isCity){
+        // Check building roofs, props, clouds for highest surface below player
+        for(var bi=0;bi<cityColliders.length;bi++){
+            var c=cityColliders[bi];
+            var dx=px-c.x, dz=pz-c.z;
+            // Cone roof
+            if(c.roofR&&c.roofH){
+                var dist=Math.sqrt(dx*dx+dz*dz);
+                if(dist<c.roofR){
+                    var roofBase=c.h||6;
+                    var surfY=roofBase+(1-dist/c.roofR)*c.roofH;
+                    if(surfY<py&&surfY>groundY)groundY=surfY;
+                }
+            }
+            // Flat roof top
+            if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd){
+                var roofY2=(c.h||6);
+                if(roofY2<py&&roofY2>groundY)groundY=roofY2;
+            }
+        }
+        // Cloud platforms
+        for(var ci3=0;ci3<cityCloudPlatforms.length;ci3++){
+            var cl=cityCloudPlatforms[ci3];
+            if(Math.abs(px-cl.x)<cl.hw&&Math.abs(pz-cl.z)<cl.hd){
+                var clTop=cl.y+0.5;
+                if(clTop<py&&clTop>groundY)groundY=clTop;
+            }
+        }
+    } else {
+        // Race track floor
+        var gz=-pz;
+        groundY=getFloorY(gz,px);
+        if(groundY<-10)groundY=0;
+    }
+    _dropShadowMesh.visible=true;
+    _dropShadowMesh.position.set(px,groundY+0.05,pz);
+    // Scale shadow based on height — smaller when higher up
+    var height=py-groundY;
+    var sc=Math.max(0.3,1.2-height*0.04);
+    _dropShadowMesh.scale.set(sc,sc,sc);
+    _dropShadowMesh.material.opacity=Math.max(0.08,0.35-height*0.012);
+}
+
 // ============================================================
 //  CITY BUILDER
 // ============================================================
@@ -1931,17 +1991,22 @@ function addClouds(){
             const s=2+Math.random()*3;
             const m=new THREE.Mesh(cg,cm);
             m.scale.set(s,s*0.45,s*0.7);
-            m.position.set(j*2.5,0,Math.random()*1.5);
+            var pz=Math.random()*1.5-0.75;
+            m.position.set(j*2.5,0,pz);
             g.add(m);
             if(j*2.5+s>maxW)maxW=j*2.5+s;
-            if(Math.random()*1.5+s*0.7>maxD)maxD=Math.random()*1.5+s*0.7;
+            var partD=Math.abs(pz)+s*0.7;
+            if(partD>maxD)maxD=partD;
         }
+        // Center the group so collision aligns with visual center
+        var halfW=maxW*0.5;
+        for(var ci2=0;ci2<g.children.length;ci2++){g.children[ci2].position.x-=halfW;}
         var cx=(Math.random()-0.5)*200;
-        var cy=14+Math.random()*14;
+        var cy=10+Math.random()*12;
         var cz=(Math.random()-0.5)*200;
         g.position.set(cx, cy, cz);
         scene.add(g);
-        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:maxW*0.5+1, hd:Math.max(maxD,2.5)});
+        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:halfW+1.5, hd:Math.max(maxD,3)});
     }
 }
 addClouds();
@@ -2455,9 +2520,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var cl=cityCloudPlatforms[cli];
             var cdx=egg.mesh.position.x-cl.x, cdz=egg.mesh.position.z-cl.z;
             if(Math.abs(cdx)<cl.hw&&Math.abs(cdz)<cl.hd){
-                // Land when falling and near cloud top (wider window for fast-moving eggs)
-                if(egg.mesh.position.y>=cl.y-1.5&&egg.mesh.position.y<=cl.y+2.5&&egg.vy<=0){
-                    egg.mesh.position.y=cl.y+0.5;egg.vy=0;egg.onGround=true;
+                // Land when falling and near cloud top
+                var cloudTop=cl.y+0.5;
+                if(egg.mesh.position.y>=cl.y-2&&egg.mesh.position.y<=cl.y+3&&egg.vy<=0){
+                    egg.mesh.position.y=cloudTop;egg.vy=0;egg.onGround=true;
                 }
             }
         }
@@ -3851,6 +3917,7 @@ function animate(){
         if(playerEgg) updateCamera();
     }
 
+    _updateDropShadow();
     R.render(scene,camera);
     _updateChargeParticles();
     // Update grab button text
