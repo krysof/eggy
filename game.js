@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.33 by \u767D\u6CB3\u6101',zht:'v20260323.33 by \u767D\u6CB3\u6101',ja:'v20260323.33 by \u767D\u6CB3\u6101',en:'v20260323.33 by Kryso'},
+    version:{zhs:'v20260323.34 by \u767D\u6CB3\u6101',zht:'v20260323.34 by \u767D\u6CB3\u6101',ja:'v20260323.34 by \u767D\u6CB3\u6101',en:'v20260323.34 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1833,132 +1833,132 @@ function buildCity() {
             rock.rotation.set(Math.random(),Math.random(),Math.random());
             cityGroup.add(rock);
         }
-        // ---- Gundam RX-78 battles in moon space ----
+        // ---- Mobile Suit battles in moon space ----
         window._moonGundams=[];
         window._moonBeams=[];
         window._moonMissiles=[];
-        var gTypes=['rifle','rifle','rifle','rifle','saber','saber','saber','saber','funnel','funnel','funnel','missile','missile','missile','missile','rifle','saber','funnel'];
-        for(var gi=0;gi<gTypes.length;gi++){
-            var gd=_buildGundam(gTypes[gi]);
-            // Orbit params: altitude above sphere surface, angle, elevation
+        // 4 Gundams, 10 GMs, 25 Zakus (various colors), 6 Doms
+        var msUnits=[];
+        // Gundams (white/blue/red)
+        msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'funnel'});msUnits.push({ms:'gundam',weapon:'rifle'});
+        // GMs (beige/red visor)
+        for(var gmi=0;gmi<10;gmi++){msUnits.push({ms:'gm',weapon:Math.random()<0.6?'rifle':'saber'});}
+        // Zakus — various colors
+        var zakuColors=[0x336633,0x225522,0x447744,0xCC2222,0x882222,0x224488,0x335533,0x556655,0x443366,0x228844,0x336633,0x225522,0x447744,0x336633,0x225522,0x447744,0xCC2222,0x336633,0x225522,0x447744,0x336633,0x225522,0x447744,0x556655,0x336633];
+        for(var zki=0;zki<25;zki++){msUnits.push({ms:'zaku',weapon:Math.random()<0.4?'rifle':Math.random()<0.5?'missile':'rifle',color:zakuColors[zki]});}
+        // Doms (dark purple/black)
+        for(var dmi=0;dmi<6;dmi++){msUnits.push({ms:'dom',weapon:'rifle'});}
+        for(var gi=0;gi<msUnits.length;gi++){
+            var mu=msUnits[gi];
+            var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
             var gAlt=MOON_R*0.3+Math.random()*MOON_R*1.2;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.8;
             var gOrbitR=MOON_R+gAlt;
-            var gSpeed=(0.002+Math.random()*0.004)*(Math.random()<0.5?1:-1);
+            var gSpeed=(0.003+Math.random()*0.006)*(Math.random()<0.5?1:-1);
             gd.group.position.set(
                 Math.cos(gAngle)*Math.cos(gElev)*gOrbitR,
                 MOON_CY+Math.sin(gElev)*gOrbitR,
                 Math.sin(gAngle)*Math.cos(gElev)*gOrbitR
             );
             scene.add(gd.group);
-            window._moonGundams.push({group:gd.group,type:gTypes[gi],angle:gAngle,elev:gElev,orbitR:gOrbitR,speed:gSpeed,phase:Math.random()*Math.PI*2,actionTimer:0,funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null});
+            var faction=(mu.ms==='gundam'||mu.ms==='gm')?'efsf':'zeon';
+            window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,angle:gAngle,elev:gElev,orbitR:gOrbitR,speed:gSpeed,phase:Math.random()*Math.PI*2,actionTimer:Math.floor(Math.random()*60),funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null});
         }
-        // Pair up saber Gundams for duels
-        var saberGs=window._moonGundams.filter(function(g2){return g2.type==='saber';});
-        for(var sp=0;sp<saberGs.length;sp+=2){
-            if(saberGs[sp+1]){
-                saberGs[sp].duelPartner=saberGs[sp+1];
-                saberGs[sp+1].duelPartner=saberGs[sp];
-                // Put duel partners in similar orbits
-                saberGs[sp+1].angle=saberGs[sp].angle+0.15;
-                saberGs[sp+1].elev=saberGs[sp].elev;
-                saberGs[sp+1].orbitR=saberGs[sp].orbitR+3;
-                saberGs[sp+1].speed=saberGs[sp].speed;
-            }
+        // Pair up saber units for duels (EFSF vs Zeon)
+        var efsfSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&g2.faction==='efsf';});
+        var zeonSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&g2.faction==='zeon';});
+        var pairCount=Math.min(efsfSabers.length,zeonSabers.length);
+        for(var sp=0;sp<pairCount;sp++){
+            efsfSabers[sp].duelPartner=zeonSabers[sp];
+            zeonSabers[sp].duelPartner=efsfSabers[sp];
+            zeonSabers[sp].angle=efsfSabers[sp].angle+0.12;
+            zeonSabers[sp].elev=efsfSabers[sp].elev;
+            zeonSabers[sp].orbitR=efsfSabers[sp].orbitR+3;
+            zeonSabers[sp].speed=efsfSabers[sp].speed;
         }
     }
 }
 
-function _buildGundam(type){
+function _buildMobileSuit(msType,weaponType,customColor){
     var g=new THREE.Group();
-    // Colors: RX-78 white/blue/red/yellow
-    var white=toon(0xEEEEF0);var blue=toon(0x2244AA);var red=toon(0xCC2222);var yellow=toon(0xDDAA00);var gray=toon(0x666677);var darkGray=toon(0x333344);
-    // Torso
-    var torso=new THREE.Mesh(new THREE.BoxGeometry(1.8,2.0,1.0),white);
-    torso.position.y=0;g.add(torso);
-    // Chest vents (red)
-    var ventL=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.15),red);ventL.position.set(-0.45,0.5,0.55);g.add(ventL);
-    var ventR=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.15),red);ventR.position.set(0.45,0.5,0.55);g.add(ventR);
-    // Waist (yellow)
-    var waist=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.4,0.8),yellow);waist.position.y=-1.2;g.add(waist);
-    // Head
-    var head=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.8,0.8),white);head.position.y=1.5;g.add(head);
-    // V-fin (yellow)
-    var finL=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.7,4),yellow);finL.position.set(-0.3,2.1,0.1);finL.rotation.z=0.5;g.add(finL);
-    var finR=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.7,4),yellow);finR.position.set(0.3,2.1,0.1);finR.rotation.z=-0.5;g.add(finR);
-    // Eyes (green visor)
-    var visor=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.2,0.15),new THREE.MeshBasicMaterial({color:0x44FF88}));visor.position.set(0,1.55,0.45);g.add(visor);
-    // Chin (red)
-    var chin=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.15,0.2),red);chin.position.set(0,1.2,0.35);g.add(chin);
-    // Shoulders (blue)
-    var shL=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.6,0.7),blue);shL.position.set(-1.5,0.6,0);g.add(shL);
-    var shR=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.6,0.7),blue);shR.position.set(1.5,0.6,0);g.add(shR);
-    // Arms (white)
-    var armL=new THREE.Mesh(new THREE.BoxGeometry(0.4,1.4,0.4),white);armL.position.set(-1.5,-0.4,0);g.add(armL);
-    var armR=new THREE.Mesh(new THREE.BoxGeometry(0.4,1.4,0.4),white);armR.position.set(1.5,-0.4,0);g.add(armR);
-    // Hands (gray)
-    var handL=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.3,0.35),gray);handL.position.set(-1.5,-1.2,0);g.add(handL);
-    var handR=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.3,0.35),gray);handR.position.set(1.5,-1.2,0);g.add(handR);
-    // Legs (white upper, blue lower)
-    var legUL=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.0,0.5),white);legUL.position.set(-0.45,-1.9,0);g.add(legUL);
-    var legUR=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.0,0.5),white);legUR.position.set(0.45,-1.9,0);g.add(legUR);
-    var legLL=new THREE.Mesh(new THREE.BoxGeometry(0.55,1.2,0.55),blue);legLL.position.set(-0.45,-3.1,0);g.add(legLL);
-    var legLR=new THREE.Mesh(new THREE.BoxGeometry(0.55,1.2,0.55),blue);legLR.position.set(0.45,-3.1,0);g.add(legLR);
-    // Feet (red)
-    var footL=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.3,0.8),red);footL.position.set(-0.45,-3.85,0.1);g.add(footL);
-    var footR=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.3,0.8),red);footR.position.set(0.45,-3.85,0.1);g.add(footR);
-    // Backpack (gray)
-    var backpack=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.4,0.6),gray);backpack.position.set(0,0.2,-0.8);g.add(backpack);
-    // Thrusters (dark cylinders on backpack)
-    var thrL=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,0.5,6),darkGray);thrL.position.set(-0.35,-0.3,-1.1);g.add(thrL);
-    var thrR=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,0.5,6),darkGray);thrR.position.set(0.35,-0.3,-1.1);g.add(thrR);
-    // Thruster glow
+    var gray=toon(0x666677);var darkGray=toon(0x333344);
     var glowMat=new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.6});
-    var glowL=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.8,6),glowMat);glowL.position.set(-0.35,-0.9,-1.1);glowL.rotation.x=Math.PI;g.add(glowL);
-    var glowR=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.8,6),glowMat);glowR.position.set(0.35,-0.9,-1.1);glowR.rotation.x=Math.PI;g.add(glowR);
-    // Shield on left arm
-    var shield=new THREE.Group();
-    var shieldBody=new THREE.Mesh(new THREE.BoxGeometry(0.15,2.0,1.2),white);shield.add(shieldBody);
-    var shieldTop=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.6,1.0),red);shieldTop.position.y=0.8;shield.add(shieldTop);
-    var shieldCross=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.15,0.8),yellow);shieldCross.position.y=0.2;shield.add(shieldCross);
-    shield.position.set(-2.0,-0.3,0.3);g.add(shield);
     var result={group:g};
-    // Type-specific weapon
-    if(type==='rifle'){
-        // Beam rifle in right hand
-        var rifle=new THREE.Group();
-        var barrel=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,2.5,6),gray);barrel.rotation.x=Math.PI/2;barrel.position.z=1.0;rifle.add(barrel);
-        var grip=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.4,0.3),darkGray);grip.position.y=-0.15;rifle.add(grip);
-        rifle.position.set(1.5,-1.0,0.5);g.add(rifle);
-        result.weapon=rifle;
-    } else if(type==='saber'){
-        // Beam saber — glowing blade
-        var saber=new THREE.Group();
-        var hilt=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.5,6),gray);saber.add(hilt);
-        var blade=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.02,2.5,6),new THREE.MeshBasicMaterial({color:0xFF88CC,transparent:true,opacity:0.8}));
-        blade.position.y=1.5;saber.add(blade);
-        saber.position.set(1.5,-0.5,0.8);saber.rotation.x=-0.3;g.add(saber);
-        result.saberMesh=saber;
-    } else if(type==='funnel'){
-        // Funnels — 4 small floating bits
+    if(msType==='gundam'){
+        var w=toon(0xEEEEF0),b=toon(0x2244AA),r=toon(0xCC2222),y=toon(0xDDAA00);
+        g.add(new THREE.Mesh(new THREE.BoxGeometry(1.8,2.0,1.0),w));
+        var v1=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.15),r);v1.position.set(-0.45,0.5,0.55);g.add(v1);
+        var v2=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.3,0.15),r);v2.position.set(0.45,0.5,0.55);g.add(v2);
+        var wa2=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.4,0.8),y);wa2.position.y=-1.2;g.add(wa2);
+        var hd=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.8,0.8),w);hd.position.y=1.5;g.add(hd);
+        var f1=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.7,4),y);f1.position.set(-0.3,2.1,0.1);f1.rotation.z=0.5;g.add(f1);
+        var f2=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.7,4),y);f2.position.set(0.3,2.1,0.1);f2.rotation.z=-0.5;g.add(f2);
+        var gvi=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.2,0.15),new THREE.MeshBasicMaterial({color:0x44FF88}));gvi.position.set(0,1.55,0.45);g.add(gvi);
+        var ch=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.15,0.2),r);ch.position.set(0,1.2,0.35);g.add(ch);
+        var s1=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.6,0.7),b);s1.position.set(-1.5,0.6,0);g.add(s1);
+        var s2=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.6,0.7),b);s2.position.set(1.5,0.6,0);g.add(s2);
+        [[-1.5,w],[1.5,w]].forEach(function(p){var a=new THREE.Mesh(new THREE.BoxGeometry(0.4,1.4,0.4),p[1]);a.position.set(p[0],-0.4,0);g.add(a);var h=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.3,0.35),gray);h.position.set(p[0],-1.2,0);g.add(h);});
+        [[-0.45,w,b,r],[0.45,w,b,r]].forEach(function(p){var u=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.0,0.5),p[1]);u.position.set(p[0],-1.9,0);g.add(u);var l=new THREE.Mesh(new THREE.BoxGeometry(0.55,1.2,0.55),p[2]);l.position.set(p[0],-3.1,0);g.add(l);var ft=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.3,0.8),p[3]);ft.position.set(p[0],-3.85,0.1);g.add(ft);});
+        var bp=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.4,0.6),gray);bp.position.set(0,0.2,-0.8);g.add(bp);
+        [[-0.35],[0.35]].forEach(function(p){var t=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,0.5,6),darkGray);t.position.set(p[0],-0.3,-1.1);g.add(t);var gl=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.8,6),glowMat);gl.position.set(p[0],-0.9,-1.1);gl.rotation.x=Math.PI;g.add(gl);});
+        var sh=new THREE.Group();sh.add(new THREE.Mesh(new THREE.BoxGeometry(0.15,2.0,1.2),w));var sht=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.6,1.0),r);sht.position.y=0.8;sh.add(sht);var shc=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.15,0.8),y);shc.position.y=0.2;sh.add(shc);sh.position.set(-2.0,-0.3,0.3);g.add(sh);
+    } else if(msType==='gm'){
+        var bg=toon(0xCCBB99),r2=toon(0xCC3333),dkBg=toon(0xAA9977);
+        g.add(new THREE.Mesh(new THREE.BoxGeometry(1.7,1.9,0.9),bg));
+        var gwa=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.4,0.7),dkBg);gwa.position.y=-1.15;g.add(gwa);
+        var ghd=new THREE.Mesh(new THREE.BoxGeometry(0.85,0.75,0.75),bg);ghd.position.y=1.4;g.add(ghd);
+        var gmvi=new THREE.Mesh(new THREE.BoxGeometry(0.65,0.2,0.15),new THREE.MeshBasicMaterial({color:0xFF4444}));gmvi.position.set(0,1.45,0.42);g.add(gmvi);
+        var gs1=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.5,0.6),r2);gs1.position.set(-1.4,0.5,0);g.add(gs1);
+        var gs2=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.5,0.6),r2);gs2.position.set(1.4,0.5,0);g.add(gs2);
+        [[-1.4,bg],[1.4,bg]].forEach(function(p){var a=new THREE.Mesh(new THREE.BoxGeometry(0.38,1.3,0.38),p[1]);a.position.set(p[0],-0.4,0);g.add(a);var h=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.28,0.32),gray);h.position.set(p[0],-1.15,0);g.add(h);});
+        [[-0.42,bg,dkBg],[0.42,bg,dkBg]].forEach(function(p){var u=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.95,0.48),p[1]);u.position.set(p[0],-1.8,0);g.add(u);var l=new THREE.Mesh(new THREE.BoxGeometry(0.5,1.1,0.5),p[2]);l.position.set(p[0],-2.95,0);g.add(l);var ft=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.28,0.7),p[2]);ft.position.set(p[0],-3.65,0.1);g.add(ft);});
+        var gbp=new THREE.Mesh(new THREE.BoxGeometry(1.0,1.2,0.5),gray);gbp.position.set(0,0.1,-0.7);g.add(gbp);
+        [[-0.3],[0.3]].forEach(function(p){var gt=new THREE.Mesh(new THREE.ConeGeometry(0.18,0.7,6),glowMat);gt.position.set(p[0],-0.7,-0.7);gt.rotation.x=Math.PI;g.add(gt);});
+        var gsh=new THREE.Mesh(new THREE.BoxGeometry(0.12,1.6,1.0),r2);gsh.position.set(-1.9,-0.2,0.3);g.add(gsh);
+    } else if(msType==='zaku'){
+        var zc=toon(customColor||0x336633);var zdk=toon(0x224422);
+        g.add(new THREE.Mesh(new THREE.BoxGeometry(1.7,1.9,0.9),zc));
+        var zwa=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.4,0.7),zdk);zwa.position.y=-1.15;g.add(zwa);
+        var zhd=new THREE.Mesh(new THREE.SphereGeometry(0.55,8,6),zc);zhd.position.y=1.5;g.add(zhd);
+        var zeye=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),new THREE.MeshBasicMaterial({color:0xFF44AA}));zeye.position.set(0,1.5,0.5);g.add(zeye);
+        var zt1=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.8,6),gray);zt1.position.set(0.3,1.2,0.3);zt1.rotation.z=0.5;g.add(zt1);
+        var zt2=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.8,6),gray);zt2.position.set(-0.3,1.2,0.3);zt2.rotation.z=-0.5;g.add(zt2);
+        var zs1=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.5,0.6),zc);zs1.position.set(-1.4,0.5,0);g.add(zs1);
+        var zs2=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.7,0.8),zc);zs2.position.set(1.4,0.6,0);g.add(zs2);
+        var zspk=new THREE.Mesh(new THREE.ConeGeometry(0.15,0.6,6),gray);zspk.position.set(1.4,1.1,0);g.add(zspk);
+        [[-1.4,zc],[1.4,zc]].forEach(function(p){var a=new THREE.Mesh(new THREE.BoxGeometry(0.38,1.3,0.38),p[1]);a.position.set(p[0],-0.4,0);g.add(a);var h=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.28,0.32),gray);h.position.set(p[0],-1.15,0);g.add(h);});
+        [[-0.42,zc,zdk],[0.42,zc,zdk]].forEach(function(p){var u=new THREE.Mesh(new THREE.BoxGeometry(0.48,0.95,0.48),p[1]);u.position.set(p[0],-1.8,0);g.add(u);var l=new THREE.Mesh(new THREE.BoxGeometry(0.52,1.1,0.52),p[2]);l.position.set(p[0],-2.95,0);g.add(l);var ft=new THREE.Mesh(new THREE.BoxGeometry(0.52,0.28,0.7),p[2]);ft.position.set(p[0],-3.65,0.1);g.add(ft);});
+        var zbp=new THREE.Mesh(new THREE.BoxGeometry(0.9,1.0,0.5),gray);zbp.position.set(0,0.1,-0.7);g.add(zbp);
+        var zgl=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.7,6),glowMat);zgl.position.set(0,-0.6,-0.7);zgl.rotation.x=Math.PI;g.add(zgl);
+        var zsh=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.7,0.12,8),zc);zsh.rotation.z=Math.PI/2;zsh.position.set(-1.9,-0.2,0.3);g.add(zsh);
+    } else if(msType==='dom'){
+        var dc2=toon(0x332244);var dlc=toon(0x443355);var dblk=toon(0x1A1A2A);
+        g.add(new THREE.Mesh(new THREE.BoxGeometry(2.0,2.0,1.1),dc2));
+        var dwa=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.4,0.9),dblk);dwa.position.y=-1.2;g.add(dwa);
+        var dhd=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.7,0.7),dc2);dhd.position.y=1.5;g.add(dhd);
+        var dvi=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.15,0.15),new THREE.MeshBasicMaterial({color:0xFF4444}));dvi.position.set(0,1.55,0.4);g.add(dvi);
+        var ds1=new THREE.Mesh(new THREE.SphereGeometry(0.5,6,5),dlc);ds1.position.set(-1.5,0.6,0);g.add(ds1);
+        var ds2=new THREE.Mesh(new THREE.SphereGeometry(0.5,6,5),dlc);ds2.position.set(1.5,0.6,0);g.add(ds2);
+        var da1=new THREE.Mesh(new THREE.BoxGeometry(0.42,1.3,0.42),dc2);da1.position.set(-1.5,-0.4,0);g.add(da1);
+        var da2=new THREE.Mesh(new THREE.BoxGeometry(0.42,1.3,0.42),dc2);da2.position.set(1.5,-0.4,0);g.add(da2);
+        var dsk=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.4,1.8,8),dblk);dsk.position.y=-2.3;g.add(dsk);
+        var dgl=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.3,0.3,8),new THREE.MeshBasicMaterial({color:0x6644FF,transparent:true,opacity:0.4}));dgl.position.y=-3.3;g.add(dgl);
+        var dbp=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.2,0.5),gray);dbp.position.set(0,0.2,-0.8);g.add(dbp);
+    }
+    // Weapons (shared across all MS types)
+    if(weaponType==='rifle'){
+        var rf=new THREE.Group();var brl=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,2.5,6),gray);brl.rotation.x=Math.PI/2;brl.position.z=1.0;rf.add(brl);var rfgrp=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.4,0.3),darkGray);rfgrp.position.set(0,-0.15,0);rf.add(rfgrp);rf.position.set(1.5,-1.0,0.5);g.add(rf);result.weapon=rf;
+    } else if(weaponType==='saber'){
+        var sb=new THREE.Group();sb.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.5,6),gray));
+        var bld=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.02,2.5,6),new THREE.MeshBasicMaterial({color:msType==='zaku'||msType==='dom'?0xFF4466:0xFF88CC,transparent:true,opacity:0.8}));bld.position.y=1.5;sb.add(bld);
+        sb.position.set(1.5,-0.5,0.8);sb.rotation.x=-0.3;g.add(sb);result.saberMesh=sb;
+    } else if(weaponType==='funnel'){
         var funnels=[];
-        for(var fi2=0;fi2<4;fi2++){
-            var fun=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.6,4),toon(0x8866AA));
-            var fAngle2=fi2*Math.PI/2;
-            fun.position.set(Math.cos(fAngle2)*3,Math.sin(fAngle2)*2,Math.sin(fAngle2)*3);
-            g.add(fun);
-            funnels.push({mesh:fun,angle:fAngle2,dist:3+Math.random()});
-        }
+        for(var fi2=0;fi2<6;fi2++){var fn=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.6,4),toon(0x8866AA));var fa2=fi2*Math.PI*2/6;fn.position.set(Math.cos(fa2)*3,Math.sin(fa2)*2,Math.sin(fa2)*3);g.add(fn);funnels.push({mesh:fn,angle:fa2,dist:3+Math.random()});}
         result.funnels=funnels;
-    } else if(type==='missile'){
-        // Missile pods on shoulders
-        var podL=new THREE.Group();
-        for(var mi=0;mi<3;mi++){var tube=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.8,6),darkGray);tube.position.set(0,0,mi*0.25-0.25);tube.rotation.x=Math.PI/2;podL.add(tube);}
-        podL.position.set(-1.5,1.1,0);g.add(podL);
-        var podR=new THREE.Group();
-        for(var mi2=0;mi2<3;mi2++){var tube2=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.8,6),darkGray);tube2.position.set(0,0,mi2*0.25-0.25);tube2.rotation.x=Math.PI/2;podR.add(tube2);}
-        podR.position.set(1.5,1.1,0);g.add(podR);
+    } else if(weaponType==='missile'){
+        [[-1.5],[1.5]].forEach(function(p){var pd=new THREE.Group();for(var mi=0;mi<3;mi++){var tb=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.8,6),darkGray);tb.position.set(0,0,mi*0.25-0.25);tb.rotation.x=Math.PI/2;pd.add(tb);}pd.position.set(p[0],1.1,0);g.add(pd);});
     }
     g.scale.set(1.5,1.5,1.5);
     return result;
@@ -3954,29 +3954,19 @@ function _dropNpcStolenCoins(egg){
             dc._stolenBy=null;
             dc.collected=false;
             dc.mesh.visible=true;
-            // Drop near the NPC position with slight scatter
+            // Sonic-style scatter: coins fly outward in arcs
+            var angle=di*(Math.PI*2/egg._stolenCoins.length)+Math.random()*0.5;
+            var scatterSpeed=0.12+Math.random()*0.08;
+            var svx=Math.cos(angle)*scatterSpeed;
+            var svz=Math.sin(angle)*scatterSpeed;
+            var svy=0.18+Math.random()*0.1;
+            dc.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1,egg.mesh.position.z);
+            dc._scatterVX=svx;dc._scatterVY=svy;dc._scatterVZ=svz;dc._scatterTimer=60;
             if(currentCityStyle===5){
-                // Moon: place coin near NPC on sphere surface
-                var ep2=egg.mesh.position;
-                var edx2=ep2.x,edy2=ep2.y-MOON_CY,edz2=ep2.z;
-                var ed2=Math.sqrt(edx2*edx2+edy2*edy2+edz2*edz2)||1;
-                var enx2=edx2/ed2,eny2=edy2/ed2,enz2=edz2/ed2;
-                // Small random offset along sphere surface
-                var cpx2=ep2.x+(Math.random()-0.5)*3;
-                var cpy2=ep2.y+(Math.random()-0.5)*3;
-                var cpz2=ep2.z+(Math.random()-0.5)*3;
-                var cd4x=cpx2,cd4y=cpy2-MOON_CY,cd4z=cpz2;
-                var cd4=Math.sqrt(cd4x*cd4x+cd4y*cd4y+cd4z*cd4z)||1;
-                dc.mesh.position.set(cd4x/cd4*(MOON_R+1.2),MOON_CY+cd4y/cd4*(MOON_R+1.2),cd4z/cd4*(MOON_R+1.2));
-                dc._moonBasePos={x:dc.mesh.position.x,y:dc.mesh.position.y,z:dc.mesh.position.z};
+                dc._moonBasePos=null; // will be set when scatter ends
                 dc.baseY=undefined;
             } else {
-                var dropX=egg.mesh.position.x+(Math.random()-0.5)*3;
-                var dropZ=egg.mesh.position.z+(Math.random()-0.5)*3;
-                dc.mesh.position.x=dropX;
-                dc.mesh.position.z=dropZ;
-                dc.baseY=1.2;
-                dc.mesh.position.y=1.2;
+                dc.baseY=undefined; // will be set when scatter ends
             }
         }
     }
@@ -4304,20 +4294,24 @@ function updateCamera(){
     if(!playerEgg)return;
     const p=playerEgg.mesh.position;
     if(gameState==='city'&&currentCityStyle===5){
-        // Moon spherical camera — follow behind player along surface normal
+        // Moon spherical camera — fixed orientation (not behind player)
         var dx=p.x,dy=p.y-MOON_CY,dz=p.z;
         var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
         var nx=dx/d,ny=dy/d,nz=dz/d;
-        // Camera position: above player along normal + behind
+        // Camera position: above player along normal + offset back in world Z
         var camH=10*_cameraZoom;
         var camBack=14*_cameraZoom;
-        // Get player's tangent forward direction from velocity or mesh orientation
-        var fwd=new THREE.Vector3(0,0,1);
-        fwd.applyQuaternion(playerEgg.mesh.quaternion);
-        // Camera target: along normal + behind along tangent
-        var tx=p.x+nx*camH-fwd.x*camBack;
-        var ty=p.y+ny*camH-fwd.y*camBack;
-        var tz=p.z+nz*camH-fwd.z*camBack;
+        // Use surface normal as up, offset camera along a fixed world-ish direction
+        // Project world Z onto tangent plane for consistent "back" direction
+        var wBack=new THREE.Vector3(0,0,1);
+        var dotB=wBack.x*nx+wBack.y*ny+wBack.z*nz;
+        wBack.x-=dotB*nx;wBack.y-=dotB*ny;wBack.z-=dotB*nz;
+        var wbl=Math.sqrt(wBack.x*wBack.x+wBack.y*wBack.y+wBack.z*wBack.z);
+        if(wbl<0.01){wBack.set(1,0,0);dotB=wBack.x*nx+wBack.y*ny+wBack.z*nz;wBack.x-=dotB*nx;wBack.y-=dotB*ny;wBack.z-=dotB*nz;wbl=wBack.length();}
+        wBack.x/=wbl;wBack.y/=wbl;wBack.z/=wbl;
+        var tx=p.x+nx*camH+wBack.x*camBack;
+        var ty=p.y+ny*camH+wBack.y*camBack;
+        var tz=p.z+nz*camH+wBack.z*camBack;
         camera.position.x+=(tx-camera.position.x)*0.08;
         camera.position.y+=(ty-camera.position.y)*0.08;
         camera.position.z+=(tz-camera.position.z)*0.08;
@@ -4532,6 +4526,43 @@ function updateCity(){
     // Coins
     for(const c of cityCoins){
         if(c.collected)continue;
+        // Sonic-style scatter physics
+        if(c._scatterTimer>0){
+            c._scatterTimer--;
+            c.mesh.position.x+=c._scatterVX;
+            c.mesh.position.y+=c._scatterVY;
+            c.mesh.position.z+=c._scatterVZ;
+            c._scatterVY-=0.008; // gravity
+            c.mesh.rotation.y+=0.2;
+            c.mesh.rotation.x+=0.15;
+            // Bounce on ground
+            if(currentCityStyle===5){
+                var sdx3=c.mesh.position.x,sdy3=c.mesh.position.y-MOON_CY,sdz3=c.mesh.position.z;
+                var sd3=Math.sqrt(sdx3*sdx3+sdy3*sdy3+sdz3*sdz3);
+                if(sd3<MOON_R+1.2){
+                    // Project back onto sphere surface
+                    var sn3=MOON_R+1.2;
+                    c.mesh.position.x=sdx3/sd3*sn3;c.mesh.position.y=MOON_CY+sdy3/sd3*sn3;c.mesh.position.z=sdz3/sd3*sn3;
+                    // Reflect velocity along normal
+                    var snx=sdx3/sd3,sny=sdy3/sd3,snz=sdz3/sd3;
+                    var vdot=c._scatterVX*snx+c._scatterVY*sny+c._scatterVZ*snz;
+                    if(vdot<0){c._scatterVX-=1.5*vdot*snx;c._scatterVY-=1.5*vdot*sny;c._scatterVZ-=1.5*vdot*snz;c._scatterVX*=0.6;c._scatterVY*=0.6;c._scatterVZ*=0.6;}
+                }
+            } else {
+                if(c.mesh.position.y<1.2){c.mesh.position.y=1.2;c._scatterVY=Math.abs(c._scatterVY)*0.5;c._scatterVX*=0.7;c._scatterVZ*=0.7;}
+            }
+            if(c._scatterTimer<=0){
+                // Settle coin at final position
+                if(currentCityStyle===5){
+                    c._moonBasePos={x:c.mesh.position.x,y:c.mesh.position.y,z:c.mesh.position.z};
+                    c.baseY=undefined;
+                } else {
+                    c.baseY=1.2;c.mesh.position.y=1.2;
+                }
+                c._scatterVX=0;c._scatterVY=0;c._scatterVZ=0;
+            }
+            continue; // skip normal bobbing while scattering
+        }
         c.mesh.rotation.y+=0.03;
         if(currentCityStyle===5&&!c.baseY){
             // Moon coins: bob along surface normal
@@ -4680,7 +4711,7 @@ function updateCity(){
                     var fd=ff.dist+Math.sin(gt*2+ffi)*0.5;
                     ff.mesh.position.set(Math.cos(ff.angle)*fd,Math.sin(ff.angle*0.7+ffi)*fd*0.5,Math.sin(ff.angle)*fd);
                     // Funnel beam: 2% chance per frame
-                    if(Math.random()<0.02&&window._moonBeams.length<40){
+                    if(Math.random()<0.02&&window._moonBeams.length<80){
                         var bDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
                         var fWorld=new THREE.Vector3();ff.mesh.getWorldPosition(fWorld);
                         var fb=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,8,4),new THREE.MeshBasicMaterial({color:0xFF44FF,transparent:true,opacity:0.9}));
@@ -4693,8 +4724,8 @@ function updateCity(){
             // Rifle: periodic beam shot
             gm.actionTimer--;
             if(gm.type==='rifle'&&gm.actionTimer<=0){
-                gm.actionTimer=60+Math.floor(Math.random()*90);
-                if(window._moonBeams.length<40){
+                gm.actionTimer=25+Math.floor(Math.random()*40);
+                if(window._moonBeams.length<80){
                     var bm=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,12,4),new THREE.MeshBasicMaterial({color:0xFF8844,transparent:true,opacity:0.9}));
                     var fwd=new THREE.Vector3(tx2,ty2,tz2).normalize();
                     bm.position.set(gx+fwd.x*3,gy+fwd.y*3,gz+fwd.z*3);
@@ -4705,8 +4736,8 @@ function updateCity(){
             }
             // Missile: periodic launch
             if(gm.type==='missile'&&gm.actionTimer<=0){
-                gm.actionTimer=80+Math.floor(Math.random()*120);
-                if(window._moonMissiles.length<30){
+                gm.actionTimer=40+Math.floor(Math.random()*60);
+                if(window._moonMissiles.length<60){
                     var mg=new THREE.Group();
                     var mbody=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.06,1.0,6),new THREE.MeshStandardMaterial({color:0x888888}));
                     mbody.rotation.x=Math.PI/2;mg.add(mbody);
