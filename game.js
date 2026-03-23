@@ -1199,10 +1199,10 @@ function createEggMesh(color, accent, charType) {
         beak.position.set(0,0.7,0.58); beak.rotation.x=-Math.PI/2;
         body.add(beak);
     } else if (charType==='cockroach') {
-        // Antennae
+        // Antennae — pointing outward
         [-1,1].forEach(s=>{
             const ant=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.008,0.6,3),toon(0x4A2A1A));
-            ant.position.set(s*0.12,1.35,0.2); ant.rotation.z=s*0.4; ant.rotation.x=-0.3;
+            ant.position.set(s*0.12,1.35,0.2); ant.rotation.z=-s*0.4; ant.rotation.x=-0.3;
             body.add(ant);
         });
         // Shell line
@@ -1327,7 +1327,7 @@ function _updateDropShadow(){
         for(var ci3=0;ci3<cityCloudPlatforms.length;ci3++){
             var cl=cityCloudPlatforms[ci3];
             if(Math.abs(px-cl.x)<cl.hw&&Math.abs(pz-cl.z)<cl.hd){
-                var clTop=cl.y+0.5;
+                var clTop=cl.y+(cl.top||1.2);
                 if(clTop<py&&clTop>groundY)groundY=clTop;
             }
         }
@@ -1985,7 +1985,7 @@ function addClouds(){
     const cm=toon(0xffffff,{transparent:true,opacity:0.85});
     for(let i=0;i<30;i++){
         const g=new THREE.Group();
-        var maxW=0,maxD=0;
+        var maxW=0,maxD=0,maxTop=0;
         var numParts=2+Math.floor(Math.random()*3);
         for(let j=0;j<numParts;j++){
             const s=2+Math.random()*3;
@@ -1997,6 +1997,8 @@ function addClouds(){
             if(j*2.5+s>maxW)maxW=j*2.5+s;
             var partD=Math.abs(pz)+s*0.7;
             if(partD>maxD)maxD=partD;
+            var partTop=s*0.45; // top of this sphere part
+            if(partTop>maxTop)maxTop=partTop;
         }
         // Center the group so collision aligns with visual center
         var halfW=maxW*0.5;
@@ -2006,7 +2008,7 @@ function addClouds(){
         var cz=(Math.random()-0.5)*200;
         g.position.set(cx, cy, cz);
         scene.add(g);
-        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:halfW+1.5, hd:Math.max(maxD,3)});
+        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:halfW+1.5, hd:Math.max(maxD,3), top:maxTop});
     }
 }
 addClouds();
@@ -2520,10 +2522,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var cl=cityCloudPlatforms[cli];
             var cdx=egg.mesh.position.x-cl.x, cdz=egg.mesh.position.z-cl.z;
             if(Math.abs(cdx)<cl.hw&&Math.abs(cdz)<cl.hd){
-                // Land when falling and near cloud top
-                var cloudTop=cl.y+0.5;
-                if(egg.mesh.position.y>=cl.y-2&&egg.mesh.position.y<=cl.y+3&&egg.vy<=0){
-                    egg.mesh.position.y=cloudTop;egg.vy=0;egg.onGround=true;
+                // Land on top of cloud visual surface
+                var cloudTop=cl.y+(cl.top||1.2);
+                if(egg.vy<=0&&egg.mesh.position.y<=cloudTop+0.05&&egg.mesh.position.y>=cloudTop-1.5){
+                    egg.mesh.position.y=cloudTop+0.01;egg.vy=0;egg.onGround=true;
                 }
             }
         }
