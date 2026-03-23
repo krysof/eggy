@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.12 by \u767D\u6CB3\u6101',zht:'v20260323.12 by \u767D\u6CB3\u6101',ja:'v20260323.12 by \u767D\u6CB3\u6101',en:'v20260323.12 by Kryso'},
+    version:{zhs:'v20260323.13 by \u767D\u6CB3\u6101',zht:'v20260323.13 by \u767D\u6CB3\u6101',ja:'v20260323.13 by \u767D\u6CB3\u6101',en:'v20260323.13 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -536,6 +536,23 @@ function playCoinSound(){
 }
 
 // Hit/bump sound
+var _splashCooldown=0;
+function playSplashSound(){
+    if(!sfxEnabled||_splashCooldown>0) return;
+    _splashCooldown=20;
+    var ctx=ensureAudio();if(!ctx)return;
+    // Filtered noise burst for water splash
+    var bufSize=ctx.sampleRate*0.15;
+    var buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<bufSize;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/bufSize*4);
+    var src=ctx.createBufferSource();src.buffer=buf;
+    var filt=ctx.createBiquadFilter();filt.type='bandpass';filt.frequency.value=2000;filt.Q.value=0.8;
+    var g=ctx.createGain();g.gain.setValueAtTime(0.12,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
+    src.connect(filt);filt.connect(g);g.connect(ctx.destination);
+    src.start();src.stop(ctx.currentTime+0.15);
+}
 function playHitSound(){
     if(!sfxEnabled) return;
     const ctx=ensureAudio();
@@ -1384,6 +1401,8 @@ function buildCity() {
     // Water surface
     var poolWater=new THREE.Mesh(new THREE.CylinderGeometry(6.2,6.2,0.2,24),waterM);
     poolWater.position.y=0.6;cityGroup.add(poolWater);
+    window._fountainPoolWater=poolWater;
+    var innerWaterRef=null;
     // Steps around the pool (3 tiers)
     for(var si=0;si<3;si++){
         var stepR=8+si*1.2;var stepH=0.2;
@@ -1397,6 +1416,8 @@ function buildCity() {
     innerFloor.position.y=0.8;cityGroup.add(innerFloor);
     var innerWater=new THREE.Mesh(new THREE.CylinderGeometry(3,3,0.15,16),waterM);
     innerWater.position.y=1.35;cityGroup.add(innerWater);
+    innerWaterRef=innerWater;
+    window._fountainInnerWater=innerWater;
     // Central pillar — ornate column
     var colBase=new THREE.Mesh(new THREE.CylinderGeometry(1,1.2,0.6,8),marbleM);
     colBase.position.y=1.6;cityGroup.add(colBase);
@@ -1455,6 +1476,44 @@ function buildCity() {
         cityGroup.add(coin);
     }
     cityColliders.push({x:0,z:0,hw:8.5,hd:8.5,h:3});
+
+    // ---- Fountain water particle system ----
+    var _fwParticles=[];
+    var _fwMat=new THREE.MeshBasicMaterial({color:0x66CCFF,transparent:true,opacity:0.6});
+    // Central jet particles (spray from top shell)
+    for(var fpi=0;fpi<40;fpi++){
+        var fp=new THREE.Mesh(new THREE.SphereGeometry(0.08,4,3),_fwMat);
+        fp.visible=false;
+        cityGroup.add(fp);
+        _fwParticles.push({mesh:fp,type:'jet',life:0,maxLife:60+Math.random()*40,
+            vx:(Math.random()-0.5)*0.04,vy:0.12+Math.random()*0.06,vz:(Math.random()-0.5)*0.04,
+            ox:0,oy:8.2,oz:0});
+    }
+    // Lion spout particles (4 lions, 6 particles each)
+    for(var lli=0;lli<4;lli++){
+        var lla=lli/4*Math.PI*2;
+        var llx=Math.cos(lla)*3.3,llz=Math.sin(lla)*3.3;
+        var jdx=-Math.cos(lla)*0.06,jdz=-Math.sin(lla)*0.06;
+        for(var lpi=0;lpi<6;lpi++){
+            var lp=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),_fwMat);
+            lp.visible=false;
+            cityGroup.add(lp);
+            _fwParticles.push({mesh:lp,type:'lion',life:0,maxLife:30+Math.random()*20,
+                vx:jdx+(Math.random()-0.5)*0.01,vy:-0.02+Math.random()*0.02,vz:jdz+(Math.random()-0.5)*0.01,
+                ox:llx,oy:1.4,oz:llz});
+        }
+    }
+    // Store reference for animation
+    window._fountainParticles=_fwParticles;
+    window._fountainSplashParticles=[];
+    // Splash particle pool
+    var _fsMat=new THREE.MeshBasicMaterial({color:0x88DDFF,transparent:true,opacity:0.7});
+    for(var fsi=0;fsi<20;fsi++){
+        var fsp=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),_fsMat);
+        fsp.visible=false;
+        cityGroup.add(fsp);
+        window._fountainSplashParticles.push({mesh:fsp,life:0,maxLife:0,vx:0,vy:0,vz:0});
+    }
 
     // ---- Lamp posts ----
     for(let i=0;i<20;i++){
@@ -1541,6 +1600,17 @@ function buildPortals() {
 
         cityGroup.add(g);
         portals.push({mesh:g, ring, inner, name:race.name, desc:race.desc, raceIndex:i, x:race.x, z:race.z, color:race.color});
+
+        // Name sign above portal
+        var _pc=document.createElement('canvas');_pc.width=256;_pc.height=64;
+        var _px=_pc.getContext('2d');
+        _px.fillStyle='rgba(0,0,0,0.6)';_px.fillRect(0,0,256,64);
+        _px.fillStyle='#fff';_px.font='bold 24px sans-serif';_px.textAlign='center';
+        _px.fillText(race.name,128,42);
+        var _ptex=new THREE.CanvasTexture(_pc);
+        var _psign=new THREE.Sprite(new THREE.SpriteMaterial({map:_ptex,transparent:true}));
+        _psign.scale.set(4.5,1.1,1);_psign.position.y=5;
+        g.add(_psign);
         // No collider for portals — player walks through them to enter
     });
 }
@@ -1628,6 +1698,10 @@ function clearCity(){
     cityCoins.length=0;
     cityProps.length=0;
     warpPipeMeshes.length=0;
+    window._fountainParticles=null;
+    window._fountainSplashParticles=null;
+    window._fountainPoolWater=null;
+    window._fountainInnerWater=null;
     // Remove city NPCs
     for(var i=0;i<cityNPCs.length;i++){scene.remove(cityNPCs[i].mesh);}
     cityNPCs.length=0;
@@ -3110,6 +3184,81 @@ function updateCity(){
                 ch.position.set(Math.cos(a)*1.8, 2.5+Math.sin(a*2)*0.5, Math.sin(a)*1.8);
             }
         });
+    }
+
+    // ---- Fountain water animation ----
+    if(window._fountainPoolWater){
+        var wt=Date.now()*0.002;
+        window._fountainPoolWater.position.y=0.6+Math.sin(wt)*0.03;
+        window._fountainPoolWater.rotation.y=wt*0.1;
+    }
+    if(window._fountainInnerWater){
+        var wt2=Date.now()*0.003;
+        window._fountainInnerWater.position.y=1.35+Math.sin(wt2+1)*0.02;
+    }
+    if(window._fountainParticles){
+        for(var ffi=0;ffi<window._fountainParticles.length;ffi++){
+            var fp=window._fountainParticles[ffi];
+            fp.life++;
+            if(fp.life>=fp.maxLife){
+                // Reset particle
+                fp.life=0;
+                fp.mesh.position.set(fp.ox,fp.oy,fp.oz);
+                fp.mesh.visible=true;
+                fp.mesh.material.opacity=0.6;
+                if(fp.type==='jet'){
+                    fp.vx=(Math.random()-0.5)*0.04;
+                    fp.vy=0.1+Math.random()*0.06;
+                    fp.vz=(Math.random()-0.5)*0.04;
+                    fp.maxLife=50+Math.random()*40;
+                }
+            }
+            if(fp.mesh.visible){
+                fp.mesh.position.x+=fp.vx;
+                fp.mesh.position.z+=fp.vz;
+                if(fp.type==='jet'){
+                    fp.mesh.position.y+=fp.vy;
+                    fp.vy-=0.003; // gravity
+                    if(fp.mesh.position.y<0.65){fp.mesh.visible=false;fp.life=fp.maxLife-Math.floor(Math.random()*10);}
+                } else {
+                    fp.mesh.position.y+=fp.vy;
+                    fp.vy-=0.002;
+                    if(fp.mesh.position.y<0.65){fp.mesh.visible=false;fp.life=fp.maxLife-Math.floor(Math.random()*5);}
+                }
+                var fAlpha=1-fp.life/fp.maxLife;
+                fp.mesh.material.opacity=0.6*fAlpha;
+            }
+        }
+    }
+    // Fountain splash when player walks in water
+    if(_splashCooldown>0)_splashCooldown--;
+    var _fdist=Math.sqrt(px*px+pz*pz);
+    if(_fdist<6.5&&playerEgg.mesh.position.y<1.5&&window._fountainSplashParticles){
+        // Play splash sound on entry
+        if(!playerEgg._inFountain){playerEgg._inFountain=true;playSplashSound();}
+        // Spawn splash particles
+        for(var fsi2=0;fsi2<window._fountainSplashParticles.length;fsi2++){
+            var fsp2=window._fountainSplashParticles[fsi2];
+            if(!fsp2.mesh.visible&&fsp2.life>=fsp2.maxLife&&Math.random()<0.15){
+                fsp2.mesh.position.set(px+(Math.random()-0.5)*1.5,0.7,pz+(Math.random()-0.5)*1.5);
+                fsp2.vx=(Math.random()-0.5)*0.08;
+                fsp2.vy=0.08+Math.random()*0.1;
+                fsp2.vz=(Math.random()-0.5)*0.08;
+                fsp2.life=0;fsp2.maxLife=20+Math.random()*15;
+                fsp2.mesh.visible=true;
+            }
+            if(fsp2.mesh.visible){
+                fsp2.life++;
+                fsp2.mesh.position.x+=fsp2.vx;
+                fsp2.mesh.position.y+=fsp2.vy;
+                fsp2.mesh.position.z+=fsp2.vz;
+                fsp2.vy-=0.006;
+                fsp2.mesh.material.opacity=0.7*(1-fsp2.life/fsp2.maxLife);
+                if(fsp2.life>=fsp2.maxLife){fsp2.mesh.visible=false;}
+            }
+        }
+    } else {
+        if(playerEgg)playerEgg._inFountain=false;
     }
 
     // Check portal proximity — show prompt on base, enter when walk into ring
