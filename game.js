@@ -3779,12 +3779,29 @@ function _dropNpcStolenCoins(egg){
             dc.collected=false;
             dc.mesh.visible=true;
             // Drop near the NPC position with slight scatter
-            var dropX=egg.mesh.position.x+(Math.random()-0.5)*3;
-            var dropZ=egg.mesh.position.z+(Math.random()-0.5)*3;
-            dc.mesh.position.x=dropX;
-            dc.mesh.position.z=dropZ;
-            dc.baseY=1.2;
-            dc.mesh.position.y=1.2;
+            if(currentCityStyle===5){
+                // Moon: place coin near NPC on sphere surface
+                var ep2=egg.mesh.position;
+                var edx2=ep2.x,edy2=ep2.y-MOON_CY,edz2=ep2.z;
+                var ed2=Math.sqrt(edx2*edx2+edy2*edy2+edz2*edz2)||1;
+                var enx2=edx2/ed2,eny2=edy2/ed2,enz2=edz2/ed2;
+                // Small random offset along sphere surface
+                var cpx2=ep2.x+(Math.random()-0.5)*3;
+                var cpy2=ep2.y+(Math.random()-0.5)*3;
+                var cpz2=ep2.z+(Math.random()-0.5)*3;
+                var cd4x=cpx2,cd4y=cpy2-MOON_CY,cd4z=cpz2;
+                var cd4=Math.sqrt(cd4x*cd4x+cd4y*cd4y+cd4z*cd4z)||1;
+                dc.mesh.position.set(cd4x/cd4*(MOON_R+1.2),MOON_CY+cd4y/cd4*(MOON_R+1.2),cd4z/cd4*(MOON_R+1.2));
+                dc._moonBasePos={x:dc.mesh.position.x,y:dc.mesh.position.y,z:dc.mesh.position.z};
+                dc.baseY=undefined;
+            } else {
+                var dropX=egg.mesh.position.x+(Math.random()-0.5)*3;
+                var dropZ=egg.mesh.position.z+(Math.random()-0.5)*3;
+                dc.mesh.position.x=dropX;
+                dc.mesh.position.z=dropZ;
+                dc.baseY=1.2;
+                dc.mesh.position.y=1.2;
+            }
         }
     }
     // Remove visual coin meshes from NPC
@@ -4340,8 +4357,19 @@ function updateCity(){
     for(const c of cityCoins){
         if(c.collected)continue;
         c.mesh.rotation.y+=0.03;
-        var coinBaseY=c.baseY||1.2;
-        c.mesh.position.y=coinBaseY+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
+        if(currentCityStyle===5&&!c.baseY){
+            // Moon coins: bob along surface normal
+            if(!c._moonBasePos){c._moonBasePos={x:c.mesh.position.x,y:c.mesh.position.y,z:c.mesh.position.z};}
+            var bp=c._moonBasePos;
+            var bdx=bp.x,bdy=bp.y-MOON_CY,bdz=bp.z;
+            var bd=Math.sqrt(bdx*bdx+bdy*bdy+bdz*bdz)||1;
+            var bnx=bdx/bd,bny=bdy/bd,bnz=bdz/bd;
+            var bob=Math.sin(Date.now()*0.003+bp.x)*0.2;
+            c.mesh.position.set(bp.x+bnx*bob,bp.y+bny*bob,bp.z+bnz*bob);
+        } else {
+            var coinBaseY=c.baseY||1.2;
+            c.mesh.position.y=coinBaseY+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
+        }
         var cdx2=px-c.mesh.position.x, cdz2=pz-c.mesh.position.z, cdy2=py-c.mesh.position.y;
         if(Math.sqrt(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2)<1.5){
             c.collected=true; c.mesh.visible=false;
