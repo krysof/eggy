@@ -18,6 +18,8 @@ function toon(color, opts={}) { return new THREE.MeshToonMaterial({color, gradie
 
 // ---- Audio System (procedural, no files needed) ----
 let audioCtx=null, soundEnabled=true, sfxEnabled=true, _audioUnlocked=false;
+// iOS 17+ audio session hint
+try{if(navigator.audioSession)navigator.audioSession.type='transient';}catch(e){}
 function ensureAudio(){
     if(!audioCtx){
         var AC=window.AudioContext||window.webkitAudioContext;
@@ -26,32 +28,50 @@ function ensureAudio(){
     if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
     return audioCtx;
 }
-// Mobile audio unlock — aggressive iOS/Android approach
-// iOS Safari requires: create context + resume + play buffer ALL inside user gesture
+// Silent HTML audio element trick — helps unlock on iOS Safari
+var _silentAudio=null;
+function _playSilentHtml(){
+    if(_silentAudio)return;
+    try{
+        _silentAudio=document.createElement('audio');
+        _silentAudio.setAttribute('playsinline','');
+        _silentAudio.setAttribute('webkit-playsinline','');
+        // Tiny silent WAV data URI
+        _silentAudio.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+        _silentAudio.volume=0.01;
+        _silentAudio.play().catch(function(){});
+    }catch(e){}
+}
+// Mobile audio unlock — aggressive multi-strategy approach
 function _unlockAudio(){
     if(_audioUnlocked&&audioCtx&&audioCtx.state==='running')return;
-    // Create fresh context inside gesture if needed
+    // Strategy 1: silent HTML audio element (iOS needs this)
+    _playSilentHtml();
+    // Strategy 2: create AudioContext inside gesture
     if(!audioCtx){
         var AC=window.AudioContext||window.webkitAudioContext;
         if(AC)audioCtx=new AC();
     }
     if(!audioCtx)return;
-    // Always try resume (iOS needs this on every gesture until it works)
-    var p=audioCtx.resume();
-    // Play silent buffer synchronously — critical for iOS
+    // Strategy 3: resume + silent buffer
+    audioCtx.resume();
     try{
         var b=audioCtx.createBuffer(1,1,audioCtx.sampleRate||22050);
         var s=audioCtx.createBufferSource();s.buffer=b;s.connect(audioCtx.destination);s.start(0);
     }catch(e){}
-    if(p&&p.then){p.then(function(){_audioUnlocked=true;});}
     if(audioCtx.state==='running')_audioUnlocked=true;
+    // Strategy 4: check again after a tick
+    setTimeout(function(){
+        if(audioCtx&&audioCtx.state==='running')_audioUnlocked=true;
+        else if(audioCtx)audioCtx.resume();
+    },100);
 }
-// Keep retrying on every touch/click until unlocked
+// Keep retrying on every touch/click/key until unlocked
 document.addEventListener('touchstart',_unlockAudio,{passive:true});
 document.addEventListener('touchend',_unlockAudio,{passive:true});
 document.addEventListener('click',_unlockAudio);
-// iOS sometimes needs pointerdown too
 document.addEventListener('pointerdown',_unlockAudio,{passive:true});
+document.addEventListener('keydown',_unlockAudio);
 
 // Music toggle button
 var musicBtn=document.getElementById("music-btn");
@@ -495,9 +515,9 @@ root.appendChild(R.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
-scene.fog = new THREE.Fog(0x87CEEB, 80, 260);
+scene.fog = new THREE.Fog(0x87CEEB, 80, 400);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 350);
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 600);
 window.addEventListener('resize', ()=>{ R.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
 
 // ---- Lighting ----
@@ -1162,10 +1182,10 @@ var CITY_STYLES=[
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
-    {x:0,z:-30,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
-    {x:30,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
-    {x:0,z:30,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
-    {x:-30,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
+    {x:0,z:-65,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
+    {x:65,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
+    {x:0,z:65,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
+    {x:-65,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
 ];
 var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
 
@@ -1365,7 +1385,7 @@ function buildWarpPipes(){
     }
     // Place up to 4 pipes at edges
     var positions=[
-        {x:0,z:-30},{x:30,z:0},{x:0,z:30},{x:-30,z:0}
+        {x:0,z:-65},{x:65,z:0},{x:0,z:65},{x:-65,z:0}
     ];
     var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
     for(var pi2=0;pi2<Math.min(targets.length,4);pi2++){
@@ -1442,54 +1462,68 @@ function applyCityTheme(){
 }
 
 // ---- Pipe travel animation state ----
-var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=120; // 2 seconds at 60fps
+var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=180; // 3 seconds at 60fps
 var _pipeStartX=0, _pipeStartZ=0, _pipeEndX=0, _pipeEndZ=0;
 var _pipeTubeGroup=null, _pipeTargetStyle=0;
-var _pipeArrivalX=0, _pipeArrivalZ=0;
+var _pipeMidX=0, _pipeMidZ=0;
 
 function startPipeTravel(fromX,fromZ,targetStyle){
     _pipeTraveling=true;_pipeTimer=0;_pipeTargetStyle=targetStyle;
     _pipeStartX=fromX;_pipeStartZ=fromZ;
-    // Find which pipe in the target city leads back to current city
-    // For now, pipe exits at center of target city
+    // Destination is far away — simulate flying to a distant continent
+    // Direction from pipe position determines flight direction
+    var dirX=fromX,dirZ=fromZ;
+    var dirLen=Math.sqrt(dirX*dirX+dirZ*dirZ);
+    if(dirLen>0.1){dirX/=dirLen;dirZ/=dirLen;}else{dirX=0;dirZ=-1;}
+    // Fly 400 units outward then curve back to center of new city
     _pipeEndX=0;_pipeEndZ=0;
-    // Build the transparent tube corridor
+    var midX=fromX+dirX*200;
+    var midZ=fromZ+dirZ*200;
+    _pipeMidX=midX;_pipeMidZ=midZ;
+    // Build the transparent tube corridor — long arc through sky
     _pipeTubeGroup=new THREE.Group();
-    var steps=20;
+    var steps=40;
     var tubeColor=CITY_STYLES[targetStyle]?0x44FF88:0x44DD44;
-    var tubeMat=new THREE.MeshPhongMaterial({color:tubeColor,transparent:true,opacity:0.3,side:THREE.DoubleSide});
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
+    var pColor=pipeColors[targetStyle]||tubeColor;
+    var tubeMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.25,side:THREE.DoubleSide});
     for(var i=0;i<steps;i++){
         var t=i/steps;
-        var px=_pipeStartX+(0-_pipeStartX)*t;
-        var pz=_pipeStartZ+(0-_pipeStartZ)*t;
-        var py=2+Math.sin(t*Math.PI)*8; // arc up
-        var seg=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,1,12,1,true),tubeMat);
+        // Quadratic bezier: start → mid (far away) → end (center)
+        var u=1-t;
+        var px=u*u*fromX+2*u*t*midX+t*t*_pipeEndX;
+        var pz=u*u*fromZ+2*u*t*midZ+t*t*_pipeEndZ;
+        var py=3+Math.sin(t*Math.PI)*60; // high arc — 60 units up
+        var seg=new THREE.Mesh(new THREE.CylinderGeometry(3,3,3,10,1,true),tubeMat);
         seg.position.set(px,py,pz);
-        // Orient segment along path
         if(i<steps-1){
-            var nx=_pipeStartX+(0-_pipeStartX)*((i+1)/steps);
-            var nz=_pipeStartZ+(0-_pipeStartZ)*((i+1)/steps);
-            var ny=2+Math.sin(((i+1)/steps)*Math.PI)*8;
-            seg.lookAt(nx,ny,nz);
-            seg.rotateX(Math.PI/2);
+            var t2=(i+1)/steps;var u2=1-t2;
+            var nx=u2*u2*fromX+2*u2*t2*midX+t2*t2*_pipeEndX;
+            var nz=u2*u2*fromZ+2*u2*t2*midZ+t2*t2*_pipeEndZ;
+            var ny=3+Math.sin(t2*Math.PI)*60;
+            seg.lookAt(nx,ny,nz);seg.rotateX(Math.PI/2);
         }
         _pipeTubeGroup.add(seg);
-        // Glow rings
-        if(i%4===0){
-            var ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.15,8,16),new THREE.MeshBasicMaterial({color:tubeColor,transparent:true,opacity:0.5}));
+        if(i%5===0){
+            var ring=new THREE.Mesh(new THREE.TorusGeometry(3,0.2,8,16),new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.4}));
             ring.position.set(px,py,pz);
-            if(i<steps-1){ring.lookAt(px+(0-_pipeStartX)/steps,py,pz+(0-_pipeStartZ)/steps);}
+            if(i<steps-1){
+                var t3=(i+1)/steps;var u3=1-t3;
+                ring.lookAt(u3*u3*fromX+2*u3*t3*midX+t3*t3*_pipeEndX,3+Math.sin(t3*Math.PI)*60,u3*u3*fromZ+2*u3*t3*midZ+t3*t3*_pipeEndZ);
+            }
             _pipeTubeGroup.add(ring);
         }
     }
     scene.add(_pipeTubeGroup);
-    // Play whoosh sound
+    // Disable fog during travel so tube is visible
+    scene.fog=null;
+    // Whoosh sound
     if(sfxEnabled){
-        var ctx=ensureAudio();var t2=ctx.currentTime;
+        var ctx=ensureAudio();var ct=ctx.currentTime;
         var o=ctx.createOscillator();var g=ctx.createGain();
-        o.type='sine';o.frequency.setValueAtTime(300,t2);o.frequency.exponentialRampToValueAtTime(800,t2+0.3);o.frequency.exponentialRampToValueAtTime(200,t2+1.5);
-        g.gain.setValueAtTime(0.1,t2);g.gain.exponentialRampToValueAtTime(0.001,t2+1.5);
-        o.connect(g);g.connect(ctx.destination);o.start(t2);o.stop(t2+1.5);
+        o.type='sine';o.frequency.setValueAtTime(200,ct);o.frequency.exponentialRampToValueAtTime(1200,ct+0.5);o.frequency.exponentialRampToValueAtTime(150,ct+2.5);
+        g.gain.setValueAtTime(0.12,ct);g.gain.exponentialRampToValueAtTime(0.001,ct+2.5);
+        o.connect(g);g.connect(ctx.destination);o.start(ct);o.stop(ct+2.5);
     }
 }
 
@@ -1500,19 +1534,27 @@ function updatePipeTravel(){
     if(t>1)t=1;
     // Smooth ease in-out
     var st=t<0.5?2*t*t:(1-Math.pow(-2*t+2,2)/2);
-    // Move player along arc
-    var px=_pipeStartX+(0-_pipeStartX)*st;
-    var pz=_pipeStartZ+(0-_pipeStartZ)*st;
-    var py=2+Math.sin(st*Math.PI)*8;
+    // Quadratic bezier: start → mid (far away) → end (center)
+    var u=1-st;
+    var px=u*u*_pipeStartX+2*u*st*_pipeMidX+st*st*_pipeEndX;
+    var pz=u*u*_pipeStartZ+2*u*st*_pipeMidZ+st*st*_pipeEndZ;
+    var py=3+Math.sin(st*Math.PI)*60;
     playerEgg.mesh.position.set(px,py,pz);
     playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
-    // Spin the egg for fun
     playerEgg.mesh.rotation.y+=0.15;
-    // Camera follows
-    camera.position.set(px-5,py+8,pz+12);
+    // Camera follows from behind and above
+    var camDist=15;
+    var lookAhead=Math.min(st+0.05,1);
+    var lu=1-lookAhead;
+    var lx=lu*lu*_pipeStartX+2*lu*lookAhead*_pipeMidX+lookAhead*lookAhead*_pipeEndX;
+    var lz=lu*lu*_pipeStartZ+2*lu*lookAhead*_pipeMidZ+lookAhead*lookAhead*_pipeEndZ;
+    var ly=3+Math.sin(lookAhead*Math.PI)*60;
+    var cdx=px-lx,cdz=pz-lz;
+    var cl=Math.sqrt(cdx*cdx+cdz*cdz)||1;
+    camera.position.set(px+cdx/cl*camDist,py+6,pz+cdz/cl*camDist);
     camera.lookAt(px,py,pz);
-    // Halfway through — rebuild city
-    if(_pipeTimer===Math.floor(_pipeDuration*0.5)){
+    // At 40% — rebuild city (while player is high up and can't see ground)
+    if(_pipeTimer===Math.floor(_pipeDuration*0.4)){
         currentCityStyle=_pipeTargetStyle;
         clearCity();
         buildCity();
@@ -1528,14 +1570,11 @@ function updatePipeTravel(){
     // Done
     if(_pipeTimer>=_pipeDuration){
         _pipeTraveling=false;
-        // Remove tube
         if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
-        // Place player at center
-        playerEgg.mesh.position.set(0,1,0);
+        playerEgg.mesh.position.set(0,3,0);
         playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
         playerEgg.onGround=false;
         camera.position.set(0,12,19);camera.lookAt(0,0,5);
-        // Reset pipe cooldowns
         for(var i=0;i<warpPipeMeshes.length;i++)warpPipeMeshes[i]._cooldown=true;
     }
 }
@@ -3496,5 +3535,19 @@ document.getElementById('back-city-btn').addEventListener('click', goBackToCity)
 
 // Back to city during race
 document.getElementById('race-back-btn').addEventListener('click', goBackToCity);
+
+// Android nav bar fix — detect visual viewport offset and push buttons up
+(function(){
+    if(!window.visualViewport)return;
+    function fixNav(){
+        var diff=window.innerHeight-window.visualViewport.height;
+        if(diff>20){
+            var tc=document.getElementById('touch-controls');
+            if(tc)tc.style.paddingBottom=diff+'px';
+        }
+    }
+    window.visualViewport.addEventListener('resize',fixNav);
+    fixNav();
+})();
 
 animate();
