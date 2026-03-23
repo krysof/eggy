@@ -707,8 +707,8 @@ function _updateChargeBar(){
     }
 }
 
-// ---- Sprint bar (same style as charge bar, shown below it) ----
-var _sprintBar=null, _sprintActive=false;
+// ---- Sprint bar (gradual charge like jump bar) ----
+var _sprintBar=null, _sprintCharge=0, _sprintChargeMax=40;
 function _createSprintBar(){
     var canvas=document.createElement('canvas');
     canvas.width=256;canvas.height=40;
@@ -721,46 +721,50 @@ function _createSprintBar(){
     sprite._canvas=canvas;sprite._ctx=canvas.getContext('2d');sprite._tex=tex;
     return sprite;
 }
-function _drawSprintBar(sprite){
+function _drawSprintBar(sprite,pct){
     var ctx=sprite._ctx,w=256,h=40;
     ctx.clearRect(0,0,w,h);
     function rr(x,y,rw,rh,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.lineTo(x+rw-rad,y);ctx.quadraticCurveTo(x+rw,y,x+rw,y+rad);ctx.lineTo(x+rw,y+rh-rad);ctx.quadraticCurveTo(x+rw,y+rh,x+rw-rad,y+rh);ctx.lineTo(x+rad,y+rh);ctx.quadraticCurveTo(x,y+rh,x,y+rh-rad);ctx.lineTo(x,y+rad);ctx.quadraticCurveTo(x,y,x+rad,y);ctx.closePath();}
-    // Outer border — same as charge bar
     ctx.fillStyle='rgba(0,0,0,0.85)';
     rr(2,2,w-4,h-4,8);ctx.fill();
-    // Blue glow border with pulse
-    var pulse=0.7+Math.sin(Date.now()*0.015)*0.3;
-    ctx.strokeStyle='rgba(0,160,255,'+pulse+')';
+    // Same color scheme as charge bar: green → yellow → red
+    var r2,g2,b3;
+    if(pct<0.33){r2=0;g2=255;b3=50;}
+    else if(pct<0.66){var t=(pct-0.33)/0.33;r2=Math.floor(255*t);g2=Math.floor(255*(1-t*0.3));b3=0;}
+    else{var t2=(pct-0.66)/0.34;r2=255;g2=Math.floor(180*(1-t2));b3=0;}
+    // Border glow
+    ctx.strokeStyle='rgba('+r2+','+g2+','+b3+','+(pct>0.8?0.7+Math.sin(Date.now()*0.015)*0.3:0.5)+')';
     ctx.lineWidth=3;rr(5,5,w-10,h-10,6);ctx.stroke();
-    // Full blue fill bar
-    var fw=w-20;
+    // Fill bar
+    var fw=Math.max(4,(w-20)*pct);
     var grad=ctx.createLinearGradient(10,0,10+fw,0);
-    grad.addColorStop(0,'rgb(0,80,200)');
-    grad.addColorStop(1,'rgb(0,180,255)');
+    grad.addColorStop(0,'rgb('+Math.floor(r2*0.6)+','+Math.floor(g2*0.6)+','+b3+')');
+    grad.addColorStop(1,'rgb('+r2+','+g2+','+b3+')');
     ctx.fillStyle=grad;
     rr(10,10,fw,h-20,4);ctx.fill();
-    // Shine highlight — same as charge bar
+    // Shine highlight
     ctx.fillStyle='rgba(255,255,255,0.3)';
     rr(10,10,fw,Math.floor((h-20)/2),4);ctx.fill();
-    // Label text
-    ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('\u26A1 \u52A0\u901F',w/2,h/2);
     sprite._tex.needsUpdate=true;
 }
-function _updateSprintBar(sprinting){
-    if(!playerEgg)return;
-    var moving=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz)>0.02;
-    var show=sprinting&&moving;
-    if(show){
+function _updateSprintBar(holdingF){
+    if(!playerEgg)return 0;
+    if(holdingF){
+        _sprintCharge=Math.min(_sprintCharge+1,_sprintChargeMax);
+    } else {
+        _sprintCharge=Math.max(_sprintCharge-2,0);
+    }
+    var pct=_sprintCharge/_sprintChargeMax;
+    if(pct>0.01){
         if(!_sprintBar){_sprintBar=_createSprintBar();scene.add(_sprintBar);}
         _sprintBar.visible=true;
         var yOff=(_jumpCharging&&playerEgg.onGround)?1.8:2.1;
         _sprintBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+yOff,playerEgg.mesh.position.z);
-        _drawSprintBar(_sprintBar);
+        _drawSprintBar(_sprintBar,pct);
     } else {
         if(_sprintBar){_sprintBar.visible=false;}
-        _sprintActive=false;
     }
+    return pct;
 }
 
 // ---- Ascending butt smoke (after charged jump, while vy>0) ----
@@ -1487,7 +1491,7 @@ function clearRace() {
     allEggs.length=0; allEggs.push(...keep);
     playerEgg=null;
     _jumpCharging=false;_jumpCharge=0;if(_jumpChargeBar){scene.remove(_jumpChargeBar);_jumpChargeBar=null;}
-    if(_sprintBar){scene.remove(_sprintBar);_sprintBar=null;}_sprintActive=false;_ascendSmoke=false;
+    if(_sprintBar){scene.remove(_sprintBar);_sprintBar=null;}_sprintCharge=0;_ascendSmoke=false;
 }
 
 function getSegAt(z){for(var s of trackSegments)if(z>=s.startZ&&z<s.endZ)return s;return trackSegments[trackSegments.length-1];}
@@ -2481,10 +2485,11 @@ function handlePlayerInput(){
     if(keys['KeyW']||keys['ArrowUp'])mz-=1;
     if(keys['KeyS']||keys['ArrowDown'])mz+=1;
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
-    // Sprint: hold F when moving (same key as grab/throw)
-    var sprinting=keys['KeyF']&&!_portalConfirmOpen;
-    var accelMul=sprinting?2.0:1;
-    var speedMul=sprinting?2.0:1;
+    // Sprint: hold F — gradual speed ramp (same key as grab/throw)
+    var holdingF=keys['KeyF']&&!_portalConfirmOpen;
+    var sprintPct=_updateSprintBar(holdingF);
+    var accelMul=1+sprintPct*1.0;
+    var speedMul=1+sprintPct*1.0;
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;}
     // Charge jump: hold Space to charge, release to jump
@@ -2536,7 +2541,6 @@ function handlePlayerInput(){
     if(_ascendSmoke&&playerEgg.vy<=0&&!playerEgg.onGround){
         _ascendSmoke=false;
     }
-    _updateSprintBar(sprinting);
     const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
     var curMax=MAX_SPEED*speedMul;
     if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
