@@ -1833,7 +1833,7 @@ function updateRaceAI(egg){
 function handlePlayerInput(){
     if(!playerEgg||!playerEgg.alive)return;
     if(_portalConfirmOpen)return;
-    if(playerEgg.finished)return;
+    if(playerEgg.finished&&gameState==='racing')return;
     let mx=0,mz=0;
     if(keys['KeyA']||keys['ArrowLeft'])mx-=1;
     if(keys['KeyD']||keys['ArrowRight'])mx+=1;
@@ -2327,9 +2327,9 @@ function enterCity(spawnX,spawnZ){
     // Clear all NPC grab/held states to prevent invisible grabs
     for(var ni=0;ni<cityNPCs.length;ni++){
         var npc=cityNPCs[ni];
-        if(npc.holding){var h=npc.holding;h.heldBy=null;npc.holding=null;if(h.struggleBar){h.mesh.remove(h.struggleBar);h.struggleBar=null;}}
-        if(npc.heldBy){var hdr=npc.heldBy;hdr.holding=null;npc.heldBy=null;if(npc.struggleBar){npc.mesh.remove(npc.struggleBar);npc.struggleBar=null;}}
-        npc.holdingObs=null;npc.holdingProp=null;npc.throwTimer=0;npc.grabCD=60;
+        npc.holding=null;npc.heldBy=null;npc.holdingObs=null;npc.holdingProp=null;
+        npc.throwTimer=0;npc.grabCD=60;npc.finished=false;
+        if(npc.struggleBar){try{npc.mesh.remove(npc.struggleBar);}catch(e){}npc.struggleBar=null;}
     }
 
     // Create player in city
@@ -2337,6 +2337,7 @@ function enterCity(spawnX,spawnZ){
     var sz=(spawnZ!==undefined)?spawnZ:5;
     const skin=CHARACTERS[selectedChar];
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
+    playerEgg.finished=false;playerEgg.alive=true;
     camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
 }
 
