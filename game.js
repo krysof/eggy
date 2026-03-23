@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.15 by \u767D\u6CB3\u6101',zht:'v20260323.15 by \u767D\u6CB3\u6101',ja:'v20260323.15 by \u767D\u6CB3\u6101',en:'v20260323.15 by Kryso'},
+    version:{zhs:'v20260323.16 by \u767D\u6CB3\u6101',zht:'v20260323.16 by \u767D\u6CB3\u6101',ja:'v20260323.16 by \u767D\u6CB3\u6101',en:'v20260323.16 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1368,7 +1368,7 @@ function buildCity() {
         const door=new THREE.Mesh(new THREE.BoxGeometry(1.5,2.2,0.15), toon(0x885533));
         door.position.set(b.x, 1.1, b.z+b.d/2+0.07); cityGroup.add(door); bMeshes.push(door);
 
-        cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h});
+        cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h, roofR:Math.max(b.w,b.d)*0.6, roofH:3});
         cityBuildingMeshes.push({meshes:bMeshes, x:b.x, z:b.z, hw:b.w/2, hd:b.d/2, h:b.h});
     });
 
@@ -1475,7 +1475,8 @@ function buildCity() {
         coin.rotation.z=Math.random()*Math.PI;
         cityGroup.add(coin);
     }
-    cityColliders.push({x:0,z:0,hw:8.5,hd:8.5,h:3});
+    // Fountain collider — only the inner column, not the pool (player can wade in)
+    cityColliders.push({x:0,z:0,hw:1.5,hd:1.5,h:8});
 
     // ---- Fountain water particle system ----
     var _fwParticles=[];
@@ -2395,7 +2396,26 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
-                // On top of building — land on roof
+                // Cone roof collision (if building has roofR)
+                if(c.roofR&&c.roofH){
+                    var distFromCenter=Math.sqrt(dx*dx+dz*dz);
+                    var ey=egg.mesh.position.y;
+                    // Cone: base at roofY, tip at roofY+roofH, radius shrinks linearly
+                    if(ey>=roofY-0.5&&ey<=roofY+c.roofH+0.5){
+                        var t=Math.max(0,Math.min(1,(ey-roofY)/c.roofH));
+                        var coneR=c.roofR*(1-t); // radius at this height
+                        if(distFromCenter<coneR+egg.radius&&egg.vy<=0){
+                            // Land on the cone slope — compute surface Y at this distance
+                            var slopeT=Math.max(0,1-distFromCenter/c.roofR);
+                            var surfaceY=roofY+slopeT*c.roofH;
+                            if(ey>=surfaceY-0.8&&ey<=surfaceY+1){
+                                egg.mesh.position.y=surfaceY+0.01;egg.vy=0;egg.onGround=true;
+                                continue;
+                            }
+                        }
+                    }
+                }
+                // On top of building body — land on roof
                 if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.mesh.position.y>=roofY-0.5&&egg.vy<=0){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
                 }
