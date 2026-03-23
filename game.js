@@ -1610,6 +1610,117 @@ function buildCity() {
         cityGroup.add(bg);
         cityProps.push({group:bg, x:bx, z:bz, radius:1.2, type:'bench', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:2.5});
     }
+
+    // ---- Moon City special decorations ----
+    if(currentCityStyle===5){
+        // Craters — scattered dark depressions
+        for(var ci=0;ci<20;ci++){
+            var crx=(Math.random()-0.5)*CITY_SIZE*1.6;
+            var crz=(Math.random()-0.5)*CITY_SIZE*1.6;
+            var crr=2+Math.random()*5;
+            var crater=new THREE.Mesh(new THREE.CylinderGeometry(crr,crr*1.1,0.4,16),toon(0x555566));
+            crater.position.set(crx,-0.15,crz);
+            cityGroup.add(crater);
+            // Rim
+            var rim=new THREE.Mesh(new THREE.TorusGeometry(crr,0.3,6,16),toon(0x777788));
+            rim.position.set(crx,0.05,crz);rim.rotation.x=Math.PI/2;
+            cityGroup.add(rim);
+        }
+        // Apollo Lunar Module
+        var apollo=new THREE.Group();
+        // Descent stage — gold foil box
+        var descent=new THREE.Mesh(new THREE.BoxGeometry(3,2,3),toon(0xCCAA44,{emissive:0x886622,emissiveIntensity:0.2}));
+        descent.position.y=2;apollo.add(descent);
+        // Landing legs (4)
+        for(var li=0;li<4;li++){
+            var la=li/4*Math.PI*2+Math.PI/4;
+            var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,2.5,4),toon(0xAAAAAA));
+            leg.position.set(Math.cos(la)*2,0.8,Math.sin(la)*2);
+            leg.rotation.z=Math.cos(la)*0.3;leg.rotation.x=-Math.sin(la)*0.3;
+            apollo.add(leg);
+            // Foot pad
+            var pad=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,0.1,8),toon(0x999999));
+            pad.position.set(Math.cos(la)*2.5,0.05,Math.sin(la)*2.5);
+            apollo.add(pad);
+        }
+        // Ascent stage — silver upper body
+        var ascent=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.8,2.2),toon(0xCCCCCC));
+        ascent.position.y=3.8;apollo.add(ascent);
+        // Window
+        var win=new THREE.Mesh(new THREE.CircleGeometry(0.4,8),toon(0x224466,{emissive:0x112233,emissiveIntensity:0.3}));
+        win.position.set(0,4,1.12);apollo.add(win);
+        // Antenna
+        var ant=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,2,4),toon(0xDDDDDD));
+        ant.position.set(0.5,5.5,0);apollo.add(ant);
+        var dish=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
+        dish.position.set(0.5,6.5,0);dish.rotation.x=Math.PI;apollo.add(dish);
+        // US flag
+        var flagPole=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,3,4),toon(0xCCCCCC));
+        flagPole.position.set(5,1.5,0);apollo.add(flagPole);
+        var flag=new THREE.Mesh(new THREE.BoxGeometry(1.5,1,0.02),toon(0x2244AA));
+        flag.position.set(5.8,2.8,0);apollo.add(flag);
+        // Flag stripes
+        var stripes=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
+        stripes.position.set(5.8,2.5,0.01);apollo.add(stripes);
+        var stripes2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
+        stripes2.position.set(5.8,3.1,0.01);apollo.add(stripes2);
+        apollo.position.set(35,0,-35);
+        cityGroup.add(apollo);
+        // Lunar Rover
+        var rover=new THREE.Group();
+        var rBody=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.3,1.2),toon(0xBBBBBB));
+        rBody.position.y=0.8;rover.add(rBody);
+        // Wheels
+        for(var wi=0;wi<4;wi++){
+            var wx2=(wi%2===0?-1:1)*1.1;
+            var wz2=(wi<2?-1:1)*0.7;
+            var wheel=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.08,6,12),toon(0x666666));
+            wheel.position.set(wx2,0.35,wz2);wheel.rotation.y=Math.PI/2;
+            rover.add(wheel);
+        }
+        // Antenna dish
+        var rDish=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
+        rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
+        rover.position.set(-30,0,25);rover.rotation.y=0.5;
+        cityGroup.add(rover);
+        // Earth in the sky — large glowing sphere far away
+        var earthGroup=new THREE.Group();
+        var earth=new THREE.Mesh(new THREE.SphereGeometry(8,24,16),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.9}));
+        earthGroup.add(earth);
+        // Continents (green patches)
+        for(var ei=0;ei<6;ei++){
+            var ea=ei/6*Math.PI*2;
+            var ep=Math.random()*Math.PI-Math.PI/2;
+            var cont=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*2,8,6),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.7}));
+            cont.position.set(Math.cos(ea)*Math.cos(ep)*7,Math.sin(ep)*7,Math.sin(ea)*Math.cos(ep)*7);
+            cont.scale.set(1,0.6,1);
+            earthGroup.add(cont);
+        }
+        // Atmosphere glow
+        var atmo=new THREE.Mesh(new THREE.SphereGeometry(9,24,16),new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.2,side:THREE.BackSide}));
+        earthGroup.add(atmo);
+        earthGroup.position.set(80,120,-100);
+        scene.add(earthGroup);
+        window._moonEarth=earthGroup;
+        // Footprints on the ground
+        var fpMat=toon(0x666677);
+        for(var fi=0;fi<15;fi++){
+            var fx=(Math.random()-0.5)*40+35;
+            var fz=(Math.random()-0.5)*40-35;
+            var fp=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.02,0.5),fpMat);
+            fp.position.set(fx,0.01,fz);fp.rotation.y=Math.random()*Math.PI*2;
+            cityGroup.add(fp);
+        }
+        // Moon rocks
+        for(var ri2=0;ri2<25;ri2++){
+            var rx=(Math.random()-0.5)*CITY_SIZE*1.6;
+            var rz2=(Math.random()-0.5)*CITY_SIZE*1.6;
+            var rs=0.3+Math.random()*1.2;
+            var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(rs,0),toon(0x888899));
+            rock.position.set(rx,rs*0.4,rz2);rock.rotation.set(Math.random(),Math.random(),Math.random());
+            cityGroup.add(rock);
+        }
+    }
 }
 
 // ============================================================
@@ -1777,6 +1888,8 @@ function clearCity(){
     cityCloudPlatforms.length=0;
     // Remove cloud world moon pipe
     if(_cloudWorldPipe){scene.remove(_cloudWorldPipe.group);_cloudWorldPipe=null;}
+    // Remove moon earth
+    if(window._moonEarth){scene.remove(window._moonEarth);window._moonEarth=null;}
 }
 
 function applyCityTheme(){
@@ -2015,6 +2128,8 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
     return cl;
 }
 function addClouds(){
+    // No clouds on the moon
+    if(currentCityStyle===5)return;
     // Cloud above each building roof — reachable with charge jump
     var roofClouds=[];
     for(var bi=0;bi<cityColliders.length;bi++){
@@ -2669,17 +2784,20 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var cloudTop=cl.y+(cl.top||1.2);
                 if(egg.vy<=0&&egg.mesh.position.y<=cloudTop+0.05&&egg.mesh.position.y>=cloudTop-1.5){
                     egg.mesh.position.y=cloudTop+0.01;egg.vy=0;egg.onGround=true;
-                    // Moving cloud carries the egg
-                    if(cl.moving){
-                        var mOff=Math.sin(cl.movePhase)*cl.moveRange;
-                        var mOffPrev=Math.sin(cl.movePhase-cl.moveSpeed)*cl.moveRange;
-                        var delta=mOff-mOffPrev;
-                        if(cl.moveAxis==='x')egg.mesh.position.x+=delta;
-                        else egg.mesh.position.z+=delta;
-                    }
+                    egg._onCloud=cl;
                 }
             }
         }
+        // Moving cloud carry — always apply if standing on a moving cloud
+        if(egg._onCloud&&egg._onCloud.moving&&egg.onGround){
+            var oc=egg._onCloud;
+            var mOff=Math.sin(oc.movePhase)*oc.moveRange;
+            var mOffPrev=Math.sin(oc.movePhase-oc.moveSpeed)*oc.moveRange;
+            var delta=mOff-mOffPrev;
+            if(oc.moveAxis==='x')egg.mesh.position.x+=delta;
+            else egg.mesh.position.z+=delta;
+        }
+        if(!egg.onGround)egg._onCloud=null;
         // Warp pipe teleport — player only
         if(egg.isPlayer){
             for(var wpi=0;wpi<warpPipeMeshes.length;wpi++){
@@ -3613,6 +3731,8 @@ function updateCity(){
             mc.z=mc.baseZ+offset;
         }
     }
+    // Moon earth rotation
+    if(window._moonEarth){window._moonEarth.rotation.y+=0.001;}
 }
 
 // ---- Struggle bar (HTML overlay) ----
