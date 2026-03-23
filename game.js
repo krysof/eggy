@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.31 by \u767D\u6CB3\u6101',zht:'v20260323.31 by \u767D\u6CB3\u6101',ja:'v20260323.31 by \u767D\u6CB3\u6101',en:'v20260323.31 by Kryso'},
+    version:{zhs:'v20260323.32 by \u767D\u6CB3\u6101',zht:'v20260323.32 by \u767D\u6CB3\u6101',ja:'v20260323.32 by \u767D\u6CB3\u6101',en:'v20260323.32 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1307,6 +1307,25 @@ function _updateDropShadow(){
     if(!playerEgg||!playerEgg.mesh){if(_dropShadowMesh)_dropShadowMesh.visible=false;return;}
     _ensureDropShadow();
     var px=playerEgg.mesh.position.x, py=playerEgg.mesh.position.y, pz=playerEgg.mesh.position.z;
+    var isCity=(gameState==='city');
+    // Moon sphere: project shadow onto sphere surface
+    if(isCity&&currentCityStyle===5){
+        var dx=px, dy=py-MOON_CY, dz=pz;
+        var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+        var nx=dx/d, ny=dy/d, nz=dz/d;
+        var surfX=nx*MOON_R, surfY=MOON_CY+ny*MOON_R, surfZ=nz*MOON_R;
+        _dropShadowMesh.visible=true;
+        _dropShadowMesh.position.set(surfX+nx*0.05,surfY+ny*0.05,surfZ+nz*0.05);
+        // Orient shadow to face along surface normal
+        _dropShadowMesh.rotation.set(0,0,0);
+        var up=new THREE.Vector3(nx,ny,nz);
+        _dropShadowMesh.lookAt(surfX+nx,surfY+ny,surfZ+nz);
+        var height=d-MOON_R;
+        var sc=Math.max(0.3,1.2-height*0.04);
+        _dropShadowMesh.scale.set(sc,sc,sc);
+        _dropShadowMesh.material.opacity=Math.max(0.08,0.35-height*0.012);
+        return;
+    }
     var groundY=0;
     var isCity=(gameState==='city');
     if(isCity){
@@ -1389,21 +1408,24 @@ function buildCity() {
     var st=CITY_STYLES[currentCityStyle];
     // Ground
     if(currentCityStyle===5){
-        // Moon: spherical planet surface (visual only, gameplay still flat)
-        var planetR=200;
+        // Moon: spherical planet surface
+        var planetR=MOON_R;
         var planetGeo=new THREE.SphereGeometry(planetR,64,48);
         var planet=new THREE.Mesh(planetGeo,toon(st.ground));
-        planet.position.y=-planetR; // top of sphere at y=0
+        planet.position.y=MOON_CY; // top of sphere at y=0
         planet.receiveShadow=true;
         cityGroup.add(planet);
-        // Subtle surface detail — darker patches
+        // Subtle surface detail — darker patches projected onto sphere
         for(var pi=0;pi<15;pi++){
             var pa=Math.random()*Math.PI*2;
             var pp=Math.random()*0.3;
             var pr=8+Math.random()*15;
             var patch=new THREE.Mesh(new THREE.CircleGeometry(pr,16),toon(0x666677));
-            patch.rotation.x=-Math.PI/2;
-            patch.position.set(Math.cos(pa)*pp*80,0.02,Math.sin(pa)*pp*80);
+            var ppx=Math.cos(pa)*pp*80, ppz=Math.sin(pa)*pp*80;
+            var ppp=_moonProject(ppx,ppz);
+            patch.position.set(ppp.x+ppp.nx*0.02,ppp.y+ppp.ny*0.02,ppp.z+ppp.nz*0.02);
+            _moonOrient(patch,ppp.nx,ppp.ny,ppp.nz);
+            patch.rotateX(-Math.PI/2);
             cityGroup.add(patch);
         }
     } else {
@@ -1643,64 +1665,59 @@ function buildCity() {
 
     // ---- Moon City special decorations ----
     if(currentCityStyle===5){
-        // Craters — scattered dark depressions
+        // Craters — projected onto sphere surface
         for(var ci=0;ci<20;ci++){
             var crx=(Math.random()-0.5)*CITY_SIZE*1.6;
             var crz=(Math.random()-0.5)*CITY_SIZE*1.6;
             var crr=2+Math.random()*5;
+            var cp=_moonProject(crx,crz);
+            var craterG=new THREE.Group();
             var crater=new THREE.Mesh(new THREE.CylinderGeometry(crr,crr*1.1,0.4,16),toon(0x555566));
-            crater.position.set(crx,-0.15,crz);
-            cityGroup.add(crater);
-            // Rim
+            crater.position.y=-0.15;craterG.add(crater);
             var rim=new THREE.Mesh(new THREE.TorusGeometry(crr,0.3,6,16),toon(0x777788));
-            rim.position.set(crx,0.05,crz);rim.rotation.x=Math.PI/2;
-            cityGroup.add(rim);
+            rim.position.y=0.05;rim.rotation.x=Math.PI/2;craterG.add(rim);
+            craterG.position.set(cp.x,cp.y,cp.z);
+            _moonOrient(craterG,cp.nx,cp.ny,cp.nz);
+            cityGroup.add(craterG);
         }
-        // Apollo Lunar Module
+        // Apollo Lunar Module — projected onto sphere
         var apollo=new THREE.Group();
-        // Descent stage — gold foil box
         var descent=new THREE.Mesh(new THREE.BoxGeometry(3,2,3),toon(0xCCAA44,{emissive:0x886622,emissiveIntensity:0.2}));
         descent.position.y=2;apollo.add(descent);
-        // Landing legs (4)
         for(var li=0;li<4;li++){
             var la=li/4*Math.PI*2+Math.PI/4;
             var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,2.5,4),toon(0xAAAAAA));
             leg.position.set(Math.cos(la)*2,0.8,Math.sin(la)*2);
             leg.rotation.z=Math.cos(la)*0.3;leg.rotation.x=-Math.sin(la)*0.3;
             apollo.add(leg);
-            // Foot pad
             var pad=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,0.1,8),toon(0x999999));
             pad.position.set(Math.cos(la)*2.5,0.05,Math.sin(la)*2.5);
             apollo.add(pad);
         }
-        // Ascent stage — silver upper body
         var ascent=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.8,2.2),toon(0xCCCCCC));
         ascent.position.y=3.8;apollo.add(ascent);
-        // Window
         var win=new THREE.Mesh(new THREE.CircleGeometry(0.4,8),toon(0x224466,{emissive:0x112233,emissiveIntensity:0.3}));
         win.position.set(0,4,1.12);apollo.add(win);
-        // Antenna
         var ant=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,2,4),toon(0xDDDDDD));
         ant.position.set(0.5,5.5,0);apollo.add(ant);
         var dish=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
         dish.position.set(0.5,6.5,0);dish.rotation.x=Math.PI;apollo.add(dish);
-        // US flag
         var flagPole=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,3,4),toon(0xCCCCCC));
         flagPole.position.set(5,1.5,0);apollo.add(flagPole);
         var flag=new THREE.Mesh(new THREE.BoxGeometry(1.5,1,0.02),toon(0x2244AA));
         flag.position.set(5.8,2.8,0);apollo.add(flag);
-        // Flag stripes
         var stripes=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
         stripes.position.set(5.8,2.5,0.01);apollo.add(stripes);
         var stripes2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
         stripes2.position.set(5.8,3.1,0.01);apollo.add(stripes2);
-        apollo.position.set(35,0,-35);
+        var ap=_moonProject(35,-35);
+        apollo.position.set(ap.x,ap.y,ap.z);
+        _moonOrient(apollo,ap.nx,ap.ny,ap.nz);
         cityGroup.add(apollo);
-        // Lunar Rover
+        // Lunar Rover — projected onto sphere
         var rover=new THREE.Group();
         var rBody=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.3,1.2),toon(0xBBBBBB));
         rBody.position.y=0.8;rover.add(rBody);
-        // Wheels
         for(var wi=0;wi<4;wi++){
             var wx2=(wi%2===0?-1:1)*1.1;
             var wz2=(wi<2?-1:1)*0.7;
@@ -1708,16 +1725,17 @@ function buildCity() {
             wheel.position.set(wx2,0.35,wz2);wheel.rotation.y=Math.PI/2;
             rover.add(wheel);
         }
-        // Antenna dish
         var rDish=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
-        rover.position.set(-30,0,25);rover.rotation.y=0.5;
+        var rp=_moonProject(-30,25);
+        rover.position.set(rp.x,rp.y,rp.z);
+        _moonOrient(rover,rp.nx,rp.ny,rp.nz);
+        rover.rotateY(0.5);
         cityGroup.add(rover);
-        // Earth at horizon — half-rising behind the landscape
+        // Earth in sky — positioned relative to sphere center, far away
         var earthGroup=new THREE.Group();
         var earth=new THREE.Mesh(new THREE.SphereGeometry(30,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
         earthGroup.add(earth);
-        // Continents
         for(var ei=0;ei<8;ei++){
             var ea=ei/8*Math.PI*2;
             var ep=(Math.random()-0.5)*Math.PI*0.7;
@@ -1726,70 +1744,73 @@ function buildCity() {
             cont.scale.set(1,0.5,1);
             earthGroup.add(cont);
         }
-        // Ice caps
         var iceCap1=new THREE.Mesh(new THREE.SphereGeometry(8,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
         iceCap1.position.set(0,28,0);earthGroup.add(iceCap1);
         var iceCap2=new THREE.Mesh(new THREE.SphereGeometry(6,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
         iceCap2.position.set(0,-28,0);earthGroup.add(iceCap2);
-        // Atmosphere glow — double layer
         var atmo=new THREE.Mesh(new THREE.SphereGeometry(32,32,24),new THREE.MeshBasicMaterial({color:0x6699FF,transparent:true,opacity:0.15,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo);
         var atmo2=new THREE.Mesh(new THREE.SphereGeometry(35,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo2);
-        // Position at horizon — far away, low, partially behind ground plane
-        earthGroup.position.set(120,5,-160);
+        // Position earth above and to the side (relative to sphere center)
+        earthGroup.position.set(250,MOON_CY+350,-200);
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
-        // ---- Twinkling stars (Mario Galaxy style) ----
+        // ---- Twinkling stars — surround the sphere ----
         window._moonStars=[];
         var starColors=[0xFFFFFF,0xFFFFFF,0xFFFFFF,0xCCDDFF,0xAABBFF,0xFFEECC,0xFFCCDD,0xDDCCFF];
         for(var sti=0;sti<350;sti++){
             var sa=Math.random()*Math.PI*2;
-            var se=0.05+Math.random()*1.4;
-            var sd=120+Math.random()*180;
-            var sx=Math.cos(sa)*sd*Math.cos(se);
-            var sy=Math.sin(se)*sd+5;
-            var sz=Math.sin(sa)*sd*Math.cos(se);
-            var ss=0.1+Math.random()*0.5;
+            var se=(Math.random()-0.5)*Math.PI; // full sphere distribution
+            var sd=MOON_R*1.5+Math.random()*MOON_R*2;
+            var sx=Math.cos(sa)*Math.cos(se)*sd;
+            var sy=MOON_CY+Math.sin(se)*sd;
+            var sz=Math.sin(sa)*Math.cos(se)*sd;
+            var ss=0.2+Math.random()*0.8;
             var sc=starColors[Math.floor(Math.random()*starColors.length)];
             var star=new THREE.Mesh(new THREE.SphereGeometry(ss,4,3),new THREE.MeshBasicMaterial({color:sc,fog:false,transparent:true}));
             star.position.set(sx,sy,sz);
             scene.add(star);
             window._moonStars.push({mesh:star,phase:Math.random()*Math.PI*2,speed:0.5+Math.random()*3});
         }
-        // ---- Nebula clouds (large transparent colored spheres) ----
+        // ---- Nebula clouds ----
         window._moonNebulae=[];
         var nebColors=[0x330044,0x220033,0x440022,0x110033,0x330033,0x220044];
         for(var ni=0;ni<12;ni++){
             var na=Math.random()*Math.PI*2;
-            var ne2=0.2+Math.random()*1.0;
-            var nd=100+Math.random()*150;
-            var nx=Math.cos(na)*nd*Math.cos(ne2);
-            var ny=Math.sin(ne2)*nd+20;
-            var nz=Math.sin(na)*nd*Math.cos(ne2);
+            var ne2=(Math.random()-0.5)*Math.PI;
+            var nd=MOON_R*1.2+Math.random()*MOON_R*1.5;
+            var nnx=Math.cos(na)*Math.cos(ne2)*nd;
+            var nny=MOON_CY+Math.sin(ne2)*nd;
+            var nnz=Math.sin(na)*Math.cos(ne2)*nd;
             var ns=20+Math.random()*30;
             var nc=nebColors[Math.floor(Math.random()*nebColors.length)];
             var neb=new THREE.Mesh(new THREE.SphereGeometry(ns,8,6),new THREE.MeshBasicMaterial({color:nc,transparent:true,opacity:0.12+Math.random()*0.1,fog:false,side:THREE.BackSide}));
-            neb.position.set(nx,ny,nz);
+            neb.position.set(nnx,nny,nnz);
             scene.add(neb);
             window._moonNebulae.push(neb);
         }
-        // Footprints on the ground
+        // Footprints — projected onto sphere
         var fpMat=toon(0x666677);
         for(var fi=0;fi<15;fi++){
-            var fx=(Math.random()-0.5)*40+35;
-            var fz=(Math.random()-0.5)*40-35;
+            var ffx=(Math.random()-0.5)*40+35;
+            var ffz=(Math.random()-0.5)*40-35;
+            var fpp=_moonProject(ffx,ffz);
             var fp=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.02,0.5),fpMat);
-            fp.position.set(fx,0.01,fz);fp.rotation.y=Math.random()*Math.PI*2;
+            fp.position.set(fpp.x,fpp.y,fpp.z);
+            _moonOrient(fp,fpp.nx,fpp.ny,fpp.nz);
+            fp.rotateY(Math.random()*Math.PI*2);
             cityGroup.add(fp);
         }
-        // Moon rocks
+        // Moon rocks — projected onto sphere
         for(var ri2=0;ri2<25;ri2++){
-            var rx=(Math.random()-0.5)*CITY_SIZE*1.6;
-            var rz2=(Math.random()-0.5)*CITY_SIZE*1.6;
+            var rrx=(Math.random()-0.5)*CITY_SIZE*1.6;
+            var rrz=(Math.random()-0.5)*CITY_SIZE*1.6;
             var rs=0.3+Math.random()*1.2;
+            var rkp=_moonProject(rrx,rrz);
             var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(rs,0),toon(0x888899));
-            rock.position.set(rx,rs*0.4,rz2);rock.rotation.set(Math.random(),Math.random(),Math.random());
+            rock.position.set(rkp.x+rkp.nx*rs*0.4,rkp.y+rkp.ny*rs*0.4,rkp.z+rkp.nz*rs*0.4);
+            rock.rotation.set(Math.random(),Math.random(),Math.random());
             cityGroup.add(rock);
         }
     }
@@ -1818,7 +1839,29 @@ for(var _ri=0;_ri<RACES.length;_ri++){RACES[_ri].name=I18N.raceNames[_langCode][
 function buildPortals() {
     RACES.forEach((race,i)=>{
         const g = new THREE.Group();
-        g.position.set(race.x, 0, race.z);
+        var portalX=race.x, portalY=0, portalZ=race.z;
+        // Moon: project portal position onto sphere surface
+        if(currentCityStyle===5){
+            var dx=race.x, dy=0-MOON_CY, dz=race.z;
+            var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+            portalX=dx/d*MOON_R;
+            portalY=MOON_CY+dy/d*MOON_R;
+            portalZ=dz/d*MOON_R;
+            g.position.set(portalX,portalY,portalZ);
+            // Orient portal to face outward from sphere
+            var nx=dx/d,ny=dy/d,nz=dz/d;
+            var up2=new THREE.Vector3(nx,ny,nz);
+            var fwd2=new THREE.Vector3(0,0,1);
+            var dot2=fwd2.dot(up2);
+            fwd2.sub(up2.clone().multiplyScalar(dot2)).normalize();
+            if(fwd2.lengthSq()<0.001)fwd2.set(1,0,0);
+            var right2=new THREE.Vector3().crossVectors(up2,fwd2).normalize();
+            fwd2.crossVectors(right2,up2).normalize();
+            var m4=new THREE.Matrix4().makeBasis(right2,up2,fwd2);
+            g.quaternion.setFromRotationMatrix(m4);
+        } else {
+            g.position.set(portalX,portalY,portalZ);
+        }
 
         // Moon-style portals: silver/blue tones
         var pColor=race.color;
@@ -1853,7 +1896,7 @@ function buildPortals() {
         }
 
         cityGroup.add(g);
-        portals.push({mesh:g, ring, inner, name:race.name, desc:race.desc, raceIndex:i, x:race.x, z:race.z, color:race.color});
+        portals.push({mesh:g, ring, inner, name:race.name, desc:race.desc, raceIndex:i, x:portalX, z:portalZ, y:portalY, color:race.color});
 
         // Name sign above portal
         var _pc=document.createElement('canvas');_pc.width=256;_pc.height=64;
@@ -1874,12 +1917,20 @@ function buildCityCoins() {
     for(let i=0;i<90;i++){
         const cx=(Math.random()-0.5)*CITY_SIZE*1.5, cz=(Math.random()-0.5)*CITY_SIZE*1.5;
         let skip=false;
-        for(const c of cityColliders) if(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1) skip=true;
-        // Skip coins inside fountain pool
-        if(Math.sqrt(cx*cx+cz*cz)<7) skip=true;
+        if(currentCityStyle!==5){
+            for(const c of cityColliders) if(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1) skip=true;
+            if(Math.sqrt(cx*cx+cz*cz)<7) skip=true;
+        }
         if(skip) continue;
         const coin=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12), toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
-        coin.position.set(cx,1.2,cz); coin.rotation.x=Math.PI/2;
+        if(currentCityStyle===5){
+            var cp=_moonProject(cx,cz);
+            coin.position.set(cp.x+cp.nx*1.2,cp.y+cp.ny*1.2,cp.z+cp.nz*1.2);
+            _moonOrient(coin,cp.nx,cp.ny,cp.nz);
+            coin.rotateX(Math.PI/2);
+        } else {
+            coin.position.set(cx,1.2,cz); coin.rotation.x=Math.PI/2;
+        }
         cityGroup.add(coin);
         cityCoins.push({mesh:coin, collected:false});
     }
@@ -1889,6 +1940,8 @@ function buildCityCoins() {
 function buildWarpPipes(){
     warpPipeMeshes.forEach(function(wp){cityGroup.remove(wp.group);});
     warpPipeMeshes=[];
+    // No ground warp pipes on moon (only reachable from cloud world)
+    if(currentCityStyle===5)return;
     var pipeMat=new THREE.MeshPhongMaterial({color:0x44DD44,transparent:true,opacity:0.45,side:THREE.DoubleSide});
     var rimMat=toon(0x33BB33,{emissive:0x22AA22,emissiveIntensity:0.2});
     // Build pipe targets: ground pipes go to cities 0-4 only (not moon=5)
@@ -2202,11 +2255,17 @@ function switchCity(targetStyle){
 // ---- NPC eggs wandering city ----
 function spawnCityNPCs() {
     for(let i=0;i<12;i++){
-        const nx=(Math.random()-0.5)*50, nz=(Math.random()-0.5)*50;
+        var nx2=(Math.random()-0.5)*50, nz2=(Math.random()-0.5)*50;
+        var spawnY=0;
+        if(currentCityStyle===5){
+            var sp=_moonProject(nx2,nz2);
+            nx2=sp.x;spawnY=sp.y;nz2=sp.z;
+        }
         const col=AI_COLORS[i%AI_COLORS.length];
-        const npc=createEgg(nx,nz,col,AI_COLORS[(i+4)%AI_COLORS.length],false,undefined,CHARACTERS[i%CHARACTERS.length].type);
+        const npc=createEgg(nx2,nz2,col,AI_COLORS[(i+4)%AI_COLORS.length],false,undefined,CHARACTERS[i%CHARACTERS.length].type);
+        if(currentCityStyle===5) npc.mesh.position.y=spawnY+0.5;
         npc.cityNPC=true;
-        npc.aiTargetX=nx; npc.aiTargetZ=nz;
+        npc.aiTargetX=nx2; npc.aiTargetZ=nz2;
         npc.aiWanderTimer=60+Math.random()*120;
         cityNPCs.push(npc);
     }
@@ -2924,10 +2983,136 @@ function buildObs(seg,ri,sm){
 //  PHYSICS
 // ============================================================
 const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
+var MOON_R=200; // moon sphere radius
+var MOON_CY=-MOON_R; // sphere center Y (top of sphere at y=0)
+
+// Project a flat (x,0,z) position onto the moon sphere surface
+// Returns {x,y,z, nx,ny,nz} (position + surface normal)
+function _moonProject(fx,fz){
+    var dx=fx, dy=0-MOON_CY, dz=fz;
+    var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+    var nx=dx/d, ny=dy/d, nz=dz/d;
+    return {x:nx*MOON_R, y:MOON_CY+ny*MOON_R, z:nz*MOON_R, nx:nx, ny:ny, nz:nz};
+}
+// Orient a THREE.Object3D so its local Y-up aligns with the sphere surface normal
+function _moonOrient(obj, nx, ny, nz){
+    var up=new THREE.Vector3(nx,ny,nz);
+    var fwd=new THREE.Vector3(0,0,1);
+    var dot=fwd.dot(up);
+    fwd.sub(up.clone().multiplyScalar(dot)).normalize();
+    if(fwd.lengthSq()<0.001)fwd.set(1,0,0);
+    var right=new THREE.Vector3().crossVectors(up,fwd).normalize();
+    fwd.crossVectors(right,up).normalize();
+    var m4=new THREE.Matrix4().makeBasis(right,up,fwd);
+    obj.quaternion.setFromRotationMatrix(m4);
+}
 
 function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     if(!egg.alive) return;
-    var grav=(isCity&&currentCityStyle===5)?GRAVITY/6:GRAVITY;
+    // ---- Moon spherical gravity ----
+    if(isCity&&currentCityStyle===5){
+        var cx=0,cy=MOON_CY,cz=0; // sphere center
+        var px=egg.mesh.position.x, py=egg.mesh.position.y, pz=egg.mesh.position.z;
+        // Vector from center to egg
+        var dx=px-cx, dy=py-cy, dz=pz-cz;
+        var dist=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+        // Surface normal (unit vector pointing outward)
+        var nx=dx/dist, ny=dy/dist, nz=dz/dist;
+        // Height above surface
+        var height=dist-MOON_R;
+        // Radial velocity (along normal)
+        var vRad=egg.vx*nx+egg.vy*ny+egg.vz*nz;
+        // Tangential velocity (perpendicular to normal)
+        var tvx=egg.vx-vRad*nx, tvy=egg.vy-vRad*ny, tvz=egg.vz-vRad*nz;
+        // Apply gravity (radially inward, 1/6 strength)
+        vRad-=GRAVITY/6;
+        // Ground check
+        egg.onGround=false;
+        if(height<=0.01&&vRad<=0){
+            height=0.01;vRad=0;egg.onGround=true;
+            if(egg.vy<-0.05)egg.squash=0.7;
+        }
+        // Reconstruct velocity
+        egg.vx=tvx+vRad*nx;
+        egg.vy=tvy+vRad*ny;
+        egg.vz=tvz+vRad*nz;
+        // Apply velocity
+        egg.mesh.position.x+=egg.vx+(egg.conveyorVx||0);
+        egg.mesh.position.y+=egg.vy;
+        egg.mesh.position.z+=egg.vz+(egg.conveyorVz||0);
+        egg.conveyorVx=0;egg.conveyorVz=0;
+        // Re-project onto sphere surface if on ground
+        var px2=egg.mesh.position.x, py2=egg.mesh.position.y, pz2=egg.mesh.position.z;
+        var dx2=px2-cx, dy2=py2-cy, dz2=pz2-cz;
+        var dist2=Math.sqrt(dx2*dx2+dy2*dy2+dz2*dz2)||1;
+        var height2=dist2-MOON_R;
+        if(egg.onGround||height2<0){
+            var targetR=MOON_R+Math.max(0.01,height2>0?height2:0.01);
+            var scale=targetR/dist2;
+            egg.mesh.position.x=cx+dx2*scale;
+            egg.mesh.position.y=cy+dy2*scale;
+            egg.mesh.position.z=cz+dz2*scale;
+        }
+        // Orient egg mesh to surface normal + walk direction
+        var nx2=dx2/dist2, ny2=dy2/dist2, nz2=dz2/dist2;
+        var up=new THREE.Vector3(nx2,ny2,nz2);
+        // Use tangential velocity as forward direction
+        var spd=Math.sqrt(tvx*tvx+tvy*tvy+tvz*tvz);
+        var fwd;
+        if(spd>0.005){
+            fwd=new THREE.Vector3(tvx/spd,tvy/spd,tvz/spd);
+            // Store last forward for when stopped
+            if(!egg._moonFwd)egg._moonFwd=fwd.clone();
+            else egg._moonFwd.lerp(fwd,0.15);
+        } else {
+            fwd=egg._moonFwd?egg._moonFwd.clone():new THREE.Vector3(0,0,1);
+            // Project onto tangent plane
+            var dotF=fwd.dot(up);
+            fwd.sub(up.clone().multiplyScalar(dotF)).normalize();
+            if(fwd.lengthSq()<0.001)fwd.set(1,0,0);
+        }
+        // Ensure forward is on tangent plane
+        var dotFwd=fwd.dot(up);
+        fwd.sub(up.clone().multiplyScalar(dotFwd)).normalize();
+        if(fwd.lengthSq()<0.001)fwd.set(1,0,0);
+        var right=new THREE.Vector3().crossVectors(up,fwd).normalize();
+        fwd.crossVectors(right,up).normalize();
+        var m4=new THREE.Matrix4();
+        m4.makeBasis(right,up,fwd);
+        egg.mesh.quaternion.setFromRotationMatrix(m4);
+        // Friction
+        egg.vx*=FRICTION;egg.vy*=FRICTION;egg.vz*=FRICTION;
+        // Thrown egg bounce on sphere
+        if(egg.throwTimer>0&&height2<0.1&&vRad<-0.05){
+            if(egg._bounces>0){egg._bounces--;var bv=Math.abs(vRad)*0.5;egg.vx+=nx2*bv;egg.vy+=ny2*bv;egg.vz+=nz2*bv;egg.squash=0.6;playHitSound();}
+        }
+        // Walk anim
+        var prevPhase=egg.walkPhase;
+        if(spd>0.005&&egg.onGround)egg.walkPhase+=spd*20; else egg.walkPhase*=0.85;
+        if(egg.isPlayer&&spd>0.02&&egg.onGround){
+            var prevStep=Math.floor(prevPhase/Math.PI);
+            var curStep=Math.floor(egg.walkPhase/Math.PI);
+            if(curStep>prevStep)playStepSound();
+        }
+        if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;}
+        // Squash recovery
+        egg.squash+=(1-egg.squash)*0.1;
+        var body=egg.mesh.userData.body;
+        if(body){body.scale.set(1/Math.max(egg.squash,0.3),egg.squash,1/Math.max(egg.squash,0.3));}
+        // Portal collision on moon
+        if(egg.isPlayer){
+            for(var ppi=0;ppi<portals.length;ppi++){
+                var pp=portals[ppi];
+                var pdx=egg.mesh.position.x-pp.x, pdz=egg.mesh.position.z-pp.z;
+                var pdy=egg.mesh.position.y-pp.y;
+                var pdist=Math.sqrt(pdx*pdx+pdz*pdz+pdy*pdy);
+                if(pdist<6)nearPortal=pp;
+            }
+        }
+        return;
+    }
+    // ---- Normal flat physics ----
+    var grav=GRAVITY;
     egg.vy -= grav;
     egg.mesh.position.x += egg.vx + (egg.conveyorVx||0);
     egg.mesh.position.y += egg.vy;
@@ -3094,25 +3279,25 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
 
     // Walk anim
-    const speed=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
-    const prevPhase=egg.walkPhase;
+    var speed=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+    var prevPhase=egg.walkPhase;
     if(speed>0.005&&egg.onGround)egg.walkPhase+=speed*20; else egg.walkPhase*=0.85;
     // Step sound for player
     if(egg.isPlayer&&speed>0.02&&egg.onGround){
-        const prevStep=Math.floor(prevPhase/Math.PI);
-        const curStep=Math.floor(egg.walkPhase/Math.PI);
+        var prevStep=Math.floor(prevPhase/Math.PI);
+        var curStep=Math.floor(egg.walkPhase/Math.PI);
         if(curStep!==prevStep) playStepSound();
     }
-    const feet=egg.mesh.userData.feet, body=egg.mesh.userData.body;
+    var feet=egg.mesh.userData.feet, body=egg.mesh.userData.body;
     if(feet&&feet.length===2){
         const sw=Math.sin(egg.walkPhase)*0.14;
         feet[0].position.z=0.06+sw; feet[1].position.z=0.06-sw;
         feet[0].position.y=0.05+Math.max(0,Math.sin(egg.walkPhase))*0.07;
         feet[1].position.y=0.05+Math.max(0,-Math.sin(egg.walkPhase))*0.07;
     }
-    if(body){const tz=Math.sin(egg.walkPhase)*speed*0.25;const tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;body.rotation.x+=(tx-body.rotation.x)*0.1;}
+    if(body){var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;body.rotation.x+=(tx-body.rotation.x)*0.1;}
 
-    const sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
+    var sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     egg.mesh.scale.set(1+(1-sq)*0.3,sq,1+(1-sq)*0.3);
 
     // Egg randomly wobbles (not always — random trigger)
@@ -3380,8 +3565,9 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var bc=cityCoins[bci];
             if(bc.collected||bc._stolenBy)continue;
             var bcdx=egg.mesh.position.x-bc.mesh.position.x;
+            var bcdy=egg.mesh.position.y-bc.mesh.position.y;
             var bcdz=egg.mesh.position.z-bc.mesh.position.z;
-            var bcd=Math.sqrt(bcdx*bcdx+bcdz*bcdz);
+            var bcd=Math.sqrt(bcdx*bcdx+bcdy*bcdy+bcdz*bcdz);
             if(bcd<bestCD){bestCD=bcd;bestCoin=bci;}
         }
         if(bestCoin!==null){egg._coinTarget=bestCoin;egg._coinTargetTimer=360;}
@@ -3396,9 +3582,10 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(egg._coinTargetTimer<=0){egg._coinTarget=null;}
             else{
                 var tcdx=tc.mesh.position.x-egg.mesh.position.x;
+                var tcdy=tc.mesh.position.y-egg.mesh.position.y;
                 var tcdz=tc.mesh.position.z-egg.mesh.position.z;
-                var tcd=Math.sqrt(tcdx*tcdx+tcdz*tcdz);
-                if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.7;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.7;}
+                var tcd=Math.sqrt(tcdx*tcdx+tcdy*tcdy+tcdz*tcdz);
+                if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.7;egg.vy+=(tcdy/tcd)*MOVE_ACCEL*0.7;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.7;}
                 _chasingCoin=true;
             }
         }
@@ -3409,8 +3596,9 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var sc=cityCoins[sci];
             if(sc.collected||sc._stolenBy)continue;
             var sdx=egg.mesh.position.x-sc.mesh.position.x;
+            var sdy=egg.mesh.position.y-sc.mesh.position.y;
             var sdz=egg.mesh.position.z-sc.mesh.position.z;
-            var sdist=Math.sqrt(sdx*sdx+sdz*sdz);
+            var sdist=Math.sqrt(sdx*sdx+sdy*sdy+sdz*sdz);
             if(sdist<2.5){
                 sc._stolenBy=egg;
                 sc.mesh.visible=false;
@@ -3708,7 +3896,35 @@ function handlePlayerInput(){
     var accelMul=1+sprintPct*1.0;
     var speedMul=1+sprintPct*1.0;
     const len=Math.sqrt(mx*mx+mz*mz);
-    if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;}
+    if(len>0.1){
+        mx/=len;mz/=len;
+        if(currentCityStyle===5&&gameState==='city'){
+            // Moon spherical: convert input to tangent plane movement
+            var pp=playerEgg.mesh.position;
+            var dx=pp.x,dy=pp.y-MOON_CY,dz=pp.z;
+            var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+            var nx=dx/d,ny=dy/d,nz=dz/d;
+            // Camera-relative tangent vectors
+            var camFwd=new THREE.Vector3();
+            camera.getWorldDirection(camFwd);
+            // Project camera forward onto tangent plane
+            var dotF=camFwd.x*nx+camFwd.y*ny+camFwd.z*nz;
+            var tfx=camFwd.x-dotF*nx, tfy=camFwd.y-dotF*ny, tfz=camFwd.z-dotF*nz;
+            var tfl=Math.sqrt(tfx*tfx+tfy*tfy+tfz*tfz)||1;
+            tfx/=tfl;tfy/=tfl;tfz/=tfl;
+            // Tangent right = normal × forward
+            var trx=ny*tfz-nz*tfy, try2=nz*tfx-nx*tfz, trz=nx*tfy-ny*tfx;
+            var trl=Math.sqrt(trx*trx+try2*try2+trz*trz)||1;
+            trx/=trl;try2/=trl;trz/=trl;
+            // Apply input in tangent plane
+            var ax=(mx*trx+mz*tfx)*MOVE_ACCEL*accelMul;
+            var ay=(mx*try2+mz*tfy)*MOVE_ACCEL*accelMul;
+            var az=(mx*trz+mz*tfz)*MOVE_ACCEL*accelMul;
+            playerEgg.vx+=ax;playerEgg.vy+=ay;playerEgg.vz+=az;
+        } else {
+            playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
+        }
+    }
     // Charge jump: hold Space to charge, release to jump
     // Grace period: allow brief off-ground (slopes/bumps) without canceling charge
     var _onGroundOrGrace=playerEgg.onGround;
@@ -3742,7 +3958,18 @@ function handlePlayerInput(){
     if(_jumpCharging&&(!keys['Space']||!_onGroundOrGrace)){
         if(_onGroundOrGrace&&_jumpCharge>0){
             var pct2=_jumpCharge/_jumpChargeMax;
-            playerEgg.vy=JUMP_FORCE*(1+pct2*2);
+            var jumpF=JUMP_FORCE*(1+pct2*2);
+            if(currentCityStyle===5&&gameState==='city'){
+                // Moon: jump along surface normal
+                var jp=playerEgg.mesh.position;
+                var jdx=jp.x,jdy=jp.y-MOON_CY,jdz=jp.z;
+                var jd=Math.sqrt(jdx*jdx+jdy*jdy+jdz*jdz)||1;
+                playerEgg.vx+=jdx/jd*jumpF;
+                playerEgg.vy+=jdy/jd*jumpF;
+                playerEgg.vz+=jdz/jd*jumpF;
+            } else {
+                playerEgg.vy=jumpF;
+            }
             playerEgg.squash=0.65-pct2*0.2;
             playJumpSound();
             if(pct2>0.15)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,pct2);
@@ -3758,9 +3985,22 @@ function handlePlayerInput(){
     if(_ascendSmoke&&playerEgg.vy<=0&&!playerEgg.onGround){
         _ascendSmoke=false;
     }
-    const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-    var curMax=MAX_SPEED*speedMul;
-    if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
+    if(currentCityStyle===5&&gameState==='city'){
+        // Moon: clamp tangential speed (exclude radial component)
+        var pp2=playerEgg.mesh.position;
+        var ddx=pp2.x,ddy=pp2.y-MOON_CY,ddz=pp2.z;
+        var dd2=Math.sqrt(ddx*ddx+ddy*ddy+ddz*ddz)||1;
+        var nnx=ddx/dd2,nny=ddy/dd2,nnz=ddz/dd2;
+        var vRad2=playerEgg.vx*nnx+playerEgg.vy*nny+playerEgg.vz*nnz;
+        var ttx=playerEgg.vx-vRad2*nnx, tty=playerEgg.vy-vRad2*nny, ttz=playerEgg.vz-vRad2*nnz;
+        var tSpd=Math.sqrt(ttx*ttx+tty*tty+ttz*ttz);
+        var curMax=MAX_SPEED*speedMul;
+        if(tSpd>curMax){var sc2=curMax/tSpd;playerEgg.vx=ttx*sc2+vRad2*nnx;playerEgg.vy=tty*sc2+vRad2*nny;playerEgg.vz=ttz*sc2+vRad2*nnz;}
+    } else {
+        const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+        var curMax=MAX_SPEED*speedMul;
+        if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
+    }
     // Grab / Throw (F key — triggers once per press via _fJustPressed)
     if(playerEgg.grabCD>0) playerEgg.grabCD--;
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0){
@@ -3861,8 +4101,32 @@ document.addEventListener('wheel',function(e){
 function updateCamera(){
     if(!playerEgg)return;
     const p=playerEgg.mesh.position;
-    // Camera follows directly behind and above the player
-    const tx=p.x, ty=p.y+10*_cameraZoom, tz=p.z+14*_cameraZoom;
+    if(gameState==='city'&&currentCityStyle===5){
+        // Moon spherical camera — follow behind player along surface normal
+        var dx=p.x,dy=p.y-MOON_CY,dz=p.z;
+        var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
+        var nx=dx/d,ny=dy/d,nz=dz/d;
+        // Camera position: above player along normal + behind
+        var camH=10*_cameraZoom;
+        var camBack=14*_cameraZoom;
+        // Get player's tangent forward direction from velocity or mesh orientation
+        var fwd=new THREE.Vector3(0,0,1);
+        fwd.applyQuaternion(playerEgg.mesh.quaternion);
+        // Camera target: along normal + behind along tangent
+        var tx=p.x+nx*camH-fwd.x*camBack;
+        var ty=p.y+ny*camH-fwd.y*camBack;
+        var tz=p.z+nz*camH-fwd.z*camBack;
+        camera.position.x+=(tx-camera.position.x)*0.08;
+        camera.position.y+=(ty-camera.position.y)*0.08;
+        camera.position.z+=(tz-camera.position.z)*0.08;
+        camera.up.set(nx,ny,nz);
+        camera.lookAt(p.x+nx*1,p.y+ny*1,p.z+nz*1);
+        sun.position.set(p.x+30*nx,p.y+30*ny+50,p.z+30*nz);
+        sun.target.position.set(p.x,p.y,p.z);
+        return;
+    }
+    // Normal flat camera
+    var tx=p.x, ty=p.y+10*_cameraZoom, tz=p.z+14*_cameraZoom;
     camera.position.x+=(tx-camera.position.x)*0.08;
     camera.position.y+=(ty-camera.position.y)*0.08;
     camera.position.z+=(tz-camera.position.z)*0.08;
@@ -4045,12 +4309,13 @@ function updateCity(){
     var _nearP=null, _nearD=9999;
     for(var pi=0;pi<portals.length;pi++){
         var _dx=px-portals[pi].x, _dz=pz-portals[pi].z;
-        var _d=Math.sqrt(_dx*_dx+_dz*_dz);
+        var _dy=(currentCityStyle===5)?(py-(portals[pi].y||0)):0;
+        var _d=Math.sqrt(_dx*_dx+_dz*_dz+_dy*_dy);
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
     if(_nearP&&_nearD<6.0){
         _pp.style.display='block';
-        if(_nearD<1.2&&!_portalConfirmOpen&&_portalDismissed!==_nearP.raceIndex){
+        if(_nearD<2.5&&!_portalConfirmOpen&&_portalDismissed!==_nearP.raceIndex){
             _pp.style.display='none';
             showPortalConfirm(_nearP);
         } else if(!_portalConfirmOpen){
@@ -4555,7 +4820,18 @@ function enterCity(spawnX,spawnZ){
     const skin=CHARACTERS[selectedChar];
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
-    camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
+    if(currentCityStyle===5){
+        // Project player onto sphere surface
+        var sp=_moonProject(sx,sz);
+        playerEgg.mesh.position.set(sp.x,sp.y+0.5,sp.z);
+        // Camera starts above player along surface normal
+        camera.position.set(sp.x+sp.nx*10,sp.y+sp.ny*10,sp.z+sp.nz*10+14);
+        camera.up.set(sp.nx,sp.ny,sp.nz);
+        camera.lookAt(sp.x,sp.y,sp.z);
+    } else {
+        camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
+        camera.up.set(0,1,0);
+    }
     // Check if Tower of Babel should already be triggered
     if(coins>=10&&!_babylonTriggered&&currentCityStyle!==5){_triggerBabylonEvent();}
 }
