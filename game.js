@@ -3536,18 +3536,37 @@ document.getElementById('back-city-btn').addEventListener('click', goBackToCity)
 // Back to city during race
 document.getElementById('race-back-btn').addEventListener('click', goBackToCity);
 
-// Android nav bar fix — detect visual viewport offset and push buttons up
+// Auto-detect nav bar / notch offset for all Android & iOS devices
 (function(){
-    if(!window.visualViewport)return;
-    function fixNav(){
-        var diff=window.innerHeight-window.visualViewport.height;
-        if(diff>20){
-            var tc=document.getElementById('touch-controls');
-            if(tc)tc.style.paddingBottom=diff+'px';
+    var tc=document.getElementById('touch-controls');
+    if(!tc)return;
+    function calcOffset(){
+        var offset=12; // base minimum
+        // Method 1: visualViewport — most reliable on Android Chrome
+        if(window.visualViewport){
+            var diff=window.innerHeight-window.visualViewport.height;
+            if(diff>5)offset=Math.max(offset,diff+8);
         }
+        // Method 2: screen vs window — catches Samsung/Xiaomi nav bars
+        var screenH=screen.height;
+        var winH=window.innerHeight;
+        var dpr=window.devicePixelRatio||1;
+        // On Android, screen.height is physical pixels / dpr, window.innerHeight is CSS pixels
+        // If there's a significant gap, it's likely a nav bar
+        if(screenH>0&&winH>0){
+            var gap=screenH-winH;
+            if(gap>30)offset=Math.max(offset,Math.min(gap*0.6,80));
+        }
+        tc.style.setProperty('--nav-offset',offset+'px');
     }
-    window.visualViewport.addEventListener('resize',fixNav);
-    fixNav();
+    calcOffset();
+    window.addEventListener('resize',calcOffset);
+    if(window.visualViewport){
+        window.visualViewport.addEventListener('resize',calcOffset);
+        window.visualViewport.addEventListener('scroll',calcOffset);
+    }
+    // Also recalc on orientation change
+    window.addEventListener('orientationchange',function(){setTimeout(calcOffset,300);});
 })();
 
 animate();
