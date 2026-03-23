@@ -3100,6 +3100,14 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         egg.squash+=(1-egg.squash)*0.1;
         var body=egg.mesh.userData.body;
         if(body){body.scale.set(1/Math.max(egg.squash,0.3),egg.squash,1/Math.max(egg.squash,0.3));}
+        // Feet animation
+        var feet=egg.mesh.userData.feet;
+        if(feet&&feet.length===2){
+            var sw2=Math.sin(egg.walkPhase)*0.14;
+            feet[0].position.z=0.06+sw2;feet[1].position.z=0.06-sw2;
+            feet[0].position.y=0.05+Math.max(0,Math.sin(egg.walkPhase))*0.07;
+            feet[1].position.y=0.05+Math.max(0,-Math.sin(egg.walkPhase))*0.07;
+        }
         // Portal collision on moon
         if(egg.isPlayer){
             for(var ppi=0;ppi<portals.length;ppi++){
