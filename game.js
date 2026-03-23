@@ -2056,6 +2056,7 @@ function startPipeTravel(fromX,fromZ,targetStyle,fromY){
     _pipeTraveling=true;_pipeTimer=0;_pipeTargetStyle=targetStyle;
     _pipeStartX=fromX;_pipeStartZ=fromZ;
     _pipeStartY=(fromY!==undefined)?fromY:3;
+    camera.up.set(0,1,0); // reset camera up for pipe travel
     // Destination is far away — simulate flying to a distant continent
     // Direction from pipe position determines flight direction
     var dirX=fromX,dirZ=fromZ;
@@ -2219,10 +2220,22 @@ function updatePipeTravel(){
         _pipeTraveling=false;
         _pipeArrivalCooldown=60; // 1 second grace period before portal checks
         if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
-        playerEgg.mesh.position.set(0,3,0);
-        playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
-        playerEgg.onGround=false;
-        camera.position.set(0,12,19);camera.lookAt(0,0,5);
+        if(currentCityStyle===5){
+            // Moon: spawn at top of sphere
+            var sp=_moonProject(0,0);
+            playerEgg.mesh.position.set(sp.x,sp.y+3,sp.z);
+            playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
+            playerEgg.onGround=false;
+            camera.position.set(sp.x+sp.nx*24,sp.y+sp.ny*24,sp.z+sp.nz*24);
+            camera.up.set(sp.nx,sp.ny,sp.nz);
+            camera.lookAt(sp.x,sp.y,sp.z);
+        } else {
+            playerEgg.mesh.position.set(0,3,0);
+            playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
+            playerEgg.onGround=false;
+            camera.position.set(0,12,19);camera.lookAt(0,0,5);
+            camera.up.set(0,1,0);
+        }
         for(var i=0;i<warpPipeMeshes.length;i++)warpPipeMeshes[i]._cooldown=true;
     }
 }
@@ -2247,7 +2260,16 @@ function switchCity(targetStyle){
     var skin=CHARACTERS[selectedChar];
     playerEgg=createEgg(0,5,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
-    camera.position.set(0,12,19);camera.lookAt(0,0,5);
+    if(currentCityStyle===5){
+        var sp2=_moonProject(0,5);
+        playerEgg.mesh.position.set(sp2.x,sp2.y+0.5,sp2.z);
+        camera.position.set(sp2.x+sp2.nx*24,sp2.y+sp2.ny*24,sp2.z+sp2.nz*24);
+        camera.up.set(sp2.nx,sp2.ny,sp2.nz);
+        camera.lookAt(sp2.x,sp2.y,sp2.z);
+    } else {
+        camera.position.set(0,12,19);camera.lookAt(0,0,5);
+        camera.up.set(0,1,0);
+    }
 }
 
 // ---- NPC eggs wandering city ----
