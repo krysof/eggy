@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.19 by \u767D\u6CB3\u6101',zht:'v20260323.19 by \u767D\u6CB3\u6101',ja:'v20260323.19 by \u767D\u6CB3\u6101',en:'v20260323.19 by Kryso'},
+    version:{zhs:'v20260323.20 by \u767D\u6CB3\u6101',zht:'v20260323.20 by \u767D\u6CB3\u6101',ja:'v20260323.20 by \u767D\u6CB3\u6101',en:'v20260323.20 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -43,10 +43,10 @@ var I18N={
         en:['Classic Egg','Puppy','Monkey','Rooster','Cockroach','Kitty','Piggy','Frog']
     },
     cityNames:{
-        zhs:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE'],
-        zht:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE'],
-        ja:['\uD83C\uDFD9\uFE0F \u305F\u307E\u3054\u30B7\u30C6\u30A3','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3'],
-        en:['\uD83C\uDFD9\uFE0F Egg City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City']
+        zhs:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u7403\u57CE'],
+        zht:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u7403\u57CE'],
+        ja:['\uD83C\uDFD9\uFE0F \u305F\u307E\u3054\u30B7\u30C6\u30A3','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3','\uD83C\uDF19 \u30E0\u30FC\u30F3\u30B7\u30C6\u30A3'],
+        en:['\uD83C\uDFD9\uFE0F Egg City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City','\uD83C\uDF19 Moon City']
     },
     raceNames:{
         zhs:['\uD83C\uDF00 \u7591\u72C2\u8D5B\u9053','\uD83D\uDD28 \u9524\u5B50\u98CE\u66B4','\u26A1 \u6781\u9650\u6311\u6218','\uD83D\uDC51 \u51A0\u519B\u4E4B\u8DEF','\uD83D\uDC8E \u7EFF\u5B9D\u77F3\u5C71\u4E18','\uD83D\uDD25 \u706B\u7130\u5C71\u8C37','\u2744\uFE0F \u51B0\u971C\u6ED1\u9053','\uD83C\uDF08 \u5F69\u8679\u5929\u7A7A','\uD83C\uDF44 \u8611\u83C7\u738B\u56FD','\uD83D\uDD25 \u5CA9\u6D46\u57CE\u5821','\u2601\uFE0F \u4E91\u7AEF\u5929\u5802','\uD83C\uDFF0 \u5E93\u5DF4\u57CE\u5821'],
@@ -1365,7 +1365,8 @@ var CITY_STYLES=[
     {name:'🏜️ 沙漠城',ground:0xDDCC88,path:0xCCBB77,sky:0xFFCC66,bColors:[0xDDAA66,0xCC9955,0xEEBB77,0xBB8844,0xDDCC88,0xCCAA55,0xEECC99,0xBB9966],roof:0xAA6633,tree:0x88AA44,fog:0xFFEECC},
     {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
-    {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null}
+    {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
+    {name:'🌙 月球城',ground:0x888899,path:0xAAAABB,sky:0x111122,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:0x222233}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -1696,17 +1697,18 @@ function buildWarpPipes(){
     warpPipeMeshes=[];
     var pipeMat=new THREE.MeshPhongMaterial({color:0x44DD44,transparent:true,opacity:0.45,side:THREE.DoubleSide});
     var rimMat=toon(0x33BB33,{emissive:0x22AA22,emissiveIntensity:0.2});
-    // Build pipe targets: always show pipes to other cities
+    // Build pipe targets: ground pipes go to cities 0-4 only (not moon=5)
     var targets=[];
     for(var ti=0;ti<CITY_STYLES.length;ti++){
         if(ti===currentCityStyle)continue;
+        if(ti===5)continue; // Moon city only reachable from cloud world
         targets.push(ti);
     }
     // Place up to 4 pipes at edges
     var positions=[
         {x:0,z:-65},{x:65,z:0},{x:0,z:65},{x:-65,z:0}
     ];
-    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF];
     for(var pi2=0;pi2<Math.min(targets.length,4);pi2++){
         var tgt=targets[pi2];
         var pos=positions[pi2];
@@ -1756,6 +1758,8 @@ function clearCity(){
     while(cityGroup.children.length>0)cityGroup.remove(cityGroup.children[0]);
     cityColliders.length=0;
     cityBuildingMeshes.length=0;
+    // Remove scene-added coins (cloud world coins)
+    for(var ci=0;ci<cityCoins.length;ci++){if(cityCoins[ci].inScene)scene.remove(cityCoins[ci].mesh);}
     cityCoins.length=0;
     cityProps.length=0;
     warpPipeMeshes.length=0;
@@ -1771,6 +1775,8 @@ function clearCity(){
     // Remove clouds
     for(var k=0;k<cityCloudPlatforms.length;k++){scene.remove(cityCloudPlatforms[k].group);}
     cityCloudPlatforms.length=0;
+    // Remove cloud world moon pipe
+    if(_cloudWorldPipe){scene.remove(_cloudWorldPipe.group);_cloudWorldPipe=null;}
 }
 
 function applyCityTheme(){
@@ -1807,7 +1813,7 @@ function startPipeTravel(fromX,fromZ,targetStyle){
     _pipeTubeGroup=new THREE.Group();
     var steps=40;
     var tubeColor=CITY_STYLES[targetStyle]?0x44FF88:0x44DD44;
-    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF];
     var pColor=pipeColors[targetStyle]||tubeColor;
     var tubeMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.25,side:THREE.DoubleSide});
     for(var i=0;i<steps;i++){
@@ -1980,38 +1986,129 @@ function spawnCityNPCs() {
 
 // ---- Clouds (can stand on them) ----
 var cityCloudPlatforms=[]; // {group, x, z, y, hw, hd}
+var _cloudWorldPipe=null; // moon pipe in cloud world
+function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
+    var cg2=new THREE.SphereGeometry(1,8,6);
+    var cm2=toon(0xffffff,{transparent:true,opacity:0.85});
+    var g=new THREE.Group();
+    var maxW=0,maxD=0,maxTop=0,maxSc=0;
+    var numParts=minParts+Math.floor(Math.random()*(maxParts-minParts+1));
+    for(var j=0;j<numParts;j++){
+        var s=minS+Math.random()*(maxS-minS);
+        var m=new THREE.Mesh(cg2,cm2);
+        m.scale.set(s,s*0.45,s*0.7);
+        var pz=Math.random()*1.5-0.75;
+        m.position.set(j*2.5,0,pz);
+        g.add(m);
+        if(j*2.5+s>maxW)maxW=j*2.5+s;
+        var partD=Math.abs(pz)+s*0.7;
+        if(partD>maxD)maxD=partD;
+        if(s*0.45>maxTop)maxTop=s*0.45;
+        if(s>maxSc)maxSc=s;
+    }
+    var halfW=maxW*0.5;
+    for(var ci2=0;ci2<g.children.length;ci2++){g.children[ci2].position.x-=halfW;}
+    g.position.set(cx,cy,cz);
+    scene.add(g);
+    var cl={group:g,x:cx,z:cz,y:cy,hw:halfW+maxSc,hd:Math.max(maxD,maxSc*0.7),top:maxTop};
+    cityCloudPlatforms.push(cl);
+    return cl;
+}
 function addClouds(){
-    const cg=new THREE.SphereGeometry(1,8,6);
-    const cm=toon(0xffffff,{transparent:true,opacity:0.85});
-    for(let i=0;i<30;i++){
-        const g=new THREE.Group();
-        var maxW=0,maxD=0,maxTop=0,maxS=0;
-        var numParts=2+Math.floor(Math.random()*3);
-        for(let j=0;j<numParts;j++){
-            const s=2+Math.random()*3;
-            const m=new THREE.Mesh(cg,cm);
-            m.scale.set(s,s*0.45,s*0.7);
-            var pz=Math.random()*1.5-0.75;
-            m.position.set(j*2.5,0,pz);
-            g.add(m);
-            if(j*2.5+s>maxW)maxW=j*2.5+s;
-            var partD=Math.abs(pz)+s*0.7;
-            if(partD>maxD)maxD=partD;
-            var partTop=s*0.45;
-            if(partTop>maxTop)maxTop=partTop;
-            if(s>maxS)maxS=s;
-        }
-        // Center the group so collision aligns with visual center
-        var halfW=maxW*0.5;
-        for(var ci2=0;ci2<g.children.length;ci2++){g.children[ci2].position.x-=halfW;}
+    // Random scattered clouds
+    for(var i=0;i<20;i++){
         var cx=(Math.random()-0.5)*200;
         var cy=10+Math.random()*12;
         var cz=(Math.random()-0.5)*200;
-        g.position.set(cx, cy, cz);
-        scene.add(g);
-        // hw/hd cover full visual extent: halfW + largest sphere radius in X, maxD covers Z
-        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:halfW+maxS, hd:Math.max(maxD,maxS*0.7), top:maxTop});
+        _makeCloud(cx,cy,cz,2,4,2,5);
     }
+    // Cloud above each building roof
+    for(var bi=0;bi<cityColliders.length;bi++){
+        var c=cityColliders[bi];
+        var roofTop=(c.h||6)+(c.roofH||3);
+        _makeCloud(c.x,roofTop+4+Math.random()*3,c.z,2,3,2,4);
+    }
+    // ---- Cloud World (y=40-50) — large platform layer ----
+    var cwY=42;
+    // Central large cloud platform
+    _makeCloud(0,cwY,0,4,4,4,6);
+    // Ring of cloud platforms around center
+    for(var ai=0;ai<8;ai++){
+        var ang=ai/8*Math.PI*2;
+        var r=25+Math.random()*10;
+        _makeCloud(Math.cos(ang)*r,cwY-2+Math.random()*4,Math.sin(ang)*r,3,4,3,5);
+    }
+    // Stepping stone clouds connecting roof clouds to cloud world
+    for(var si=0;si<12;si++){
+        var sx=(Math.random()-0.5)*80;
+        var sz=(Math.random()-0.5)*80;
+        var sy=28+Math.random()*10;
+        _makeCloud(sx,sy,sz,2,3,2,4);
+    }
+    // Outer ring — more exploration
+    for(var oi=0;oi<6;oi++){
+        var oa=oi/6*Math.PI*2;
+        _makeCloud(Math.cos(oa)*50,cwY+Math.random()*3,Math.sin(oa)*50,3,4,3,5);
+    }
+    // Coins in cloud world
+    var coinGeo=new THREE.CylinderGeometry(0.4,0.4,0.1,12);
+    var coinMat=toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
+    for(var cci=0;cci<15;cci++){
+        var ca=cci/15*Math.PI*2;
+        var cr=8+Math.random()*20;
+        var ccY=cwY+2+Math.random()*2;
+        var coin=new THREE.Mesh(coinGeo,coinMat);
+        coin.position.set(Math.cos(ca)*cr,ccY,Math.sin(ca)*cr);
+        coin.rotation.x=Math.PI/2;
+        scene.add(coin);
+        cityCoins.push({mesh:coin,collected:false,baseY:ccY,inScene:true});
+    }
+    // ---- Moon Warp Pipe in cloud world center ----
+    _buildCloudWorldMoonPipe(0,cwY,0);
+}
+function _buildCloudWorldMoonPipe(px,py,pz){
+    var pColor=0xCCCCFF;
+    var g=new THREE.Group();
+    var pMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.4,side:THREE.DoubleSide});
+    var tube=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,6,16,1,true),pMat);
+    tube.position.y=3;g.add(tube);
+    var rim=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.35,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.5}));
+    rim.position.y=6;rim.rotation.x=Math.PI/2;g.add(rim);
+    var rim2=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.3,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.3}));
+    rim2.position.y=0.1;rim2.rotation.x=Math.PI/2;g.add(rim2);
+    // Moon icon on top
+    var moonSphere=new THREE.Mesh(new THREE.SphereGeometry(1.2,12,8),toon(0xEEEECC,{emissive:0xAAAA88,emissiveIntensity:0.4}));
+    moonSphere.position.y=8;g.add(moonSphere);
+    // Craters
+    for(var ci=0;ci<5;ci++){
+        var ca=ci/5*Math.PI*2;
+        var crater=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,4),toon(0xBBBBAA));
+        crater.position.set(Math.cos(ca)*0.8,8+Math.sin(ca)*0.6,Math.sin(ca)*0.5);
+        crater.scale.set(1,0.4,1);
+        g.add(crater);
+    }
+    // Glow orbs inside
+    var sMat=new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.5});
+    for(var si=0;si<8;si++){
+        var sp=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),sMat);
+        var a=si/8*Math.PI*2;
+        sp.position.set(Math.cos(a)*1.5,0.5+si*0.6,Math.sin(a)*1.5);
+        g.add(sp);
+    }
+    // Label
+    var canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
+    var ctx2=canvas.getContext('2d');
+    ctx2.fillStyle='rgba(0,0,0,0.6)';ctx2.fillRect(0,0,256,64);
+    ctx2.fillStyle='#fff';ctx2.font='bold 28px sans-serif';ctx2.textAlign='center';
+    var moonName=CITY_STYLES[5]?CITY_STYLES[5].name:'Moon';
+    ctx2.fillText(moonName,128,42);
+    var tex=new THREE.CanvasTexture(canvas);
+    var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+    sign.scale.set(4,1,1);sign.position.y=10;
+    g.add(sign);
+    g.position.set(px,py,pz);
+    scene.add(g);
+    _cloudWorldPipe={group:g,x:px,z:pz,y:py,targetStyle:5,_cooldown:false};
 }
 addClouds();
 
@@ -2544,6 +2641,19 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 }
                 if(wdist>5)wp._cooldown=false;
             }
+            // Cloud world moon pipe
+            if(_cloudWorldPipe&&!_pipeTraveling){
+                var mp=_cloudWorldPipe;
+                var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
+                var mdy=egg.mesh.position.y-mp.y;
+                var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
+                if(mdist<3&&Math.abs(mdy)<5&&!mp._cooldown){
+                    mp._cooldown=true;
+                    startPipeTravel(mp.x,mp.z,mp.targetStyle);
+                    return;
+                }
+                if(mdist>5)mp._cooldown=false;
+            }
         }
 } else {
         // Race track
@@ -2601,15 +2711,21 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     const sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     egg.mesh.scale.set(1+(1-sq)*0.3,sq,1+(1-sq)*0.3);
 
-    // Egg tilts in movement direction (wobbly walk)
-    if(speed>0.01){
-        var tiltX=-egg.vz*2.5; // lean forward/back based on Z velocity
-        var tiltZ=egg.vx*2.5;  // lean left/right based on X velocity
-        egg.mesh.rotation.x+=(tiltX-egg.mesh.rotation.x)*0.08;
-        egg.mesh.rotation.z+=(tiltZ-egg.mesh.rotation.z)*0.08;
+    // Egg randomly wobbles (not always — random trigger)
+    if(egg._wobbleTimer===undefined){egg._wobbleTimer=0;egg._wobbleAmt=0;egg._wobbleDir=1;}
+    if(egg._wobbleTimer<=0&&speed>0.01&&Math.random()<0.003){
+        egg._wobbleTimer=60+Math.floor(Math.random()*120);
+        egg._wobbleAmt=0.15+Math.random()*0.25;
+        egg._wobbleDir=Math.random()<0.5?1:-1;
+    }
+    if(egg._wobbleTimer>0){
+        egg._wobbleTimer--;
+        var wob=Math.sin(egg.walkPhase*1.5)*egg._wobbleAmt*egg._wobbleDir;
+        egg.mesh.rotation.z+=(wob-egg.mesh.rotation.z)*0.1;
+        egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
     } else {
-        egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.1;
-        egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.1;
+        egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
+        egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.12;
     }
 
     if(speed>0.01){
@@ -3282,7 +3398,7 @@ function updateCamera(){
 // ============================================================
 function updateCity(){
     if(!playerEgg)return;
-    const px=playerEgg.mesh.position.x, pz=playerEgg.mesh.position.z;
+    const px=playerEgg.mesh.position.x, pz=playerEgg.mesh.position.z, py=playerEgg.mesh.position.y;
 
     // Animate portals
     const t=Date.now()*0.001;
@@ -3415,9 +3531,10 @@ function updateCity(){
     for(const c of cityCoins){
         if(c.collected)continue;
         c.mesh.rotation.y+=0.03;
-        c.mesh.position.y=1.2+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
-        const dx=px-c.mesh.position.x, dz=pz-c.mesh.position.z;
-        if(Math.sqrt(dx*dx+dz*dz)<1.2){
+        var coinBaseY=c.baseY||1.2;
+        c.mesh.position.y=coinBaseY+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
+        var cdx2=px-c.mesh.position.x, cdz2=pz-c.mesh.position.z, cdy2=py-c.mesh.position.y;
+        if(Math.sqrt(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2)<1.5){
             c.collected=true; c.mesh.visible=false;
             coins++; document.getElementById('coin-hud').textContent='⭐ '+coins;
             playCoinSound();
