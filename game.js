@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.21 by \u767D\u6CB3\u6101',zht:'v20260323.21 by \u767D\u6CB3\u6101',ja:'v20260323.21 by \u767D\u6CB3\u6101',en:'v20260323.21 by Kryso'},
+    version:{zhs:'v20260323.22 by \u767D\u6CB3\u6101',zht:'v20260323.22 by \u767D\u6CB3\u6101',ja:'v20260323.22 by \u767D\u6CB3\u6101',en:'v20260323.22 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1797,6 +1797,8 @@ function buildCityCoins() {
         const cx=(Math.random()-0.5)*CITY_SIZE*1.5, cz=(Math.random()-0.5)*CITY_SIZE*1.5;
         let skip=false;
         for(const c of cityColliders) if(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1) skip=true;
+        // Skip coins inside fountain pool
+        if(Math.sqrt(cx*cx+cz*cz)<7) skip=true;
         if(skip) continue;
         const coin=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12), toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
         coin.position.set(cx,1.2,cz); coin.rotation.x=Math.PI/2;
@@ -4208,6 +4210,8 @@ function enterCity(spawnX,spawnZ){
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
     camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
+    // Check if Tower of Babel should already be triggered
+    if(coins>=10&&!_babylonTriggered&&currentCityStyle!==5){_triggerBabylonEvent();}
 }
 
 function enterRace(raceIndex){
