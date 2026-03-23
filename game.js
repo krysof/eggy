@@ -633,6 +633,34 @@ let coins = 0, nearPortal = null, countdownTimer = null;
 let raceCoinScore = 0;
 let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 
+// ---- Jump charge system ----
+var _jumpCharging=false, _jumpCharge=0, _jumpChargeMax=60, _jumpChargeBar=null;
+function _createChargeBar(){
+    var bg=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.15),new THREE.MeshBasicMaterial({color:0x333333,transparent:true,opacity:0.7,depthTest:false}));
+    var fill=new THREE.Mesh(new THREE.PlaneGeometry(1.0,0.1),new THREE.MeshBasicMaterial({color:0x00ff44,depthTest:false}));
+    fill.position.z=0.01;fill.scale.x=0;
+    bg.add(fill);bg._fill=fill;bg.renderOrder=999;fill.renderOrder=1000;
+    return bg;
+}
+function _updateChargeBar(){
+    if(!playerEgg)return;
+    var pct=_jumpCharge/_jumpChargeMax;
+    if(_jumpCharging&&playerEgg.onGround){
+        if(!_jumpChargeBar){_jumpChargeBar=_createChargeBar();playerEgg.mesh.add(_jumpChargeBar);}
+        _jumpChargeBar.visible=true;
+        _jumpChargeBar.position.set(0,2.2,0);
+        // Billboard: match camera rotation so bar always faces viewer
+        _jumpChargeBar.quaternion.copy(camera.quaternion);
+        _jumpChargeBar._fill.scale.x=pct;
+        _jumpChargeBar._fill.position.x=(pct-1)*0.5;
+        // Color: green→yellow→red
+        var c=pct<0.5?new THREE.Color(0,1,pct*2):new THREE.Color((pct-0.5)*2,1-(pct-0.5)*2,0);
+        _jumpChargeBar._fill.material.color=c;
+    } else {
+        if(_jumpChargeBar){_jumpChargeBar.visible=false;}
+    }
+}
+
 // ---- Input ----
 const keys={};
 addEventListener('keydown',e=>{ keys[e.code]=true; if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF'].includes(e.code))e.preventDefault(); });
@@ -657,7 +685,11 @@ function updJoy(touch){
     joystickKnob.style.transform='translate('+dx+'px,'+dy+'px)';
     joyVec={x:dx/maxR,y:dy/maxR};
 }
-if(jumpBtn) jumpBtn.addEventListener('touchstart',e=>{e.preventDefault();keys['Space']=true;setTimeout(()=>keys['Space']=false,120);},{passive:false});
+if(jumpBtn){
+    jumpBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['Space']=true;},{passive:false});
+    jumpBtn.addEventListener('touchend',function(e){e.preventDefault();keys['Space']=false;},{passive:false});
+    jumpBtn.addEventListener('touchcancel',function(e){keys['Space']=false;},{passive:false});
+}
 const grabBtn=document.getElementById('grab-btn');
 if(grabBtn) grabBtn.addEventListener('touchstart',e=>{e.preventDefault();keys['KeyF']=true;setTimeout(()=>keys['KeyF']=false,200);},{passive:false});
 
@@ -1120,9 +1152,10 @@ function clearRace() {
     const keep=allEggs.filter(e=>e.cityNPC);
     allEggs.length=0; allEggs.push(...keep);
     playerEgg=null;
+    _jumpCharging=false;_jumpCharge=0;_jumpChargeBar=null;
 }
 
-function getSegAt(z){for(const s of trackSegments)if(z>=s.startZ&&z<s.endZ)return s;return trackSegments[trackSegments.length-1];}
+function getSegAt(z){for(var s of trackSegments)if(z>=s.startZ&&z<s.endZ)return s;return trackSegments[trackSegments.length-1];}
 function getHW(z){const s=getSegAt(z);return s?s.width:TRACK_W;}
 function getFloorY(z,x){
     const s=getSegAt(z);
@@ -2066,7 +2099,19 @@ function handlePlayerInput(){
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL;playerEgg.vz+=mz*MOVE_ACCEL;}
-    if(keys['Space']&&playerEgg.onGround){playerEgg.vy=JUMP_FORCE;playerEgg.squash=0.65;playJumpSound();}
+    // Charge jump: hold Space to charge, release to jump
+    if(keys['Space']&&playerEgg.onGround&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;}
+    if(_jumpCharging&&keys['Space']&&playerEgg.onGround){_jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);}
+    if(_jumpCharging&&(!keys['Space']||!playerEgg.onGround)){
+        if(playerEgg.onGround&&_jumpCharge>0){
+            var pct=_jumpCharge/_jumpChargeMax;
+            playerEgg.vy=JUMP_FORCE*(1+pct*2);
+            playerEgg.squash=0.65-pct*0.2;
+            playJumpSound();
+        }
+        _jumpCharging=false;_jumpCharge=0;
+    }
+    _updateChargeBar();
     const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
     if(spd>MAX_SPEED){playerEgg.vx=(playerEgg.vx/spd)*MAX_SPEED;playerEgg.vz=(playerEgg.vz/spd)*MAX_SPEED;}
     // Grab / Throw (F key or touch grab button)
