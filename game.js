@@ -1023,16 +1023,33 @@ const cityCoins = []; // {mesh, collected}
 const cityProps = []; // {group, x, z, radius, type, grabbed, origY}
 
 const CITY_SIZE = 80; // half-size of city ground
+var currentCityStyle=0;
+var CITY_STYLES=[
+    {name:'🏙️ 蛋仔城',ground:0x6EC850,path:0xDDCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
+    {name:'🏜️ 沙漠城',ground:0xDDCC88,path:0xCCBB77,sky:0xFFCC66,bColors:[0xDDAA66,0xCC9955,0xEEBB77,0xBB8844,0xDDCC88,0xCCAA55,0xEECC99,0xBB9966],roof:0xAA6633,tree:0x88AA44,fog:0xFFEECC},
+    {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
+    {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
+    {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null}
+];
+// Warp pipe definitions: 4 pipes at city edges
+var WARP_PIPES=[
+    {x:0,z:-CITY_SIZE+3,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
+    {x:CITY_SIZE-3,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
+    {x:0,z:CITY_SIZE-3,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
+    {x:-CITY_SIZE+3,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
+];
+var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
 
 function buildCity() {
-    // Ground — big green plaza with pattern
+    var st=CITY_STYLES[currentCityStyle];
+    // Ground
     const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
-    const ground = new THREE.Mesh(groundGeo, toon(0x6EC850));
+    const ground = new THREE.Mesh(groundGeo, toon(st.ground));
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     cityGroup.add(ground);
 
-    // Paths (cross pattern)
-    const pathM = toon(0xDDCCAA);
+    // Paths
+    const pathM = toon(st.path);
     [{w:CITY_SIZE*2,d:5,x:0,z:0},{w:5,d:CITY_SIZE*2,x:0,z:0},
      {w:CITY_SIZE*1.2,d:4,x:15,z:25},{w:4,d:CITY_SIZE*1.2,x:-25,z:-10}].forEach(p=>{
         const path=new THREE.Mesh(new THREE.BoxGeometry(p.w,0.06,p.d),pathM);
@@ -1040,7 +1057,7 @@ function buildCity() {
     });
 
     // ---- Buildings ----
-    const bColors = [0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC,0xFFBB77,0xAABBDD];
+    const bColors = st.bColors;
     const buildings = [
         {x:-30,z:-30,w:8,d:8,h:10},{x:-30,z:10,w:10,d:8,h:14},{x:30,z:-30,w:8,d:10,h:12},
         {x:30,z:25,w:10,d:8,h:16},{x:-15,z:-50,w:12,d:8,h:8},{x:20,z:-50,w:8,d:8,h:11},
@@ -1056,7 +1073,7 @@ function buildCity() {
         cityGroup.add(bm);
         const bMeshes = [bm]; // collect all meshes for this building
         // Roof
-        const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*0.6, 3, 4), toon(col===0xFFDD66?0xDD4444:0xDD6644));
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*0.6, 3, 4), toon(st.roof));
         roof.position.set(b.x, b.h+1.5, b.z); roof.rotation.y=Math.PI/4; roof.castShadow=true;
         cityGroup.add(roof); bMeshes.push(roof);
         // Windows
@@ -1087,7 +1104,7 @@ function buildCity() {
         const tg=new THREE.Group(); tg.position.set(tx,0,tz);
         const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.3,2,6),toon(0x8B5E3C));
         trunk.position.y=1; trunk.castShadow=true; tg.add(trunk);
-        const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,6),toon([0x44BB44,0x33AA55,0x55CC33][i%3]));
+        const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,6),toon(st.tree));
         crown.position.y=3; crown.scale.y=0.7; crown.castShadow=true; tg.add(crown);
         cityGroup.add(tg);
         cityProps.push({group:tg, x:tx, z:tz, radius:1.2, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:3.0});
@@ -1203,6 +1220,116 @@ function buildCityCoins() {
         cityGroup.add(coin);
         cityCoins.push({mesh:coin, collected:false});
     }
+}
+
+// ---- Warp Pipes (Mario 3D World style transparent tubes) ----
+function buildWarpPipes(){
+    warpPipeMeshes.forEach(function(wp){cityGroup.remove(wp.group);});
+    warpPipeMeshes=[];
+    var pipeMat=new THREE.MeshPhongMaterial({color:0x44DD44,transparent:true,opacity:0.45,side:THREE.DoubleSide});
+    var rimMat=toon(0x33BB33,{emissive:0x22AA22,emissiveIntensity:0.2});
+    // Build pipe targets: always show pipes to other cities
+    var targets=[];
+    for(var ti=0;ti<CITY_STYLES.length;ti++){
+        if(ti===currentCityStyle)continue;
+        targets.push(ti);
+    }
+    // Place up to 4 pipes at edges
+    var positions=[
+        {x:0,z:-CITY_SIZE+3},{x:CITY_SIZE-3,z:0},{x:0,z:CITY_SIZE-3},{x:-CITY_SIZE+3,z:0}
+    ];
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
+    for(var pi2=0;pi2<Math.min(targets.length,4);pi2++){
+        var tgt=targets[pi2];
+        var pos=positions[pi2];
+        var tst=CITY_STYLES[tgt];
+        var g=new THREE.Group();
+        var pColor=pipeColors[tgt];
+        var pMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.4,side:THREE.DoubleSide});
+        // Vertical tube
+        var tube=new THREE.Mesh(new THREE.CylinderGeometry(2,2,5,16,1,true),pMat);
+        tube.position.y=2.5;g.add(tube);
+        // Top rim
+        var rim=new THREE.Mesh(new THREE.TorusGeometry(2,0.3,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.2}));
+        rim.position.y=5;rim.rotation.x=Math.PI/2;g.add(rim);
+        // Bottom rim
+        var rim2=new THREE.Mesh(new THREE.TorusGeometry(2,0.25,8,16),toon(pColor));
+        rim2.position.y=0.1;rim2.rotation.x=Math.PI/2;g.add(rim2);
+        // Inner glow spiral
+        var sMat=new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.35});
+        for(var si=0;si<8;si++){
+            var sp=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),sMat);
+            var a=si/8*Math.PI*2;
+            sp.position.set(Math.cos(a)*1.2,0.5+si*0.5,Math.sin(a)*1.2);
+            g.add(sp);
+        }
+        // Label sign
+        var canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
+        var ctx2=canvas.getContext('2d');
+        ctx2.fillStyle='rgba(0,0,0,0.6)';ctx2.fillRect(0,0,256,64);
+        ctx2.fillStyle='#fff';ctx2.font='bold 28px sans-serif';ctx2.textAlign='center';
+        ctx2.fillText(tst.name,128,42);
+        var tex=new THREE.CanvasTexture(canvas);
+        var signMat=new THREE.SpriteMaterial({map:tex,transparent:true});
+        var sign=new THREE.Sprite(signMat);
+        sign.scale.set(4,1,1);sign.position.y=6.5;
+        g.add(sign);
+        g.position.set(pos.x,0,pos.z);
+        cityGroup.add(g);
+        warpPipeMeshes.push({group:g,x:pos.x,z:pos.z,targetStyle:tgt,_cooldown:false});
+    }
+}
+
+function clearCity(){
+    // Remove everything from cityGroup
+    while(cityGroup.children.length>0)cityGroup.remove(cityGroup.children[0]);
+    cityColliders.length=0;
+    cityBuildingMeshes.length=0;
+    cityCoins.length=0;
+    cityProps.length=0;
+    warpPipeMeshes.length=0;
+    // Remove city NPCs
+    for(var i=0;i<cityNPCs.length;i++){scene.remove(cityNPCs[i].mesh);}
+    cityNPCs.length=0;
+    // Remove from allEggs
+    for(var j=allEggs.length-1;j>=0;j--){if(allEggs[j].cityNPC){scene.remove(allEggs[j].mesh);allEggs.splice(j,1);}}
+    // Remove clouds
+    for(var k=0;k<cityCloudPlatforms.length;k++){scene.remove(cityCloudPlatforms[k].group);}
+    cityCloudPlatforms.length=0;
+}
+
+function applyCityTheme(){
+    var st=CITY_STYLES[currentCityStyle];
+    // Sky color
+    scene.background=new THREE.Color(st.sky);
+    // Fog
+    if(st.fog){scene.fog=new THREE.Fog(st.fog,60,180);}
+    else{scene.fog=null;}
+    // Update HUD
+    document.getElementById('city-name-hud').textContent=st.name;
+}
+
+function switchCity(targetStyle){
+    if(targetStyle===currentCityStyle)return;
+    currentCityStyle=targetStyle;
+    // Remember player was near a pipe — spawn at center of new city
+    clearCity();
+    buildCity();
+    buildPortals();
+    buildCityCoins();
+    buildWarpPipes();
+    addClouds();
+    spawnCityNPCs();
+    applyCityTheme();
+    // Stop old BGM, start city BGM
+    stopBGM();stopRaceBGM();
+    startBGM();
+    // Spawn player at center
+    if(playerEgg){scene.remove(playerEgg.mesh);var idx=allEggs.indexOf(playerEgg);if(idx!==-1)allEggs.splice(idx,1);playerEgg=null;}
+    var skin=CHARACTERS[selectedChar];
+    playerEgg=createEgg(0,5,skin.color,skin.accent,true,undefined,skin.type);
+    playerEgg.finished=false;playerEgg.alive=true;
+    camera.position.set(0,12,19);camera.lookAt(0,0,5);
 }
 
 // ---- NPC eggs wandering city ----
@@ -1743,6 +1870,20 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 if(egg.mesh.position.y>=cl.y-0.5&&egg.mesh.position.y<=cl.y+1.5&&egg.vy<=0){
                     egg.mesh.position.y=cl.y+0.5;egg.vy=0;egg.onGround=true;
                 }
+            }
+        }
+        // Warp pipe teleport — player only
+        if(egg.isPlayer){
+            for(var wpi=0;wpi<warpPipeMeshes.length;wpi++){
+                var wp=warpPipeMeshes[wpi];
+                var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
+                var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
+                if(wdist<2.5&&!wp._cooldown){
+                    wp._cooldown=true;
+                    switchCity(wp.targetStyle);
+                    return; // egg reference is now invalid
+                }
+                if(wdist>5)wp._cooldown=false;
             }
         }
 } else {
@@ -3011,6 +3152,8 @@ function animate(){
 buildCity();
 buildPortals();
 buildCityCoins();
+buildWarpPipes();
+applyCityTheme();
 
 
 // Start button
