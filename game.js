@@ -2466,13 +2466,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 if(distFromCenter<c.roofR+egg.radius){
                     var slopeT=Math.max(0,1-distFromCenter/c.roofR);
                     var surfaceY=roofBase+slopeT*c.roofH;
-                    // Only land when falling (vy<=0) and coming from above
-                    if(ey>=surfaceY-0.3&&ey<=surfaceY+2.0&&egg.vy<=0){
-                        egg.mesh.position.y=surfaceY+0.01;egg.vy=0;egg.onGround=true;
-                        continue;
-                    }
-                    // Block from going below cone surface (prevent clipping through from inside)
-                    if(ey<surfaceY&&ey>roofBase-0.5&&distFromCenter<c.roofR*0.9){
+                    // Land only when falling through the surface (penetration correction)
+                    if(egg.vy<=0&&ey<=surfaceY+0.05&&ey>=surfaceY-1.0){
                         egg.mesh.position.y=surfaceY+0.01;egg.vy=0;egg.onGround=true;
                         continue;
                     }
@@ -2481,8 +2476,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
-                // On top of building body — land on roof (only when falling)
-                if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.mesh.position.y>=roofY-0.3&&egg.mesh.position.y<=roofY+2.0&&egg.vy<=0){
+                // On top of building body — land on roof (penetration correction only)
+                if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.vy<=0&&egg.mesh.position.y<=roofY+0.05&&egg.mesh.position.y>=roofY-1.0){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
                 }
                 // Jumping upward past building — let egg phase through walls while going up
