@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.27 by \u767D\u6CB3\u6101',zht:'v20260323.27 by \u767D\u6CB3\u6101',ja:'v20260323.27 by \u767D\u6CB3\u6101',en:'v20260323.27 by Kryso'},
+    version:{zhs:'v20260323.28 by \u767D\u6CB3\u6101',zht:'v20260323.28 by \u767D\u6CB3\u6101',ja:'v20260323.28 by \u767D\u6CB3\u6101',en:'v20260323.28 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2016,7 +2016,9 @@ function startPipeTravel(fromX,fromZ,targetStyle){
     var tubeColor=CITY_STYLES[targetStyle]?0x44FF88:0x44DD44;
     var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF];
     var pColor=pipeColors[targetStyle]||tubeColor;
-    var tubeMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.25,side:THREE.DoubleSide});
+    var isMoonTravel=(targetStyle===5);
+    if(isMoonTravel)pColor=0x6644CC;
+    var tubeMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:isMoonTravel?0.15:0.25,side:THREE.DoubleSide});
     for(var i=0;i<steps;i++){
         var t=i/steps;
         // Quadratic bezier: start → mid (far away) → end (center)
@@ -2035,13 +2037,33 @@ function startPipeTravel(fromX,fromZ,targetStyle){
         }
         _pipeTubeGroup.add(seg);
         if(i%5===0){
-            var ring=new THREE.Mesh(new THREE.TorusGeometry(3,0.2,8,16),new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.4}));
+            var ringColor=isMoonTravel?0x8866DD:pColor;
+            var ring=new THREE.Mesh(new THREE.TorusGeometry(3,0.2,8,16),new THREE.MeshBasicMaterial({color:ringColor,transparent:true,opacity:isMoonTravel?0.5:0.4}));
             ring.position.set(px,py,pz);
             if(i<steps-1){
                 var t3=(i+1)/steps;var u3=1-t3;
                 ring.lookAt(u3*u3*fromX+2*u3*t3*midX+t3*t3*_pipeEndX,3+Math.sin(t3*Math.PI)*60,u3*u3*fromZ+2*u3*t3*midZ+t3*t3*_pipeEndZ);
             }
             _pipeTubeGroup.add(ring);
+        }
+        // Moon travel: stars and nebula particles inside the tunnel
+        if(isMoonTravel&&i%2===0){
+            var starColors2=[0xFFFFFF,0xCCDDFF,0xFFCCDD,0xDDCCFF,0xAABBFF,0xFFEECC];
+            for(var si=0;si<3;si++){
+                var sa=Math.random()*Math.PI*2;
+                var sr=0.5+Math.random()*2.5;
+                var ssc=starColors2[Math.floor(Math.random()*starColors2.length)];
+                var sStar=new THREE.Mesh(new THREE.SphereGeometry(0.08+Math.random()*0.15,4,3),new THREE.MeshBasicMaterial({color:ssc,transparent:true,opacity:0.7+Math.random()*0.3}));
+                sStar.position.set(px+Math.cos(sa)*sr,py+Math.sin(sa)*sr,pz+(Math.random()-0.5)*2);
+                _pipeTubeGroup.add(sStar);
+            }
+            // Nebula wisps
+            if(i%6===0){
+                var nebC=[0x330055,0x440033,0x220044,0x110033][Math.floor(Math.random()*4)];
+                var neb=new THREE.Mesh(new THREE.SphereGeometry(2+Math.random()*2,6,4),new THREE.MeshBasicMaterial({color:nebC,transparent:true,opacity:0.15+Math.random()*0.1,side:THREE.BackSide}));
+                neb.position.set(px+(Math.random()-0.5)*4,py+(Math.random()-0.5)*3,pz+(Math.random()-0.5)*4);
+                _pipeTubeGroup.add(neb);
+            }
         }
     }
     scene.add(_pipeTubeGroup);
