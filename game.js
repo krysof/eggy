@@ -19,33 +19,39 @@ function toon(color, opts={}) { return new THREE.MeshToonMaterial({color, gradie
 // ---- Audio System (procedural, no files needed) ----
 let audioCtx=null, soundEnabled=true, sfxEnabled=true, _audioUnlocked=false;
 function ensureAudio(){
-    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended')audioCtx.resume();
+    if(!audioCtx){
+        var AC=window.AudioContext||window.webkitAudioContext;
+        if(AC)audioCtx=new AC();
+    }
+    if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
     return audioCtx;
 }
-// Mobile audio unlock — must resume AudioContext inside a user gesture
+// Mobile audio unlock — aggressive iOS/Android approach
+// iOS Safari requires: create context + resume + play buffer ALL inside user gesture
 function _unlockAudio(){
-    var ctx=ensureAudio();
-    if(ctx.state==='suspended'){
-        ctx.resume().then(function(){
-            // Play a silent buffer to fully unlock on iOS
-            var b=ctx.createBuffer(1,1,22050);
-            var s=ctx.createBufferSource();s.buffer=b;s.connect(ctx.destination);s.start(0);
-            _audioUnlocked=true;
-        });
-    } else {
-        if(!_audioUnlocked){
-            // Already running but play silent buffer anyway for iOS
-            var b=ctx.createBuffer(1,1,22050);
-            var s=ctx.createBufferSource();s.buffer=b;s.connect(ctx.destination);s.start(0);
-            _audioUnlocked=true;
-        }
+    if(_audioUnlocked&&audioCtx&&audioCtx.state==='running')return;
+    // Create fresh context inside gesture if needed
+    if(!audioCtx){
+        var AC=window.AudioContext||window.webkitAudioContext;
+        if(AC)audioCtx=new AC();
     }
+    if(!audioCtx)return;
+    // Always try resume (iOS needs this on every gesture until it works)
+    var p=audioCtx.resume();
+    // Play silent buffer synchronously — critical for iOS
+    try{
+        var b=audioCtx.createBuffer(1,1,audioCtx.sampleRate||22050);
+        var s=audioCtx.createBufferSource();s.buffer=b;s.connect(audioCtx.destination);s.start(0);
+    }catch(e){}
+    if(p&&p.then){p.then(function(){_audioUnlocked=true;});}
+    if(audioCtx.state==='running')_audioUnlocked=true;
 }
 // Keep retrying on every touch/click until unlocked
 document.addEventListener('touchstart',_unlockAudio,{passive:true});
 document.addEventListener('touchend',_unlockAudio,{passive:true});
 document.addEventListener('click',_unlockAudio);
+// iOS sometimes needs pointerdown too
+document.addEventListener('pointerdown',_unlockAudio,{passive:true});
 
 // Music toggle button
 var musicBtn=document.getElementById("music-btn");
@@ -1435,6 +1441,105 @@ function applyCityTheme(){
     document.getElementById('city-name-hud').textContent=st.name;
 }
 
+// ---- Pipe travel animation state ----
+var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=120; // 2 seconds at 60fps
+var _pipeStartX=0, _pipeStartZ=0, _pipeEndX=0, _pipeEndZ=0;
+var _pipeTubeGroup=null, _pipeTargetStyle=0;
+var _pipeArrivalX=0, _pipeArrivalZ=0;
+
+function startPipeTravel(fromX,fromZ,targetStyle){
+    _pipeTraveling=true;_pipeTimer=0;_pipeTargetStyle=targetStyle;
+    _pipeStartX=fromX;_pipeStartZ=fromZ;
+    // Find which pipe in the target city leads back to current city
+    // For now, pipe exits at center of target city
+    _pipeEndX=0;_pipeEndZ=0;
+    // Build the transparent tube corridor
+    _pipeTubeGroup=new THREE.Group();
+    var steps=20;
+    var tubeColor=CITY_STYLES[targetStyle]?0x44FF88:0x44DD44;
+    var tubeMat=new THREE.MeshPhongMaterial({color:tubeColor,transparent:true,opacity:0.3,side:THREE.DoubleSide});
+    for(var i=0;i<steps;i++){
+        var t=i/steps;
+        var px=_pipeStartX+(0-_pipeStartX)*t;
+        var pz=_pipeStartZ+(0-_pipeStartZ)*t;
+        var py=2+Math.sin(t*Math.PI)*8; // arc up
+        var seg=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,1,12,1,true),tubeMat);
+        seg.position.set(px,py,pz);
+        // Orient segment along path
+        if(i<steps-1){
+            var nx=_pipeStartX+(0-_pipeStartX)*((i+1)/steps);
+            var nz=_pipeStartZ+(0-_pipeStartZ)*((i+1)/steps);
+            var ny=2+Math.sin(((i+1)/steps)*Math.PI)*8;
+            seg.lookAt(nx,ny,nz);
+            seg.rotateX(Math.PI/2);
+        }
+        _pipeTubeGroup.add(seg);
+        // Glow rings
+        if(i%4===0){
+            var ring=new THREE.Mesh(new THREE.TorusGeometry(2.5,0.15,8,16),new THREE.MeshBasicMaterial({color:tubeColor,transparent:true,opacity:0.5}));
+            ring.position.set(px,py,pz);
+            if(i<steps-1){ring.lookAt(px+(0-_pipeStartX)/steps,py,pz+(0-_pipeStartZ)/steps);}
+            _pipeTubeGroup.add(ring);
+        }
+    }
+    scene.add(_pipeTubeGroup);
+    // Play whoosh sound
+    if(sfxEnabled){
+        var ctx=ensureAudio();var t2=ctx.currentTime;
+        var o=ctx.createOscillator();var g=ctx.createGain();
+        o.type='sine';o.frequency.setValueAtTime(300,t2);o.frequency.exponentialRampToValueAtTime(800,t2+0.3);o.frequency.exponentialRampToValueAtTime(200,t2+1.5);
+        g.gain.setValueAtTime(0.1,t2);g.gain.exponentialRampToValueAtTime(0.001,t2+1.5);
+        o.connect(g);g.connect(ctx.destination);o.start(t2);o.stop(t2+1.5);
+    }
+}
+
+function updatePipeTravel(){
+    if(!_pipeTraveling||!playerEgg)return;
+    _pipeTimer++;
+    var t=_pipeTimer/_pipeDuration;
+    if(t>1)t=1;
+    // Smooth ease in-out
+    var st=t<0.5?2*t*t:(1-Math.pow(-2*t+2,2)/2);
+    // Move player along arc
+    var px=_pipeStartX+(0-_pipeStartX)*st;
+    var pz=_pipeStartZ+(0-_pipeStartZ)*st;
+    var py=2+Math.sin(st*Math.PI)*8;
+    playerEgg.mesh.position.set(px,py,pz);
+    playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
+    // Spin the egg for fun
+    playerEgg.mesh.rotation.y+=0.15;
+    // Camera follows
+    camera.position.set(px-5,py+8,pz+12);
+    camera.lookAt(px,py,pz);
+    // Halfway through — rebuild city
+    if(_pipeTimer===Math.floor(_pipeDuration*0.5)){
+        currentCityStyle=_pipeTargetStyle;
+        clearCity();
+        buildCity();
+        buildPortals();
+        buildCityCoins();
+        buildWarpPipes();
+        addClouds();
+        spawnCityNPCs();
+        applyCityTheme();
+        stopBGM();stopRaceBGM();
+        startBGM();
+    }
+    // Done
+    if(_pipeTimer>=_pipeDuration){
+        _pipeTraveling=false;
+        // Remove tube
+        if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
+        // Place player at center
+        playerEgg.mesh.position.set(0,1,0);
+        playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
+        playerEgg.onGround=false;
+        camera.position.set(0,12,19);camera.lookAt(0,0,5);
+        // Reset pipe cooldowns
+        for(var i=0;i<warpPipeMeshes.length;i++)warpPipeMeshes[i]._cooldown=true;
+    }
+}
+
 function switchCity(targetStyle){
     if(targetStyle===currentCityStyle)return;
     currentCityStyle=targetStyle;
@@ -2005,10 +2110,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var wp=warpPipeMeshes[wpi];
                 var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
                 var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                if(wdist<3.5&&!wp._cooldown){
+                if(wdist<3.5&&!wp._cooldown&&!_pipeTraveling){
                     wp._cooldown=true;
-                    switchCity(wp.targetStyle);
-                    return; // egg reference is now invalid
+                    startPipeTravel(wp.x,wp.z,wp.targetStyle);
+                    return; // player is now in pipe travel mode
                 }
                 if(wdist>5)wp._cooldown=false;
             }
@@ -3238,8 +3343,12 @@ function animate(){
     const dt=Math.min(clock.getDelta(),0.05);
 
     if(gameState==='city'){
-        handlePlayerInput();
-        if(playerEgg) updateEggPhysics(playerEgg, true);
+        if(_pipeTraveling){
+            updatePipeTravel();
+        } else {
+            handlePlayerInput();
+        }
+        if(playerEgg&&!_pipeTraveling) updateEggPhysics(playerEgg, true);
         updateCity();
         const cityEggList = [playerEgg, ...cityNPCs].filter(e=>e&&e.alive);
         resolveEggCollisions(cityEggList);
@@ -3299,10 +3408,13 @@ var _startBtn=document.getElementById('start-btn');
 function _handleStart(){
     _unlockAudio();
     var ctx=ensureAudio();
-    if(ctx.state==='suspended')ctx.resume();
+    if(ctx&&ctx.state==='suspended')ctx.resume();
     showScreen('select-screen');
-    // Delay BGM slightly to let AudioContext fully resume
-    setTimeout(function(){startSelectBGM();playMenuConfirm();},100);
+    // Delay BGM to let AudioContext fully resume (iOS needs longer)
+    setTimeout(function(){
+        if(ctx&&ctx.state==='suspended')ctx.resume();
+        startSelectBGM();playMenuConfirm();
+    },200);
 }
 _startBtn.addEventListener('click',_handleStart);
 _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
