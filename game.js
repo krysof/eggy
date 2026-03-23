@@ -636,11 +636,24 @@ let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 // ---- Jump charge system ----
 var _jumpCharging=false, _jumpCharge=0, _jumpChargeMax=60, _jumpChargeBar=null;
 function _createChargeBar(){
-    var bg=new THREE.Mesh(new THREE.PlaneGeometry(1.2,0.15),new THREE.MeshBasicMaterial({color:0x333333,transparent:true,opacity:0.7,depthTest:false}));
-    var fill=new THREE.Mesh(new THREE.PlaneGeometry(1.0,0.1),new THREE.MeshBasicMaterial({color:0x00ff44,depthTest:false}));
-    fill.position.z=0.01;fill.scale.x=0;
-    bg.add(fill);bg._fill=fill;bg.renderOrder=999;fill.renderOrder=1000;
-    return bg;
+    var grp=new THREE.Group();
+    // Background bar
+    var bgGeo=new THREE.BoxGeometry(1.6,0.25,0.12);
+    var bgMat=new THREE.MeshBasicMaterial({color:0x222222,transparent:true,opacity:0.85,depthTest:false});
+    var bg=new THREE.Mesh(bgGeo,bgMat);bg.renderOrder=999;
+    grp.add(bg);
+    // Fill bar
+    var fillGeo=new THREE.BoxGeometry(1.4,0.18,0.14);
+    var fillMat=new THREE.MeshBasicMaterial({color:0x00ff44,depthTest:false});
+    var fill=new THREE.Mesh(fillGeo,fillMat);fill.renderOrder=1000;
+    fill.scale.x=0.001;fill.position.z=0.01;
+    grp.add(fill);grp._fill=fill;grp._fillMat=fillMat;
+    // Border glow
+    var glowGeo=new THREE.BoxGeometry(1.7,0.32,0.08);
+    var glowMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.3,depthTest:false});
+    var glow=new THREE.Mesh(glowGeo,glowMat);glow.renderOrder=998;glow.position.z=-0.02;
+    grp.add(glow);grp._glow=glow;grp._glowMat=glowMat;
+    return grp;
 }
 function _updateChargeBar(){
     if(!playerEgg)return;
@@ -648,14 +661,21 @@ function _updateChargeBar(){
     if(_jumpCharging&&playerEgg.onGround){
         if(!_jumpChargeBar){_jumpChargeBar=_createChargeBar();playerEgg.mesh.add(_jumpChargeBar);}
         _jumpChargeBar.visible=true;
-        _jumpChargeBar.position.set(0,2.2,0);
-        // Billboard: match camera rotation so bar always faces viewer
+        _jumpChargeBar.position.set(0,2.5,0);
         _jumpChargeBar.quaternion.copy(camera.quaternion);
-        _jumpChargeBar._fill.scale.x=pct;
-        _jumpChargeBar._fill.position.x=(pct-1)*0.5;
-        // Color: green→yellow→red
-        var c=pct<0.5?new THREE.Color(0,1,pct*2):new THREE.Color((pct-0.5)*2,1-(pct-0.5)*2,0);
-        _jumpChargeBar._fill.material.color=c;
+        var p=Math.max(0.001,pct);
+        _jumpChargeBar._fill.scale.x=p;
+        _jumpChargeBar._fill.position.x=(p-1)*0.7;
+        // Color: green→yellow→orange→red
+        var r,g,b2;
+        if(pct<0.33){r=0;g=1;b2=0.2*(1-pct*3);}
+        else if(pct<0.66){var t=(pct-0.33)/0.33;r=t;g=1-t*0.3;b2=0;}
+        else{var t2=(pct-0.66)/0.34;r=1;g=0.7*(1-t2);b2=0;}
+        _jumpChargeBar._fillMat.color.setRGB(r,g,b2);
+        // Glow pulses when near full
+        var glowA=pct>0.8?0.3+Math.sin(Date.now()*0.02)*0.2:0.15;
+        _jumpChargeBar._glowMat.opacity=glowA;
+        _jumpChargeBar._glowMat.color.setRGB(r,g,b2);
     } else {
         if(_jumpChargeBar){_jumpChargeBar.visible=false;}
     }
@@ -970,7 +990,7 @@ function buildCity() {
         const door=new THREE.Mesh(new THREE.BoxGeometry(1.5,2.2,0.15), toon(0x885533));
         door.position.set(b.x, 1.1, b.z+b.d/2+0.07); cityGroup.add(door); bMeshes.push(door);
 
-        cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5});
+        cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h});
         cityBuildingMeshes.push({meshes:bMeshes, x:b.x, z:b.z, hw:b.w/2, hd:b.d/2, h:b.h});
     });
 
@@ -999,7 +1019,7 @@ function buildCity() {
     fPillar.position.y=2.5; cityGroup.add(fPillar);
     const fTop=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),toon(0xFFDD44));
     fTop.position.y=4.2; cityGroup.add(fTop);
-    cityColliders.push({x:0,z:0,hw:4,hd:4});
+    cityColliders.push({x:0,z:0,hw:4,hd:4,h:3});
 
     // ---- Lamp posts ----
     for(let i=0;i<20;i++){
@@ -1577,15 +1597,22 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         if(egg.mesh.position.x<-bound)egg.mesh.position.x=-bound;
         if(egg.mesh.position.z>bound)egg.mesh.position.z=bound;
         if(egg.mesh.position.z<-bound)egg.mesh.position.z=-bound;
-        // Building collisions (skip if thrown)
+        // Building collisions — can land on roof
         if(egg.throwTimer>0){} else for(const c of cityColliders){
             const dx=egg.mesh.position.x-c.x, dz=egg.mesh.position.z-c.z;
-            if(Math.abs(dx)<c.hw+egg.radius&&Math.abs(dz)<c.hd+egg.radius){
-                // Push out
-                const overlapX=c.hw+egg.radius-Math.abs(dx);
-                const overlapZ=c.hd+egg.radius-Math.abs(dz);
-                if(overlapX<overlapZ){egg.mesh.position.x+=Math.sign(dx)*overlapX;egg.vx*=-0.2;}
-                else{egg.mesh.position.z+=Math.sign(dz)*overlapZ;egg.vz*=-0.2;}
+            var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
+            if(inX&&inZ){
+                var roofY=c.h||6;
+                // If egg is above roof level and falling, land on roof
+                if(egg.mesh.position.y>=roofY-0.5&&egg.vy<=0&&Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd){
+                    egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
+                } else if(egg.mesh.position.y<roofY-0.5){
+                    // Push out horizontally
+                    const overlapX=c.hw+egg.radius-Math.abs(dx);
+                    const overlapZ=c.hd+egg.radius-Math.abs(dz);
+                    if(overlapX<overlapZ){egg.mesh.position.x+=Math.sign(dx)*overlapX;egg.vx*=-0.2;}
+                    else{egg.mesh.position.z+=Math.sign(dz)*overlapZ;egg.vz*=-0.2;}
+                }
             }
         }
     
@@ -1938,8 +1965,15 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         }
         var dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
         var dist=Math.sqrt(dx*dx+dz*dz);
-        if(dist>1.5){egg.vx+=(dx/dist)*MOVE_ACCEL*0.3;egg.vz+=(dz/dist)*MOVE_ACCEL*0.3;}
-        if(egg.onGround&&Math.random()<0.003){egg.vy=JUMP_FORCE*0.6;egg.squash=0.7;}
+        // NPC sprint burst
+        var npcSprint=(egg._aiSprint||0)>0;
+        var npcAccel=npcSprint?0.5:0.3;
+        if(dist>1.5){egg.vx+=(dx/dist)*MOVE_ACCEL*npcAccel;egg.vz+=(dz/dist)*MOVE_ACCEL*npcAccel;}
+        if(Math.random()<0.002){egg._aiSprint=60+Math.random()*90;}
+        if(egg._aiSprint>0)egg._aiSprint--;
+        // NPC charge jump — occasional big jump
+        if(egg.onGround&&Math.random()<0.002){egg.vy=JUMP_FORCE*(1.5+Math.random()*1.5);egg.squash=0.5;}
+        else if(egg.onGround&&Math.random()<0.005){egg.vy=JUMP_FORCE*0.6;egg.squash=0.7;}
     } else if(st==='idle'){
         // Stand still, occasionally look around (small random nudges) or jump
         egg.vx*=0.9;egg.vz*=0.9;
@@ -1966,8 +2000,10 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var cdx2=closest.mesh.position.x-egg.mesh.position.x;
             var cdz2=closest.mesh.position.z-egg.mesh.position.z;
             var cd2=Math.sqrt(cdx2*cdx2+cdz2*cdz2);
-            if(cd2>2){egg.vx+=(cdx2/cd2)*MOVE_ACCEL*0.4;egg.vz+=(cdz2/cd2)*MOVE_ACCEL*0.4;}
-            if(cd2<3&&egg.onGround&&Math.random()<0.01){egg.vy=JUMP_FORCE*0.7;egg.squash=0.65;}
+            if(cd2>2){var chaseAccel=(egg._aiSprint>0)?0.65:0.4;egg.vx+=(cdx2/cd2)*MOVE_ACCEL*chaseAccel;egg.vz+=(cdz2/cd2)*MOVE_ACCEL*chaseAccel;}
+            if(Math.random()<0.003){egg._aiSprint=40+Math.random()*60;}
+            if(egg._aiSprint>0)egg._aiSprint--;
+            if(cd2<3&&egg.onGround&&Math.random()<0.01){egg.vy=JUMP_FORCE*(0.7+Math.random()*1.5);egg.squash=0.55;}
         }
     } else if(st==='flee'){
         // Run away from nearest egg
@@ -1986,13 +2022,15 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var fd2=Math.sqrt(fdx2*fdx2+fdz2*fdz2)||1;
             egg.vx+=(fdx2/fd2)*MOVE_ACCEL*0.45;egg.vz+=(fdz2/fd2)*MOVE_ACCEL*0.45;
         }
-        if(egg.onGround&&Math.random()<0.008){egg.vy=JUMP_FORCE*0.8;egg.squash=0.6;}
+        if(Math.random()<0.004){egg._aiSprint=50+Math.random()*70;}
+        if(egg._aiSprint>0)egg._aiSprint--;
+        if(egg.onGround&&Math.random()<0.006){egg.vy=JUMP_FORCE*(0.8+Math.random()*1.2);egg.squash=0.55;}
     } else if(st==='dance'){
         // Bounce in place with spinning
         egg.vx*=0.85;egg.vz*=0.85;
         egg._dancePhase+=0.12;
         egg.mesh.rotation.y+=0.08;
-        if(egg.onGround&&Math.sin(egg._dancePhase)>0.7){egg.vy=JUMP_FORCE*0.45;egg.squash=0.75;}
+        if(egg.onGround&&Math.sin(egg._dancePhase)>0.7){egg.vy=JUMP_FORCE*(0.45+Math.random()*1.0);egg.squash=0.65;}
     } else if(st==='circle'){
         // Walk in circles
         egg._circleAngle+=0.02+Math.random()*0.005;
@@ -2002,10 +2040,11 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         var cdx3=tx-egg.mesh.position.x, cdz3=tz-egg.mesh.position.z;
         var cd3=Math.sqrt(cdx3*cdx3+cdz3*cdz3);
         if(cd3>0.5){egg.vx+=(cdx3/cd3)*MOVE_ACCEL*0.35;egg.vz+=(cdz3/cd3)*MOVE_ACCEL*0.35;}
-        if(egg.onGround&&Math.random()<0.004){egg.vy=JUMP_FORCE*0.5;egg.squash=0.7;}
+        if(egg.onGround&&Math.random()<0.004){egg.vy=JUMP_FORCE*(0.5+Math.random()*1.5);egg.squash=0.6;}
     }
     var spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
-    var maxSpd=st==='flee'?MAX_SPEED*0.7:st==='chase'?MAX_SPEED*0.6:MAX_SPEED*0.45;
+    var npcSpd=(egg._aiSprint>0)?1.2:1;
+    var maxSpd=st==='flee'?MAX_SPEED*0.7*npcSpd:st==='chase'?MAX_SPEED*0.6*npcSpd:MAX_SPEED*0.45*npcSpd;
     if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
 }
 
@@ -2103,9 +2142,8 @@ function handlePlayerInput(){
     if(keys['KeyW']||keys['ArrowUp'])mz-=1;
     if(keys['KeyS']||keys['ArrowDown'])mz+=1;
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
-    // Sprint: hold Shift when not holding anything
-    var isHolding=playerEgg.holding||playerEgg.holdingObs||playerEgg.holdingProp;
-    var sprinting=!isHolding&&(keys['ShiftLeft']||keys['ShiftRight']);
+    // Sprint: hold F when moving (same key as grab/throw)
+    var sprinting=keys['KeyF']&&!_portalConfirmOpen;
     var accelMul=sprinting?1.7:1;
     var speedMul=sprinting?1.7:1;
     const len=Math.sqrt(mx*mx+mz*mz);
@@ -2126,9 +2164,15 @@ function handlePlayerInput(){
     const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
     var curMax=MAX_SPEED*speedMul;
     if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
-    // Grab / Throw (F key or touch grab button)
+    // Grab / Throw (F key — triggers once per press via _fJustPressed)
     if(playerEgg.grabCD>0) playerEgg.grabCD--;
-    if(keys['KeyF']&&playerEgg.grabCD<=0){
+    if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0){
+        playerEgg._fJustPressed=true;
+    } else {
+        playerEgg._fJustPressed=false;
+    }
+    playerEgg._fWasDown=!!keys['KeyF'];
+    if(playerEgg._fJustPressed){
         if(playerEgg.holdingProp){
             // Throw city prop
             var prop=playerEgg.holdingProp;
@@ -2136,7 +2180,7 @@ function handlePlayerInput(){
             var dir1=playerEgg.mesh.rotation.y;
             var pw=prop.weight||1.0;var pf=2.5/pw;prop.throwVx=Math.sin(dir1)*pf;prop.throwVy=0.18;prop.throwVz=Math.cos(dir1)*pf;prop._bounces=2;prop.throwTimer=25;
             prop.group.position.set(playerEgg.mesh.position.x+Math.sin(dir1)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir1)*1.5);
-            playerEgg.grabCD=20; playThrowSound(); keys['KeyF']=false;
+            playerEgg.grabCD=20; playThrowSound();
         } else if(playerEgg.holdingObs){
             // Throw obstacle
             var obs=playerEgg.holdingObs;
@@ -2145,7 +2189,7 @@ function handlePlayerInput(){
             var dir0=playerEgg.mesh.rotation.y;
             obs.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir0)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir0)*1.5);
             var ow=obs._weight||2.0;var of2=4.5/ow;obs._throwVx=Math.sin(dir0)*of2;obs._throwVy=0.18;obs._throwVz=Math.cos(dir0)*of2;obs._throwTimer=Math.floor(50+20/ow);obs._bounces=2;
-            playerEgg.grabCD=20; playThrowSound(); keys['KeyF']=false;
+            playerEgg.grabCD=20; playThrowSound();
         } else if(playerEgg.holding){
             var held=playerEgg.holding;
             held.heldBy=null; playerEgg.holding=null; if(held.struggleBar){held.mesh.remove(held.struggleBar);held.struggleBar=null;}
