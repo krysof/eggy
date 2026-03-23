@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.24 by \u767D\u6CB3\u6101',zht:'v20260323.24 by \u767D\u6CB3\u6101',ja:'v20260323.24 by \u767D\u6CB3\u6101',en:'v20260323.24 by Kryso'},
+    version:{zhs:'v20260323.25 by \u767D\u6CB3\u6101',zht:'v20260323.25 by \u767D\u6CB3\u6101',ja:'v20260323.25 by \u767D\u6CB3\u6101',en:'v20260323.25 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -797,6 +797,7 @@ let coins = 0, nearPortal = null, countdownTimer = null;
 // ---- Tower of Babel state ----
 var _babylonTriggered=false, _babylonTower=null, _babylonRising=false, _babylonRiseY=-48;
 var _earthquakeTimer=0, _earthquakeIntensity=0;
+var _babylonPromptDismissed=false;
 let raceCoinScore = 0;
 let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 
@@ -1398,7 +1399,8 @@ function buildCity() {
         path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
     });
 
-    // ---- Buildings ----
+    // ---- Buildings (not on moon) ----
+    if(currentCityStyle!==5){
     const bColors = st.bColors;
     const buildings = [
         {x:-30,z:-30,w:8,d:8,h:10},{x:-30,z:10,w:10,d:8,h:14},{x:30,z:-30,w:8,d:10,h:12},
@@ -1613,6 +1615,7 @@ function buildCity() {
         cityGroup.add(bg);
         cityProps.push({group:bg, x:bx, z:bz, radius:1.2, type:'bench', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:2.5});
     }
+    } // end if not moon
 
     // ---- Moon City special decorations ----
     if(currentCityStyle===5){
@@ -1686,25 +1689,41 @@ function buildCity() {
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
         rover.position.set(-30,0,25);rover.rotation.y=0.5;
         cityGroup.add(rover);
-        // Earth in the sky — large glowing sphere far away
+        // Earth in the sky — visible from ground, closer and bigger
         var earthGroup=new THREE.Group();
-        var earth=new THREE.Mesh(new THREE.SphereGeometry(8,24,16),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.9,fog:false}));
+        var earth=new THREE.Mesh(new THREE.SphereGeometry(15,24,16),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.9,fog:false}));
         earthGroup.add(earth);
         // Continents (green patches)
         for(var ei=0;ei<6;ei++){
             var ea=ei/6*Math.PI*2;
             var ep=Math.random()*Math.PI-Math.PI/2;
-            var cont=new THREE.Mesh(new THREE.SphereGeometry(3+Math.random()*2,8,6),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.7,fog:false}));
-            cont.position.set(Math.cos(ea)*Math.cos(ep)*7,Math.sin(ep)*7,Math.sin(ea)*Math.cos(ep)*7);
+            var cont=new THREE.Mesh(new THREE.SphereGeometry(5+Math.random()*3,8,6),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.7,fog:false}));
+            cont.position.set(Math.cos(ea)*Math.cos(ep)*13,Math.sin(ep)*13,Math.sin(ea)*Math.cos(ep)*13);
             cont.scale.set(1,0.6,1);
             earthGroup.add(cont);
         }
         // Atmosphere glow
-        var atmo=new THREE.Mesh(new THREE.SphereGeometry(9,24,16),new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.2,side:THREE.BackSide,fog:false}));
+        var atmo=new THREE.Mesh(new THREE.SphereGeometry(16.5,24,16),new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.25,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo);
-        earthGroup.position.set(80,120,-100);
+        earthGroup.position.set(60,55,-80);
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
+        // ---- Twinkling stars ----
+        window._moonStars=[];
+        var starMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,fog:false,transparent:true});
+        for(var sti=0;sti<200;sti++){
+            var sa=Math.random()*Math.PI*2;
+            var se=0.15+Math.random()*1.2; // above horizon
+            var sd=150+Math.random()*100;
+            var sx=Math.cos(sa)*sd*Math.cos(se);
+            var sy=Math.sin(se)*sd+20;
+            var sz=Math.sin(sa)*sd*Math.cos(se);
+            var ss=0.15+Math.random()*0.4;
+            var star=new THREE.Mesh(new THREE.SphereGeometry(ss,4,3),starMat.clone());
+            star.position.set(sx,sy,sz);
+            scene.add(star);
+            window._moonStars.push({mesh:star,phase:Math.random()*Math.PI*2,speed:1+Math.random()*3});
+        }
         // Footprints on the ground
         var fpMat=toon(0x666677);
         for(var fi=0;fi<15;fi++){
@@ -1751,24 +1770,33 @@ function buildPortals() {
         const g = new THREE.Group();
         g.position.set(race.x, 0, race.z);
 
+        // Moon-style portals: silver/blue tones
+        var pColor=race.color;
+        var baseColor=0x888888;
+        if(currentCityStyle===5){
+            pColor=[0xAABBDD,0x8899CC,0xCCCCEE,0x99AADD,0x7788BB,0xBBCCEE,0x6677AA,0xAABBCC,0x8899BB,0xCCDDFF,0x7788CC,0x99AACC][i%12];
+            baseColor=0x666688;
+        }
+
         // Portal ring
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.3, 8, 24), toon(race.color, {emissive:race.color, emissiveIntensity:0.3}));
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.3, 8, 24), toon(pColor, {emissive:pColor, emissiveIntensity:0.3}));
         ring.position.y = 2.5; ring.castShadow = true;
         g.add(ring);
 
         // Swirling inner
-        const inner = new THREE.Mesh(new THREE.CircleGeometry(1.7, 20), toon(race.color, {transparent:true, opacity:0.4, side:THREE.DoubleSide, emissive:race.color, emissiveIntensity:0.5}));
+        const inner = new THREE.Mesh(new THREE.CircleGeometry(1.7, 20), toon(pColor, {transparent:true, opacity:0.4, side:THREE.DoubleSide, emissive:pColor, emissiveIntensity:0.5}));
         inner.position.y = 2.5;
         g.add(inner);
 
         // Base platform
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.8, 0.4, 16), toon(0x888888));
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.8, 0.4, 16), toon(baseColor));
         base.position.y = 0.2; base.receiveShadow = true;
         g.add(base);
 
         // Floating particles (small spheres)
         for(let p=0;p<8;p++){
-            const particle = new THREE.Mesh(new THREE.SphereGeometry(0.12,4,4), toon(race.color, {emissive:race.color, emissiveIntensity:0.6}));
+            var partColor=currentCityStyle===5?pColor:race.color;
+            const particle = new THREE.Mesh(new THREE.SphereGeometry(0.12,4,4), toon(partColor, {emissive:partColor, emissiveIntensity:0.6}));
             particle.position.set(Math.cos(p)*1.8, 2.5+Math.sin(p*2)*0.8, Math.sin(p)*1.8);
             particle.userData.orbitPhase = p;
             g.add(particle);
@@ -1895,6 +1923,8 @@ function clearCity(){
     if(_cloudWorldPipe){scene.remove(_cloudWorldPipe.group);_cloudWorldPipe=null;}
     // Remove moon earth
     if(window._moonEarth){scene.remove(window._moonEarth);window._moonEarth=null;}
+    // Remove moon stars
+    if(window._moonStars){for(var si=0;si<window._moonStars.length;si++){scene.remove(window._moonStars[si].mesh);}window._moonStars=null;}
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
     _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-48;_earthquakeTimer=0;
@@ -3856,28 +3886,15 @@ function updateCity(){
         _babylonTower.group.position.y=_babylonRiseY;
     }
     // ---- Tower of Babel pipe elevator collision ----
-    if(_babylonTower&&!_babylonRising&&!_pipeTraveling){
+    if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen){
         var bt=_babylonTower;
         var bdx=px-bt.pipeX, bdz=pz-bt.pipeZ;
         var bdist=Math.sqrt(bdx*bdx+bdz*bdz);
-        if(bdist<2.5&&py<3){
-            // Launch player up to cloud world
-            playerEgg.mesh.position.set(0,44,0);
-            playerEgg.vx=0;playerEgg.vy=0.15;playerEgg.vz=0;
-            playerEgg.onGround=false;
-            // Play pipe travel sound
-            if(sfxEnabled){
-                var ctx=ensureAudio();if(ctx){
-                    var o=ctx.createOscillator();var g=ctx.createGain();
-                    o.type='sine';o.frequency.setValueAtTime(200,ctx.currentTime);
-                    o.frequency.exponentialRampToValueAtTime(800,ctx.currentTime+0.5);
-                    g.gain.setValueAtTime(0.15,ctx.currentTime);
-                    g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
-                    o.connect(g);g.connect(ctx.destination);
-                    o.start();o.stop(ctx.currentTime+0.6);
-                }
-            }
+        if(bdist<3&&py<3&&!_babylonPromptDismissed){
+            // Show confirmation prompt
+            _showBabylonPrompt();
         }
+        if(bdist>4)_babylonPromptDismissed=false;
     }
 
     // Moving clouds
@@ -3894,8 +3911,15 @@ function updateCity(){
             mc.z=mc.baseZ+offset;
         }
     }
-    // Moon earth rotation
+    // Moon earth rotation + star twinkling
     if(window._moonEarth){window._moonEarth.rotation.y+=0.001;}
+    if(window._moonStars){
+        var st2=Date.now()*0.003;
+        for(var si2=0;si2<window._moonStars.length;si2++){
+            var s=window._moonStars[si2];
+            s.mesh.material.opacity=0.3+0.7*Math.abs(Math.sin(st2*s.speed+s.phase));
+        }
+    }
 }
 
 // ---- Struggle bar (HTML overlay) ----
@@ -4151,10 +4175,57 @@ function confirmPortalEnter(){
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0) enterRace(ri);
 }
-document.getElementById('portal-yes').addEventListener('click',confirmPortalEnter);
-document.getElementById('portal-no').addEventListener('click',hidePortalConfirm);
+document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else{confirmPortalEnter();}});
+document.getElementById('portal-no').addEventListener('click',function(){if(_babylonPromptOpen){_hideBabylonPrompt();}else{hidePortalConfirm();}});
+
+// ---- Babel Tower prompt (reuses portal-confirm dialog) ----
+var _babylonPromptOpen=false;
+function _showBabylonPrompt(){
+    if(_babylonPromptOpen||_portalConfirmOpen)return;
+    _babylonPromptOpen=true;
+    _portalConfirmOpen=true; // block player input
+    var box=document.getElementById('portal-confirm');
+    var babelName={zhs:'\u5DF4\u522B\u5854',zht:'\u5DF4\u5225\u5854',ja:'\u30D0\u30D9\u30EB\u306E\u5854',en:'Tower of Babel'};
+    var babelDesc={zhs:'\u4E58\u5750\u7BA1\u9053\u7535\u68AF\u524D\u5F80\u4E91\u4E16\u754C\uFF1F',zht:'\u4E58\u5750\u7BA1\u9053\u96FB\u68AF\u524D\u5F80\u96F2\u4E16\u754C\uFF1F',ja:'\u30D1\u30A4\u30D7\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u96F2\u306E\u4E16\u754C\u3078\uFF1F',en:'Take pipe elevator to Cloud World?'};
+    document.getElementById('portal-confirm-name').textContent=babelName[_langCode]||babelName.en;
+    document.getElementById('portal-confirm-desc').textContent=babelDesc[_langCode]||babelDesc.en;
+    box.style.display='flex';
+}
+function _hideBabylonPrompt(){
+    _babylonPromptOpen=false;
+    _portalConfirmOpen=false;
+    _babylonPromptDismissed=true;
+    document.getElementById('portal-confirm').style.display='none';
+}
+function _confirmBabylonEnter(){
+    _babylonPromptOpen=false;
+    _portalConfirmOpen=false;
+    document.getElementById('portal-confirm').style.display='none';
+    // Launch player to cloud world
+    if(playerEgg){
+        playerEgg.mesh.position.set(0,44,0);
+        playerEgg.vx=0;playerEgg.vy=0.15;playerEgg.vz=0;
+        playerEgg.onGround=false;
+    }
+    if(sfxEnabled){
+        var ctx=ensureAudio();if(ctx){
+            var o=ctx.createOscillator();var g=ctx.createGain();
+            o.type='sine';o.frequency.setValueAtTime(200,ctx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(800,ctx.currentTime+0.5);
+            g.gain.setValueAtTime(0.15,ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+            o.connect(g);g.connect(ctx.destination);
+            o.start();o.stop(ctx.currentTime+0.6);
+        }
+    }
+}
 addEventListener('keydown',function(e){
     if(!_portalConfirmOpen)return;
+    if(_babylonPromptOpen){
+        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();_confirmBabylonEnter();}
+        if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();_hideBabylonPrompt();}
+        return;
+    }
     if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();confirmPortalEnter();}
     if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();hidePortalConfirm();}
 });
