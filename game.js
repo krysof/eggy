@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.16 by \u767D\u6CB3\u6101',zht:'v20260323.16 by \u767D\u6CB3\u6101',ja:'v20260323.16 by \u767D\u6CB3\u6101',en:'v20260323.16 by Kryso'},
+    version:{zhs:'v20260323.17 by \u767D\u6CB3\u6101',zht:'v20260323.17 by \u767D\u6CB3\u6101',ja:'v20260323.17 by \u767D\u6CB3\u6101',en:'v20260323.17 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1486,21 +1486,21 @@ function buildCity() {
         var fp=new THREE.Mesh(new THREE.SphereGeometry(0.25,4,3),_fwMat);
         fp.visible=false;
         cityGroup.add(fp);
-        _fwParticles.push({mesh:fp,type:'jet',life:0,maxLife:60+Math.random()*40,
-            vx:(Math.random()-0.5)*0.4,vy:0.35+Math.random()*0.2,vz:(Math.random()-0.5)*0.4,
+        _fwParticles.push({mesh:fp,type:'jet',life:Math.floor(Math.random()*80),maxLife:70+Math.random()*40,
+            vx:(Math.random()-0.5)*0.12,vy:0.12+Math.random()*0.08,vz:(Math.random()-0.5)*0.12,
             ox:0,oy:8.2,oz:0});
     }
     // Lion spout particles (4 lions, 20 particles each)
     for(var lli=0;lli<4;lli++){
         var lla=lli/4*Math.PI*2;
         var llx=Math.cos(lla)*3.3,llz=Math.sin(lla)*3.3;
-        var jdx=-Math.cos(lla)*0.18,jdz=-Math.sin(lla)*0.18;
+        var jdx=-Math.cos(lla)*0.1,jdz=-Math.sin(lla)*0.1;
         for(var lpi=0;lpi<20;lpi++){
             var lp=new THREE.Mesh(new THREE.SphereGeometry(0.18,4,3),_fwMat);
             lp.visible=false;
             cityGroup.add(lp);
-            _fwParticles.push({mesh:lp,type:'lion',life:0,maxLife:30+Math.random()*20,
-                vx:jdx+(Math.random()-0.5)*0.06,vy:-0.02+Math.random()*0.06,vz:jdz+(Math.random()-0.5)*0.06,
+            _fwParticles.push({mesh:lp,type:'lion',life:Math.floor(Math.random()*40),maxLife:40+Math.random()*20,
+                vx:jdx+(Math.random()-0.5)*0.03,vy:0.02+Math.random()*0.03,vz:jdz+(Math.random()-0.5)*0.03,
                 ox:llx,oy:1.4,oz:llz,_lionAngle:lla});
         }
     }
@@ -3133,11 +3133,17 @@ function handlePlayerInput(){
 // ============================================================
 //  CAMERA
 // ============================================================
+var _cameraZoom=1.0; // 1.0 = default, smaller = closer, larger = farther
+document.addEventListener('wheel',function(e){
+    _cameraZoom+=e.deltaY*0.001;
+    if(_cameraZoom<0.4)_cameraZoom=0.4;
+    if(_cameraZoom>2.5)_cameraZoom=2.5;
+},{passive:true});
 function updateCamera(){
     if(!playerEgg)return;
     const p=playerEgg.mesh.position;
     // Camera follows directly behind and above the player
-    const tx=p.x, ty=p.y+10, tz=p.z+14;
+    const tx=p.x, ty=p.y+10*_cameraZoom, tz=p.z+14*_cameraZoom;
     camera.position.x+=(tx-camera.position.x)*0.08;
     camera.position.y+=(ty-camera.position.y)*0.08;
     camera.position.z+=(tz-camera.position.z)*0.08;
@@ -3236,29 +3242,28 @@ function updateCity(){
                 fp.mesh.visible=true;
                 fp.mesh.material.opacity=0.6;
                 if(fp.type==='jet'){
-                    fp.vx=(Math.random()-0.5)*0.4;
-                    fp.vy=0.3+Math.random()*0.2;
-                    fp.vz=(Math.random()-0.5)*0.4;
-                    fp.maxLife=50+Math.random()*40;
+                    fp.vx=(Math.random()-0.5)*0.12;
+                    fp.vy=0.12+Math.random()*0.08;
+                    fp.vz=(Math.random()-0.5)*0.12;
+                    fp.maxLife=70+Math.random()*40;
                 } else {
                     var lla2=fp._lionAngle||0;
-                    fp.vx=-Math.cos(lla2)*0.18+(Math.random()-0.5)*0.06;
-                    fp.vy=-0.02+Math.random()*0.06;
-                    fp.vz=-Math.sin(lla2)*0.18+(Math.random()-0.5)*0.06;
-                    fp.maxLife=30+Math.random()*20;
+                    fp.vx=-Math.cos(lla2)*0.1+(Math.random()-0.5)*0.03;
+                    fp.vy=0.02+Math.random()*0.03;
+                    fp.vz=-Math.sin(lla2)*0.1+(Math.random()-0.5)*0.03;
+                    fp.maxLife=40+Math.random()*20;
                 }
             }
             fp.mesh.position.x+=fp.vx;
             fp.mesh.position.z+=fp.vz;
+            fp.mesh.position.y+=fp.vy;
             if(fp.type==='jet'){
-                fp.mesh.position.y+=fp.vy;
                 fp.vy-=0.004;
-                if(fp.mesh.position.y<0.65){fp.mesh.visible=false;}
             } else {
-                fp.mesh.position.y+=fp.vy;
                 fp.vy-=0.003;
-                if(fp.mesh.position.y<0.65){fp.mesh.visible=false;}
             }
+            // Hit water surface — hide and respawn next frame
+            if(fp.mesh.position.y<0.65){fp.mesh.visible=false;}
             var fAlpha=1-fp.life/fp.maxLife;
             fp.mesh.material.opacity=Math.max(0.05,0.7*fAlpha);
         }
