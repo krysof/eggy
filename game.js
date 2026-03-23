@@ -2022,11 +2022,11 @@ function addClouds(){
         var cz=(Math.random()-0.5)*200;
         _makeCloud(cx,cy,cz,2,4,2,5);
     }
-    // Cloud above each building roof
+    // Cloud above each building roof — close enough to jump onto
     for(var bi=0;bi<cityColliders.length;bi++){
         var c=cityColliders[bi];
         var roofTop=(c.h||6)+(c.roofH||3);
-        _makeCloud(c.x,roofTop+4+Math.random()*3,c.z,2,3,2,4);
+        _makeCloud(c.x,roofTop+2,c.z,2,3,2,4);
     }
     // ---- Cloud World (y=40-50) — large platform layer ----
     var cwY=42;
