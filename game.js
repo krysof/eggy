@@ -636,46 +636,55 @@ let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 // ---- Jump charge system ----
 var _jumpCharging=false, _jumpCharge=0, _jumpChargeMax=60, _jumpChargeBar=null;
 function _createChargeBar(){
-    var grp=new THREE.Group();
-    // Background bar
-    var bgGeo=new THREE.BoxGeometry(1.6,0.25,0.12);
-    var bgMat=new THREE.MeshBasicMaterial({color:0x222222,transparent:true,opacity:0.85,depthTest:false});
-    var bg=new THREE.Mesh(bgGeo,bgMat);bg.renderOrder=999;
-    grp.add(bg);
-    // Fill bar
-    var fillGeo=new THREE.BoxGeometry(1.4,0.18,0.14);
-    var fillMat=new THREE.MeshBasicMaterial({color:0x00ff44,depthTest:false});
-    var fill=new THREE.Mesh(fillGeo,fillMat);fill.renderOrder=1000;
-    fill.scale.x=0.001;fill.position.z=0.01;
-    grp.add(fill);grp._fill=fill;grp._fillMat=fillMat;
+    // Use a canvas texture on a Sprite — always faces camera automatically
+    var canvas=document.createElement('canvas');
+    canvas.width=256;canvas.height=40;
+    var tex=new THREE.CanvasTexture(canvas);
+    tex.minFilter=THREE.LinearFilter;
+    var mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+    var sprite=new THREE.Sprite(mat);
+    sprite.scale.set(2.5,0.4,1);
+    sprite.renderOrder=1000;
+    sprite._canvas=canvas;sprite._ctx=canvas.getContext('2d');sprite._tex=tex;
+    return sprite;
+}
+function _drawChargeBar(sprite,pct){
+    var ctx=sprite._ctx,w=256,h=40;
+    ctx.clearRect(0,0,w,h);
+    // Helper for rounded rect (compat)
+    function rr(x,y,rw,rh,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.lineTo(x+rw-rad,y);ctx.quadraticCurveTo(x+rw,y,x+rw,y+rad);ctx.lineTo(x+rw,y+rh-rad);ctx.quadraticCurveTo(x+rw,y+rh,x+rw-rad,y+rh);ctx.lineTo(x+rad,y+rh);ctx.quadraticCurveTo(x,y+rh,x,y+rh-rad);ctx.lineTo(x,y+rad);ctx.quadraticCurveTo(x,y,x+rad,y);ctx.closePath();}
+    // Outer border
+    ctx.fillStyle='rgba(0,0,0,0.85)';
+    rr(2,2,w-4,h-4,8);ctx.fill();
+    // Color calc
+    var r2,g2,b3;
+    if(pct<0.33){r2=0;g2=255;b3=50;}
+    else if(pct<0.66){var t=(pct-0.33)/0.33;r2=Math.floor(255*t);g2=Math.floor(255*(1-t*0.3));b3=0;}
+    else{var t2=(pct-0.66)/0.34;r2=255;g2=Math.floor(180*(1-t2));b3=0;}
     // Border glow
-    var glowGeo=new THREE.BoxGeometry(1.7,0.32,0.08);
-    var glowMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.3,depthTest:false});
-    var glow=new THREE.Mesh(glowGeo,glowMat);glow.renderOrder=998;glow.position.z=-0.02;
-    grp.add(glow);grp._glow=glow;grp._glowMat=glowMat;
-    return grp;
+    ctx.strokeStyle='rgba('+r2+','+g2+','+b3+','+(pct>0.8?0.7+Math.sin(Date.now()*0.015)*0.3:0.5)+')';
+    ctx.lineWidth=3;rr(5,5,w-10,h-10,6);ctx.stroke();
+    // Fill bar
+    var fw=Math.max(4,(w-20)*pct);
+    var grad=ctx.createLinearGradient(10,0,10+fw,0);
+    grad.addColorStop(0,'rgb('+Math.floor(r2*0.6)+','+Math.floor(g2*0.6)+','+b3+')');
+    grad.addColorStop(1,'rgb('+r2+','+g2+','+b3+')');
+    ctx.fillStyle=grad;
+    rr(10,10,fw,h-20,4);ctx.fill();
+    // Shine highlight
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    rr(10,10,fw,Math.floor((h-20)/2),4);ctx.fill();
+    sprite._tex.needsUpdate=true;
 }
 function _updateChargeBar(){
     if(!playerEgg)return;
     var pct=_jumpCharge/_jumpChargeMax;
     if(_jumpCharging&&playerEgg.onGround){
-        if(!_jumpChargeBar){_jumpChargeBar=_createChargeBar();playerEgg.mesh.add(_jumpChargeBar);}
+        if(!_jumpChargeBar){_jumpChargeBar=_createChargeBar();scene.add(_jumpChargeBar);}
         _jumpChargeBar.visible=true;
-        _jumpChargeBar.position.set(0,2.5,0);
-        _jumpChargeBar.quaternion.copy(camera.quaternion);
-        var p=Math.max(0.001,pct);
-        _jumpChargeBar._fill.scale.x=p;
-        _jumpChargeBar._fill.position.x=(p-1)*0.7;
-        // Color: green→yellow→orange→red
-        var r,g,b2;
-        if(pct<0.33){r=0;g=1;b2=0.2*(1-pct*3);}
-        else if(pct<0.66){var t=(pct-0.33)/0.33;r=t;g=1-t*0.3;b2=0;}
-        else{var t2=(pct-0.66)/0.34;r=1;g=0.7*(1-t2);b2=0;}
-        _jumpChargeBar._fillMat.color.setRGB(r,g,b2);
-        // Glow pulses when near full
-        var glowA=pct>0.8?0.3+Math.sin(Date.now()*0.02)*0.2:0.15;
-        _jumpChargeBar._glowMat.opacity=glowA;
-        _jumpChargeBar._glowMat.color.setRGB(r,g,b2);
+        // Position above player in world space
+        _jumpChargeBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+2.5,playerEgg.mesh.position.z);
+        _drawChargeBar(_jumpChargeBar,pct);
     } else {
         if(_jumpChargeBar){_jumpChargeBar.visible=false;}
     }
@@ -1178,7 +1187,7 @@ function clearRace() {
     const keep=allEggs.filter(e=>e.cityNPC);
     allEggs.length=0; allEggs.push(...keep);
     playerEgg=null;
-    _jumpCharging=false;_jumpCharge=0;_jumpChargeBar=null;
+    _jumpCharging=false;_jumpCharge=0;if(_jumpChargeBar){scene.remove(_jumpChargeBar);_jumpChargeBar=null;}
 }
 
 function getSegAt(z){for(var s of trackSegments)if(z>=s.startZ&&z<s.endZ)return s;return trackSegments[trackSegments.length-1];}
@@ -1603,11 +1612,16 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
-                // If egg is above roof level and falling, land on roof
-                if(egg.mesh.position.y>=roofY-0.5&&egg.vy<=0&&Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd){
+                // On top of building — land on roof
+                if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.mesh.position.y>=roofY-0.5&&egg.vy<=0){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
-                } else if(egg.mesh.position.y<roofY-0.5){
-                    // Push out horizontally
+                }
+                // Jumping upward past building — let egg phase through walls while going up
+                else if(egg.vy>0.05){
+                    // Allow vertical movement, no horizontal push
+                }
+                // Below roof — push out horizontally
+                else if(egg.mesh.position.y<roofY-0.3){
                     const overlapX=c.hw+egg.radius-Math.abs(dx);
                     const overlapZ=c.hd+egg.radius-Math.abs(dz);
                     if(overlapX<overlapZ){egg.mesh.position.x+=Math.sign(dx)*overlapX;egg.vx*=-0.2;}
