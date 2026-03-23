@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.14 by \u767D\u6CB3\u6101',zht:'v20260323.14 by \u767D\u6CB3\u6101',ja:'v20260323.14 by \u767D\u6CB3\u6101',en:'v20260323.14 by Kryso'},
+    version:{zhs:'v20260323.15 by \u767D\u6CB3\u6101',zht:'v20260323.15 by \u767D\u6CB3\u6101',ja:'v20260323.15 by \u767D\u6CB3\u6101',en:'v20260323.15 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1500,7 +1500,7 @@ function buildCity() {
             cityGroup.add(lp);
             _fwParticles.push({mesh:lp,type:'lion',life:0,maxLife:30+Math.random()*20,
                 vx:jdx+(Math.random()-0.5)*0.06,vy:-0.02+Math.random()*0.06,vz:jdz+(Math.random()-0.5)*0.06,
-                ox:llx,oy:1.4,oz:llz});
+                ox:llx,oy:1.4,oz:llz,_lionAngle:lla});
         }
     }
     // Store reference for animation
@@ -3126,12 +3126,20 @@ function updateCamera(){
     sun.target.position.set(p.x,0,p.z);
 
     // Building occlusion — fade buildings between camera and player
+    // BUT don't fade if player is standing on the roof
     if(gameState==='city'){
         const cx=camera.position.x, cz=camera.position.z;
         const px2=p.x, pz2=p.z;
+        const py2=playerEgg?playerEgg.mesh.position.y:0;
         for(const bld of cityBuildingMeshes){
+            // Check if player is on this building's roof
+            var onRoof=false;
+            if(Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2>=bld.h-1){
+                onRoof=true;
+            }
             // 2D line-segment (camera→player) vs AABB intersection in XZ
             let shouldFade=false;
+            if(!onRoof){
             const bx0=bld.x-bld.hw-0.5, bx1=bld.x+bld.hw+0.5;
             const bz0=bld.z-bld.hd-0.5, bz1=bld.z+bld.hd+0.5;
             // Liang-Barsky algorithm for 2D segment clipping
@@ -3149,6 +3157,7 @@ function updateCamera(){
                 }
             }
             if(valid&&tmin<tmax&&tmax>0.05&&tmin<0.95) shouldFade=true;
+            }
 
             const targetOp=shouldFade?0.2:1.0;
             for(const m of bld.meshes){
@@ -3200,8 +3209,8 @@ function updateCity(){
         for(var ffi=0;ffi<window._fountainParticles.length;ffi++){
             var fp=window._fountainParticles[ffi];
             fp.life++;
-            if(fp.life>=fp.maxLife){
-                // Reset particle
+            if(fp.life>=fp.maxLife||!fp.mesh.visible){
+                // Respawn immediately — continuous spray
                 fp.life=0;
                 fp.mesh.position.set(fp.ox,fp.oy,fp.oz);
                 fp.mesh.visible=true;
@@ -3211,54 +3220,69 @@ function updateCity(){
                     fp.vy=0.3+Math.random()*0.2;
                     fp.vz=(Math.random()-0.5)*0.4;
                     fp.maxLife=50+Math.random()*40;
-                }
-            }
-            if(fp.mesh.visible){
-                fp.mesh.position.x+=fp.vx;
-                fp.mesh.position.z+=fp.vz;
-                if(fp.type==='jet'){
-                    fp.mesh.position.y+=fp.vy;
-                    fp.vy-=0.003; // gravity
-                    if(fp.mesh.position.y<0.65){fp.mesh.visible=false;fp.life=fp.maxLife-Math.floor(Math.random()*10);}
                 } else {
-                    fp.mesh.position.y+=fp.vy;
-                    fp.vy-=0.002;
-                    if(fp.mesh.position.y<0.65){fp.mesh.visible=false;fp.life=fp.maxLife-Math.floor(Math.random()*5);}
+                    var lla2=fp._lionAngle||0;
+                    fp.vx=-Math.cos(lla2)*0.18+(Math.random()-0.5)*0.06;
+                    fp.vy=-0.02+Math.random()*0.06;
+                    fp.vz=-Math.sin(lla2)*0.18+(Math.random()-0.5)*0.06;
+                    fp.maxLife=30+Math.random()*20;
                 }
-                var fAlpha=1-fp.life/fp.maxLife;
-                fp.mesh.material.opacity=0.6*fAlpha;
             }
+            fp.mesh.position.x+=fp.vx;
+            fp.mesh.position.z+=fp.vz;
+            if(fp.type==='jet'){
+                fp.mesh.position.y+=fp.vy;
+                fp.vy-=0.004;
+                if(fp.mesh.position.y<0.65){fp.mesh.visible=false;}
+            } else {
+                fp.mesh.position.y+=fp.vy;
+                fp.vy-=0.003;
+                if(fp.mesh.position.y<0.65){fp.mesh.visible=false;}
+            }
+            var fAlpha=1-fp.life/fp.maxLife;
+            fp.mesh.material.opacity=Math.max(0.05,0.7*fAlpha);
         }
     }
     // Fountain splash when player walks in water
     if(_splashCooldown>0)_splashCooldown--;
     var _fdist=Math.sqrt(px*px+pz*pz);
+    var _pspd=playerEgg?Math.sqrt((playerEgg.vx||0)*(playerEgg.vx||0)+(playerEgg.vz||0)*(playerEgg.vz||0)):0;
     if(_fdist<6.5&&playerEgg.mesh.position.y<1.5&&window._fountainSplashParticles){
         // Play splash sound on entry
         if(!playerEgg._inFountain){playerEgg._inFountain=true;playSplashSound();}
-        // Spawn splash particles
+        // Check if player is moving (wading)
+        var _spawnRate=_pspd>0.02?0.5:0.12; // more splashes when moving
+        // Continuous wading splash particles
         for(var fsi2=0;fsi2<window._fountainSplashParticles.length;fsi2++){
             var fsp2=window._fountainSplashParticles[fsi2];
-            if(!fsp2.mesh.visible&&fsp2.life>=fsp2.maxLife&&Math.random()<0.25){
-                fsp2.mesh.position.set(px+(Math.random()-0.5)*2.5,0.7,pz+(Math.random()-0.5)*2.5);
-                fsp2.vx=(Math.random()-0.5)*0.25;
-                fsp2.vy=0.15+Math.random()*0.2;
-                fsp2.vz=(Math.random()-0.5)*0.25;
-                fsp2.life=0;fsp2.maxLife=20+Math.random()*15;
+            if(!fsp2.mesh.visible&&fsp2.life>=fsp2.maxLife&&Math.random()<_spawnRate){
+                fsp2.mesh.position.set(px+(Math.random()-0.5)*2,0.7,pz+(Math.random()-0.5)*2);
+                fsp2.vx=(Math.random()-0.5)*0.2+(playerEgg.vx||0)*0.5;
+                fsp2.vy=0.1+Math.random()*0.18;
+                fsp2.vz=(Math.random()-0.5)*0.2+(playerEgg.vz||0)*0.5;
+                fsp2.life=0;fsp2.maxLife=18+Math.random()*12;
                 fsp2.mesh.visible=true;
-            }
-            if(fsp2.mesh.visible){
-                fsp2.life++;
-                fsp2.mesh.position.x+=fsp2.vx;
-                fsp2.mesh.position.y+=fsp2.vy;
-                fsp2.mesh.position.z+=fsp2.vz;
-                fsp2.vy-=0.006;
-                fsp2.mesh.material.opacity=0.7*(1-fsp2.life/fsp2.maxLife);
-                if(fsp2.life>=fsp2.maxLife){fsp2.mesh.visible=false;}
             }
         }
     } else {
         if(playerEgg)playerEgg._inFountain=false;
+    }
+    // Periodic splash sound while wading
+    if(playerEgg&&playerEgg._inFountain&&_pspd>0.03){playSplashSound();}
+    // Always update visible splash particles even if player left
+    if(window._fountainSplashParticles){
+        for(var fsu=0;fsu<window._fountainSplashParticles.length;fsu++){
+            var fsp3=window._fountainSplashParticles[fsu];
+            if(fsp3.mesh.visible){
+                fsp3.life++;
+                fsp3.mesh.position.x+=fsp3.vx;
+                fsp3.mesh.position.y+=fsp3.vy;
+                fsp3.mesh.position.z+=fsp3.vz;
+                fsp3.vy-=0.008;
+                fsp3.mesh.material.opacity=0.7*(1-fsp3.life/fsp3.maxLife);
+                if(fsp3.life>=fsp3.maxLife){fsp3.mesh.visible=false;}
+            }
+        }
     }
 
     // Check portal proximity — show prompt on base, enter when walk into ring
