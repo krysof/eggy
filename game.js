@@ -722,29 +722,49 @@ function _playChargeBeep(pct){
     o.start(t);o.stop(t+dur);
 }
 
-// ---- Charge jump particles ----
+// ---- Charge jump effects: butt smoke (charging) + ground dust (release) ----
 var _chargeParticles=[];
-function _spawnChargeParticles(x,y,z,pct){
-    var count=Math.floor(8+pct*20);
-    var colors=[0xFFDD00,0xFF8800,0xFF4400,0x44FF44,0x44DDFF,0xFFFFFF];
+// Butt smoke — called every few frames while charging
+function _spawnButtSmoke(egg,pct){
+    var count=1+Math.floor(pct*2);
     for(var i=0;i<count;i++){
-        var geo=new THREE.SphereGeometry(0.08+Math.random()*0.12,6,4);
-        var col=colors[Math.floor(Math.random()*colors.length)];
-        var mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:1});
+        var size=0.15+Math.random()*0.2;
+        var geo=new THREE.SphereGeometry(size,5,4);
+        var gray=0.7+Math.random()*0.3;
+        var mat=new THREE.MeshBasicMaterial({color:new THREE.Color(gray,gray,gray),transparent:true,opacity:0.6,depthTest:false});
         var m=new THREE.Mesh(geo,mat);
-        m.position.set(x+(Math.random()-0.5)*0.8,y+Math.random()*0.5,z+(Math.random()-0.5)*0.8);
+        // Spawn behind and below the egg
+        var dir=egg.mesh.rotation.y;
+        var bx=egg.mesh.position.x-Math.sin(dir)*0.4+(Math.random()-0.5)*0.3;
+        var by=egg.mesh.position.y+0.3+Math.random()*0.2;
+        var bz=egg.mesh.position.z-Math.cos(dir)*0.4+(Math.random()-0.5)*0.3;
+        m.position.set(bx,by,bz);
+        scene.add(m);
+        _chargeParticles.push({mesh:m,vx:(Math.random()-0.5)*0.01,vy:0.02+Math.random()*0.02,vz:(Math.random()-0.5)*0.01,life:20+Math.random()*15,maxLife:35,type:'smoke'});
+    }
+}
+// Ground dust — burst on jump release
+function _spawnGroundDust(x,y,z,pct){
+    var count=Math.floor(6+pct*14);
+    for(var i=0;i<count;i++){
+        var size=0.2+Math.random()*0.3*pct;
+        var geo=new THREE.SphereGeometry(size,5,4);
+        var brown=0.55+Math.random()*0.2;
+        var mat=new THREE.MeshBasicMaterial({color:new THREE.Color(brown,brown*0.85,brown*0.6),transparent:true,opacity:0.7,depthTest:false});
+        var m=new THREE.Mesh(geo,mat);
+        m.position.set(x+(Math.random()-0.5)*0.5,y+0.1+Math.random()*0.2,z+(Math.random()-0.5)*0.5);
         scene.add(m);
         var angle=Math.random()*Math.PI*2;
-        var spd=0.05+Math.random()*0.15*pct;
-        _chargeParticles.push({mesh:m,vx:Math.cos(angle)*spd,vy:0.05+Math.random()*0.12*pct,vz:Math.sin(angle)*spd,life:30+Math.random()*30,maxLife:60});
+        var spd=0.04+Math.random()*0.1*pct;
+        _chargeParticles.push({mesh:m,vx:Math.cos(angle)*spd,vy:0.01+Math.random()*0.03,vz:Math.sin(angle)*spd,life:25+Math.random()*20,maxLife:45,type:'dust'});
     }
-    // Ring burst effect
-    var ringGeo=new THREE.RingGeometry(0.1,0.5+pct*1.5,16);
-    var ringMat=new THREE.MeshBasicMaterial({color:pct>0.7?0xFF4400:0xFFDD00,transparent:true,opacity:0.8,side:THREE.DoubleSide,depthTest:false});
+    // Dust ring on ground
+    var ringGeo=new THREE.RingGeometry(0.2,0.8+pct*1.5,16);
+    var ringMat=new THREE.MeshBasicMaterial({color:0xBBAA88,transparent:true,opacity:0.5,side:THREE.DoubleSide,depthTest:false});
     var ring=new THREE.Mesh(ringGeo,ringMat);
-    ring.position.set(x,y+0.2,z);ring.rotation.x=-Math.PI/2;
+    ring.position.set(x,y+0.05,z);ring.rotation.x=-Math.PI/2;
     scene.add(ring);
-    _chargeParticles.push({mesh:ring,vx:0,vy:0,vz:0,life:20,maxLife:20,isRing:true,scaleSpeed:0.15+pct*0.3});
+    _chargeParticles.push({mesh:ring,vx:0,vy:0,vz:0,life:18,maxLife:18,type:'ring',scaleSpeed:0.2+pct*0.3});
 }
 function _updateChargeParticles(){
     for(var i=_chargeParticles.length-1;i>=0;i--){
@@ -752,14 +772,23 @@ function _updateChargeParticles(){
         p.life--;
         if(p.life<=0){scene.remove(p.mesh);_chargeParticles.splice(i,1);continue;}
         var t=p.life/p.maxLife;
-        p.mesh.material.opacity=t;
-        if(p.isRing){
-            var s=1+(1-t)*5*p.scaleSpeed;
+        p.mesh.material.opacity=t*(p.type==='smoke'?0.5:0.6);
+        if(p.type==='ring'){
+            var s=1+(1-t)*4*p.scaleSpeed;
             p.mesh.scale.set(s,s,s);
         } else {
             p.mesh.position.x+=p.vx;p.mesh.position.y+=p.vy;p.mesh.position.z+=p.vz;
-            p.vy-=0.003;
-            var sc=0.5+t*0.5;p.mesh.scale.set(sc,sc,sc);
+            if(p.type==='smoke'){
+                // Smoke rises and expands
+                p.vy+=0.001;
+                var sc=1+(1-t)*1.5;p.mesh.scale.set(sc,sc,sc);
+            } else {
+                // Dust settles
+                p.vy-=0.001;
+                if(p.mesh.position.y<0.05){p.mesh.position.y=0.05;p.vy=0;}
+                p.vx*=0.96;p.vz*=0.96;
+                var sc2=0.6+t*0.4;p.mesh.scale.set(sc2,sc2,sc2);
+            }
         }
     }
 }
@@ -794,12 +823,10 @@ if(jumpBtn){
     jumpBtn.addEventListener('touchcancel',function(e){keys['Space']=false;},{passive:false});
 }
 const grabBtn=document.getElementById('grab-btn');
-if(grabBtn) grabBtn.addEventListener('touchstart',e=>{e.preventDefault();keys['KeyF']=true;setTimeout(()=>keys['KeyF']=false,200);},{passive:false});
-var sprintBtn=document.getElementById('sprint-btn');
-if(sprintBtn){
-    sprintBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['ShiftLeft']=true;sprintBtn.classList.add('active');},{passive:false});
-    sprintBtn.addEventListener('touchend',function(e){e.preventDefault();keys['ShiftLeft']=false;sprintBtn.classList.remove('active');},{passive:false});
-    sprintBtn.addEventListener('touchcancel',function(e){keys['ShiftLeft']=false;sprintBtn.classList.remove('active');},{passive:false});
+if(grabBtn){
+    grabBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyF']=true;},{passive:false});
+    grabBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyF']=false;},{passive:false});
+    grabBtn.addEventListener('touchcancel',function(e){keys['KeyF']=false;},{passive:false});
 }
 
 
@@ -1236,7 +1263,7 @@ function buildWarpPipes(){
     }
     // Place up to 4 pipes at edges
     var positions=[
-        {x:0,z:-CITY_SIZE+3},{x:CITY_SIZE-3,z:0},{x:0,z:CITY_SIZE-3},{x:-CITY_SIZE+3,z:0}
+        {x:0,z:-45},{x:45,z:0},{x:0,z:45},{x:-45,z:0}
     ];
     var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44];
     for(var pi2=0;pi2<Math.min(targets.length,4);pi2++){
@@ -2415,10 +2442,13 @@ function handlePlayerInput(){
             var beepInterval=Math.max(3,Math.floor(15-pct*12));
             _chargeBeepTimer++;
             if(_chargeBeepTimer>=beepInterval){_chargeBeepTimer=0;_playChargeBeep(pct);}
+            // Butt smoke while charging
+            if(_jumpCharge%4===0)_spawnButtSmoke(playerEgg,pct);
         } else {
             _chargeHoldTimer++;
             _chargeBeepTimer++;
             if(_chargeBeepTimer>=3){_chargeBeepTimer=0;_playChargeBeep(0.8+0.2*Math.random());}
+            if(_chargeHoldTimer%3===0)_spawnButtSmoke(playerEgg,1.0);
             if(_chargeHoldTimer>=_chargeHoldMax){
                 _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
             }
@@ -2430,7 +2460,7 @@ function handlePlayerInput(){
             playerEgg.vy=JUMP_FORCE*(1+pct2*2);
             playerEgg.squash=0.65-pct2*0.2;
             playJumpSound();
-            if(pct2>0.15)_spawnChargeParticles(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,pct2);
+            if(pct2>0.15)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,pct2);
         }
         _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
     }
