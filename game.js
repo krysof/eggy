@@ -66,7 +66,7 @@ if(sfxBtn) sfxBtn.addEventListener("click",function(){
 });
 
 // Background music — cheerful multi-layer procedural BGM
-let bgmPlaying=false, bgmGain=null, bgmNodes=[];
+let bgmPlaying=false, bgmGain=null, bgmNodes=[], _bgmTimer=null;
 function startBGM(){
     if(bgmPlaying||!soundEnabled)return;
     const ctx=ensureAudio(); bgmPlaying=true;
@@ -158,11 +158,11 @@ function _playBGMLoop(ctx){
                 bgmNodes.push(hs);
             }
         }
-        setTimeout(playLoop, melody.length*noteLen*1000);
+        _bgmTimer=setTimeout(playLoop, melody.length*noteLen*1000);
     }
     playLoop();
 }
-function stopBGM(){bgmPlaying=false;bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
+function stopBGM(){bgmPlaying=false;if(_bgmTimer){clearTimeout(_bgmTimer);_bgmTimer=null;}bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
 
 // Select screen BGM — intense fighting game style
 let selectBgmPlaying=false, selectBgmGain=null, selectBgmNodes=[], selectBgmTimer=null;
@@ -747,6 +747,31 @@ function _drawSprintBar(sprite,pct){
     rr(10,10,fw,Math.floor((h-20)/2),4);ctx.fill();
     sprite._tex.needsUpdate=true;
 }
+// ---- Sprint sound (FC Mario 3 style "lin lin" running tone) ----
+var _sprintSoundTimer=0;
+function _playSprintTick(pct){
+    if(!sfxEnabled)return;
+    var ctx=ensureAudio();var t=ctx.currentTime;
+    // Two quick ascending notes — "lin lin"
+    var baseFreq=1200+pct*600;
+    var o1=ctx.createOscillator();var g1=ctx.createGain();
+    o1.type='square';
+    o1.frequency.setValueAtTime(baseFreq,t);
+    o1.frequency.exponentialRampToValueAtTime(baseFreq*1.5,t+0.03);
+    g1.gain.setValueAtTime(0.07,t);
+    g1.gain.exponentialRampToValueAtTime(0.001,t+0.04);
+    o1.connect(g1);g1.connect(ctx.destination);
+    o1.start(t);o1.stop(t+0.04);
+    var o2=ctx.createOscillator();var g2=ctx.createGain();
+    o2.type='square';
+    o2.frequency.setValueAtTime(baseFreq*1.2,t+0.05);
+    o2.frequency.exponentialRampToValueAtTime(baseFreq*1.8,t+0.08);
+    g2.gain.setValueAtTime(0.06,t+0.05);
+    g2.gain.exponentialRampToValueAtTime(0.001,t+0.09);
+    o2.connect(g2);g2.connect(ctx.destination);
+    o2.start(t+0.05);o2.stop(t+0.09);
+}
+
 function _updateSprintBar(holdingF){
     if(!playerEgg)return 0;
     if(holdingF){
@@ -755,6 +780,14 @@ function _updateSprintBar(holdingF){
         _sprintCharge=Math.max(_sprintCharge-2,0);
     }
     var pct=_sprintCharge/_sprintChargeMax;
+    // Sprint sound — faster as charge fills
+    if(holdingF&&pct>0.05){
+        _sprintSoundTimer++;
+        var interval=Math.max(4,Math.floor(12-pct*8));
+        if(_sprintSoundTimer>=interval){_sprintSoundTimer=0;_playSprintTick(pct);}
+    } else {
+        _sprintSoundTimer=0;
+    }
     if(pct>0.01){
         if(!_sprintBar){_sprintBar=_createSprintBar();scene.add(_sprintBar);}
         _sprintBar.visible=true;
