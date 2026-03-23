@@ -707,44 +707,44 @@ function _updateChargeBar(){
     }
 }
 
-// ---- Sprint bar (separate from charge bar, shown below it) ----
+// ---- Sprint bar (same style as charge bar, shown below it) ----
 var _sprintBar=null, _sprintActive=false;
 function _createSprintBar(){
     var canvas=document.createElement('canvas');
-    canvas.width=256;canvas.height=32;
+    canvas.width=256;canvas.height=40;
     var tex=new THREE.CanvasTexture(canvas);
     tex.minFilter=THREE.LinearFilter;
     var mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
     var sprite=new THREE.Sprite(mat);
-    sprite.scale.set(2.2,0.3,1);
+    sprite.scale.set(2.5,0.4,1);
     sprite.renderOrder=1001;
     sprite._canvas=canvas;sprite._ctx=canvas.getContext('2d');sprite._tex=tex;
     return sprite;
 }
-function _drawSprintBar(sprite,active){
-    var ctx=sprite._ctx,w=256,h=32;
+function _drawSprintBar(sprite){
+    var ctx=sprite._ctx,w=256,h=40;
     ctx.clearRect(0,0,w,h);
     function rr(x,y,rw,rh,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.lineTo(x+rw-rad,y);ctx.quadraticCurveTo(x+rw,y,x+rw,y+rad);ctx.lineTo(x+rw,y+rh-rad);ctx.quadraticCurveTo(x+rw,y+rh,x+rw-rad,y+rh);ctx.lineTo(x+rad,y+rh);ctx.quadraticCurveTo(x,y+rh,x,y+rh-rad);ctx.lineTo(x,y+rad);ctx.quadraticCurveTo(x,y,x+rad,y);ctx.closePath();}
-    ctx.fillStyle='rgba(0,0,0,0.75)';
-    rr(2,2,w-4,h-4,6);ctx.fill();
-    if(active){
-        var pulse=0.85+Math.sin(Date.now()*0.012)*0.15;
-        ctx.strokeStyle='rgba(0,180,255,'+pulse+')';
-        ctx.lineWidth=2;rr(4,4,w-8,h-8,5);ctx.stroke();
-        var grad=ctx.createLinearGradient(8,0,w-16,0);
-        grad.addColorStop(0,'rgb(0,120,255)');
-        grad.addColorStop(0.5,'rgb(0,200,255)');
-        grad.addColorStop(1,'rgb(0,120,255)');
-        ctx.fillStyle=grad;
-        rr(8,8,w-16,h-16,3);ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,0.35)';
-        rr(8,8,w-16,Math.floor((h-16)/2),3);ctx.fill();
-        ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText('\u26A1 \u52A0\u901F',w/2,h/2);
-    } else {
-        ctx.fillStyle='rgba(80,80,80,0.5)';
-        rr(8,8,w-16,h-16,3);ctx.fill();
-    }
+    // Outer border — same as charge bar
+    ctx.fillStyle='rgba(0,0,0,0.85)';
+    rr(2,2,w-4,h-4,8);ctx.fill();
+    // Blue glow border with pulse
+    var pulse=0.7+Math.sin(Date.now()*0.015)*0.3;
+    ctx.strokeStyle='rgba(0,160,255,'+pulse+')';
+    ctx.lineWidth=3;rr(5,5,w-10,h-10,6);ctx.stroke();
+    // Full blue fill bar
+    var fw=w-20;
+    var grad=ctx.createLinearGradient(10,0,10+fw,0);
+    grad.addColorStop(0,'rgb(0,80,200)');
+    grad.addColorStop(1,'rgb(0,180,255)');
+    ctx.fillStyle=grad;
+    rr(10,10,fw,h-20,4);ctx.fill();
+    // Shine highlight — same as charge bar
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    rr(10,10,fw,Math.floor((h-20)/2),4);ctx.fill();
+    // Label text
+    ctx.fillStyle='#fff';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('\u26A1 \u52A0\u901F',w/2,h/2);
     sprite._tex.needsUpdate=true;
 }
 function _updateSprintBar(sprinting){
@@ -756,7 +756,7 @@ function _updateSprintBar(sprinting){
         _sprintBar.visible=true;
         var yOff=(_jumpCharging&&playerEgg.onGround)?1.8:2.1;
         _sprintBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+yOff,playerEgg.mesh.position.z);
-        if(!_sprintActive||Date.now()%3===0){_drawSprintBar(_sprintBar,true);_sprintActive=true;}
+        _drawSprintBar(_sprintBar);
     } else {
         if(_sprintBar){_sprintBar.visible=false;}
         _sprintActive=false;
@@ -2569,7 +2569,7 @@ function handlePlayerInput(){
             held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+2.0, playerEgg.mesh.position.z+Math.cos(dir)*2);
             var tw=held.weight||1.0;var tf=9.0/tw;held.vx=Math.sin(dir)*tf;held.vy=0.22;held.vz=Math.cos(dir)*tf;held._throwTotal=120;held.throwTimer=120;held._bounces=2;
             held.squash=0.5; playerEgg.grabCD=20;
-            playThrowSound(); keys['KeyF']=false;
+            playThrowSound();
         } else {
             var nearest=null, nearDist=2.5;
             for(var ei=0;ei<allEggs.length;ei++){
