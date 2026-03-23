@@ -722,6 +722,48 @@ function _playChargeBeep(pct){
     o.start(t);o.stop(t+dur);
 }
 
+// ---- Charge jump particles ----
+var _chargeParticles=[];
+function _spawnChargeParticles(x,y,z,pct){
+    var count=Math.floor(8+pct*20);
+    var colors=[0xFFDD00,0xFF8800,0xFF4400,0x44FF44,0x44DDFF,0xFFFFFF];
+    for(var i=0;i<count;i++){
+        var geo=new THREE.SphereGeometry(0.08+Math.random()*0.12,6,4);
+        var col=colors[Math.floor(Math.random()*colors.length)];
+        var mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:1});
+        var m=new THREE.Mesh(geo,mat);
+        m.position.set(x+(Math.random()-0.5)*0.8,y+Math.random()*0.5,z+(Math.random()-0.5)*0.8);
+        scene.add(m);
+        var angle=Math.random()*Math.PI*2;
+        var spd=0.05+Math.random()*0.15*pct;
+        _chargeParticles.push({mesh:m,vx:Math.cos(angle)*spd,vy:0.05+Math.random()*0.12*pct,vz:Math.sin(angle)*spd,life:30+Math.random()*30,maxLife:60});
+    }
+    // Ring burst effect
+    var ringGeo=new THREE.RingGeometry(0.1,0.5+pct*1.5,16);
+    var ringMat=new THREE.MeshBasicMaterial({color:pct>0.7?0xFF4400:0xFFDD00,transparent:true,opacity:0.8,side:THREE.DoubleSide,depthTest:false});
+    var ring=new THREE.Mesh(ringGeo,ringMat);
+    ring.position.set(x,y+0.2,z);ring.rotation.x=-Math.PI/2;
+    scene.add(ring);
+    _chargeParticles.push({mesh:ring,vx:0,vy:0,vz:0,life:20,maxLife:20,isRing:true,scaleSpeed:0.15+pct*0.3});
+}
+function _updateChargeParticles(){
+    for(var i=_chargeParticles.length-1;i>=0;i--){
+        var p=_chargeParticles[i];
+        p.life--;
+        if(p.life<=0){scene.remove(p.mesh);_chargeParticles.splice(i,1);continue;}
+        var t=p.life/p.maxLife;
+        p.mesh.material.opacity=t;
+        if(p.isRing){
+            var s=1+(1-t)*5*p.scaleSpeed;
+            p.mesh.scale.set(s,s,s);
+        } else {
+            p.mesh.position.x+=p.vx;p.mesh.position.y+=p.vy;p.mesh.position.z+=p.vz;
+            p.vy-=0.003;
+            var sc=0.5+t*0.5;p.mesh.scale.set(sc,sc,sc);
+        }
+    }
+}
+
 // ---- Input ----
 const keys={};
 addEventListener('keydown',e=>{ keys[e.code]=true; if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault(); });
@@ -1176,21 +1218,30 @@ function spawnCityNPCs() {
     }
 }
 
-// ---- Clouds ----
+// ---- Clouds (can stand on them) ----
+var cityCloudPlatforms=[]; // {group, x, z, y, hw, hd}
 function addClouds(){
     const cg=new THREE.SphereGeometry(1,8,6);
     const cm=toon(0xffffff,{transparent:true,opacity:0.85});
     for(let i=0;i<30;i++){
         const g=new THREE.Group();
-        for(let j=0;j<2+Math.floor(Math.random()*3);j++){
+        var maxW=0,maxD=0;
+        var numParts=2+Math.floor(Math.random()*3);
+        for(let j=0;j<numParts;j++){
             const s=2+Math.random()*3;
             const m=new THREE.Mesh(cg,cm);
             m.scale.set(s,s*0.45,s*0.7);
             m.position.set(j*2.5,0,Math.random()*1.5);
             g.add(m);
+            if(j*2.5+s>maxW)maxW=j*2.5+s;
+            if(Math.random()*1.5+s*0.7>maxD)maxD=Math.random()*1.5+s*0.7;
         }
-        g.position.set((Math.random()-0.5)*200, 25+Math.random()*25, (Math.random()-0.5)*200);
+        var cx=(Math.random()-0.5)*200;
+        var cy=18+Math.random()*10;
+        var cz=(Math.random()-0.5)*200;
+        g.position.set(cx, cy, cz);
         scene.add(g);
+        cityCloudPlatforms.push({group:g, x:cx, z:cz, y:cy, hw:maxW*0.5+1, hd:Math.max(maxD,2.5)});
     }
 }
 addClouds();
@@ -1680,6 +1731,17 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                     egg.mesh.position.x+=pdx/pd*pov;
                     egg.mesh.position.z+=pdz/pd*pov;
                     egg.vx*=-0.2;egg.vz*=-0.2;
+                }
+            }
+        }
+        // Cloud platform collisions — can land on clouds from below
+        for(var cli=0;cli<cityCloudPlatforms.length;cli++){
+            var cl=cityCloudPlatforms[cli];
+            var cdx=egg.mesh.position.x-cl.x, cdz=egg.mesh.position.z-cl.z;
+            if(Math.abs(cdx)<cl.hw&&Math.abs(cdz)<cl.hd){
+                // Only land when falling and near cloud top
+                if(egg.mesh.position.y>=cl.y-0.5&&egg.mesh.position.y<=cl.y+1.5&&egg.vy<=0){
+                    egg.mesh.position.y=cl.y+0.5;egg.vy=0;egg.onGround=true;
                 }
             }
         }
@@ -2195,32 +2257,39 @@ function handlePlayerInput(){
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;}
     // Charge jump: hold Space to charge, release to jump
-    if(keys['Space']&&playerEgg.onGround&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;_chargeBeepTimer=0;_chargeHoldTimer=0;}
-    if(_jumpCharging&&keys['Space']&&playerEgg.onGround){
+    // Grace period: allow brief off-ground (slopes/bumps) without canceling charge
+    var _onGroundOrGrace=playerEgg.onGround;
+    if(!playerEgg.onGround&&_jumpCharging){
+        if(!playerEgg._chargeGrace)playerEgg._chargeGrace=0;
+        playerEgg._chargeGrace++;
+        if(playerEgg._chargeGrace<=8)_onGroundOrGrace=true; // 8 frame grace
+    } else {
+        playerEgg._chargeGrace=0;
+    }
+    if(keys['Space']&&_onGroundOrGrace&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;_chargeBeepTimer=0;_chargeHoldTimer=0;}
+    if(_jumpCharging&&keys['Space']&&_onGroundOrGrace){
         if(_jumpCharge<_jumpChargeMax){
             _jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);
-            // Beep sound — interval decreases as charge fills
             var pct=_jumpCharge/_jumpChargeMax;
             var beepInterval=Math.max(3,Math.floor(15-pct*12));
             _chargeBeepTimer++;
             if(_chargeBeepTimer>=beepInterval){_chargeBeepTimer=0;_playChargeBeep(pct);}
         } else {
-            // Fully charged — hold timer counts down, max-speed beeps entire time
             _chargeHoldTimer++;
             _chargeBeepTimer++;
             if(_chargeBeepTimer>=3){_chargeBeepTimer=0;_playChargeBeep(0.8+0.2*Math.random());}
             if(_chargeHoldTimer>=_chargeHoldMax){
-                // Time's up — force release, charge decays to 0
                 _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
             }
         }
     }
-    if(_jumpCharging&&(!keys['Space']||!playerEgg.onGround)){
-        if(playerEgg.onGround&&_jumpCharge>0){
+    if(_jumpCharging&&(!keys['Space']||!_onGroundOrGrace)){
+        if(_onGroundOrGrace&&_jumpCharge>0){
             var pct2=_jumpCharge/_jumpChargeMax;
             playerEgg.vy=JUMP_FORCE*(1+pct2*2);
             playerEgg.squash=0.65-pct2*0.2;
             playJumpSound();
+            if(pct2>0.15)_spawnChargeParticles(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,pct2);
         }
         _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
     }
@@ -2931,6 +3000,7 @@ function animate(){
     }
 
     R.render(scene,camera);
+    _updateChargeParticles();
     // Update grab button text
     if(grabBtn&&playerEgg){if(playerEgg.holding){grabBtn.textContent='扔';grabBtn.classList.add('holding');}else{grabBtn.textContent='抓';grabBtn.classList.remove('holding');}}
 }
