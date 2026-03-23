@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.26 by \u767D\u6CB3\u6101',zht:'v20260323.26 by \u767D\u6CB3\u6101',ja:'v20260323.26 by \u767D\u6CB3\u6101',en:'v20260323.26 by Kryso'},
+    version:{zhs:'v20260323.27 by \u767D\u6CB3\u6101',zht:'v20260323.27 by \u767D\u6CB3\u6101',ja:'v20260323.27 by \u767D\u6CB3\u6101',en:'v20260323.27 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -795,7 +795,7 @@ if (portraitCtx) drawPortrait(CHARACTERS[0]);
 let gameState = 'menu'; // menu, city, raceIntro, racing, raceResult
 let coins = 0, nearPortal = null, countdownTimer = null;
 // ---- Tower of Babel state ----
-var _babylonTriggered=false, _babylonTower=null, _babylonRising=false, _babylonRiseY=-48;
+var _babylonTriggered=false, _babylonTower=null, _babylonRising=false, _babylonRiseY=-52;
 var _earthquakeTimer=0, _earthquakeIntensity=0;
 var _babylonPromptDismissed=false;
 let raceCoinScore = 0;
@@ -1386,18 +1386,40 @@ for(var _si=0;_si<CITY_STYLES.length;_si++){CITY_STYLES[_si].name=I18N.cityNames
 function buildCity() {
     var st=CITY_STYLES[currentCityStyle];
     // Ground
+    if(currentCityStyle===5){
+        // Moon: spherical planet surface (visual only, gameplay still flat)
+        var planetR=200;
+        var planetGeo=new THREE.SphereGeometry(planetR,64,48);
+        var planet=new THREE.Mesh(planetGeo,toon(st.ground));
+        planet.position.y=-planetR; // top of sphere at y=0
+        planet.receiveShadow=true;
+        cityGroup.add(planet);
+        // Subtle surface detail — darker patches
+        for(var pi=0;pi<15;pi++){
+            var pa=Math.random()*Math.PI*2;
+            var pp=Math.random()*0.3;
+            var pr=8+Math.random()*15;
+            var patch=new THREE.Mesh(new THREE.CircleGeometry(pr,16),toon(0x666677));
+            patch.rotation.x=-Math.PI/2;
+            patch.position.set(Math.cos(pa)*pp*80,0.02,Math.sin(pa)*pp*80);
+            cityGroup.add(patch);
+        }
+    } else {
     const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
     const ground = new THREE.Mesh(groundGeo, toon(st.ground));
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     cityGroup.add(ground);
+    }
 
-    // Paths
+    // Paths (not on moon)
+    if(currentCityStyle!==5){
     const pathM = toon(st.path);
     [{w:CITY_SIZE*2,d:5,x:0,z:0},{w:5,d:CITY_SIZE*2,x:0,z:0},
      {w:CITY_SIZE*1.2,d:4,x:15,z:25},{w:4,d:CITY_SIZE*1.2,x:-25,z:-10}].forEach(p=>{
         const path=new THREE.Mesh(new THREE.BoxGeometry(p.w,0.06,p.d),pathM);
         path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
     });
+    }
 
     // ---- Buildings (not on moon) ----
     if(currentCityStyle!==5){
@@ -1955,7 +1977,7 @@ function clearCity(){
     if(window._moonNebulae){for(var ni=0;ni<window._moonNebulae.length;ni++){scene.remove(window._moonNebulae[ni]);}window._moonNebulae=null;}
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
-    _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-48;_earthquakeTimer=0;
+    _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-52;_earthquakeTimer=0;
 }
 
 function applyCityTheme(){
@@ -2224,8 +2246,8 @@ function addClouds(){
     }
     // ---- Cloud World (y=42) — large platform layer ----
     var cwY=42;
-    // Central large cloud platform
-    _makeCloud(0,cwY,0,4,4,4,6);
+    // Central large cloud platform (3x bigger — moon pipe sits here)
+    _makeCloud(0,cwY,0,6,8,10,16);
     // Ring of cloud platforms around center
     for(var ai=0;ai<8;ai++){
         var ang=ai/8*Math.PI*2;
@@ -2366,10 +2388,10 @@ function playRumbleSound(){
 function _buildBabylonTower(){
     if(_babylonTower)return;
     var g=new THREE.Group();
-    // Ziggurat — 7 stacked layers reaching cloud world (y=42)
-    var layers=7;
-    var baseW=14, baseD=14, layerH=6;
-    var colors=[0xD4A460,0xC8963C,0xBB8833,0xAA7722,0x996611,0x885500,0x774400];
+    // Ziggurat — 8 stacked layers reaching above cloud world (y=48)
+    var layers=8;
+    var baseW=16, baseD=16, layerH=6;
+    var colors=[0xD4A460,0xC8963C,0xBB8833,0xAA7722,0x996611,0x885500,0x774400,0x663300];
     for(var i=0;i<layers;i++){
         var w=baseW-i*1.5;
         var d=baseD-i*1.5;
@@ -2452,7 +2474,7 @@ function _triggerBabylonEvent(){
     _earthquakeTimer=180; // 3 seconds at 60fps
     _earthquakeIntensity=0.5;
     _babylonRising=true;
-    _babylonRiseY=-48;
+    _babylonRiseY=-52;
     playRumbleSound();
     _buildBabylonTower();
 }
@@ -3917,7 +3939,7 @@ function updateCity(){
 
     // ---- Tower of Babel rise animation ----
     if(_babylonRising&&_babylonTower){
-        _babylonRiseY+=0.27; // rise speed (~3 seconds)
+        _babylonRiseY+=0.29; // rise speed (~3 seconds)
         if(_babylonRiseY>=0){
             _babylonRiseY=0;
             _babylonRising=false;
@@ -3928,7 +3950,7 @@ function updateCity(){
     if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen){
         var bt=_babylonTower;
         // Door is on +Z face of tower
-        var doorX=bt.x, doorZ=bt.z+7.5;
+        var doorX=bt.x, doorZ=bt.z+8.5;
         var bdx=px-doorX, bdz=pz-doorZ;
         var bdist=Math.sqrt(bdx*bdx+bdz*bdz);
         if(bdist<3&&py<3&&!_babylonPromptDismissed){
@@ -4243,7 +4265,7 @@ function _confirmBabylonEnter(){
     document.getElementById('portal-confirm').style.display='none';
     // Launch player to cloud world (offset from moon pipe at 0,42,0)
     if(playerEgg){
-        playerEgg.mesh.position.set(15,44,10);
+        playerEgg.mesh.position.set(15,50,10);
         playerEgg.vx=0;playerEgg.vy=0.15;playerEgg.vz=0;
         playerEgg.onGround=false;
     }
