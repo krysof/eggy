@@ -2302,6 +2302,11 @@ addEventListener('keydown',function(e){
     if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();confirmPortalEnter();}
     if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();hidePortalConfirm();}
 });
+// Result screen — Enter/Space to go back to city
+addEventListener('keydown',function(e){
+    if(gameState!=='raceResult')return;
+    if(e.code==='Enter'||e.code==='Space'){e.preventDefault();goBackToCity();}
+});
 
 // ============================================================
 //  GAME FLOW
