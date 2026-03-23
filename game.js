@@ -1866,52 +1866,83 @@ function updateCityNPC(egg){if(egg.heldBy)return;
 
 function updateRaceAI(egg){
     if(!egg.alive||egg.finished||egg.isPlayer||egg.cityNPC)return;
+    // Initialize race personality if needed
+    if(!egg._raceStyle){
+        var r=Math.random();
+        if(r<0.25) egg._raceStyle='rusher';      // fast, straight line
+        else if(r<0.5) egg._raceStyle='zigzag';   // weaves side to side
+        else if(r<0.75) egg._raceStyle='cautious'; // slower, avoids obstacles better
+        else egg._raceStyle='jumper';              // jumps a lot
+        egg._zigPhase=Math.random()*Math.PI*2;
+        egg._speedMult=0.7+Math.random()*0.6;     // 0.7-1.3x speed variation
+        egg._sideRange=3+Math.random()*5;          // how wide they weave
+        egg._reactSpeed=0.3+Math.random()*0.7;     // how fast they react to obstacles
+    }
     egg.aiReactTimer--;
-    if(egg.aiReactTimer<=0){egg.aiReactTimer=8+Math.random()*18;egg.aiTargetX=(Math.random()-0.5)*5;}
-    egg.vz-=MOVE_ACCEL*(0.55+egg.aiSkill*0.55);
-    const dx=egg.aiTargetX-egg.mesh.position.x;
-    egg.vx+=Math.sign(dx)*MOVE_ACCEL*0.5;
-    const ez=-egg.mesh.position.z;
-    for(const ob of obstacleObjects){
-        const dz=Math.abs(ez-(ob.data.z||0));
+    var style=egg._raceStyle;
+    // Forward movement — varied speed per personality
+    var fwdAccel=MOVE_ACCEL*egg._speedMult;
+    if(style==='rusher') fwdAccel*=(0.7+egg.aiSkill*0.5);
+    else if(style==='cautious') fwdAccel*=(0.45+egg.aiSkill*0.4);
+    else fwdAccel*=(0.55+egg.aiSkill*0.45);
+    egg.vz-=fwdAccel;
+    // Lateral movement — personality-based
+    if(style==='zigzag'){
+        egg._zigPhase+=0.04+egg.aiSkill*0.02;
+        egg.aiTargetX=Math.sin(egg._zigPhase)*egg._sideRange;
+    } else if(style==='rusher'){
+        if(egg.aiReactTimer<=0){egg.aiReactTimer=15+Math.random()*25;egg.aiTargetX=(Math.random()-0.5)*4;}
+    } else if(style==='cautious'){
+        if(egg.aiReactTimer<=0){egg.aiReactTimer=5+Math.random()*10;egg.aiTargetX=(Math.random()-0.5)*egg._sideRange;}
+    } else {
+        if(egg.aiReactTimer<=0){egg.aiReactTimer=10+Math.random()*20;egg.aiTargetX=(Math.random()-0.5)*6;}
+    }
+    var dx=egg.aiTargetX-egg.mesh.position.x;
+    egg.vx+=Math.sign(dx)*MOVE_ACCEL*(0.4+egg._reactSpeed*0.4);
+    // Jumper personality — frequent random jumps
+    if(style==='jumper'&&egg.onGround&&Math.random()<0.025){egg.vy=JUMP_FORCE*(0.6+egg.aiSkill*0.3);egg.squash=0.65;egg.aiJumpCD=15;}
+    // Obstacle avoidance
+    var ez=-egg.mesh.position.z;
+    for(var oi=0;oi<obstacleObjects.length;oi++){
+        var ob=obstacleObjects[oi];
+        var dz=Math.abs(ez-(ob.data.z||0));
         if(dz>8)continue;
+        var avoidStr=egg._reactSpeed*egg.aiSkill;
         if(ob.type==='spinner'&&dz<6){
-            const tipX=Math.sin(ob.data.angle)*ob.data.armLen;
-            if(Math.abs(egg.mesh.position.x-tipX)<2.5)egg.vx+=(egg.mesh.position.x>tipX?1:-1)*MOVE_ACCEL*egg.aiSkill*1.2;
+            var tipX=Math.sin(ob.data.angle)*ob.data.armLen;
+            if(Math.abs(egg.mesh.position.x-tipX)<2.5)egg.vx+=(egg.mesh.position.x>tipX?1:-1)*MOVE_ACCEL*avoidStr*1.5;
         }
         if(ob.type==='bumper'&&dz<4&&Math.abs(egg.mesh.position.x-ob.data.x)<2)
-            egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*0.9;
+            egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*avoidStr;
         if(ob.type==='roller'&&dz<3){
-            egg.aiJumpCD--;
-            if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<egg.aiSkill*0.4){egg.vy=JUMP_FORCE*(0.7+egg.aiSkill*0.3);egg.aiJumpCD=25;}
+            if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<avoidStr*0.5){egg.vy=JUMP_FORCE*(0.7+egg.aiSkill*0.3);egg.aiJumpCD=20+Math.random()*15;}
         }
         if(ob.type==='pendulum'&&dz<5){
-            const ballX=Math.sin(ob.data.angle*1.4)*ob.data.chainLen;
-            if(Math.abs(egg.mesh.position.x-ballX)<2)egg.vx+=(egg.mesh.position.x>ballX?1:-1)*MOVE_ACCEL*egg.aiSkill;
+            var ballX=Math.sin(ob.data.angle*1.4)*ob.data.chainLen;
+            if(Math.abs(egg.mesh.position.x-ballX)<2)egg.vx+=(egg.mesh.position.x>ballX?1:-1)*MOVE_ACCEL*avoidStr;
         }
-        if(ob.type==='platform'&&dz<4)egg.vx+=(ob.mesh.position.x-egg.mesh.position.x)*0.02*egg.aiSkill;
-        if(ob.type==='conveyor'&&dz<ob.data.halfLen)egg.vx-=ob.data.pushX*0.3*egg.aiSkill;
+        if(ob.type==='platform'&&dz<4)egg.vx+=(ob.mesh.position.x-egg.mesh.position.x)*0.02*avoidStr;
+        if(ob.type==='conveyor'&&dz<ob.data.halfLen)egg.vx-=ob.data.pushX*0.3*avoidStr;
         if(ob.type==='fallingBlock'&&dz<3&&ob.data.timer<ob.data.warningTime&&Math.abs(egg.mesh.position.x-ob.data.x)<ob.data.size)
-
+            egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*avoidStr*1.5;
         if(ob.type==='spring'&&dz<2&&Math.abs(egg.mesh.position.x-(ob.data.x||0))<1.5&&egg.onGround){
             egg.vy=ob.data.jumpForce*0.9;
         }
-
         if(ob.type==='pipe'&&dz<4&&Math.abs(egg.mesh.position.x-(ob.data.x||0))<2)
-            egg.vx+=(egg.mesh.position.x>(ob.data.x||0)?1:-1)*MOVE_ACCEL*egg.aiSkill*1.5;
+            egg.vx+=(egg.mesh.position.x>(ob.data.x||0)?1:-1)*MOVE_ACCEL*avoidStr*1.5;
         if(ob.type==='goomba'&&dz<3&&!ob.data._squashed){
             var gdx=egg.mesh.position.x-(ob.data.x||0);
             if(Math.abs(gdx)<2){
-                if(egg.onGround&&Math.random()<egg.aiSkill*0.15){egg.vy=JUMP_FORCE*0.9;egg.aiJumpCD=25;}
+                if(egg.onGround&&Math.random()<avoidStr*0.2){egg.vy=JUMP_FORCE*0.9;egg.aiJumpCD=25;}
                 else egg.vx+=(gdx>0?1:-1)*MOVE_ACCEL*0.8;
             }
         }
-            egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*1.5;
     }
     egg.aiJumpCD--;
-    if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<0.008*egg.aiSkill){egg.vy=JUMP_FORCE*0.85;egg.aiJumpCD=35;}
-    const spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
-    if(spd>MAX_SPEED){egg.vx=(egg.vx/spd)*MAX_SPEED;egg.vz=(egg.vz/spd)*MAX_SPEED;}
+    if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<0.006*egg.aiSkill){egg.vy=JUMP_FORCE*0.85;egg.aiJumpCD=30+Math.random()*20;}
+    var spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+    var maxSpd=MAX_SPEED*(style==='rusher'?1.05:style==='cautious'?0.85:0.95);
+    if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
 }
 
 // ============================================================
