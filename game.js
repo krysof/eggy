@@ -1060,10 +1060,10 @@ var CITY_STYLES=[
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
-    {x:0,z:-CITY_SIZE+3,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
-    {x:CITY_SIZE-3,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
-    {x:0,z:CITY_SIZE-3,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
-    {x:-CITY_SIZE+3,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
+    {x:0,z:-45,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
+    {x:45,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
+    {x:0,z:45,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
+    {x:-45,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
 ];
 var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
 
