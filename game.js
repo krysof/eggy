@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.13 by \u767D\u6CB3\u6101',zht:'v20260323.13 by \u767D\u6CB3\u6101',ja:'v20260323.13 by \u767D\u6CB3\u6101',en:'v20260323.13 by Kryso'},
+    version:{zhs:'v20260323.14 by \u767D\u6CB3\u6101',zht:'v20260323.14 by \u767D\u6CB3\u6101',ja:'v20260323.14 by \u767D\u6CB3\u6101',en:'v20260323.14 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1481,25 +1481,25 @@ function buildCity() {
     var _fwParticles=[];
     var _fwMat=new THREE.MeshBasicMaterial({color:0x66CCFF,transparent:true,opacity:0.6});
     // Central jet particles (spray from top shell)
-    for(var fpi=0;fpi<40;fpi++){
-        var fp=new THREE.Mesh(new THREE.SphereGeometry(0.08,4,3),_fwMat);
+    for(var fpi=0;fpi<120;fpi++){
+        var fp=new THREE.Mesh(new THREE.SphereGeometry(0.25,4,3),_fwMat);
         fp.visible=false;
         cityGroup.add(fp);
         _fwParticles.push({mesh:fp,type:'jet',life:0,maxLife:60+Math.random()*40,
-            vx:(Math.random()-0.5)*0.04,vy:0.12+Math.random()*0.06,vz:(Math.random()-0.5)*0.04,
+            vx:(Math.random()-0.5)*0.4,vy:0.35+Math.random()*0.2,vz:(Math.random()-0.5)*0.4,
             ox:0,oy:8.2,oz:0});
     }
-    // Lion spout particles (4 lions, 6 particles each)
+    // Lion spout particles (4 lions, 20 particles each)
     for(var lli=0;lli<4;lli++){
         var lla=lli/4*Math.PI*2;
         var llx=Math.cos(lla)*3.3,llz=Math.sin(lla)*3.3;
-        var jdx=-Math.cos(lla)*0.06,jdz=-Math.sin(lla)*0.06;
-        for(var lpi=0;lpi<6;lpi++){
-            var lp=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),_fwMat);
+        var jdx=-Math.cos(lla)*0.18,jdz=-Math.sin(lla)*0.18;
+        for(var lpi=0;lpi<20;lpi++){
+            var lp=new THREE.Mesh(new THREE.SphereGeometry(0.18,4,3),_fwMat);
             lp.visible=false;
             cityGroup.add(lp);
             _fwParticles.push({mesh:lp,type:'lion',life:0,maxLife:30+Math.random()*20,
-                vx:jdx+(Math.random()-0.5)*0.01,vy:-0.02+Math.random()*0.02,vz:jdz+(Math.random()-0.5)*0.01,
+                vx:jdx+(Math.random()-0.5)*0.06,vy:-0.02+Math.random()*0.06,vz:jdz+(Math.random()-0.5)*0.06,
                 ox:llx,oy:1.4,oz:llz});
         }
     }
@@ -1508,8 +1508,8 @@ function buildCity() {
     window._fountainSplashParticles=[];
     // Splash particle pool
     var _fsMat=new THREE.MeshBasicMaterial({color:0x88DDFF,transparent:true,opacity:0.7});
-    for(var fsi=0;fsi<20;fsi++){
-        var fsp=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),_fsMat);
+    for(var fsi=0;fsi<40;fsi++){
+        var fsp=new THREE.Mesh(new THREE.SphereGeometry(0.3,4,3),_fsMat);
         fsp.visible=false;
         cityGroup.add(fsp);
         window._fountainSplashParticles.push({mesh:fsp,life:0,maxLife:0,vx:0,vy:0,vz:0});
@@ -3207,9 +3207,9 @@ function updateCity(){
                 fp.mesh.visible=true;
                 fp.mesh.material.opacity=0.6;
                 if(fp.type==='jet'){
-                    fp.vx=(Math.random()-0.5)*0.04;
-                    fp.vy=0.1+Math.random()*0.06;
-                    fp.vz=(Math.random()-0.5)*0.04;
+                    fp.vx=(Math.random()-0.5)*0.4;
+                    fp.vy=0.3+Math.random()*0.2;
+                    fp.vz=(Math.random()-0.5)*0.4;
                     fp.maxLife=50+Math.random()*40;
                 }
             }
@@ -3239,11 +3239,11 @@ function updateCity(){
         // Spawn splash particles
         for(var fsi2=0;fsi2<window._fountainSplashParticles.length;fsi2++){
             var fsp2=window._fountainSplashParticles[fsi2];
-            if(!fsp2.mesh.visible&&fsp2.life>=fsp2.maxLife&&Math.random()<0.15){
-                fsp2.mesh.position.set(px+(Math.random()-0.5)*1.5,0.7,pz+(Math.random()-0.5)*1.5);
-                fsp2.vx=(Math.random()-0.5)*0.08;
-                fsp2.vy=0.08+Math.random()*0.1;
-                fsp2.vz=(Math.random()-0.5)*0.08;
+            if(!fsp2.mesh.visible&&fsp2.life>=fsp2.maxLife&&Math.random()<0.25){
+                fsp2.mesh.position.set(px+(Math.random()-0.5)*2.5,0.7,pz+(Math.random()-0.5)*2.5);
+                fsp2.vx=(Math.random()-0.5)*0.25;
+                fsp2.vy=0.15+Math.random()*0.2;
+                fsp2.vz=(Math.random()-0.5)*0.25;
                 fsp2.life=0;fsp2.maxLife=20+Math.random()*15;
                 fsp2.mesh.visible=true;
             }
