@@ -18,23 +18,34 @@ function toon(color, opts={}) { return new THREE.MeshToonMaterial({color, gradie
 
 // ---- Audio System (procedural, no files needed) ----
 let audioCtx=null, soundEnabled=true, sfxEnabled=true, _audioUnlocked=false;
-function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
+function ensureAudio(){
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    return audioCtx;
+}
 // Mobile audio unlock — must resume AudioContext inside a user gesture
 function _unlockAudio(){
-    if(_audioUnlocked)return;
-    _audioUnlocked=true;
     var ctx=ensureAudio();
     if(ctx.state==='suspended'){
         ctx.resume().then(function(){
             // Play a silent buffer to fully unlock on iOS
             var b=ctx.createBuffer(1,1,22050);
             var s=ctx.createBufferSource();s.buffer=b;s.connect(ctx.destination);s.start(0);
+            _audioUnlocked=true;
         });
+    } else {
+        if(!_audioUnlocked){
+            // Already running but play silent buffer anyway for iOS
+            var b=ctx.createBuffer(1,1,22050);
+            var s=ctx.createBufferSource();s.buffer=b;s.connect(ctx.destination);s.start(0);
+            _audioUnlocked=true;
+        }
     }
 }
-document.addEventListener('touchstart',_unlockAudio,{once:true});
-document.addEventListener('touchend',_unlockAudio,{once:true});
-document.addEventListener('click',_unlockAudio,{once:true});
+// Keep retrying on every touch/click until unlocked
+document.addEventListener('touchstart',_unlockAudio,{passive:true});
+document.addEventListener('touchend',_unlockAudio,{passive:true});
+document.addEventListener('click',_unlockAudio);
 
 // Music toggle button
 var musicBtn=document.getElementById("music-btn");
@@ -2933,11 +2944,17 @@ buildCityCoins();
 
 
 // Start button
-document.getElementById('start-btn').addEventListener('click',()=>{
+var _startBtn=document.getElementById('start-btn');
+function _handleStart(){
+    _unlockAudio();
+    var ctx=ensureAudio();
+    if(ctx.state==='suspended')ctx.resume();
     showScreen('select-screen');
-    ensureAudio(); startSelectBGM();
-    playMenuConfirm();
-});
+    // Delay BGM slightly to let AudioContext fully resume
+    setTimeout(function(){startSelectBGM();playMenuConfirm();},100);
+}
+_startBtn.addEventListener('click',_handleStart);
+_startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
 
 document.getElementById('confirm-btn').addEventListener('click',()=>{
     playMenuConfirm();
