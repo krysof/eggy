@@ -1,7 +1,71 @@
 // ============================================================
-//  蛋仔冲冲冲 — Egg Party Rush  (Hub City + Race Portals)
+//  蛋仔世界 — Egg World  (Hub City + Race Portals)
 // ============================================================
 /* global THREE */
+
+// ---- i18n Localization ----
+var _langCode=(function(){
+    var nav=navigator.language||navigator.userLanguage||'en';
+    nav=nav.toLowerCase();
+    if(nav.indexOf('zh-tw')===0||nav.indexOf('zh-hant')===0||nav.indexOf('zh-hk')===0)return 'zht';
+    if(nav.indexOf('zh')===0)return 'zhs';
+    if(nav.indexOf('ja')===0)return 'ja';
+    return 'en';
+})();
+var I18N={
+    title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
+    subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
+    version:{zhs:'v20260323.11 by \u767D\u6CB3\u6101',zht:'v20260323.11 by \u767D\u6CB3\u6101',ja:'v20260323.11 by \u767D\u6CB3\u6101',en:'v20260323.11 by Kryso'},
+    startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
+    selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
+    confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
+    portalYes:{zhs:'\u2705 \u8FDB\u5165 (Y/\u56DE\u8F66)',zht:'\u2705 \u9032\u5165 (Y/Enter)',ja:'\u2705 \u5165\u308B (Y/Enter)',en:'\u2705 Enter (Y/Enter)'},
+    portalNo:{zhs:'\u274C \u53D6\u6D88 (N/ESC)',zht:'\u274C \u53D6\u6D88 (N/ESC)',ja:'\u274C \u30AD\u30E3\u30F3\u30BB\u30EB (N/ESC)',en:'\u274C Cancel (N/ESC)'},
+    grabThrow:{zhs:'F \u6293/\u6254',zht:'F \u6293/\u64F2',ja:'F \u3064\u304B\u3080/\u6295\u3052\u308B',en:'F Grab/Throw'},
+    raceBack:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',ja:'\uD83C\uDFD9\uFE0F \u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back'},
+    backCity:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE\u57CE\u5E02',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE\u57CE\u5E02',ja:'\uD83C\uDFD9\uFE0F \u8857\u306B\u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back to City'},
+    resultDone:{zhs:'\u5B8C\u6210\uFF01',zht:'\u5B8C\u6210\uFF01',ja:'\u5B8C\u4E86\uFF01',en:'Done!'},
+    rushGoal:{zhs:'\u51B2\u5411\u7EC8\u70B9\uFF01',zht:'\u885D\u5411\u7D42\u9EDE\uFF01',ja:'\u30B4\u30FC\u30EB\u3092\u76EE\u6307\u305B\uFF01',en:'Rush to the finish!'},
+    roundN:function(n){return{zhs:'\u7B2C '+n+' \u8F6E',zht:'\u7B2C '+n+' \u8F2A',ja:'\u7B2C'+n+'\u30E9\u30A6\u30F3\u30C9',en:'Round '+n}[_langCode];},
+    placeN:function(n){return{zhs:'\uD83D\uDCCD \u7B2C'+n+'\u540D',zht:'\uD83D\uDCCD \u7B2C'+n+'\u540D',ja:'\uD83D\uDCCD '+n+'\u4F4D',en:'\uD83D\uDCCD #'+n}[_langCode];},
+    resultWin:function(p,c){return{zhs:'\u7B2C'+p+'\u540D \u00B7 \u664B\u7EA7\uFF01',zht:'\u7B2C'+p+'\u540D \u00B7 \u6649\u7D1A\uFF01',ja:p+'\u4F4D \u00B7 \u901A\u904E\uFF01',en:'#'+p+' \u00B7 Passed!'}[_langCode];},
+    resultLose:{zhs:'\u88AB\u6DD8\u6C70\u4E86\uFF01',zht:'\u88AB\u6DD8\u6C70\u4E86\uFF01',ja:'\u8131\u843D\u2026',en:'Eliminated!'},
+    resultSub:function(c){return{zhs:'\u83B7\u5F97 \u2B50\u00D73 + \uD83E\uDE99\u00D7'+c,zht:'\u7372\u5F97 \u2B50\u00D73 + \uD83E\uDE99\u00D7'+c,ja:'\u2B50\u00D73 + \uD83E\uDE99\u00D7'+c+' \u7372\u5F97',en:'Got \u2B50\u00D73 + \uD83E\uDE99\u00D7'+c}[_langCode];},
+    tryAgain:{zhs:'\u518D\u63A5\u518D\u53B1\uFF01',zht:'\u518D\u63A5\u518D\u53B2\uFF01',ja:'\u3082\u3046\u4E00\u5EA6\uFF01',en:'Try again!'},
+    grab:{zhs:'\u6293',zht:'\u6293',ja:'\u3064\u304B\u3080',en:'Grab'},
+    throwT:{zhs:'\u6254',zht:'\u64F2',ja:'\u6295\u3052\u308B',en:'Throw'},
+    jump:{zhs:'\u8DF3',zht:'\u8DF3',ja:'\u30B8\u30E3\u30F3\u30D7',en:'Jump'},
+    walkIn:{zhs:'\u8D70\u8FD1\u8FDB\u5165',zht:'\u8D70\u8FD1\u9032\u5165',ja:'\u8FD1\u3065\u3044\u3066\u5165\u308B',en:'Walk in to enter'},
+    charNames:{
+        zhs:['经典蛋','小狗','马骝','公鸡','蟑螂','小猫','小猪','青蛙'],
+        zht:['\u7D93\u5178\u86CB','\u5C0F\u72D7','\u99AC\u9A1D','\u516C\u96DE','\u8708\u87C2','\u5C0F\u8C93','\u5C0F\u8C6C','\u9752\u86D9'],
+        ja:['\u305F\u307E\u3054','\u30A4\u30CC','\u30B5\u30EB','\u30CB\u30EF\u30C8\u30EA','\u30B4\u30AD\u30D6\u30EA','\u30CD\u30B3','\u30D6\u30BF','\u30AB\u30A8\u30EB'],
+        en:['Classic Egg','Puppy','Monkey','Rooster','Cockroach','Kitty','Piggy','Frog']
+    },
+    cityNames:{
+        zhs:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE'],
+        zht:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE'],
+        ja:['\uD83C\uDFD9\uFE0F \u305F\u307E\u3054\u30B7\u30C6\u30A3','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3'],
+        en:['\uD83C\uDFD9\uFE0F Egg City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City']
+    },
+    raceNames:{
+        zhs:['\uD83C\uDF00 \u7591\u72C2\u8D5B\u9053','\uD83D\uDD28 \u9524\u5B50\u98CE\u66B4','\u26A1 \u6781\u9650\u6311\u6218','\uD83D\uDC51 \u51A0\u519B\u4E4B\u8DEF','\uD83D\uDC8E \u7EFF\u5B9D\u77F3\u5C71\u4E18','\uD83D\uDD25 \u706B\u7130\u5C71\u8C37','\u2744\uFE0F \u51B0\u971C\u6ED1\u9053','\uD83C\uDF08 \u5F69\u8679\u5929\u7A7A','\uD83C\uDF44 \u8611\u83C7\u738B\u56FD','\uD83D\uDD25 \u5CA9\u6D46\u57CE\u5821','\u2601\uFE0F \u4E91\u7AEF\u5929\u5802','\uD83C\uDFF0 \u5E93\u5DF4\u57CE\u5821'],
+        zht:['\uD83C\uDF00 \u760B\u72C2\u8CFD\u9053','\uD83D\uDD28 \u9318\u5B50\u98A8\u66B4','\u26A1 \u6975\u9650\u6311\u6230','\uD83D\uDC51 \u51A0\u8ECD\u4E4B\u8DEF','\uD83D\uDC8E \u7DA0\u5BF6\u77F3\u5C71\u4E18','\uD83D\uDD25 \u706B\u7130\u5C71\u8C37','\u2744\uFE0F \u51B0\u971C\u6ED1\u9053','\uD83C\uDF08 \u5F69\u8679\u5929\u7A7A','\uD83C\uDF44 \u8611\u83C7\u738B\u570B','\uD83D\uDD25 \u5CA9\u6F3F\u57CE\u5821','\u2601\uFE0F \u96F2\u7AEF\u5929\u5802','\uD83C\uDFF0 \u5EAB\u5DF4\u57CE\u5821'],
+        ja:['\uD83C\uDF00 \u30AF\u30EC\u30A4\u30B8\u30FC\u30B3\u30FC\u30B9','\uD83D\uDD28 \u30CF\u30F3\u30DE\u30FC\u30B9\u30C8\u30FC\u30E0','\u26A1 \u30A8\u30AF\u30B9\u30C8\u30EA\u30FC\u30E0','\uD83D\uDC51 \u30C1\u30E3\u30F3\u30D4\u30AA\u30F3\u30ED\u30FC\u30C9','\uD83D\uDC8E \u30A8\u30E1\u30E9\u30EB\u30C9\u30D2\u30EB','\uD83D\uDD25 \u30D5\u30EC\u30A4\u30E0\u30D0\u30EC\u30FC','\u2744\uFE0F \u30A2\u30A4\u30B9\u30B9\u30E9\u30A4\u30C0\u30FC','\uD83C\uDF08 \u30EC\u30A4\u30F3\u30DC\u30FC\u30B9\u30AB\u30A4','\uD83C\uDF44 \u30AD\u30CE\u30B3\u30AD\u30F3\u30B0\u30C0\u30E0','\uD83D\uDD25 \u30DE\u30B0\u30DE\u30AD\u30E3\u30C3\u30B9\u30EB','\u2601\uFE0F \u30AF\u30E9\u30A6\u30C9\u30D8\u30D6\u30F3','\uD83C\uDFF0 \u30AF\u30C3\u30D1\u57CE'],
+        en:['\uD83C\uDF00 Crazy Course','\uD83D\uDD28 Hammer Storm','\u26A1 Extreme Challenge','\uD83D\uDC51 Champion Road','\uD83D\uDC8E Emerald Hills','\uD83D\uDD25 Flame Valley','\u2744\uFE0F Ice Slider','\uD83C\uDF08 Rainbow Sky','\uD83C\uDF44 Mushroom Kingdom','\uD83D\uDD25 Magma Castle','\u2601\uFE0F Cloud Heaven','\uD83C\uDFF0 Koopa Castle']
+    },
+    raceDescs:{
+        zhs:['\u65CB\u8F6C\u81C2\u4E0E\u4F20\u9001\u5E26\uFF01','\u5927\u9524\u4E0E\u6446\u9524\uFF01\u5C0F\u5FC3\uFF01','\u6240\u6709\u969C\u788D\u52A0\u901F\uFF01','\u6700\u7EC8\u51B3\u6218\uFF01','\u91D1\u5E01\u4E0E\u5F39\u7C27\uFF01','\u52A0\u901F\u5E26\u4E0E\u5CA9\u6D46\u5730\u5F62\uFF01','\u6ED1\u51B0\u5730\u5F62\u4E0E\u5F39\u7C27\uFF01','\u7A7A\u4E2D\u5E73\u53F0\u4E0E\u91D1\u5E01\u96E8\uFF01','\u7ECF\u5178\u6C34\u7BA1\u4E0E\u677F\u6817\uFF01','\u5CA9\u6D46\u5730\u5F62\u4E0E\u706B\u7403\uFF01','\u7A7A\u4E2D\u5E73\u53F0\u4E0E\u5F39\u7C27\uFF01','\u6700\u7EC8\u5173\u5361\uFF01\u5168\u969C\u788D\uFF01'],
+        zht:['\u65CB\u8F49\u81C2\u8207\u50B3\u9001\u5E36\uFF01','\u5927\u9318\u8207\u64FA\u9318\uFF01\u5C0F\u5FC3\uFF01','\u6240\u6709\u969C\u7919\u52A0\u901F\uFF01','\u6700\u7D42\u6C7A\u6230\uFF01','\u91D1\u5E63\u8207\u5F48\u7C27\uFF01','\u52A0\u901F\u5E36\u8207\u5CA9\u6F3F\u5730\u5F62\uFF01','\u6ED1\u51B0\u5730\u5F62\u8207\u5F48\u7C27\uFF01','\u7A7A\u4E2D\u5E73\u53F0\u8207\u91D1\u5E63\u96E8\uFF01','\u7D93\u5178\u6C34\u7BA1\u8207\u677F\u6817\uFF01','\u5CA9\u6F3F\u5730\u5F62\u8207\u706B\u7403\uFF01','\u7A7A\u4E2D\u5E73\u53F0\u8207\u5F48\u7C27\uFF01','\u6700\u7D42\u95DC\u5361\uFF01\u5168\u969C\u7919\uFF01'],
+        ja:['\u56DE\u8EE2\u30A2\u30FC\u30E0\u3068\u30D9\u30EB\u30C8\u30B3\u30F3\u30D9\u30A2\uFF01','\u30CF\u30F3\u30DE\u30FC\u3068\u632F\u308A\u5B50\uFF01\u6CE8\u610F\uFF01','\u5168\u969C\u5BB3\u7269\u30B9\u30D4\u30FC\u30C9UP\uFF01','\u6700\u7D42\u6C7A\u6226\uFF01','\u30B3\u30A4\u30F3\u3068\u30D0\u30CD\uFF01','\u30D6\u30FC\u30B9\u30C8\u3068\u6EB6\u5CA9\uFF01','\u6C37\u306E\u5730\u5F62\u3068\u30D0\u30CD\uFF01','\u7A7A\u4E2D\u8DB3\u5834\u3068\u30B3\u30A4\u30F3\u306E\u96E8\uFF01','\u571F\u7BA1\u3068\u30AF\u30EA\u30DC\u30FC\uFF01','\u6EB6\u5CA9\u3068\u706B\u306E\u7389\uFF01','\u7A7A\u4E2D\u8DB3\u5834\u3068\u30D0\u30CD\uFF01','\u6700\u7D42\u30B9\u30C6\u30FC\u30B8\uFF01\u5168\u969C\u5BB3\u7269\uFF01'],
+        en:['Spinners & conveyors!','Hammers & pendulums! Watch out!','All obstacles sped up!','Final showdown!','Coins & springs!','Boost pads & lava terrain!','Ice terrain & springs!','Sky platforms & coin rain!','Classic pipes & goombas!','Lava terrain & fireballs!','Sky platforms & springs!','Final stage! All obstacles!']
+    },
+    loadFail:{zhs:'\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u5237\u65B0',zht:'\u8F09\u5165\u5931\u6557\uFF0C\u8ACB\u91CD\u65B0\u6574\u7406',ja:'\u8AAD\u307F\u8FBC\u307F\u5931\u6557\u3002\u30EA\u30ED\u30FC\u30C9\u3057\u3066\u304F\u3060\u3055\u3044',en:'Load failed, please refresh'},
+    loading:{zhs:'3D\u5F15\u64CE\u52A0\u8F7D\u4E2D...',zht:'3D\u5F15\u64CE\u8F09\u5165\u4E2D...',ja:'3D\u30A8\u30F3\u30B8\u30F3\u8AAD\u307F\u8FBC\u307F\u4E2D...',en:'Loading 3D engine...'},
+    music:{zhs:'\u97F3\u4E50',zht:'\u97F3\u6A02',ja:'\u97F3\u697D',en:'Music'},
+    sfx:{zhs:'\u97F3\u6548',zht:'\u97F3\u6548',ja:'SE',en:'SFX'}
+};
+function L(key){var v=I18N[key];if(!v)return key;if(typeof v==='string')return v;return v[_langCode]||v.en||'';}
 
 // ---- Toon gradient ----
 const _tc = document.createElement('canvas');
@@ -542,6 +606,8 @@ const CHARACTERS = [
     {name:'青蛙',type:'frog',color:0x55BB55,accent:0x338833,icon:'🐸',portrait:'#55BB55'},
 ];
 let selectedChar = 0;
+// Apply localized character names
+for(var _ci=0;_ci<CHARACTERS.length;_ci++){CHARACTERS[_ci].name=I18N.charNames[_langCode][_ci]||CHARACTERS[_ci].name;}
 const AI_COLORS=[0xFFAA44,0x66DD66,0xFF5555,0x88CCDD,0xEEEE55,0xCC88CC,0xFFBBCC,0xAA88BB,0xFF8855,0x77BBFF,0xBB88FF,0xFFCC88,0xAAFF77,0xFF77AA,0x77DDDD,0xDDAA55];
 
 // ---- SF2 Character Select Grid ----
@@ -1188,6 +1254,8 @@ var WARP_PIPES=[
     {x:-65,z:0,targetStyle:4,rot:Math.PI/2,label:'🍬 糖果'}
 ];
 var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
+// Apply localized city names
+for(var _si=0;_si<CITY_STYLES.length;_si++){CITY_STYLES[_si].name=I18N.cityNames[_langCode][_si]||CITY_STYLES[_si].name;}
 
 function buildCity() {
     var st=CITY_STYLES[currentCityStyle];
@@ -1396,6 +1464,8 @@ const RACES = [
     {name:'\u2601\ufe0f \u4e91\u7aef\u5929\u5802', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u5f39\u7c27\uff01', x:70, z:20, color:0x88CCFF},
     {name:'🏰 \u5e93\u5df4\u57ce\u5821', desc:'\u6700\u7ec8\u5173\u5361\uff01\u5168\u969c\u788d\uff01', x:-70, z:20, color:0x884422}
 ];
+// Apply localized race names/descs
+for(var _ri=0;_ri<RACES.length;_ri++){RACES[_ri].name=I18N.raceNames[_langCode][_ri]||RACES[_ri].name;RACES[_ri].desc=I18N.raceDescs[_langCode][_ri]||RACES[_ri].desc;}
 
 function buildPortals() {
     RACES.forEach((race,i)=>{
@@ -3012,7 +3082,7 @@ function updateCity(){
             _pp.style.display='none';
             showPortalConfirm(_nearP);
         } else if(!_portalConfirmOpen){
-            _pt.textContent=_nearP.name+' \u2014 '+_nearP.desc+'  (\u8d70\u8fd1\u8fdb\u5165)';
+            _pt.textContent=_nearP.name+' \u2014 '+_nearP.desc+'  ('+L('walkIn')+')';
         }
     } else if(!_portalConfirmOpen){
         _pp.style.display='none';
@@ -3390,7 +3460,7 @@ function enterRace(raceIndex){
     const race=RACES[raceIndex];
     document.getElementById('round-label').textContent=race.name;
     document.getElementById('round-name').textContent=race.desc;
-    document.getElementById('round-desc').textContent='冲向终点！';
+    document.getElementById('round-desc').textContent=L('rushGoal');
     document.getElementById('player-count').textContent='🥚 × '+total;
     document.getElementById('countdown').textContent='3';
     document.getElementById('round-screen').classList.add('active');
@@ -3433,8 +3503,8 @@ function showRaceResult(){
     const total=allEggs.filter(e=>!e.cityNPC).length;
     const won=playerFinished && place<=Math.ceil(total*0.6);
     document.getElementById('result-emoji').textContent=won?'🎉':'😵';
-    document.getElementById('result-title').textContent=won?'第'+place+'名 · 晋级！':'被淘汰了！';
-    document.getElementById('result-sub').textContent=won?'获得 ⭐×3 + 🪙×'+raceCoinScore:'再接再厉！';
+    document.getElementById('result-title').textContent=won?I18N.resultWin(place):L('resultLose');
+    document.getElementById('result-sub').textContent=won?I18N.resultSub(raceCoinScore):L('tryAgain');
     if(won){coins+=3+raceCoinScore;document.getElementById('coin-hud').textContent='⭐ '+coins;}
     showScreen('result-screen');
     document.getElementById('race-hud').classList.add('hidden');
@@ -3449,7 +3519,7 @@ function updateRaceHUD(){
     const pz=-playerEgg.mesh.position.z;
     const raceEggs=allEggs.filter(e=>!e.cityNPC);
     for(const e of raceEggs){if(e!==playerEgg&&e.alive&&(-e.mesh.position.z)>pz)place++;}
-    document.getElementById('place-hud').textContent='📍 第'+place+'名';
+    document.getElementById('place-hud').textContent=I18N.placeN(place);
     document.getElementById('alive-hud').textContent='🥚 '+raceEggs.filter(e=>e.alive&&!e.finished).length;
     document.getElementById('race-coin-hud').textContent='🪙 '+raceCoinScore;
 }
@@ -3542,7 +3612,7 @@ function animate(){
     R.render(scene,camera);
     _updateChargeParticles();
     // Update grab button text
-    if(grabBtn&&playerEgg){if(playerEgg.holding){grabBtn.textContent='扔';grabBtn.classList.add('holding');}else{grabBtn.textContent='抓';grabBtn.classList.remove('holding');}}
+    if(grabBtn&&playerEgg){if(playerEgg.holding){grabBtn.textContent=L('throwT');grabBtn.classList.add('holding');}else{grabBtn.textContent=L('grab');grabBtn.classList.remove('holding');}}
 }
 
 // ============================================================
@@ -3680,6 +3750,35 @@ document.getElementById('race-back-btn').addEventListener('click', goBackToCity)
     }
     // Also recalc on orientation change
     window.addEventListener('orientationchange',function(){setTimeout(calcOffset,300);});
+})();
+
+// ---- i18n: Apply localized text to HTML elements ----
+(function(){
+    document.documentElement.lang=_langCode==='zhs'?'zh-CN':_langCode==='zht'?'zh-TW':_langCode==='ja'?'ja':'en';
+    document.title=L('title');
+    var _e=function(id){return document.getElementById(id);};
+    var h1=document.querySelector('#start-screen h1');if(h1)h1.textContent=L('title');
+    var sub=document.querySelector('.subtitle');if(sub)sub.textContent=L('subtitle');
+    var ver=document.querySelector('.version-text');if(ver)ver.textContent=L('version');
+    var sb=_e('start-btn');if(sb)sb.textContent=L('startBtn');
+    var st=document.querySelector('.select-title');if(st)st.textContent=L('selectTitle');
+    var cb=_e('confirm-btn');if(cb)cb.textContent=L('confirmBtn');
+    var py=_e('portal-yes');if(py)py.textContent=L('portalYes');
+    var pn=_e('portal-no');if(pn)pn.textContent=L('portalNo');
+    var mb=_e('music-btn');if(mb)mb.title=L('music');
+    var sb2=_e('sfx-btn');if(sb2)sb2.title=L('sfx');
+    var gt=document.querySelector('.hud-pill:last-child');
+    // Grab/throw pill in city HUD
+    var pills=document.querySelectorAll('#city-hud .hud-pill');
+    if(pills.length>=3)pills[2].textContent=L('grabThrow');
+    var rb=_e('race-back-btn');if(rb)rb.textContent=L('raceBack');
+    var bc=_e('back-city-btn');if(bc)bc.textContent=L('backCity');
+    var rt=_e('result-title');if(rt)rt.textContent=L('resultDone');
+    var gb=_e('grab-btn');if(gb)gb.textContent=L('grab');
+    var jb=_e('jump-btn');if(jb)jb.textContent=L('jump');
+    // City name HUD
+    var cn=_e('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
+    var pn2=_e('portrait-name');if(pn2)pn2.textContent=CHARACTERS[0].name;
 })();
 
 animate();

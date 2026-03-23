@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<title>蛋仔冲冲冲</title>
+<title>Egg World</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,24 +14,24 @@
   <div id="start-screen" class="screen active">
     <div class="title-area">
       <div class="egg-bounce">🥚</div>
-      <h1>蛋仔冲冲冲</h1>
-      <p class="subtitle">E G G &nbsp; P A R T Y &nbsp; R U S H</p>
-      <p class="version-text">v20260323.10 by 白河愁</p>
+      <h1>Egg World</h1>
+      <p class="subtitle">E G G &nbsp; W O R L D</p>
+      <p class="version-text">v20260323.11</p>
     </div>
-    <button id="start-btn" class="btn btn-primary">🎮 开始游戏</button>
+    <button id="start-btn" class="btn btn-primary">🎮 Start Game</button>
   </div>
 
   <!-- Character select — SF2 style -->
   <div id="select-screen" class="screen">
-    <div class="select-title">— 选 择 角 色 —</div>
+    <div class="select-title">— SELECT CHARACTER —</div>
     <div class="select-layout">
       <div class="portrait-box">
         <canvas id="portrait-canvas" width="220" height="260"></canvas>
-        <div class="portrait-name" id="portrait-name">经典蛋</div>
+        <div class="portrait-name" id="portrait-name">Classic Egg</div>
       </div>
       <div class="char-grid" id="char-grid"></div>
     </div>
-    <button id="confirm-btn" class="btn btn-primary">⚔️ 确认出战</button>
+    <button id="confirm-btn" class="btn btn-primary">⚔️ Confirm</button>
   </div>
 
   <!-- Portal prompt -->
@@ -45,33 +45,33 @@
       <div id="portal-confirm-name" class="portal-confirm-name"></div>
       <div id="portal-confirm-desc" class="portal-confirm-desc"></div>
       <div class="portal-confirm-btns">
-        <button id="portal-yes" class="btn btn-primary">✅ 进入 (Y/回车)</button>
-        <button id="portal-no" class="btn portal-btn-no">❌ 取消 (N/ESC)</button>
+        <button id="portal-yes" class="btn btn-primary">✅ Enter (Y/Enter)</button>
+        <button id="portal-no" class="btn portal-btn-no">❌ Cancel (N/ESC)</button>
       </div>
     </div>
   </div>
 
   <!-- Sound toggles -->
   <div id="sound-controls" style="position:absolute;top:12px;right:12px;z-index:20;display:flex;gap:6px;">
-    <button id="music-btn" class="sound-toggle" title="音乐">🎵</button>
-    <button id="sfx-btn" class="sound-toggle" title="音效">🔊</button>
+    <button id="music-btn" class="sound-toggle" title="Music">🎵</button>
+    <button id="sfx-btn" class="sound-toggle" title="SFX">🔊</button>
   </div>
 
   <!-- City HUD -->
   <div id="city-hud" class="hidden">
     <div class="hud-top">
-      <span class="hud-pill" id="city-name-hud">🏙️ 蛋仔城</span>
+      <span class="hud-pill" id="city-name-hud">🏙️ Egg City</span>
       <span class="hud-pill" id="coin-hud">⭐ 0</span>
-      <span class="hud-pill">F 抓/扔</span>
+      <span class="hud-pill">F Grab/Throw</span>
     </div>
   </div>
 
   <!-- Race countdown -->
   <div id="round-screen" class="screen">
     <div class="round-card">
-      <p class="round-label" id="round-label">第 1 轮</p>
-      <h2 id="round-name">疯狂赛道</h2>
-      <p class="round-desc" id="round-desc">冲向终点！</p>
+      <p class="round-label" id="round-label">Round 1</p>
+      <h2 id="round-name">Crazy Course</h2>
+      <p class="round-desc" id="round-desc">Rush to the finish!</p>
       <div class="player-count" id="player-count">🥚 × 20</div>
       <div class="countdown" id="countdown">3</div>
     </div>
@@ -80,11 +80,11 @@
   <!-- Race HUD -->
   <div id="race-hud" class="hidden">
     <div class="hud-top">
-      <span class="hud-pill" id="round-hud">🏆 第1轮</span>
+      <span class="hud-pill" id="round-hud">🏆 Round 1</span>
       <span class="hud-pill" id="alive-hud">🥚 20</span>
-      <span class="hud-pill" id="place-hud">📍 第1名</span>
+      <span class="hud-pill" id="place-hud">📍 #1</span>
       <span class="hud-pill" id="race-coin-hud">🪙 0</span>
-      <button id="race-back-btn" class="hud-pill hud-btn">🏙️ 返回</button>
+      <button id="race-back-btn" class="hud-pill hud-btn">🏙️ Back</button>
     </div>
     <div class="hud-progress">
       <div class="pbar-bg"><div class="pbar-fill" id="pbar-fill"></div><div class="pbar-flag">🏁</div></div>
@@ -95,21 +95,21 @@
   <div id="result-screen" class="screen">
     <div class="result-card">
       <div class="result-emoji" id="result-emoji">🎉</div>
-      <h2 id="result-title">完成！</h2>
+      <h2 id="result-title">Done!</h2>
       <p class="result-sub" id="result-sub"></p>
-      <button id="back-city-btn" class="btn btn-primary">🏙️ 返回城市</button>
+      <button id="back-city-btn" class="btn btn-primary">🏙️ Back to City</button>
     </div>
   </div>
 
   <!-- Touch controls -->
   <div id="touch-controls" class="hidden">
     <div id="joystick-area"><div id="joystick-base"><div id="joystick-knob"></div></div></div>
-    <button id="grab-btn" class="touch-grab">抓</button>
-    <button id="jump-btn" class="touch-jump">跳</button>
+    <button id="grab-btn" class="touch-grab">Grab</button>
+    <button id="jump-btn" class="touch-jump">Jump</button>
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('start-btn').textContent='加载失败，请刷新';"></script>
-<script>if(typeof THREE==='undefined'){document.getElementById('start-btn').textContent='3D引擎加载中...';var s=document.createElement('script');s.src='https://unpkg.com/three@0.160.0/build/three.min.js';s.onload=function(){var g=document.createElement('script');g.src='game.js';document.body.appendChild(g);};s.onerror=function(){document.getElementById('start-btn').textContent='加载失败，请刷新';};document.body.appendChild(s);}else{document.write('<scr'+'ipt src="game.js"><\/scr'+'ipt>');}</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('start-btn').textContent='Load failed, please refresh';"></script>
+<script>if(typeof THREE==='undefined'){document.getElementById('start-btn').textContent='Loading 3D engine...';var s=document.createElement('script');s.src='https://unpkg.com/three@0.160.0/build/three.min.js';s.onload=function(){var g=document.createElement('script');g.src='game.js';document.body.appendChild(g);};s.onerror=function(){document.getElementById('start-btn').textContent='Load failed, please refresh';};document.body.appendChild(s);}else{document.write('<scr'+'ipt src="game.js"><\/scr'+'ipt>');}</script>
 </body>
 </html>
