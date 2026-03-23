@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.28 by \u767D\u6CB3\u6101',zht:'v20260323.28 by \u767D\u6CB3\u6101',ja:'v20260323.28 by \u767D\u6CB3\u6101',en:'v20260323.28 by Kryso'},
+    version:{zhs:'v20260323.29 by \u767D\u6CB3\u6101',zht:'v20260323.29 by \u767D\u6CB3\u6101',ja:'v20260323.29 by \u767D\u6CB3\u6101',en:'v20260323.29 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -798,6 +798,8 @@ let coins = 0, nearPortal = null, countdownTimer = null;
 var _babylonTriggered=false, _babylonTower=null, _babylonRising=false, _babylonRiseY=-52;
 var _earthquakeTimer=0, _earthquakeIntensity=0;
 var _babylonPromptDismissed=false;
+var _babylonElevator=false, _babylonElevDir=0, _babylonElevY=0; // elevator ride state
+var _moonPipePromptOpen=false, _moonPipeDismissed=false; // moon pipe prompt state
 let raceCoinScore = 0;
 let finishedEggs=[], playerFinished=false, trackLength=0, currentRaceIndex=-1;
 
@@ -1099,7 +1101,7 @@ function createEggMesh(color, accent, charType) {
     }
     bodyGeo.computeVertexNormals();
     const body=new THREE.Mesh(bodyGeo,toon(color));
-    body.position.y=0.7; body.castShadow=true; g.add(body);
+    body.position.y=0.7; g.add(body);
 
     // ---- Big cute eyes (on body surface) ----
     const eyeWhiteG=new THREE.SphereGeometry(0.14,12,10);
@@ -1869,7 +1871,7 @@ function buildPortals() {
 
 // ---- Collectible coins in city ----
 function buildCityCoins() {
-    for(let i=0;i<30;i++){
+    for(let i=0;i<90;i++){
         const cx=(Math.random()-0.5)*CITY_SIZE*1.5, cz=(Math.random()-0.5)*CITY_SIZE*1.5;
         let skip=false;
         for(const c of cityColliders) if(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1) skip=true;
@@ -1978,6 +1980,7 @@ function clearCity(){
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
     _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-52;_earthquakeTimer=0;
+    _moonPipeDismissed=false;_moonPipePromptOpen=false;
 }
 
 function applyCityTheme(){
@@ -3042,18 +3045,16 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 }
                 if(wdist>5)wp._cooldown=false;
             }
-            // Cloud world moon pipe
-            if(_cloudWorldPipe&&!_pipeTraveling){
+            // Cloud world moon pipe — proximity prompt
+            if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen){
                 var mp=_cloudWorldPipe;
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
                 var mdy=egg.mesh.position.y-mp.y;
                 var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
-                if(mdist<3&&Math.abs(mdy)<5&&!mp._cooldown){
-                    mp._cooldown=true;
-                    startPipeTravel(mp.x,mp.z,mp.targetStyle);
-                    return;
+                if(mdist<4&&Math.abs(mdy)<12&&!_moonPipeDismissed){
+                    _showMoonPipePrompt();
                 }
-                if(mdist>5)mp._cooldown=false;
+                if(mdist>6){_moonPipeDismissed=false;}
             }
         }
 } else {
@@ -3482,6 +3483,60 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     var npcSpd=(egg._aiSprint>0)?1.2:1;
     var maxSpd=st==='flee'?MAX_SPEED*0.7*npcSpd:st==='chase'?MAX_SPEED*0.6*npcSpd:MAX_SPEED*0.45*npcSpd;
     if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
+    // ---- NPC coin stealing ----
+    if(!egg._stolenCoins)egg._stolenCoins=[];
+    if(!egg._stolenCoinMeshes)egg._stolenCoinMeshes=[];
+    if(egg._stolenCoins.length<3){
+        for(var sci=0;sci<cityCoins.length;sci++){
+            var sc=cityCoins[sci];
+            if(sc.collected||sc._stolenBy)continue;
+            var sdx=egg.mesh.position.x-sc.mesh.position.x;
+            var sdz=egg.mesh.position.z-sc.mesh.position.z;
+            var sdy=egg.mesh.position.y-sc.mesh.position.y;
+            var sdist=Math.sqrt(sdx*sdx+sdz*sdz+sdy*sdy);
+            if(sdist<1.8){
+                sc._stolenBy=egg;
+                sc.mesh.visible=false;
+                egg._stolenCoins.push(sci);
+                // Add semi-transparent coin mesh on NPC body
+                var sCoinMat=new THREE.MeshBasicMaterial({color:0xFFDD00,transparent:true,opacity:0.4});
+                var sCoin=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.06,8),sCoinMat);
+                var sIdx=egg._stolenCoinMeshes.length;
+                sCoin.rotation.x=Math.PI/2;
+                sCoin.position.set(0.4*(sIdx-1),0.8+sIdx*0.35,0.5);
+                egg.mesh.add(sCoin);
+                egg._stolenCoinMeshes.push(sCoin);
+                if(egg._stolenCoins.length>=3)break;
+            }
+        }
+    }
+}
+
+// ---- Drop stolen coins from NPC ----
+function _dropNpcStolenCoins(egg){
+    if(!egg._stolenCoins||egg._stolenCoins.length===0)return;
+    for(var di=0;di<egg._stolenCoins.length;di++){
+        var coinIdx=egg._stolenCoins[di];
+        if(coinIdx>=0&&coinIdx<cityCoins.length){
+            var dc=cityCoins[coinIdx];
+            dc._stolenBy=null;
+            dc.collected=false;
+            dc.mesh.visible=true;
+            // Drop near the NPC position with slight scatter
+            var dropX=egg.mesh.position.x+(Math.random()-0.5)*3;
+            var dropZ=egg.mesh.position.z+(Math.random()-0.5)*3;
+            dc.mesh.position.x=dropX;
+            dc.mesh.position.z=dropZ;
+            dc.baseY=1.2;
+            dc.mesh.position.y=1.2;
+        }
+    }
+    // Remove visual coin meshes from NPC
+    for(var ri=0;ri<egg._stolenCoinMeshes.length;ri++){
+        egg.mesh.remove(egg._stolenCoinMeshes[ri]);
+    }
+    egg._stolenCoins=[];
+    egg._stolenCoinMeshes=[];
 }
 
 function updateRaceAI(egg){
@@ -3671,6 +3726,7 @@ function handlePlayerInput(){
             var tw=held.weight||1.0;var tf=9.0/tw;held.vx=Math.sin(dir)*tf;held.vy=0.22;held.vz=Math.cos(dir)*tf;held._throwTotal=120;held.throwTimer=120;held._bounces=2;
             held.squash=0.5; playerEgg.grabCD=20;
             playThrowSound();
+            _dropNpcStolenCoins(held);
         } else {
             var nearest=null, nearDist=2.5;
             for(var ei=0;ei<allEggs.length;ei++){
@@ -3969,16 +4025,44 @@ function updateCity(){
         _babylonTower.group.position.y=_babylonRiseY;
     }
     // ---- Tower of Babel door collision ----
-    if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen){
+    if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator){
         var bt=_babylonTower;
-        // Door is on +Z face of tower
+        // Door is on +Z face of tower (bottom entrance)
         var doorX=bt.x, doorZ=bt.z+8.5;
         var bdx=px-doorX, bdz=pz-doorZ;
         var bdist=Math.sqrt(bdx*bdx+bdz*bdz);
         if(bdist<3&&py<3&&!_babylonPromptDismissed){
-            _showBabylonPrompt();
+            _showBabylonPrompt(1);
         }
-        if(bdist>4.5)_babylonPromptDismissed=false;
+        // Top of tower — return elevator
+        var topDoorX=bt.x, topDoorZ=bt.z;
+        var tdx=px-topDoorX, tdz=pz-topDoorZ;
+        var tdist=Math.sqrt(tdx*tdx+tdz*tdz);
+        if(tdist<3&&py>=bt.topY-2&&py<=bt.topY+4&&!_babylonPromptDismissed){
+            _showBabylonPrompt(-1);
+        }
+        if(bdist>4.5&&tdist>4.5)_babylonPromptDismissed=false;
+    }
+    // ---- Babel elevator ride animation ----
+    if(_babylonElevator&&_babylonTower&&playerEgg){
+        var bt2=_babylonTower;
+        var elevSpeed=0.35;
+        _babylonElevY+=_babylonElevDir*elevSpeed;
+        playerEgg.mesh.position.set(bt2.x,_babylonElevY,bt2.z);
+        playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
+        playerEgg.onGround=true;
+        // Arrived at top
+        if(_babylonElevDir===1&&_babylonElevY>=bt2.topY+1){
+            _babylonElevator=false;
+            playerEgg.mesh.position.set(bt2.x,bt2.topY+1,bt2.z);
+            playerEgg.onGround=true;
+        }
+        // Arrived at bottom
+        if(_babylonElevDir===-1&&_babylonElevY<=1){
+            _babylonElevator=false;
+            playerEgg.mesh.position.set(bt2.x,1,bt2.z+9);
+            playerEgg.onGround=false;
+        }
     }
 
     // Moving clouds
@@ -4056,6 +4140,7 @@ function updateHeldEggs(){
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
             var ntw=egg.weight||1.0;var ntf=9.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=0.22;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
             egg.squash=0.5; playThrowSound();
+            _dropNpcStolenCoins(egg);
             continue;
         }
         // Escape!
@@ -4070,6 +4155,7 @@ function updateHeldEggs(){
             egg.vx=Math.sin(escDir)*0.2;egg.vy=0.18;egg.vz=Math.cos(escDir)*0.2;
             egg.squash=0.6;
             if(egg.struggleBar){egg.mesh.remove(egg.struggleBar);egg.struggleBar=null;}
+            _dropNpcStolenCoins(egg);
             continue;
         }
         // 3D struggle bar above held egg (for NPC being held)
@@ -4259,20 +4345,22 @@ function confirmPortalEnter(){
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0) enterRace(ri);
 }
-document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else{confirmPortalEnter();}});
-document.getElementById('portal-no').addEventListener('click',function(){if(_babylonPromptOpen){_hideBabylonPrompt();}else{hidePortalConfirm();}});
+document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else if(_moonPipePromptOpen){_confirmMoonPipeEnter();}else{confirmPortalEnter();}});
+document.getElementById('portal-no').addEventListener('click',function(){if(_babylonPromptOpen){_hideBabylonPrompt();}else if(_moonPipePromptOpen){_hideMoonPipePrompt();}else{hidePortalConfirm();}});
 
 // ---- Babel Tower prompt (reuses portal-confirm dialog) ----
-var _babylonPromptOpen=false;
-function _showBabylonPrompt(){
+var _babylonPromptOpen=false, _babylonPromptDir=1;
+function _showBabylonPrompt(dir){
     if(_babylonPromptOpen||_portalConfirmOpen)return;
     _babylonPromptOpen=true;
-    _portalConfirmOpen=true; // block player input
+    _babylonPromptDir=dir||1;
+    _portalConfirmOpen=true;
     var box=document.getElementById('portal-confirm');
     var babelName={zhs:'\u5DF4\u522B\u5854',zht:'\u5DF4\u5225\u5854',ja:'\u30D0\u30D9\u30EB\u306E\u5854',en:'Tower of Babel'};
-    var babelDesc={zhs:'\u4E58\u5750\u7BA1\u9053\u7535\u68AF\u524D\u5F80\u4E91\u4E16\u754C\uFF1F',zht:'\u4E58\u5750\u7BA1\u9053\u96FB\u68AF\u524D\u5F80\u96F2\u4E16\u754C\uFF1F',ja:'\u30D1\u30A4\u30D7\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u96F2\u306E\u4E16\u754C\u3078\uFF1F',en:'Take pipe elevator to Cloud World?'};
+    var upDesc={zhs:'\u4E58\u5750\u7535\u68AF\u524D\u5F80\u4E91\u4E16\u754C\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u524D\u5F80\u96F2\u4E16\u754C\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u96F2\u306E\u4E16\u754C\u3078\uFF1F',en:'Take elevator to Cloud World?'};
+    var downDesc={zhs:'\u4E58\u5750\u7535\u68AF\u8FD4\u56DE\u5730\u9762\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u8FD4\u56DE\u5730\u9762\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u5730\u4E0A\u3078\uFF1F',en:'Take elevator back down?'};
     document.getElementById('portal-confirm-name').textContent=babelName[_langCode]||babelName.en;
-    document.getElementById('portal-confirm-desc').textContent=babelDesc[_langCode]||babelDesc.en;
+    document.getElementById('portal-confirm-desc').textContent=(dir===-1?downDesc:upDesc)[_langCode]||(dir===-1?downDesc:upDesc).en;
     box.style.display='flex';
 }
 function _hideBabylonPrompt(){
@@ -4285,22 +4373,47 @@ function _confirmBabylonEnter(){
     _babylonPromptOpen=false;
     _portalConfirmOpen=false;
     document.getElementById('portal-confirm').style.display='none';
-    // Launch player to cloud world (offset from moon pipe at 0,42,0)
-    if(playerEgg){
-        playerEgg.mesh.position.set(15,50,10);
-        playerEgg.vx=0;playerEgg.vy=0.15;playerEgg.vz=0;
-        playerEgg.onGround=false;
-    }
+    if(!_babylonTower)return;
+    _babylonElevator=true;
+    _babylonElevDir=_babylonPromptDir;
+    _babylonElevY=(_babylonPromptDir===1)?1:_babylonTower.topY;
     if(sfxEnabled){
         var ctx=ensureAudio();if(ctx){
             var o=ctx.createOscillator();var g=ctx.createGain();
-            o.type='sine';o.frequency.setValueAtTime(200,ctx.currentTime);
-            o.frequency.exponentialRampToValueAtTime(800,ctx.currentTime+0.5);
-            g.gain.setValueAtTime(0.15,ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6);
+            o.type='sine';
+            if(_babylonPromptDir===1){o.frequency.setValueAtTime(200,ctx.currentTime);o.frequency.linearRampToValueAtTime(600,ctx.currentTime+2);}
+            else{o.frequency.setValueAtTime(600,ctx.currentTime);o.frequency.linearRampToValueAtTime(200,ctx.currentTime+2);}
+            g.gain.setValueAtTime(0.1,ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+2.5);
             o.connect(g);g.connect(ctx.destination);
-            o.start();o.stop(ctx.currentTime+0.6);
+            o.start();o.stop(ctx.currentTime+2.5);
         }
+    }
+}
+// ---- Moon Pipe prompt (reuses portal-confirm dialog) ----
+function _showMoonPipePrompt(){
+    if(_moonPipePromptOpen||_portalConfirmOpen||_babylonPromptOpen)return;
+    _moonPipePromptOpen=true;
+    _portalConfirmOpen=true;
+    var box=document.getElementById('portal-confirm');
+    var moonName=CITY_STYLES[5]?CITY_STYLES[5].name:'Moon';
+    var desc={zhs:'\u901A\u8FC7\u661F\u7A7A\u96A7\u9053\u524D\u5F80'+moonName+'\uFF1F',zht:'\u901A\u904E\u661F\u7A7A\u96A7\u9053\u524D\u5F80'+moonName+'\uFF1F',ja:'\u661F\u7A7A\u30C8\u30F3\u30CD\u30EB\u3067'+moonName+'\u3078\uFF1F',en:'Travel through starfield tunnel to '+moonName+'?'};
+    document.getElementById('portal-confirm-name').textContent=moonName;
+    document.getElementById('portal-confirm-desc').textContent=desc[_langCode]||desc.en;
+    box.style.display='flex';
+}
+function _hideMoonPipePrompt(){
+    _moonPipePromptOpen=false;
+    _portalConfirmOpen=false;
+    _moonPipeDismissed=true;
+    document.getElementById('portal-confirm').style.display='none';
+}
+function _confirmMoonPipeEnter(){
+    _moonPipePromptOpen=false;
+    _portalConfirmOpen=false;
+    document.getElementById('portal-confirm').style.display='none';
+    if(_cloudWorldPipe){
+        startPipeTravel(_cloudWorldPipe.x,_cloudWorldPipe.z,_cloudWorldPipe.targetStyle);
     }
 }
 addEventListener('keydown',function(e){
@@ -4308,6 +4421,11 @@ addEventListener('keydown',function(e){
     if(_babylonPromptOpen){
         if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();_confirmBabylonEnter();}
         if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();_hideBabylonPrompt();}
+        return;
+    }
+    if(_moonPipePromptOpen){
+        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();_confirmMoonPipeEnter();}
+        if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();_hideMoonPipePrompt();}
         return;
     }
     if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();confirmPortalEnter();}
