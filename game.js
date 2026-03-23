@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.25 by \u767D\u6CB3\u6101',zht:'v20260323.25 by \u767D\u6CB3\u6101',ja:'v20260323.25 by \u767D\u6CB3\u6101',en:'v20260323.25 by Kryso'},
+    version:{zhs:'v20260323.26 by \u767D\u6CB3\u6101',zht:'v20260323.26 by \u767D\u6CB3\u6101',ja:'v20260323.26 by \u767D\u6CB3\u6101',en:'v20260323.26 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1370,7 +1370,7 @@ var CITY_STYLES=[
     {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
-    {name:'🌙 月球城',ground:0x888899,path:0xAAAABB,sky:0x111122,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:0x222233}
+    {name:'🌙 月球城',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -1689,40 +1689,66 @@ function buildCity() {
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
         rover.position.set(-30,0,25);rover.rotation.y=0.5;
         cityGroup.add(rover);
-        // Earth in the sky — visible from ground, closer and bigger
+        // Earth at horizon — half-rising behind the landscape
         var earthGroup=new THREE.Group();
-        var earth=new THREE.Mesh(new THREE.SphereGeometry(15,24,16),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.9,fog:false}));
+        var earth=new THREE.Mesh(new THREE.SphereGeometry(30,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
         earthGroup.add(earth);
-        // Continents (green patches)
-        for(var ei=0;ei<6;ei++){
-            var ea=ei/6*Math.PI*2;
-            var ep=Math.random()*Math.PI-Math.PI/2;
-            var cont=new THREE.Mesh(new THREE.SphereGeometry(5+Math.random()*3,8,6),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.7,fog:false}));
-            cont.position.set(Math.cos(ea)*Math.cos(ep)*13,Math.sin(ep)*13,Math.sin(ea)*Math.cos(ep)*13);
-            cont.scale.set(1,0.6,1);
+        // Continents
+        for(var ei=0;ei<8;ei++){
+            var ea=ei/8*Math.PI*2;
+            var ep=(Math.random()-0.5)*Math.PI*0.7;
+            var cont=new THREE.Mesh(new THREE.SphereGeometry(8+Math.random()*6,10,8),new THREE.MeshBasicMaterial({color:0x33AA44,fog:false}));
+            cont.position.set(Math.cos(ea)*Math.cos(ep)*26,Math.sin(ep)*26,Math.sin(ea)*Math.cos(ep)*26);
+            cont.scale.set(1,0.5,1);
             earthGroup.add(cont);
         }
-        // Atmosphere glow
-        var atmo=new THREE.Mesh(new THREE.SphereGeometry(16.5,24,16),new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.25,side:THREE.BackSide,fog:false}));
+        // Ice caps
+        var iceCap1=new THREE.Mesh(new THREE.SphereGeometry(8,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
+        iceCap1.position.set(0,28,0);earthGroup.add(iceCap1);
+        var iceCap2=new THREE.Mesh(new THREE.SphereGeometry(6,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
+        iceCap2.position.set(0,-28,0);earthGroup.add(iceCap2);
+        // Atmosphere glow — double layer
+        var atmo=new THREE.Mesh(new THREE.SphereGeometry(32,32,24),new THREE.MeshBasicMaterial({color:0x6699FF,transparent:true,opacity:0.15,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo);
-        earthGroup.position.set(60,55,-80);
+        var atmo2=new THREE.Mesh(new THREE.SphereGeometry(35,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
+        earthGroup.add(atmo2);
+        // Position at horizon — far away, low, partially behind ground plane
+        earthGroup.position.set(120,5,-160);
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
-        // ---- Twinkling stars ----
+        // ---- Twinkling stars (Mario Galaxy style) ----
         window._moonStars=[];
-        var starMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,fog:false,transparent:true});
-        for(var sti=0;sti<200;sti++){
+        var starColors=[0xFFFFFF,0xFFFFFF,0xFFFFFF,0xCCDDFF,0xAABBFF,0xFFEECC,0xFFCCDD,0xDDCCFF];
+        for(var sti=0;sti<350;sti++){
             var sa=Math.random()*Math.PI*2;
-            var se=0.15+Math.random()*1.2; // above horizon
-            var sd=150+Math.random()*100;
+            var se=0.05+Math.random()*1.4;
+            var sd=120+Math.random()*180;
             var sx=Math.cos(sa)*sd*Math.cos(se);
-            var sy=Math.sin(se)*sd+20;
+            var sy=Math.sin(se)*sd+5;
             var sz=Math.sin(sa)*sd*Math.cos(se);
-            var ss=0.15+Math.random()*0.4;
-            var star=new THREE.Mesh(new THREE.SphereGeometry(ss,4,3),starMat.clone());
+            var ss=0.1+Math.random()*0.5;
+            var sc=starColors[Math.floor(Math.random()*starColors.length)];
+            var star=new THREE.Mesh(new THREE.SphereGeometry(ss,4,3),new THREE.MeshBasicMaterial({color:sc,fog:false,transparent:true}));
             star.position.set(sx,sy,sz);
             scene.add(star);
-            window._moonStars.push({mesh:star,phase:Math.random()*Math.PI*2,speed:1+Math.random()*3});
+            window._moonStars.push({mesh:star,phase:Math.random()*Math.PI*2,speed:0.5+Math.random()*3});
+        }
+        // ---- Nebula clouds (large transparent colored spheres) ----
+        window._moonNebulae=[];
+        var nebColors=[0x330044,0x220033,0x440022,0x110033,0x330033,0x220044];
+        for(var ni=0;ni<12;ni++){
+            var na=Math.random()*Math.PI*2;
+            var ne2=0.2+Math.random()*1.0;
+            var nd=100+Math.random()*150;
+            var nx=Math.cos(na)*nd*Math.cos(ne2);
+            var ny=Math.sin(ne2)*nd+20;
+            var nz=Math.sin(na)*nd*Math.cos(ne2);
+            var ns=20+Math.random()*30;
+            var nc=nebColors[Math.floor(Math.random()*nebColors.length)];
+            var neb=new THREE.Mesh(new THREE.SphereGeometry(ns,8,6),new THREE.MeshBasicMaterial({color:nc,transparent:true,opacity:0.12+Math.random()*0.1,fog:false,side:THREE.BackSide}));
+            neb.position.set(nx,ny,nz);
+            scene.add(neb);
+            window._moonNebulae.push(neb);
         }
         // Footprints on the ground
         var fpMat=toon(0x666677);
@@ -1925,6 +1951,8 @@ function clearCity(){
     if(window._moonEarth){scene.remove(window._moonEarth);window._moonEarth=null;}
     // Remove moon stars
     if(window._moonStars){for(var si=0;si<window._moonStars.length;si++){scene.remove(window._moonStars[si].mesh);}window._moonStars=null;}
+    // Remove moon nebulae
+    if(window._moonNebulae){for(var ni=0;ni<window._moonNebulae.length;ni++){scene.remove(window._moonNebulae[ni]);}window._moonNebulae=null;}
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
     _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-48;_earthquakeTimer=0;
@@ -2399,7 +2427,18 @@ function _buildBabylonTower(){
     var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
     sign.scale.set(5,1.2,1);sign.position.set(0,topY+6,0);
     g.add(sign);
-    // Position near center — next to where moon pipe is in cloud world (0,42,0)
+    // Door at base (front face)
+    var doorFrame=new THREE.Mesh(new THREE.BoxGeometry(3.5,5,0.5),toon(0x664400));
+    doorFrame.position.set(0,2.5,baseD/2+0.1);g.add(doorFrame);
+    var doorInner=new THREE.Mesh(new THREE.BoxGeometry(2.5,4,0.3),toon(0x332200));
+    doorInner.position.set(0,2,baseD/2+0.2);g.add(doorInner);
+    // Door arch
+    var doorArch=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.3,6,8,Math.PI),toon(0x886622));
+    doorArch.position.set(0,4.5,baseD/2+0.15);g.add(doorArch);
+    // Glowing entrance indicator
+    var doorGlow=new THREE.Mesh(new THREE.PlaneGeometry(2,3.5),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
+    doorGlow.position.set(0,2,baseD/2+0.3);g.add(doorGlow);
+    // Position near center
     var towerX=10, towerZ=10;
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
@@ -3885,16 +3924,17 @@ function updateCity(){
         }
         _babylonTower.group.position.y=_babylonRiseY;
     }
-    // ---- Tower of Babel pipe elevator collision ----
+    // ---- Tower of Babel door collision ----
     if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen){
         var bt=_babylonTower;
-        var bdx=px-bt.pipeX, bdz=pz-bt.pipeZ;
+        // Door is on +Z face of tower
+        var doorX=bt.x, doorZ=bt.z+7.5;
+        var bdx=px-doorX, bdz=pz-doorZ;
         var bdist=Math.sqrt(bdx*bdx+bdz*bdz);
         if(bdist<3&&py<3&&!_babylonPromptDismissed){
-            // Show confirmation prompt
             _showBabylonPrompt();
         }
-        if(bdist>4)_babylonPromptDismissed=false;
+        if(bdist>4.5)_babylonPromptDismissed=false;
     }
 
     // Moving clouds
@@ -4201,9 +4241,9 @@ function _confirmBabylonEnter(){
     _babylonPromptOpen=false;
     _portalConfirmOpen=false;
     document.getElementById('portal-confirm').style.display='none';
-    // Launch player to cloud world
+    // Launch player to cloud world (offset from moon pipe at 0,42,0)
     if(playerEgg){
-        playerEgg.mesh.position.set(0,44,0);
+        playerEgg.mesh.position.set(15,44,10);
         playerEgg.vx=0;playerEgg.vy=0.15;playerEgg.vz=0;
         playerEgg.onGround=false;
     }
