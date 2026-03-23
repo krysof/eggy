@@ -4825,8 +4825,9 @@ function enterCity(spawnX,spawnZ){
         // Project player onto sphere surface
         var sp=_moonProject(sx,sz);
         playerEgg.mesh.position.set(sp.x,sp.y+0.5,sp.z);
-        // Camera starts above player along surface normal
-        camera.position.set(sp.x+sp.nx*10,sp.y+sp.ny*10,sp.z+sp.nz*10+14);
+        // Camera starts above player along surface normal + behind
+        var camH=10, camBack=14;
+        camera.position.set(sp.x+sp.nx*(camH+camBack),sp.y+sp.ny*(camH+camBack),sp.z+sp.nz*(camH+camBack));
         camera.up.set(sp.nx,sp.ny,sp.nz);
         camera.lookAt(sp.x,sp.y,sp.z);
     } else {
@@ -4879,6 +4880,7 @@ function enterRace(raceIndex){
 
     camera.position.set(0, 12, 11);
     camera.lookAt(0, 0, -5);
+    camera.up.set(0,1,0); // reset from moon spherical camera
 
     // Show countdown then start
     gameState='raceIntro';
