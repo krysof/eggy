@@ -1759,22 +1759,109 @@ function updateObstacles(){
 // ============================================================
 function updateCityNPC(egg){if(egg.heldBy)return;
     if(!egg.alive)return;
-    egg.aiWanderTimer--;
-    if(egg.aiWanderTimer<=0){
-        egg.aiWanderTimer=80+Math.random()*160;
-        egg.aiTargetX=(Math.random()-0.5)*50;
-        egg.aiTargetZ=(Math.random()-0.5)*50;
+    // Initialize AI state if needed
+    if(!egg._aiState){
+        var states=['wander','idle','chase','flee','dance','circle'];
+        egg._aiState=states[Math.floor(Math.random()*3)]; // start with wander/idle/chase
+        egg._aiStateTimer=60+Math.random()*120;
+        egg._dancePhase=Math.random()*Math.PI*2;
+        egg._circleAngle=Math.random()*Math.PI*2;
+        egg._circleCenter={x:egg.mesh.position.x,z:egg.mesh.position.z};
+        egg._idleAction=0;egg._idleTimer=0;
     }
-    const dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
-    const dist=Math.sqrt(dx*dx+dz*dz);
-    if(dist>1){
-        egg.vx+=(dx/dist)*MOVE_ACCEL*0.3;
-        egg.vz+=(dz/dist)*MOVE_ACCEL*0.3;
+    egg._aiStateTimer--;
+    // Switch state randomly
+    if(egg._aiStateTimer<=0){
+        var r=Math.random();
+        if(r<0.3) egg._aiState='wander';
+        else if(r<0.45) egg._aiState='idle';
+        else if(r<0.6) egg._aiState='chase';
+        else if(r<0.72) egg._aiState='flee';
+        else if(r<0.84) egg._aiState='dance';
+        else egg._aiState='circle';
+        egg._aiStateTimer=80+Math.random()*200;
+        egg._circleCenter={x:egg.mesh.position.x,z:egg.mesh.position.z};
+        egg._circleAngle=Math.random()*Math.PI*2;
     }
-    // Random jump
-    if(egg.onGround&&Math.random()<0.002){egg.vy=JUMP_FORCE*0.6;egg.squash=0.7;}
-    const spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
-    if(spd>MAX_SPEED*0.5){egg.vx=(egg.vx/spd)*MAX_SPEED*0.5;egg.vz=(egg.vz/spd)*MAX_SPEED*0.5;}
+    var st=egg._aiState;
+    if(st==='wander'){
+        egg.aiWanderTimer--;
+        if(egg.aiWanderTimer<=0){
+            egg.aiWanderTimer=60+Math.random()*120;
+            egg.aiTargetX=(Math.random()-0.5)*55;
+            egg.aiTargetZ=(Math.random()-0.5)*55;
+        }
+        var dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
+        var dist=Math.sqrt(dx*dx+dz*dz);
+        if(dist>1.5){egg.vx+=(dx/dist)*MOVE_ACCEL*0.3;egg.vz+=(dz/dist)*MOVE_ACCEL*0.3;}
+        if(egg.onGround&&Math.random()<0.003){egg.vy=JUMP_FORCE*0.6;egg.squash=0.7;}
+    } else if(st==='idle'){
+        // Stand still, occasionally look around (small random nudges) or jump
+        egg.vx*=0.9;egg.vz*=0.9;
+        egg._idleTimer--;
+        if(egg._idleTimer<=0){
+            egg._idleAction=Math.floor(Math.random()*4);
+            egg._idleTimer=30+Math.random()*60;
+        }
+        if(egg._idleAction===1){egg.mesh.rotation.y+=0.03;} // look around
+        else if(egg._idleAction===2){egg.mesh.rotation.y-=0.03;}
+        else if(egg._idleAction===3&&egg.onGround&&Math.random()<0.02){egg.vy=JUMP_FORCE*0.4;egg.squash=0.8;} // small hop
+    } else if(st==='chase'){
+        // Chase nearest other NPC or player
+        var closest=null,closeDist=20;
+        for(var ci=0;ci<allEggs.length;ci++){
+            var other=allEggs[ci];
+            if(other===egg||!other.alive||other.heldBy)continue;
+            var cdx=other.mesh.position.x-egg.mesh.position.x;
+            var cdz=other.mesh.position.z-egg.mesh.position.z;
+            var cd=Math.sqrt(cdx*cdx+cdz*cdz);
+            if(cd<closeDist){closeDist=cd;closest=other;}
+        }
+        if(closest){
+            var cdx2=closest.mesh.position.x-egg.mesh.position.x;
+            var cdz2=closest.mesh.position.z-egg.mesh.position.z;
+            var cd2=Math.sqrt(cdx2*cdx2+cdz2*cdz2);
+            if(cd2>2){egg.vx+=(cdx2/cd2)*MOVE_ACCEL*0.4;egg.vz+=(cdz2/cd2)*MOVE_ACCEL*0.4;}
+            if(cd2<3&&egg.onGround&&Math.random()<0.01){egg.vy=JUMP_FORCE*0.7;egg.squash=0.65;}
+        }
+    } else if(st==='flee'){
+        // Run away from nearest egg
+        var nearest2=null,nearDist2=15;
+        for(var fi=0;fi<allEggs.length;fi++){
+            var fo=allEggs[fi];
+            if(fo===egg||!fo.alive)continue;
+            var fdx=fo.mesh.position.x-egg.mesh.position.x;
+            var fdz=fo.mesh.position.z-egg.mesh.position.z;
+            var fd=Math.sqrt(fdx*fdx+fdz*fdz);
+            if(fd<nearDist2){nearDist2=fd;nearest2=fo;}
+        }
+        if(nearest2&&nearDist2<12){
+            var fdx2=egg.mesh.position.x-nearest2.mesh.position.x;
+            var fdz2=egg.mesh.position.z-nearest2.mesh.position.z;
+            var fd2=Math.sqrt(fdx2*fdx2+fdz2*fdz2)||1;
+            egg.vx+=(fdx2/fd2)*MOVE_ACCEL*0.45;egg.vz+=(fdz2/fd2)*MOVE_ACCEL*0.45;
+        }
+        if(egg.onGround&&Math.random()<0.008){egg.vy=JUMP_FORCE*0.8;egg.squash=0.6;}
+    } else if(st==='dance'){
+        // Bounce in place with spinning
+        egg.vx*=0.85;egg.vz*=0.85;
+        egg._dancePhase+=0.12;
+        egg.mesh.rotation.y+=0.08;
+        if(egg.onGround&&Math.sin(egg._dancePhase)>0.7){egg.vy=JUMP_FORCE*0.45;egg.squash=0.75;}
+    } else if(st==='circle'){
+        // Walk in circles
+        egg._circleAngle+=0.02+Math.random()*0.005;
+        var cr=4+Math.random()*2;
+        var tx=egg._circleCenter.x+Math.cos(egg._circleAngle)*cr;
+        var tz=egg._circleCenter.z+Math.sin(egg._circleAngle)*cr;
+        var cdx3=tx-egg.mesh.position.x, cdz3=tz-egg.mesh.position.z;
+        var cd3=Math.sqrt(cdx3*cdx3+cdz3*cdz3);
+        if(cd3>0.5){egg.vx+=(cdx3/cd3)*MOVE_ACCEL*0.35;egg.vz+=(cdz3/cd3)*MOVE_ACCEL*0.35;}
+        if(egg.onGround&&Math.random()<0.004){egg.vy=JUMP_FORCE*0.5;egg.squash=0.7;}
+    }
+    var spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+    var maxSpd=st==='flee'?MAX_SPEED*0.7:st==='chase'?MAX_SPEED*0.6:MAX_SPEED*0.45;
+    if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
 }
 
 function updateRaceAI(egg){
