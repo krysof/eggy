@@ -707,6 +707,65 @@ function _updateChargeBar(){
     }
 }
 
+// ---- Sprint bar (separate from charge bar, shown below it) ----
+var _sprintBar=null, _sprintActive=false;
+function _createSprintBar(){
+    var canvas=document.createElement('canvas');
+    canvas.width=256;canvas.height=32;
+    var tex=new THREE.CanvasTexture(canvas);
+    tex.minFilter=THREE.LinearFilter;
+    var mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+    var sprite=new THREE.Sprite(mat);
+    sprite.scale.set(2.2,0.3,1);
+    sprite.renderOrder=1001;
+    sprite._canvas=canvas;sprite._ctx=canvas.getContext('2d');sprite._tex=tex;
+    return sprite;
+}
+function _drawSprintBar(sprite,active){
+    var ctx=sprite._ctx,w=256,h=32;
+    ctx.clearRect(0,0,w,h);
+    function rr(x,y,rw,rh,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.lineTo(x+rw-rad,y);ctx.quadraticCurveTo(x+rw,y,x+rw,y+rad);ctx.lineTo(x+rw,y+rh-rad);ctx.quadraticCurveTo(x+rw,y+rh,x+rw-rad,y+rh);ctx.lineTo(x+rad,y+rh);ctx.quadraticCurveTo(x,y+rh,x,y+rh-rad);ctx.lineTo(x,y+rad);ctx.quadraticCurveTo(x,y,x+rad,y);ctx.closePath();}
+    ctx.fillStyle='rgba(0,0,0,0.75)';
+    rr(2,2,w-4,h-4,6);ctx.fill();
+    if(active){
+        var pulse=0.85+Math.sin(Date.now()*0.012)*0.15;
+        ctx.strokeStyle='rgba(0,180,255,'+pulse+')';
+        ctx.lineWidth=2;rr(4,4,w-8,h-8,5);ctx.stroke();
+        var grad=ctx.createLinearGradient(8,0,w-16,0);
+        grad.addColorStop(0,'rgb(0,120,255)');
+        grad.addColorStop(0.5,'rgb(0,200,255)');
+        grad.addColorStop(1,'rgb(0,120,255)');
+        ctx.fillStyle=grad;
+        rr(8,8,w-16,h-16,3);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.35)';
+        rr(8,8,w-16,Math.floor((h-16)/2),3);ctx.fill();
+        ctx.fillStyle='#fff';ctx.font='bold 14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('\u26A1 \u52A0\u901F',w/2,h/2);
+    } else {
+        ctx.fillStyle='rgba(80,80,80,0.5)';
+        rr(8,8,w-16,h-16,3);ctx.fill();
+    }
+    sprite._tex.needsUpdate=true;
+}
+function _updateSprintBar(sprinting){
+    if(!playerEgg)return;
+    var moving=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz)>0.02;
+    var show=sprinting&&moving;
+    if(show){
+        if(!_sprintBar){_sprintBar=_createSprintBar();scene.add(_sprintBar);}
+        _sprintBar.visible=true;
+        var yOff=(_jumpCharging&&playerEgg.onGround)?1.8:2.1;
+        _sprintBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+yOff,playerEgg.mesh.position.z);
+        if(!_sprintActive||Date.now()%3===0){_drawSprintBar(_sprintBar,true);_sprintActive=true;}
+    } else {
+        if(_sprintBar){_sprintBar.visible=false;}
+        _sprintActive=false;
+    }
+}
+
+// ---- Ascending butt smoke (after charged jump, while vy>0) ----
+var _ascendSmoke=false, _ascendSmokePct=0;
+
 function _playChargeBeep(pct){
     if(!sfxEnabled)return;
     var ctx=ensureAudio();var t=ctx.currentTime;
@@ -1425,6 +1484,7 @@ function clearRace() {
     allEggs.length=0; allEggs.push(...keep);
     playerEgg=null;
     _jumpCharging=false;_jumpCharge=0;if(_jumpChargeBar){scene.remove(_jumpChargeBar);_jumpChargeBar=null;}
+    if(_sprintBar){scene.remove(_sprintBar);_sprintBar=null;}_sprintActive=false;_ascendSmoke=false;
 }
 
 function getSegAt(z){for(var s of trackSegments)if(z>=s.startZ&&z<s.endZ)return s;return trackSegments[trackSegments.length-1];}
@@ -2420,8 +2480,8 @@ function handlePlayerInput(){
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
     // Sprint: hold F when moving (same key as grab/throw)
     var sprinting=keys['KeyF']&&!_portalConfirmOpen;
-    var accelMul=sprinting?1.7:1;
-    var speedMul=sprinting?1.7:1;
+    var accelMul=sprinting?2.0:1;
+    var speedMul=sprinting?2.0:1;
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){mx/=len;mz/=len;playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;}
     // Charge jump: hold Space to charge, release to jump
@@ -2461,10 +2521,18 @@ function handlePlayerInput(){
             playerEgg.squash=0.65-pct2*0.2;
             playJumpSound();
             if(pct2>0.15)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,pct2);
+            _ascendSmoke=true;_ascendSmokePct=pct2;
         }
         _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
     }
     _updateChargeBar();
+    // Ascending butt smoke while rising from charged jump
+    if(_ascendSmoke&&playerEgg.vy>0.05&&!playerEgg.onGround){
+        if(Math.random()<0.5)_spawnButtSmoke(playerEgg,_ascendSmokePct*0.6);
+    } else if(playerEgg.vy<=0||playerEgg.onGround){
+        _ascendSmoke=false;
+    }
+    _updateSprintBar(sprinting);
     const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
     var curMax=MAX_SPEED*speedMul;
     if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
