@@ -2194,15 +2194,10 @@ function handlePlayerInput(){
             _chargeBeepTimer++;
             if(_chargeBeepTimer>=beepInterval){_chargeBeepTimer=0;_playChargeBeep(pct);}
         } else {
-            // Fully charged — hold timer counts down
+            // Fully charged — hold timer counts down, max-speed beeps entire time
             _chargeHoldTimer++;
-            // Rapid warning beeps in last 3 seconds (180 frames)
-            var remain=_chargeHoldMax-_chargeHoldTimer;
-            if(remain<180){
-                var warnInterval=Math.max(2,Math.floor(remain/20));
-                _chargeBeepTimer++;
-                if(_chargeBeepTimer>=warnInterval){_chargeBeepTimer=0;_playChargeBeep(0.5+0.5*Math.random());}
-            }
+            _chargeBeepTimer++;
+            if(_chargeBeepTimer>=3){_chargeBeepTimer=0;_playChargeBeep(0.8+0.2*Math.random());}
             if(_chargeHoldTimer>=_chargeHoldMax){
                 // Time's up — force release, charge decays to 0
                 _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
