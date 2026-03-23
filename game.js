@@ -1316,10 +1316,9 @@ function _updateDropShadow(){
         var surfX=nx*MOON_R, surfY=MOON_CY+ny*MOON_R, surfZ=nz*MOON_R;
         _dropShadowMesh.visible=true;
         _dropShadowMesh.position.set(surfX+nx*0.05,surfY+ny*0.05,surfZ+nz*0.05);
-        // Orient shadow to face along surface normal
+        // Orient shadow flat on sphere surface (face outward)
         _dropShadowMesh.rotation.set(0,0,0);
-        var up=new THREE.Vector3(nx,ny,nz);
-        _dropShadowMesh.lookAt(surfX+nx,surfY+ny,surfZ+nz);
+        _dropShadowMesh.lookAt(0,MOON_CY,0); // look at sphere center → face points outward
         var height=d-MOON_R;
         var sc=Math.max(0.3,1.2-height*0.04);
         _dropShadowMesh.scale.set(sc,sc,sc);
@@ -1327,7 +1326,6 @@ function _updateDropShadow(){
         return;
     }
     var groundY=0;
-    var isCity=(gameState==='city');
     if(isCity){
         // Check building roofs, props, clouds for highest surface below player
         for(var bi=0;bi<cityColliders.length;bi++){
@@ -3080,8 +3078,11 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         var m4=new THREE.Matrix4();
         m4.makeBasis(right,up,fwd);
         egg.mesh.quaternion.setFromRotationMatrix(m4);
-        // Friction
-        egg.vx*=FRICTION;egg.vy*=FRICTION;egg.vz*=FRICTION;
+        // Friction — only on tangential velocity (not radial/gravity)
+        var vRad2=egg.vx*nx2+egg.vy*ny2+egg.vz*nz2;
+        var ftx=egg.vx-vRad2*nx2, fty=egg.vy-vRad2*ny2, ftz=egg.vz-vRad2*nz2;
+        ftx*=FRICTION;fty*=FRICTION;ftz*=FRICTION;
+        egg.vx=ftx+vRad2*nx2;egg.vy=fty+vRad2*ny2;egg.vz=ftz+vRad2*nz2;
         // Thrown egg bounce on sphere
         if(egg.throwTimer>0&&height2<0.1&&vRad<-0.05){
             if(egg._bounces>0){egg._bounces--;var bv=Math.abs(vRad)*0.5;egg.vx+=nx2*bv;egg.vy+=ny2*bv;egg.vz+=nz2*bv;egg.squash=0.6;playHitSound();}
