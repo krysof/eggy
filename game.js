@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.63';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.64';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -70,7 +70,9 @@ var I18N={
     loadFail:{zhs:'\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u5237\u65B0',zht:'\u8F09\u5165\u5931\u6557\uFF0C\u8ACB\u91CD\u65B0\u6574\u7406',ja:'\u8AAD\u307F\u8FBC\u307F\u5931\u6557\u3002\u30EA\u30ED\u30FC\u30C9\u3057\u3066\u304F\u3060\u3055\u3044',en:'Load failed, please refresh'},
     loading:{zhs:'3D\u5F15\u64CE\u52A0\u8F7D\u4E2D...',zht:'3D\u5F15\u64CE\u8F09\u5165\u4E2D...',ja:'3D\u30A8\u30F3\u30B8\u30F3\u8AAD\u307F\u8FBC\u307F\u4E2D...',en:'Loading 3D engine...'},
     music:{zhs:'\u97F3\u4E50',zht:'\u97F3\u6A02',ja:'\u97F3\u697D',en:'Music'},
-    sfx:{zhs:'\u97F3\u6548',zht:'\u97F3\u6548',ja:'SE',en:'SFX'}
+    sfx:{zhs:'\u97F3\u6548',zht:'\u97F3\u6548',ja:'SE',en:'SFX'},
+    struggle:{zhs:'\uD83D\uDD25 \u6323\u624E\u4E2D\uFF01\u7591\u72C2\u6309\u65B9\u5411\u952E\uFF01',zht:'\uD83D\uDD25 \u6399\u624E\u4E2D\uFF01\u760B\u72C2\u6309\u65B9\u5411\u9375\uFF01',ja:'\uD83D\uDD25 \u3082\u304C\u3044\u3066\uFF01\u65B9\u5411\u30AD\u30FC\u9023\u6253\uFF01',en:'\uD83D\uDD25 Struggle! Mash direction keys!'},
+    chatPlaceholder:{zhs:'\u8F93\u5165\u6D88\u606F...',zht:'\u8F38\u5165\u8A0A\u606F...',ja:'\u30E1\u30C3\u30BB\u30FC\u30B8\u5165\u529B...',en:'Type a message...'}
 };
 function L(key){var v=I18N[key];if(!v)return key;if(typeof v==='string')return v;return v[_langCode]||v.en||'';}
 
@@ -249,6 +251,10 @@ function _applyLang(){
     var cn=document.getElementById('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
     var pn2=document.getElementById('portrait-name');if(pn2&&CHARACTERS[selectedChar])pn2.textContent=CHARACTERS[selectedChar].name;
     if(langBtn)langBtn.textContent=_getLangBtnText();
+    // Update struggle bar text
+    var stText=document.getElementById('struggle-text');if(stText)stText.textContent=L('struggle');
+    // Update chat placeholder
+    var chatF=document.getElementById('chat-field');if(chatF)chatF.placeholder=L('chatPlaceholder');
     // Rebuild warp pipe signs with new city names
     if(typeof buildWarpPipes==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildWarpPipes();}
 }
@@ -1536,7 +1542,7 @@ function _updateChargeParticles(){
 
 // ---- Input ----
 const keys={};
-addEventListener('keydown',e=>{ keys[e.code]=true; if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault(); });
+addEventListener('keydown',e=>{ keys[e.code]=true; if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault(); if(e.code==='Enter'&&gameState==='city'&&!_portalConfirmOpen&&!_chatOpen){e.preventDefault();_openChatInput();} });
 addEventListener('keyup',e=>{ keys[e.code]=false; });
 
 let joyVec={x:0,y:0}, joyActive=false, joyTouchId=null;
@@ -2004,6 +2010,7 @@ const cityProps = []; // {group, x, z, radius, type, grabbed, origY}
 
 const CITY_SIZE = 80; // half-size of city ground
 var currentCityStyle=0;
+var _prevCityStyle=0; // track previous city for earth return
 var CITY_STYLES=[
     {name:'\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE',ground:0x6EC850,path:0xDDCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
     {name:'🏜️ 沙漠城',ground:0xDDCC88,path:0xCCBB77,sky:0xFFCC66,bColors:[0xDDAA66,0xCC9955,0xEEBB77,0xBB8844,0xDDCC88,0xCCAA55,0xEECC99,0xBB9966],roof:0xAA6633,tree:0x88AA44,fog:0xFFEECC},
@@ -2494,7 +2501,7 @@ function buildCity() {
             doors:[{a:0,w:0.25},{a:Math.PI/2,w:0.25},{a:Math.PI,w:0.25},{a:Math.PI*1.5,w:0.25}]
         }); // Von Braun dome
         window._moonCities=[
-            {cx:-200,cy:0,cz:0,r:160,scale:8,name:'Von Braun',flatX:-200,flatZ:0}
+            {cx:-200,cy:0,cz:0,r:160,scale:8,name:{zhs:'\u51AF\u00B7\u5E03\u52B3\u6069',zht:'\u99AE\u00B7\u5E03\u52DE\u6069',ja:'\u30D5\u30A9\u30F3\u30FB\u30D6\u30E9\u30A6\u30F3',en:'Von Braun'},flatX:-200,flatZ:0}
         ];
         // ---- Granada (second city, far side) ----
         var granada=new THREE.Group();
@@ -2530,7 +2537,7 @@ function buildCity() {
             granada.add(gdoorG);
         }
         // Granada collider zone (flat)
-        window._moonCities.push({cx:-200,cy:0,cz:-200,r:100,scale:8,name:'Granada',flatX:-200,flatZ:-200});
+        window._moonCities.push({cx:-200,cy:0,cz:-200,r:100,scale:8,name:{zhs:'\u683C\u62C9\u7EB3\u8FBE',zht:'\u683C\u62C9\u7D0D\u9054',ja:'\u30B0\u30E9\u30CA\u30C0',en:'Granada'},flatX:-200,flatZ:-200});
         window._moonShields.push({x:-200,y:0,z:-200,r:100,
             doors:[{a:0,w:0.3},{a:Math.PI/2,w:0.3},{a:Math.PI,w:0.3},{a:Math.PI*1.5,w:0.3}]
         }); // Granada dome
@@ -2843,7 +2850,7 @@ function buildCity() {
         // Add to portals array for proximity detection
         portals.push({mesh:earthPortalG,ring:epRing,inner:epInner,
             name:'\uD83C\uDF0D '+L('earthReturn'),desc:L('earthReturnDesc'),
-            raceIndex:-1,x:-200+8*5,z:8*5,y:0,color:0x3366CC,_hiddenType:'earthReturn',_targetStyle:0});
+            raceIndex:-1,x:-200+8*5,z:8*5,y:0,color:0x3366CC,_hiddenType:'earthReturn',_targetStyle:-99});
         // (Moon mini-game portals removed — races are Earth-only)
         // ---- Moon city props (inside Von Braun) ----
         // Oxygen tanks
@@ -3534,6 +3541,7 @@ function updatePipeTravel(){
     camera.lookAt(px,py,pz);
     // At 40% — rebuild city (while player is high up and can't see ground)
     if(_pipeTimer===Math.floor(_pipeDuration*0.4)){
+        _prevCityStyle=currentCityStyle;
         currentCityStyle=_pipeTargetStyle;
         clearCity();
         buildCity();
@@ -3573,6 +3581,7 @@ function updatePipeTravel(){
 
 function switchCity(targetStyle){
     if(targetStyle===currentCityStyle)return;
+    _prevCityStyle=currentCityStyle;
     currentCityStyle=targetStyle;
     _cameraZoom=1.0; // reset zoom on city switch
     // Remember player was near a pipe — spawn at center of new city
@@ -4420,7 +4429,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var _sdz=egg.mesh.position.z-_sh.z;
                 var _sdist=Math.sqrt(_sdx*_sdx+_sdz*_sdz);
                 // Check if egg is near the shield boundary (inside or crossing)
-                if(_sdist<_sh.r+1&&_sdist>_sh.r-4){
+                if(_sdist<_sh.r+3&&_sdist>_sh.r-6){
                     // Check if near a door opening
                     var _sAngle=Math.atan2(_sdz,_sdx);
                     if(_sAngle<0)_sAngle+=Math.PI*2;
@@ -5045,12 +5054,15 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     // Switch state randomly
     if(egg._aiStateTimer<=0){
         var r=Math.random();
-        if(r<0.3) egg._aiState='wander';
-        else if(r<0.45) egg._aiState='idle';
-        else if(r<0.6) egg._aiState='chase';
-        else if(r<0.72) egg._aiState='flee';
-        else if(r<0.84) egg._aiState='dance';
-        else egg._aiState='circle';
+        if(r<0.25) egg._aiState='wander';
+        else if(r<0.38) egg._aiState='idle';
+        else if(r<0.50) egg._aiState='chase';
+        else if(r<0.60) egg._aiState='flee';
+        else if(r<0.70) egg._aiState='dance';
+        else if(r<0.78) egg._aiState='circle';
+        else if(r<0.86&&currentCityStyle!==5&&_babylonTower) egg._aiState='babel';
+        else if(r<0.93) egg._aiState='spinDash';
+        else egg._aiState='wander';
         egg._aiStateTimer=80+Math.random()*200;
         egg._circleCenter={x:egg.mesh.position.x,z:egg.mesh.position.z};
         egg._circleAngle=Math.random()*Math.PI*2;
@@ -5159,6 +5171,69 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         var cd3=Math.sqrt(cdx3*cdx3+cdz3*cdz3);
         if(cd3>0.5){egg.vx+=(cdx3/cd3)*MOVE_ACCEL*0.35;egg.vz+=(cdz3/cd3)*MOVE_ACCEL*0.35;}
         if(egg.onGround&&Math.random()<0.004){egg.vy=JUMP_FORCE*(0.5+Math.random()*1.5);egg.squash=0.6;}
+    } else if(st==='babel'){
+        // Walk toward Babel tower and use elevator
+        if(_babylonTower){
+            var bt=_babylonTower;
+            var bdx=bt.x-egg.mesh.position.x, bdz=bt.z-egg.mesh.position.z;
+            var bd=Math.sqrt(bdx*bdx+bdz*bdz);
+            if(bd>4){
+                egg.vx+=(bdx/bd)*MOVE_ACCEL*0.5;egg.vz+=(bdz/bd)*MOVE_ACCEL*0.5;
+            } else {
+                // Near tower — teleport to cloud world or back
+                if(egg.mesh.position.y<5&&Math.random()<0.01){
+                    // Go up to cloud level
+                    egg.mesh.position.y=bt.topY||45;
+                    egg.vy=0.1;
+                    egg._aiStateTimer=10; // quickly switch to wander in clouds
+                } else if(egg.mesh.position.y>30&&Math.random()<0.01){
+                    // Come back down
+                    egg.mesh.position.y=1;egg.vy=0;
+                    egg._aiStateTimer=10;
+                }
+            }
+        }
+    } else if(st==='spinDash'){
+        // NPC spin dash — charge and dash forward
+        if(!egg._npcSpinTimer)egg._npcSpinTimer=0;
+        egg._npcSpinTimer++;
+        if(egg._npcSpinTimer<30){
+            // Charging — crouch in place
+            egg.vx*=0.85;egg.vz*=0.85;
+            egg.squash=0.7+0.3*(1-egg._npcSpinTimer/30);
+            egg.mesh.rotation.y+=0.3;
+        } else if(egg._npcSpinTimer<90){
+            // Dashing
+            if(egg._npcSpinTimer===30){
+                var dashDir=egg.mesh.rotation.y;
+                egg._npcDashVx=Math.sin(dashDir)*MAX_SPEED*3;
+                egg._npcDashVz=Math.cos(dashDir)*MAX_SPEED*3;
+            }
+            egg.vx=egg._npcDashVx||0;egg.vz=egg._npcDashVz||0;
+            egg.mesh.rotation.y+=0.5;
+            egg.squash=0.6;
+            // Keep on ground
+            if(egg.mesh.position.y<0.6)egg.mesh.position.y=0.6;
+            if(egg.onGround)egg.vy=0;
+            // Hit nearby eggs
+            for(var sdi=0;sdi<allEggs.length;sdi++){
+                var sde2=allEggs[sdi];
+                if(sde2===egg||!sde2.alive||sde2.heldBy)continue;
+                var sddx2=sde2.mesh.position.x-egg.mesh.position.x;
+                var sddz2=sde2.mesh.position.z-egg.mesh.position.z;
+                var sddy2=sde2.mesh.position.y-egg.mesh.position.y;
+                if(Math.abs(sddy2)>1.5)continue;
+                var sdd2=Math.sqrt(sddx2*sddx2+sddz2*sddz2);
+                if(sdd2<2.5&&sdd2>0.01){
+                    sde2.vx+=sddx2/sdd2*0.4;sde2.vy+=0.2;sde2.vz+=sddz2/sdd2*0.4;
+                    sde2.throwTimer=15;sde2._bounces=1;sde2.squash=0.5;
+                    sde2._stunTimer=Math.floor(30+Math.random()*40);
+                    if(sde2.isPlayer)playHitSound();
+                }
+            }
+        } else {
+            egg._npcSpinTimer=0;egg._aiStateTimer=10;
+        }
     }
     var spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
     var npcSpd=(egg._aiSprint>0)?1.2:1;
@@ -6445,8 +6520,113 @@ function ensureStruggleBar(){
     struggleBarDiv=document.createElement('div');
     struggleBarDiv.id='struggle-bar-container';
     struggleBarDiv.style.cssText='position:absolute;top:18%;left:50%;transform:translateX(-50%);z-index:15;pointer-events:none;display:none;text-align:center;';
-    struggleBarDiv.innerHTML='<div style="color:#fff;font-size:13px;font-weight:700;text-shadow:1px 1px 0 #000;margin-bottom:4px">🔥 挣扎中！疯狂按方向键！</div><div style="width:180px;height:14px;background:rgba(0,0,0,0.5);border-radius:7px;border:2px solid rgba(255,255,255,0.3);overflow:hidden"><div id="struggle-fill" style="height:100%;background:linear-gradient(90deg,#FF4444,#FFAA00);border-radius:5px;width:100%;transition:width 0.05s"></div></div>';
+    var _stText=L('struggle');struggleBarDiv.innerHTML='<div id="struggle-text" style="color:#fff;font-size:13px;font-weight:700;text-shadow:1px 1px 0 #000;margin-bottom:4px">'+_stText+'</div><div style="width:180px;height:14px;background:rgba(0,0,0,0.5);border-radius:7px;border:2px solid rgba(255,255,255,0.3);overflow:hidden"><div id="struggle-fill" style="height:100%;background:linear-gradient(90deg,#FF4444,#FFAA00);border-radius:5px;width:100%;transition:width 0.05s"></div></div>';
     document.getElementById('game-container').appendChild(struggleBarDiv);
+}
+
+// ---- PSOBB-style Chat Bubble System ----
+var _chatBubbles=[]; // {egg, div, timer}
+var _chatInput=null, _chatOpen=false;
+function _ensureChatInput(){
+    if(_chatInput)return;
+    _chatInput=document.createElement('div');
+    _chatInput.id='chat-input-bar';
+    _chatInput.style.cssText='position:absolute;bottom:60px;left:50%;transform:translateX(-50%);z-index:20;display:none;';
+    _chatInput.innerHTML='<input id="chat-field" type="text" maxlength="40" style="width:260px;padding:8px 12px;border:2px solid rgba(255,255,255,0.4);border-radius:20px;background:rgba(0,0,0,0.7);color:#fff;font-size:14px;outline:none;backdrop-filter:blur(6px);" placeholder="'+L('chatPlaceholder')+'">';
+    document.getElementById('game-container').appendChild(_chatInput);
+    var field=document.getElementById('chat-field');
+    field.addEventListener('keydown',function(e){
+        e.stopPropagation();
+        if(e.code==='Enter'){
+            var msg=field.value.trim();
+            if(msg&&playerEgg)_showChatBubble(playerEgg,msg);
+            field.value='';_closeChatInput();
+        }
+        if(e.code==='Escape'){field.value='';_closeChatInput();}
+    });
+}
+function _openChatInput(){
+    if(_chatOpen||gameState!=='city')return;
+    _ensureChatInput();
+    _chatOpen=true;
+    _chatInput.style.display='block';
+    var field=document.getElementById('chat-field');
+    field.placeholder=L('chatPlaceholder');
+    field.focus();
+}
+function _closeChatInput(){
+    _chatOpen=false;
+    if(_chatInput)_chatInput.style.display='none';
+    var field=document.getElementById('chat-field');
+    if(field)field.blur();
+}
+function _showChatBubble(egg,msg){
+    if(!egg||!egg.mesh)return;
+    // Remove old bubble for this egg
+    for(var i=_chatBubbles.length-1;i>=0;i--){
+        if(_chatBubbles[i].egg===egg){
+            if(_chatBubbles[i].sprite)egg.mesh.remove(_chatBubbles[i].sprite);
+            _chatBubbles.splice(i,1);
+        }
+    }
+    // Create 3D sprite bubble above egg head (PSOBB comic style)
+    var canvas=document.createElement('canvas');
+    canvas.width=512;canvas.height=128;
+    var ctx2=canvas.getContext('2d');
+    // Comic bubble background
+    ctx2.fillStyle='rgba(255,255,255,0.92)';
+    _drawBubblePath(ctx2,10,10,492,90,18);
+    ctx2.fill();
+    ctx2.strokeStyle='rgba(0,0,0,0.5)';ctx2.lineWidth=3;
+    _drawBubblePath(ctx2,10,10,492,90,18);
+    ctx2.stroke();
+    // Tail triangle
+    ctx2.fillStyle='rgba(255,255,255,0.92)';
+    ctx2.beginPath();ctx2.moveTo(230,100);ctx2.lineTo(256,125);ctx2.lineTo(280,100);ctx2.fill();
+    ctx2.strokeStyle='rgba(0,0,0,0.5)';ctx2.lineWidth=3;
+    ctx2.beginPath();ctx2.moveTo(230,100);ctx2.lineTo(256,125);ctx2.lineTo(280,100);ctx2.stroke();
+    // Text
+    ctx2.fillStyle='#222';ctx2.font='bold 32px sans-serif';ctx2.textAlign='center';ctx2.textBaseline='middle';
+    ctx2.fillText(msg.substring(0,20),256,55);
+    var tex=new THREE.CanvasTexture(canvas);
+    var spriteMat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+    var sprite=new THREE.Sprite(spriteMat);
+    sprite.scale.set(4,1,1);
+    sprite.position.y=3.2;
+    egg.mesh.add(sprite);
+    _chatBubbles.push({egg:egg,sprite:sprite,timer:300}); // 5 seconds
+}
+function _drawBubblePath(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+    ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+    ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+    ctx.closePath();
+}
+function _updateChatBubbles(){
+    for(var i=_chatBubbles.length-1;i>=0;i--){
+        var cb=_chatBubbles[i];
+        cb.timer--;
+        if(cb.timer<30&&cb.sprite)cb.sprite.material.opacity=cb.timer/30;
+        if(cb.timer<=0){
+            if(cb.sprite&&cb.egg&&cb.egg.mesh)cb.egg.mesh.remove(cb.sprite);
+            _chatBubbles.splice(i,1);
+        }
+    }
+}
+// NPC random chat bubbles
+var _npcChatPhrases={
+    zhs:['\u4F60\u597D\uFF01','\u54C8\u54C8','\u8DD1\u5440\uFF01','\u52A0\u6CB9\uFF01','\u563F\u563F','\u597D\u73A9\uFF01','\u8981\u8D62\uFF01','\u522B\u8DD1\uFF01','\u6765\u6293\u6211\u5440','\u54CE\u5440\uFF01'],
+    zht:['\u4F60\u597D\uFF01','\u54C8\u54C8','\u8DD1\u5440\uFF01','\u52A0\u6CB9\uFF01','\u563F\u563F','\u597D\u73A9\uFF01','\u8981\u8D0F\uFF01','\u5225\u8DD1\uFF01','\u4F86\u6293\u6211\u5440','\u54CE\u5440\uFF01'],
+    ja:['\u3084\u3042\uFF01','\u30CF\u30CF','\u8D70\u308C\uFF01','\u30D5\u30A1\u30A4\u30C8\uFF01','\u30D8\u30D8','\u697D\u3057\u3044\uFF01','\u52DD\u3064\uFF01','\u9003\u3052\u308D\uFF01','\u6355\u307E\u3048\u3066\u307F\u308D','\u3046\u308F\uFF01'],
+    en:['Hi!','Haha','Run!','Go go!','Hehe','Fun!','Win!','Catch me!','Whoa!','Yay!']
+};
+function _npcRandomChat(egg){
+    if(Math.random()>0.0008)return; // very rare
+    if(egg.heldBy||!egg.alive)return;
+    var phrases=_npcChatPhrases[_langCode]||_npcChatPhrases.en;
+    _showChatBubble(egg,phrases[Math.floor(Math.random()*phrases.length)]);
 }
 
 // ---- Held egg follow + struggle + NPC grab AI ----
@@ -6783,8 +6963,9 @@ function confirmPortalEnter(){
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0){ enterRace(ri); }
     else if(ht==='earthReturn'&&playerEgg){
-        // Return to Earth with pipe travel effect (like coming to moon)
-        startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,ts,playerEgg.mesh.position.y);
+        // Return to Earth with pipe travel effect — go back to previous city
+        var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
+        startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
     }
     else if(ts>=0){ switchCity(ts); }
 }
@@ -7143,6 +7324,8 @@ function animate(now){
         resolveEggCollisions(cityEggList);
         checkThrownEggImpact(cityEggList);
         updateHeldEggs();
+        _updateChatBubbles();
+        for(var _nci=0;_nci<allEggs.length;_nci++){if(!allEggs[_nci].isPlayer)_npcRandomChat(allEggs[_nci]);}
         updateCamera();
     } else if(gameState==='racing'){
         handlePlayerInput();
