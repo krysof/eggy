@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.47';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.48';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2272,7 +2272,7 @@ function buildCity() {
     // ---- Moon City special decorations ----
     if(currentCityStyle===5){
         // Craters — projected onto sphere surface (outside city zones)
-        var _moonCityCenters=[{fx:-2400,fz:2400,r:22},{fx:3200,fz:-3200,r:14}]; // flat coords + local radius for exclusion
+        var _moonCityCenters=[{fx:-4800,fz:4800,r:22},{fx:6400,fz:-6400,r:14}]; // flat coords + local radius for exclusion
         for(var ci=0;ci<40;ci++){
             var crx=(Math.random()-0.5)*MOON_R*2;
             var crz=(Math.random()-0.5)*MOON_R*2;
@@ -2325,7 +2325,7 @@ function buildCity() {
         stripes.position.set(5.8,2.5,0.01);apollo.add(stripes);
         var stripes2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
         stripes2.position.set(5.8,3.1,0.01);apollo.add(stripes2);
-        var ap=_moonProject(5600,5600);
+        var ap=_moonProject(11200,11200);
         apollo.position.set(ap.x,ap.y,ap.z);
         _moonOrient(apollo,ap.nx,ap.ny,ap.nz);
         apollo.scale.set(40,40,40);
@@ -2343,7 +2343,7 @@ function buildCity() {
         }
         var rDish=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
-        var rp=_moonProject(5200,6000);
+        var rp=_moonProject(10400,12000);
         rover.position.set(rp.x,rp.y,rp.z);
         _moonOrient(rover,rp.nx,rp.ny,rp.nz);
         rover.scale.set(40,40,40);
@@ -2439,7 +2439,7 @@ function buildCity() {
             fv.rotation.z=Math.PI/2*0.3;fv.rotation.y=fva;lunarCity.add(fv);
         }
         // Place Von Braun on moon surface
-        var lcp=_moonProject(-2400,2400);
+        var lcp=_moonProject(-4800,4800);
         lunarCity.position.set(lcp.x,lcp.y,lcp.z);
         _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
         lunarCity.scale.set(240,240,240);
@@ -2465,7 +2465,7 @@ function buildCity() {
             lunarCity.add(doorG);
         }
         // Shield sphere (barely visible)
-        var _vbShieldR=9600;
+        var _vbShieldR=19200;
         var vbShield=new THREE.Mesh(new THREE.SphereGeometry(_vbShieldR,32,24),
             new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
         vbShield.position.set(lcp.x,lcp.y,lcp.z);
@@ -2487,7 +2487,7 @@ function buildCity() {
             ghd.position.set(Math.cos(gha)*(ghr+1.5),0.6,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
         }
         var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.2,8,8),toon(0x556655));grTower.position.y=4;granada.add(grTower);
-        var grp=_moonProject(3200,-3200);
+        var grp=_moonProject(6400,-6400);
         granada.position.set(grp.x,grp.y,grp.z);
         _moonOrient(granada,grp.nx,grp.ny,grp.nz);
         granada.scale.set(240,240,240);
@@ -2506,7 +2506,7 @@ function buildCity() {
             granada.add(gdoorG);
         }
         // Granada shield
-        var _grShieldR=6000;
+        var _grShieldR=12000;
         var grShield=new THREE.Mesh(new THREE.SphereGeometry(_grShieldR,24,16),
             new THREE.MeshBasicMaterial({color:0x88FFAA,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
         grShield.position.set(grp.x,grp.y,grp.z);
@@ -2516,8 +2516,8 @@ function buildCity() {
         // Von Braun: buildings are in local coords, scale 240, centered at lcp
         // Store city zones for NPC spawning and collision
         window._moonCities=[
-            {cx:lcp.x,cy:lcp.y,cz:lcp.z,nx:lcp.nx,ny:lcp.ny,nz:lcp.nz,r:_vbShieldR,scale:240,name:'Von Braun',flatX:-2400,flatZ:2400},
-            {cx:grp.x,cy:grp.y,cz:grp.z,nx:grp.nx,ny:grp.ny,nz:grp.nz,r:_grShieldR,scale:240,name:'Granada',flatX:3200,flatZ:-3200}
+            {cx:lcp.x,cy:lcp.y,cz:lcp.z,nx:lcp.nx,ny:lcp.ny,nz:lcp.nz,r:_vbShieldR,scale:240,name:'Von Braun',flatX:-4800,flatZ:4800},
+            {cx:grp.x,cy:grp.y,cz:grp.z,nx:grp.nx,ny:grp.ny,nz:grp.nz,r:_grShieldR,scale:240,name:'Granada',flatX:6400,flatZ:-6400}
         ];
         // Moon city building colliders — sphere colliders in world space
         // Von Braun: central tower r=1.8*240=432, ring buildings at r=8-11 from center
@@ -2529,14 +2529,14 @@ function buildCity() {
             var mba=mbi/12*Math.PI*2;var mbr=(8+Math.random()*3)*240;
             var mbLocalX=Math.cos(mba)*mbr/240;var mbLocalZ=Math.sin(mba)*mbr/240;
             // Project local position relative to Von Braun center
-            var mbFlat=_moonProject(-2400+mbLocalX*240,2400+mbLocalZ*240);
+            var mbFlat=_moonProject(-4800+mbLocalX*240,4800+mbLocalZ*240);
             window._moonBldgColliders.push({cx:mbFlat.x,cy:mbFlat.y,cz:mbFlat.z,r:400,h:2400,city:0});
         }
         // Granada hangars (6 at radius 5-7)
         for(var gci=0;gci<6;gci++){
             var gca=gci/6*Math.PI*2;var gcr=(5+Math.random()*2)*240;
             var gcLocalX=Math.cos(gca)*gcr/240;var gcLocalZ=Math.sin(gca)*gcr/240;
-            var gcFlat=_moonProject(3200+gcLocalX*240,-3200+gcLocalZ*240);
+            var gcFlat=_moonProject(6400+gcLocalX*240,-6400+gcLocalZ*240);
             window._moonBldgColliders.push({cx:gcFlat.x,cy:gcFlat.y,cz:gcFlat.z,r:500,h:1200,city:1});
         }
         // Granada central tower
@@ -2574,13 +2574,16 @@ function buildCity() {
         var _sunSolar=new THREE.Mesh(new THREE.SphereGeometry(80000,24,16),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
         _sunSolar.position.set(-800000,MOON_CY+600000,400000);
         scene.add(_sunSolar);
+        window._sunSolar=_sunSolar;
         var _sunSolarGlow=new THREE.Mesh(new THREE.SphereGeometry(100000,16,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.15,fog:false}));
         _sunSolarGlow.position.copy(_sunSolar.position);
         scene.add(_sunSolarGlow);
+        window._sunSolarGlow=_sunSolarGlow;
         // Point light from sun direction for moon lighting
         var _solarLight=new THREE.DirectionalLight(0xFFEECC,1.0);
         _solarLight.position.copy(_sunSolar.position).normalize().multiplyScalar(100);
         scene.add(_solarLight);
+        window._solarLight=_solarLight;
 
         // Planets (compressed distances, exaggerated sizes for visibility)
         var _planets=[
@@ -2654,8 +2657,8 @@ function buildCity() {
         // Footprints — projected onto sphere (near Apollo landing site, outside cities)
         var fpMat=toon(0x666677);
         for(var fi=0;fi<15;fi++){
-            var ffx=(Math.random()-0.5)*400+5600;
-            var ffz=(Math.random()-0.5)*400+5600;
+            var ffx=(Math.random()-0.5)*800+11200;
+            var ffz=(Math.random()-0.5)*800+11200;
             var fpp=_moonProject(ffx,ffz);
             var fp=new THREE.Mesh(new THREE.BoxGeometry(12,0.8,20),fpMat);
             fp.position.set(fpp.x,fpp.y,fpp.z);
@@ -2706,7 +2709,7 @@ function buildCity() {
             if(mu.ms==='sdf1')gAlt=4000+Math.random()*1600; // large ships: far away
             if(mu.ms==='zenCruiser')gAlt=3200+Math.random()*1600;
             // Spawn near moon cities (Von Braun or Granada)
-            var nearCity=gi%2===0?{fx:-2400,fz:2400}:{fx:3200,fz:-3200};
+            var nearCity=gi%2===0?{fx:-4800,fz:4800}:{fx:6400,fz:-6400};
             var gSpread=800; // spread around city
             var gFlatX=nearCity.fx+(Math.random()-0.5)*gSpread;
             var gFlatZ=nearCity.fz+(Math.random()-0.5)*gSpread;
@@ -3161,7 +3164,10 @@ function clearCity(){
     window._moonCities=null;
     window._moonBldgColliders=null;
     // Remove solar system objects
-    if(window._solarPlanets){window._solarPlanets=null;}
+    if(window._solarPlanets){for(var spi=0;spi<window._solarPlanets.length;spi++){scene.remove(window._solarPlanets[spi].mesh);}window._solarPlanets=null;}
+    if(window._sunSolar){scene.remove(window._sunSolar);window._sunSolar=null;}
+    if(window._sunSolarGlow){scene.remove(window._sunSolarGlow);window._sunSolarGlow=null;}
+    if(window._solarLight){scene.remove(window._solarLight);window._solarLight=null;}
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
     _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-52;_earthquakeTimer=0;
@@ -3366,7 +3372,7 @@ function updatePipeTravel(){
         if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
         if(currentCityStyle===5){
             // Moon: spawn near Von Braun city (avoid north pole camera degeneracy)
-            var sp=_moonProject(-2400,2400);
+            var sp=_moonProject(-4800,4800);
             playerEgg.mesh.position.set(sp.x,sp.y+3,sp.z);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
@@ -3409,7 +3415,7 @@ function switchCity(targetStyle){
     playerEgg=createEgg(0,5,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
     if(currentCityStyle===5){
-        var sp2=_moonProject(-2400,2400);
+        var sp2=_moonProject(-4800,4800);
         playerEgg.mesh.position.set(sp2.x,sp2.y+0.5,sp2.z);
         _moonCamYaw=0;_moonCamPitch=0.35;
         camera.position.set(sp2.x+sp2.nx*24,sp2.y+sp2.ny*24,sp2.z+sp2.nz*24);
@@ -3721,17 +3727,20 @@ function _buildBabylonTower(){
     var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
     sign.scale.set(5,1.2,1);sign.position.set(0,topY+6,0);
     g.add(sign);
-    // Door at base (front face)
-    var doorFrame=new THREE.Mesh(new THREE.BoxGeometry(3.5,5,0.5),toon(0x664400));
-    doorFrame.position.set(0,2.5,baseD/2+0.1);g.add(doorFrame);
-    var doorInner=new THREE.Mesh(new THREE.BoxGeometry(2.5,4,0.3),toon(0x332200));
-    doorInner.position.set(0,2,baseD/2+0.2);g.add(doorInner);
-    // Door arch
-    var doorArch=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.3,6,8,Math.PI),toon(0x886622));
-    doorArch.position.set(0,4.5,baseD/2+0.15);g.add(doorArch);
-    // Glowing entrance indicator
-    var doorGlow=new THREE.Mesh(new THREE.PlaneGeometry(2,3.5),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
-    doorGlow.position.set(0,2,baseD/2+0.3);g.add(doorGlow);
+    // Doors on all 4 faces (N/S/E/W) to avoid being blocked
+    var doorDirs=[{dx:0,dz:1},{dx:0,dz:-1},{dx:1,dz:0},{dx:-1,dz:0}];
+    for(var di=0;di<4;di++){
+        var dd=doorDirs[di];
+        var dox=dd.dx*(baseD/2+0.1), doz=dd.dz*(baseD/2+0.1);
+        var dFrame=new THREE.Mesh(new THREE.BoxGeometry(dd.dx===0?3.5:0.5,5,dd.dz===0?3.5:0.5),toon(0x664400));
+        dFrame.position.set(dox,2.5,doz);g.add(dFrame);
+        var dInner=new THREE.Mesh(new THREE.BoxGeometry(dd.dx===0?2.5:0.3,4,dd.dz===0?2.5:0.3),toon(0x332200));
+        dInner.position.set(dox,2,doz);g.add(dInner);
+        var dGlow=new THREE.Mesh(new THREE.PlaneGeometry(2,3.5),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
+        dGlow.position.set(dox,2,doz);
+        if(dd.dx!==0)dGlow.rotation.y=Math.PI/2;
+        g.add(dGlow);
+    }
     // Position directly adjacent to a cloud staircase so tower connects to cloud world
     var towerX, towerZ;
     if(window._stairPositions&&window._stairPositions.length>0){
@@ -4185,7 +4194,7 @@ function buildObs(seg,ri,sm){
 //  PHYSICS
 // ============================================================
 const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
-var MOON_R=8000; // moon sphere radius (doubled for 4x surface area)
+var MOON_R=16000; // moon sphere radius (large enough for flat city ground)
 var MOON_CY=-MOON_R; // sphere center Y (top of sphere at y=0)
 
 // Project a flat (x,0,z) position onto the moon sphere surface
@@ -6141,6 +6150,16 @@ function updateCity(){
     // ---- Tower of Babel rise animation ----
     if(_babylonRising&&_babylonTower){
         _babylonRiseY+=0.29; // rise speed (~3 seconds)
+        // Push player away from tower during rise
+        if(playerEgg){
+            var brx=px-_babylonTower.x, brz=pz-_babylonTower.z;
+            var brd=Math.sqrt(brx*brx+brz*brz);
+            var brHalf=_babylonTower.baseW/2+1.5;
+            if(brd<brHalf&&brd>0.01){
+                var brPush=(brHalf-brd)*0.15;
+                playerEgg.vx+=brx/brd*brPush;playerEgg.vz+=brz/brd*brPush;
+            }
+        }
         if(_babylonRiseY>=0){
             _babylonRiseY=0;
             _babylonRising=false;
@@ -6157,24 +6176,32 @@ function updateCity(){
         }
         _babylonTower.group.position.y=_babylonRiseY;
     }
-    // ---- Tower of Babel door collision ----
-    if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator&&!_spinDashing){
+    // ---- Tower of Babel door collision (4 doors: N/S/E/W) ----
+    if(_babylonTower&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator&&!_spinDashing){
         var bt=_babylonTower;
-        // Door is on +Z face of tower (bottom entrance)
-        var doorX=bt.x, doorZ=bt.z+8.5;
-        var bdx=px-doorX, bdz=pz-doorZ;
-        var bdist=Math.sqrt(bdx*bdx+bdz*bdz);
-        if(bdist<3&&py<3&&!_babylonPromptDismissed){
-            _showBabylonPrompt(1);
+        var bHalfW=bt.baseW/2+0.5;
+        // Check all 4 door positions
+        var _babelDoors=[
+            {x:bt.x,z:bt.z+bHalfW},{x:bt.x,z:bt.z-bHalfW},
+            {x:bt.x+bHalfW,z:bt.z},{x:bt.x-bHalfW,z:bt.z}
+        ];
+        var _nearestBabelDoor=9999;
+        for(var bdi=0;bdi<4;bdi++){
+            var bdx2=px-_babelDoors[bdi].x, bdz2=pz-_babelDoors[bdi].z;
+            var bdd=Math.sqrt(bdx2*bdx2+bdz2*bdz2);
+            if(bdd<_nearestBabelDoor)_nearestBabelDoor=bdd;
+            if(bdd<3&&py<3&&!_babylonPromptDismissed&&!_babylonRising){
+                _showBabylonPrompt(1);
+            }
         }
         // Top of tower — return elevator
         var topDoorX=bt.x, topDoorZ=bt.z;
         var tdx=px-topDoorX, tdz=pz-topDoorZ;
         var tdist=Math.sqrt(tdx*tdx+tdz*tdz);
-        if(tdist<3&&py>=bt.topY-2&&py<=bt.topY+4&&!_babylonPromptDismissed){
+        if(tdist<3&&py>=bt.topY-2&&py<=bt.topY+4&&!_babylonPromptDismissed&&!_babylonRising){
             _showBabylonPrompt(-1);
         }
-        if(bdist>4.5&&tdist>4.5)_babylonPromptDismissed=false;
+        if(_nearestBabelDoor>4.5&&tdist>4.5)_babylonPromptDismissed=false;
     }
     // ---- Babel elevator ride animation ----
     if(_babylonElevator&&_babylonTower&&playerEgg){
@@ -7047,7 +7074,7 @@ function enterCity(spawnX,spawnZ){
     playerEgg.finished=false;playerEgg.alive=true;
     if(currentCityStyle===5){
         // Spawn near Von Braun city (avoid north pole where camera degenerates)
-        if(sx===0&&sz===5){sx=-2400;sz=2400;}
+        if(sx===0&&sz===5){sx=-4800;sz=4800;}
         var sp=_moonProject(sx,sz);
         playerEgg.mesh.position.set(sp.x,sp.y+0.5,sp.z);
         // Reset third-person camera orbit
