@@ -642,7 +642,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
 scene.fog = new THREE.Fog(0x87CEEB, 80, 400);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 600);
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 1200);
 window.addEventListener('resize', ()=>{ R.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
 
 // ---- Lighting ----
@@ -1445,9 +1445,9 @@ function buildCity() {
         for(var pi=0;pi<15;pi++){
             var pa=Math.random()*Math.PI*2;
             var pp=Math.random()*0.3;
-            var pr=8+Math.random()*15;
+            var pr=2+Math.random()*4;
             var patch=new THREE.Mesh(new THREE.CircleGeometry(pr,16),toon(0x666677));
-            var ppx=Math.cos(pa)*pp*80, ppz=Math.sin(pa)*pp*80;
+            var ppx=Math.cos(pa)*pp*MOON_R*0.6, ppz=Math.sin(pa)*pp*MOON_R*0.6;
             var ppp=_moonProject(ppx,ppz);
             patch.position.set(ppp.x+ppp.nx*0.02,ppp.y+ppp.ny*0.02,ppp.z+ppp.nz*0.02);
             _moonOrient(patch,ppp.nx,ppp.ny,ppp.nz);
@@ -1693,9 +1693,9 @@ function buildCity() {
     if(currentCityStyle===5){
         // Craters — projected onto sphere surface
         for(var ci=0;ci<20;ci++){
-            var crx=(Math.random()-0.5)*CITY_SIZE*1.6;
-            var crz=(Math.random()-0.5)*CITY_SIZE*1.6;
-            var crr=2+Math.random()*5;
+            var crx=(Math.random()-0.5)*MOON_R*2;
+            var crz=(Math.random()-0.5)*MOON_R*2;
+            var crr=0.5+Math.random()*1.5;
             var cp=_moonProject(crx,crz);
             var craterG=new THREE.Group();
             var crater=new THREE.Mesh(new THREE.CylinderGeometry(crr,crr*1.1,0.4,16),toon(0x555566));
@@ -1736,7 +1736,7 @@ function buildCity() {
         stripes.position.set(5.8,2.5,0.01);apollo.add(stripes);
         var stripes2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
         stripes2.position.set(5.8,3.1,0.01);apollo.add(stripes2);
-        var ap=_moonProject(35,-35);
+        var ap=_moonProject(8,-8);
         apollo.position.set(ap.x,ap.y,ap.z);
         _moonOrient(apollo,ap.nx,ap.ny,ap.nz);
         cityGroup.add(apollo);
@@ -1753,7 +1753,7 @@ function buildCity() {
         }
         var rDish=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
-        var rp=_moonProject(-30,25);
+        var rp=_moonProject(-7,6);
         rover.position.set(rp.x,rp.y,rp.z);
         _moonOrient(rover,rp.nx,rp.ny,rp.nz);
         rover.rotateY(0.5);
@@ -1778,8 +1778,9 @@ function buildCity() {
         earthGroup.add(atmo);
         var atmo2=new THREE.Mesh(new THREE.SphereGeometry(35,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo2);
-        // Position earth above and to the side (relative to sphere center)
-        earthGroup.position.set(250,MOON_CY+350,-200);
+        // Position earth above and to the side — visible from sphere top
+        earthGroup.position.set(40,MOON_CY+100,-30);
+        earthGroup.scale.set(0.4,0.4,0.4); // smaller earth for smaller moon
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
         // ---- Twinkling stars — surround the sphere ----
@@ -1819,8 +1820,8 @@ function buildCity() {
         // Footprints — projected onto sphere
         var fpMat=toon(0x666677);
         for(var fi=0;fi<15;fi++){
-            var ffx=(Math.random()-0.5)*40+35;
-            var ffz=(Math.random()-0.5)*40-35;
+            var ffx=(Math.random()-0.5)*10+8;
+            var ffz=(Math.random()-0.5)*10-8;
             var fpp=_moonProject(ffx,ffz);
             var fp=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.02,0.5),fpMat);
             fp.position.set(fpp.x,fpp.y,fpp.z);
@@ -1830,9 +1831,9 @@ function buildCity() {
         }
         // Moon rocks — projected onto sphere
         for(var ri2=0;ri2<25;ri2++){
-            var rrx=(Math.random()-0.5)*CITY_SIZE*1.6;
-            var rrz=(Math.random()-0.5)*CITY_SIZE*1.6;
-            var rs=0.3+Math.random()*1.2;
+            var rrx=(Math.random()-0.5)*MOON_R*2;
+            var rrz=(Math.random()-0.5)*MOON_R*2;
+            var rs=0.2+Math.random()*0.6;
             var rkp=_moonProject(rrx,rrz);
             var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(rs,0),toon(0x888899));
             rock.position.set(rkp.x+rkp.nx*rs*0.4,rkp.y+rkp.ny*rs*0.4,rkp.z+rkp.nz*rs*0.4);
@@ -1857,8 +1858,8 @@ function buildCity() {
         for(var gi=0;gi<msUnits.length;gi++){
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
-            // Lower altitude: close to surface (5-80 units above sphere)
-            var gAlt=5+Math.random()*75;
+            // Lower altitude: close to surface (2-20 units above sphere)
+            var gAlt=2+Math.random()*18;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.7;
             var gOrbitR=MOON_R+gAlt;
@@ -2071,7 +2072,8 @@ function buildPortals() {
 // ---- Collectible coins in city ----
 function buildCityCoins() {
     for(let i=0;i<90;i++){
-        const cx=(Math.random()-0.5)*CITY_SIZE*1.5, cz=(Math.random()-0.5)*CITY_SIZE*1.5;
+        var coinSpread=currentCityStyle===5?MOON_R*1.5:CITY_SIZE*1.5;
+        const cx=(Math.random()-0.5)*coinSpread*2, cz=(Math.random()-0.5)*coinSpread*2;
         let skip=false;
         if(currentCityStyle!==5){
             for(const c of cityColliders) if(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1) skip=true;
@@ -3165,7 +3167,7 @@ function buildObs(seg,ri,sm){
 //  PHYSICS
 // ============================================================
 const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
-var MOON_R=200; // moon sphere radius
+var MOON_R=30; // moon sphere radius (King Kai planet size)
 var MOON_CY=-MOON_R; // sphere center Y (top of sphere at y=0)
 
 // Project a flat (x,0,z) position onto the moon sphere surface
@@ -3206,8 +3208,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         var vRad=egg.vx*nx+egg.vy*ny+egg.vz*nz;
         // Tangential velocity (perpendicular to normal)
         var tvx=egg.vx-vRad*nx, tvy=egg.vy-vRad*ny, tvz=egg.vz-vRad*nz;
-        // Apply gravity (radially inward, 1/6 strength)
-        vRad-=GRAVITY/6;
+        // Apply gravity (radially inward, 1/3 strength for small planet)
+        vRad-=GRAVITY/3;
         // Ground check
         egg.onGround=false;
         if(height<=0.01&&vRad<=0){
@@ -3355,6 +3357,28 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                     else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
                     if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                     egg.throwTimer=1;
+                    egg.squash=0.6;playHitSound();
+                    break;
+                }
+            }
+            // Thrown egg hits other NPCs → knockback + drop coins
+            for(var tei=0;tei<allEggs.length;tei++){
+                var te=allEggs[tei];
+                if(te===egg||!te.alive||te.heldBy)continue;
+                var htdx=egg.mesh.position.x-te.mesh.position.x;
+                var htdz=egg.mesh.position.z-te.mesh.position.z;
+                var htdy=egg.mesh.position.y-te.mesh.position.y;
+                var htd=Math.sqrt(htdx*htdx+htdz*htdz+htdy*htdy);
+                if(htd<2.0){
+                    // Knockback the hit NPC
+                    var kbf=0.3;
+                    te.vx-=htdx/htd*kbf;te.vz-=htdz/htd*kbf;te.vy+=0.12;
+                    te.squash=0.6;
+                    // Drop coins from thrown NPC on impact
+                    if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+                    // Also drop coins from hit NPC
+                    _dropNpcStolenCoins(te);
+                    egg.vx*=0.3;egg.vz*=0.3;
                     egg.squash=0.6;playHitSound();
                     break;
                 }
@@ -4157,10 +4181,10 @@ function handlePlayerInput(){
             var wrx=1-nx*nx, wry=-nx*ny, wrz=-nx*nz;
             var wrl=Math.sqrt(wrx*wrx+wry*wry+wrz*wrz)||1;
             wrx/=wrl;wry/=wrl;wrz/=wrl;
-            // Project world -Z axis onto tangent plane → "forward" (up on screen)
-            var wfx=-(-nz*nx), wfy=-(-nz*ny), wfz=-(1-nz*nz);
-            // Actually: project (0,0,-1) onto tangent: v - dot(v,n)*n
-            wfx=0-(-1)*nz*nx; wfy=0-(-1)*nz*ny; wfz=-1-(-1)*nz*nz;
+            // Project world +Z axis onto tangent plane → "forward"
+            // v = (0,0,1), projected = v - dot(v,n)*n
+            // mz=-1 (W key) * forward(+Z) = movement in -Z = away from camera = UP on screen
+            var wfx=-nz*nx, wfy=-nz*ny, wfz=1-nz*nz;
             var wfl=Math.sqrt(wfx*wfx+wfy*wfy+wfz*wfz)||1;
             wfx/=wfl;wfy/=wfl;wfz/=wfl;
             var ax=(mx*wrx+mz*wfx)*MOVE_ACCEL*accelMul;
@@ -4231,9 +4255,9 @@ function handlePlayerInput(){
                     var jp=playerEgg.mesh.position;
                     var jdx=jp.x,jdy=jp.y-MOON_CY,jdz=jp.z;
                     var jd=Math.sqrt(jdx*jdx+jdy*jdy+jdz*jdz)||1;
-                    playerEgg.vx+=jdx/jd*JUMP_FORCE;playerEgg.vy+=jdy/jd*JUMP_FORCE;playerEgg.vz+=jdz/jd*JUMP_FORCE;
+                    playerEgg.vx+=jdx/jd*JUMP_FORCE*2;playerEgg.vy+=jdy/jd*JUMP_FORCE*2;playerEgg.vz+=jdz/jd*JUMP_FORCE*2;
                 } else {
-                    playerEgg.vy=JUMP_FORCE;
+                    playerEgg.vy=JUMP_FORCE*2;
                 }
                 playerEgg.squash=0.65;playJumpSound();
             }
@@ -4732,11 +4756,10 @@ function updateCity(){
                 _babylonTower._collidersAdded=true;
                 var bw=_babylonTower.baseW||16, bd=_babylonTower.baseD||16;
                 var tx=_babylonTower.x, tz=_babylonTower.z, tTop=_babylonTower.topY;
-                cityColliders.push({x:tx-bw/2,z:tz,hw:0.8,hd:bd/2+0.5,h:tTop,_babel:true});
-                cityColliders.push({x:tx+bw/2,z:tz,hw:0.8,hd:bd/2+0.5,h:tTop,_babel:true});
-                cityColliders.push({x:tx,z:tz-bd/2,hw:bw/2+0.5,hd:0.8,h:tTop,_babel:true});
-                cityColliders.push({x:tx-bw/4-1,z:tz+bd/2,hw:bw/4-0.8,hd:0.8,h:tTop,_babel:true});
-                cityColliders.push({x:tx+bw/4+1,z:tz+bd/2,hw:bw/4-0.8,hd:0.8,h:tTop,_babel:true});
+                // Solid body collider (player can't walk through)
+                // Split into left and right halves with door gap on +Z face
+                var doorGap=2.0; // door width
+                cityColliders.push({x:tx,z:tz,hw:bw/2,hd:bd/2,h:tTop,_babel:true});
             }
         }
         _babylonTower.group.position.y=_babylonRiseY;
