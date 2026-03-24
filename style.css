@@ -11,7 +11,7 @@ body{overflow:hidden;background:#000;font-family:'Segoe UI','PingFang SC','Micro
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 h1{font-size:clamp(28px,7vw,48px);color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.15);letter-spacing:5px}
 .subtitle{font-size:clamp(10px,2vw,13px);color:rgba(255,255,255,.8);letter-spacing:5px;margin-top:2px}
-.version-text{font-size:clamp(9px,1.5vw,11px);color:rgba(255,255,255,.5);letter-spacing:2px;margin-top:6px}
+.version-text{font-size:clamp(10px,2vw,13px);color:rgba(255,255,255,.75);letter-spacing:2px;margin-top:8px}
 .btn{padding:12px 38px;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .1s;min-width:180px;letter-spacing:1px}
 .btn:hover{transform:scale(1.04)}.btn:active{transform:scale(.97)}
 .btn-primary{background:linear-gradient(135deg,#FFD700,#FFA500);color:#5a3e00;box-shadow:0 4px 16px rgba(255,165,0,.4)}
