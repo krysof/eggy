@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.41';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.42';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1280,8 +1280,8 @@ function _updateSprintBar(holdingF){
         if(playerEgg._wasSprintHolding&&_sprintCharge>=_sprintChargeMax*0.3&&!_spinDashing){
             var sdPct=_sprintCharge/_sprintChargeMax;
             _spinDashing=true;
-            _spinDashTimer=Math.floor(20+sdPct*40);
-            _spinDashSpeed=MAX_SPEED*(1.5+sdPct*2.5);
+            _spinDashTimer=Math.floor(80+sdPct*160);
+            _spinDashSpeed=MAX_SPEED*(3.0+sdPct*6.0);
             // Store dash direction from player facing
             var dashDir=playerEgg.mesh.rotation.y;
             playerEgg._dashDirX=Math.sin(dashDir);
@@ -5240,13 +5240,63 @@ function handlePlayerInput(){
         _spinDashTimer--;
         if(_spinDashTimer<=0){_spinDashing=false;_spinDashSpeed=0;}
         else{
-            // Apply dash velocity in stored direction
-            playerEgg.vx=playerEgg._dashDirX*_spinDashSpeed;
-            playerEgg.vz=playerEgg._dashDirZ*_spinDashSpeed;
-            _spinDashSpeed*=0.97; // gradual slowdown
+            // Steering during spin dash — WASD/joystick can curve the direction
+            var sdSteerX=0, sdSteerZ=0;
+            if(keys['KeyA']||keys['ArrowLeft'])sdSteerX-=1;
+            if(keys['KeyD']||keys['ArrowRight'])sdSteerX+=1;
+            if(keys['KeyW']||keys['ArrowUp'])sdSteerZ-=1;
+            if(keys['KeyS']||keys['ArrowDown'])sdSteerZ+=1;
+            if(joyActive){sdSteerX+=joyVec.x;sdSteerZ+=joyVec.y;}
+            var sdSteerLen=Math.sqrt(sdSteerX*sdSteerX+sdSteerZ*sdSteerZ);
+            if(sdSteerLen>0.1){
+                sdSteerX/=sdSteerLen;sdSteerZ/=sdSteerLen;
+                // Blend steering into dash direction (turn rate)
+                var turnRate=0.06;
+                if(currentCityStyle===5&&gameState==='city'){
+                    // Moon: use camera-relative steering
+                    var camMat2=camera.matrixWorld.elements;
+                    var scrx=camMat2[0],scry=camMat2[1],scrz=camMat2[2];
+                    var scfx=-camMat2[8],scfy=-camMat2[9],scfz=-camMat2[10];
+                    var pp3=playerEgg.mesh.position;
+                    var sdx3=pp3.x,sdy3=pp3.y-MOON_CY,sdz3=pp3.z;
+                    var sd3=Math.sqrt(sdx3*sdx3+sdy3*sdy3+sdz3*sdz3)||1;
+                    var snx3=sdx3/sd3,sny3=sdy3/sd3,snz3=sdz3/sd3;
+                    var dotR3=scrx*snx3+scry*sny3+scrz*snz3;
+                    var wrx3=scrx-dotR3*snx3,wry3=scry-dotR3*sny3,wrz3=scrz-dotR3*snz3;
+                    var wrl3=Math.sqrt(wrx3*wrx3+wry3*wry3+wrz3*wrz3)||1;
+                    wrx3/=wrl3;wry3/=wrl3;wrz3/=wrl3;
+                    var dotF3=scfx*snx3+scfy*sny3+scfz*snz3;
+                    var wfx3=scfx-dotF3*snx3,wfy3=scfy-dotF3*sny3,wfz3=scfz-dotF3*snz3;
+                    var wfl3=Math.sqrt(wfx3*wfx3+wfy3*wfy3+wfz3*wfz3)||1;
+                    wfx3/=wfl3;wfy3/=wfl3;wfz3/=wfl3;
+                    var steerWX=sdSteerX*wrx3+sdSteerZ*wfx3;
+                    var steerWY=sdSteerX*wry3+sdSteerZ*wfy3;
+                    var steerWZ=sdSteerX*wrz3+sdSteerZ*wfz3;
+                    // For moon, dash direction is 3D — store as vx/vy/vz directly
+                    playerEgg.vx+=(steerWX*_spinDashSpeed-playerEgg.vx)*turnRate;
+                    playerEgg.vy+=(steerWY*_spinDashSpeed-playerEgg.vy)*turnRate;
+                    playerEgg.vz+=(steerWZ*_spinDashSpeed-playerEgg.vz)*turnRate;
+                } else {
+                    playerEgg._dashDirX+=(sdSteerX-playerEgg._dashDirX)*turnRate;
+                    playerEgg._dashDirZ+=(sdSteerZ-playerEgg._dashDirZ)*turnRate;
+                    var ddl=Math.sqrt(playerEgg._dashDirX*playerEgg._dashDirX+playerEgg._dashDirZ*playerEgg._dashDirZ)||1;
+                    playerEgg._dashDirX/=ddl;playerEgg._dashDirZ/=ddl;
+                }
+            }
+            // Apply dash velocity
+            if(!(currentCityStyle===5&&gameState==='city')){
+                playerEgg.vx=playerEgg._dashDirX*_spinDashSpeed;
+                playerEgg.vz=playerEgg._dashDirZ*_spinDashSpeed;
+            }
+            _spinDashSpeed*=0.985; // slower decay for longer distance
             // Spin the egg body rapidly
             playerEgg.mesh.rotation.x+=0.6;
-            playerEgg.squash=0.75; // slightly squashed ball shape
+            playerEgg.squash=1.0; // keep normal scale — no sinking
+            // Keep egg on ground during spin dash
+            if(currentCityStyle!==5){
+                if(playerEgg.mesh.position.y<0.6)playerEgg.mesh.position.y=0.6;
+                playerEgg.vy=0;playerEgg.onGround=true;
+            }
             // Spawn ground dust while dashing
             if(_spinDashTimer%2===0)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,0.4);
             // Hit NPCs while spin dashing — knock them away
