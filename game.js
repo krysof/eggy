@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.30';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.31';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -678,6 +678,42 @@ function playMissileSound(){
     o.type='sawtooth';o.frequency.setValueAtTime(300,t);o.frequency.linearRampToValueAtTime(800,t+0.15);
     g.gain.setValueAtTime(0.03,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
     o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.18);
+}
+// AT Field effect — hexagonal flash at shield impact point
+function _spawnATField(x,y,z,nx,ny,nz){
+    // Hexagonal ring flash
+    var atMat=new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.9,side:THREE.DoubleSide});
+    for(var ai=0;ai<3;ai++){
+        var r=2+ai*1.5;
+        var hex=new THREE.Mesh(new THREE.RingGeometry(r-0.3,r+0.3,6),atMat.clone());
+        hex.position.set(x,y,z);
+        hex.lookAt(x+nx,y+ny,z+nz);
+        hex.material.opacity=0.8-ai*0.2;
+        scene.add(hex);
+        window._moonBeams.push({mesh:hex,life:12+ai*3,vx:nx*0.05,vy:ny*0.05,vz:nz*0.05,_isExplosion:true});
+    }
+    // Central flash
+    var flash=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,4),new THREE.MeshBasicMaterial({color:0xFFCC44,transparent:true,opacity:0.95}));
+    flash.position.set(x,y,z);scene.add(flash);
+    window._moonBeams.push({mesh:flash,life:10,vx:0,vy:0,vz:0,_isExplosion:true});
+    // AT Field sound
+    if(sfxEnabled){
+        var ctx=ensureAudio();if(ctx){var t=ctx.currentTime;
+        var o=ctx.createOscillator();var g=ctx.createGain();
+        o.type='sine';o.frequency.setValueAtTime(1200,t);o.frequency.exponentialRampToValueAtTime(200,t+0.2);
+        g.gain.setValueAtTime(0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+        o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.25);}
+    }
+}
+// Check if point is inside any moon shield, returns shield or null
+function _checkMoonShield(px,py,pz){
+    if(!window._moonShields)return null;
+    for(var si=0;si<window._moonShields.length;si++){
+        var s=window._moonShields[si];
+        var dx=px-s.x,dy=py-s.y,dz=pz-s.z;
+        if(dx*dx+dy*dy+dz*dz<s.r*s.r)return s;
+    }
+    return null;
 }
 
 // Menu sound effects
@@ -2135,7 +2171,15 @@ function buildCity() {
         var lcp=_moonProject(-20,20);
         lunarCity.position.set(lcp.x,lcp.y,lcp.z);
         _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
+        lunarCity.scale.set(4,4,4);
         cityGroup.add(lunarCity);
+        // Shield sphere (barely visible)
+        var _vbShieldR=80;
+        var vbShield=new THREE.Mesh(new THREE.SphereGeometry(_vbShieldR,32,24),
+            new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
+        vbShield.position.set(lcp.x,lcp.y,lcp.z);
+        cityGroup.add(vbShield);
+        window._moonShields=[{x:lcp.x,y:lcp.y,z:lcp.z,r:_vbShieldR,nx:lcp.nx,ny:lcp.ny,nz:lcp.nz}];
         // ---- Granada (second city, far side) ----
         var granada=new THREE.Group();
         var grRim=new THREE.Mesh(new THREE.TorusGeometry(10,1.5,8,20),toon(0x556666));
@@ -2155,7 +2199,15 @@ function buildCity() {
         var grp=_moonProject(25,-25);
         granada.position.set(grp.x,grp.y,grp.z);
         _moonOrient(granada,grp.nx,grp.ny,grp.nz);
+        granada.scale.set(4,4,4);
         cityGroup.add(granada);
+        // Granada shield
+        var _grShieldR=50;
+        var grShield=new THREE.Mesh(new THREE.SphereGeometry(_grShieldR,24,16),
+            new THREE.MeshBasicMaterial({color:0x88FFAA,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
+        grShield.position.set(grp.x,grp.y,grp.z);
+        cityGroup.add(grShield);
+        window._moonShields.push({x:grp.x,y:grp.y,z:grp.z,r:_grShieldR,nx:grp.nx,ny:grp.ny,nz:grp.nz});
         // Earth in sky — positioned relative to sphere center, far away
         var earthGroup=new THREE.Group();
         var earth=new THREE.Mesh(new THREE.SphereGeometry(30,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
@@ -2706,6 +2758,7 @@ function clearCity(){
     if(window._moonGundams){for(var gi=0;gi<window._moonGundams.length;gi++){scene.remove(window._moonGundams[gi].group);}window._moonGundams=null;}
     if(window._moonBeams){for(var bi=0;bi<window._moonBeams.length;bi++){scene.remove(window._moonBeams[bi].mesh);}window._moonBeams=null;}
     if(window._moonMissiles){for(var mmi=0;mmi<window._moonMissiles.length;mmi++){scene.remove(window._moonMissiles[mmi].group);}window._moonMissiles=null;}
+    window._moonShields=null;
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
     _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-52;_earthquakeTimer=0;
@@ -4786,6 +4839,13 @@ function handlePlayerInput(){
             playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
         }
     }
+    // Sprint smoke + ground dust
+    if(sprintPct>0.15&&playerEgg.onGround&&len>0.1){
+        if(!playerEgg._sprintSmokeTick)playerEgg._sprintSmokeTick=0;
+        playerEgg._sprintSmokeTick++;
+        if(playerEgg._sprintSmokeTick%3===0)_spawnButtSmoke(playerEgg,sprintPct*0.6);
+        if(playerEgg._sprintSmokeTick%5===0)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,sprintPct*0.3);
+    } else { playerEgg._sprintSmokeTick=0; }
     // Charge jump: release Space within 0.3s = normal jump, hold past 0.3s = charge mode
     var _onGroundOrGrace=playerEgg.onGround;
     if(!playerEgg.onGround&&_jumpCharging){
@@ -5500,6 +5560,19 @@ function updateCity(){
             }
             // Face direction of travel
             var gx=gm.group.position.x,gy=gm.group.position.y,gz=gm.group.position.z;
+            // Shield deflection — MS can't enter city shields
+            var _gsShield=_checkMoonShield(gx,gy,gz);
+            if(_gsShield){
+                var _gsdx=gx-_gsShield.x,_gsdy=gy-_gsShield.y,_gsdz=gz-_gsShield.z;
+                var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdy*_gsdy+_gsdz*_gsdz)||1;
+                // Push out to shield surface
+                gm.group.position.x=_gsShield.x+_gsdx/_gsd*(_gsShield.r+1);
+                gm.group.position.y=_gsShield.y+_gsdy/_gsd*(_gsShield.r+1);
+                gm.group.position.z=_gsShield.z+_gsdz/_gsd*(_gsShield.r+1);
+                gx=gm.group.position.x;gy=gm.group.position.y;gz=gm.group.position.z;
+                gm.wpTimer=0; // pick new waypoint
+                if(Math.random()<0.08)_spawnATField(gx,gy,gz,_gsdx/_gsd,_gsdy/_gsd,_gsdz/_gsd);
+            }
             gm.group.lookAt(wpx,wpy,wpz);
             if(dd3<3)gm.wpTimer=0; // arrived, pick new waypoint
             // Saber duel: fast swing
@@ -5652,6 +5725,17 @@ function updateCity(){
                 bb.mesh.scale.multiplyScalar(1.1);
             } else {
                 bb.mesh.material.opacity=Math.max(0,bb.life/35);
+                // Shield collision — AT Field effect
+                if(!bb._shieldHit){
+                    var _bs=_checkMoonShield(bb.mesh.position.x,bb.mesh.position.y,bb.mesh.position.z);
+                    if(_bs){
+                        var _bsx=bb.mesh.position.x-_bs.x,_bsy=bb.mesh.position.y-_bs.y,_bsz=bb.mesh.position.z-_bs.z;
+                        var _bsd=Math.sqrt(_bsx*_bsx+_bsy*_bsy+_bsz*_bsz)||1;
+                        _spawnATField(bb.mesh.position.x,bb.mesh.position.y,bb.mesh.position.z,_bsx/_bsd,_bsy/_bsd,_bsz/_bsd);
+                        bb._shieldHit=true;bb.life=Math.min(bb.life,3);
+                        bb.vx*=-0.3;bb.vy*=-0.3;bb.vz*=-0.3;
+                    }
+                }
                 // Beam hits eggs (same as being thrown)
                 if(!bb._hitEgg)for(var _bei=0;_bei<allEggs.length;_bei++){
                     var _be=allEggs[_bei];if(!_be.alive||_be.heldBy||_be.throwTimer>0)continue;
@@ -5688,6 +5772,16 @@ function updateCity(){
                 mm.trail[ti].mesh.material.opacity=mm.trail[ti].life/20*0.5;
                 mm.trail[ti].mesh.scale.multiplyScalar(1.04);
                 if(mm.trail[ti].life<=0){scene.remove(mm.trail[ti].mesh);mm.trail.splice(ti,1);}
+            }
+            // Missile hits shields — AT Field
+            if(!mm._shieldHit){
+                var _ms=_checkMoonShield(mm.group.position.x,mm.group.position.y,mm.group.position.z);
+                if(_ms){
+                    var _msx=mm.group.position.x-_ms.x,_msy=mm.group.position.y-_ms.y,_msz=mm.group.position.z-_ms.z;
+                    var _msd=Math.sqrt(_msx*_msx+_msy*_msy+_msz*_msz)||1;
+                    _spawnATField(mm.group.position.x,mm.group.position.y,mm.group.position.z,_msx/_msd,_msy/_msd,_msz/_msd);
+                    mm._shieldHit=true;mm.life=0;
+                }
             }
             // Missile hits eggs
             if(!mm._hitEgg)for(var _mei=0;_mei<allEggs.length;_mei++){
