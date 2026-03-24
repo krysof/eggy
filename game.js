@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.28';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.29';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -206,8 +206,8 @@ let bgmPlaying=false, bgmGain=null, bgmNodes=[], _bgmTimer=null;
 function startBGM(){
     if(bgmPlaying||!soundEnabled)return;
     const ctx=ensureAudio(); bgmPlaying=true;
-    if(ctx.state==='suspended'){ctx.resume().then(function(){if(bgmPlaying)_playBGMLoop(ctx);});return;}
-    _playBGMLoop(ctx);
+    if(ctx.state==='suspended'){ctx.resume().then(function(){if(bgmPlaying){if(currentCityStyle===5)_playMoonBGMLoop(ctx);else _playBGMLoop(ctx);}});return;}
+    if(currentCityStyle===5)_playMoonBGMLoop(ctx);else _playBGMLoop(ctx);
 }
 function _playBGMLoop(ctx){
     bgmGain=ctx.createGain(); bgmGain.gain.value=0.15; bgmGain.connect(ctx.destination);
@@ -299,6 +299,61 @@ function _playBGMLoop(ctx){
     playLoop();
 }
 function stopBGM(){bgmPlaying=false;if(_bgmTimer){clearTimeout(_bgmTimer);_bgmTimer=null;}bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
+
+// Moon battle BGM — epic orchestral war theme (procedural)
+function _playMoonBGMLoop(ctx){
+    bgmGain=ctx.createGain();bgmGain.gain.value=0.13;bgmGain.connect(ctx.destination);
+    // Dm-Bb-Gm-A progression (dark, dramatic)
+    var chords=[[293.66,349.23,440],[233.08,293.66,349.23],[196,233.08,293.66],[220,277.18,329.63]];
+    // Melody: minor scale heroic motif
+    var melA=[587.33,523.25,493.88,440,493.88,523.25,587.33,659.25,587.33,523.25,440,349.23,392,440,493.88,523.25];
+    var melB=[659.25,587.33,523.25,587.33,659.25,783.99,659.25,587.33,523.25,493.88,440,392,440,493.88,523.25,587.33];
+    var loopN=0;
+    function playLoop(){
+        if(!bgmPlaying)return;
+        var now=ctx.currentTime;var mel=loopN%2===0?melA:melB;var noteLen=0.22;loopN++;
+        for(var i=0;i<mel.length;i++){
+            // Lead — brass-like sawtooth
+            var o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=mel[i];
+            var g=ctx.createGain();g.gain.setValueAtTime(0.08,now+i*noteLen);
+            g.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*0.9);
+            o.connect(g);g.connect(bgmGain);o.start(now+i*noteLen);o.stop(now+i*noteLen+noteLen);bgmNodes.push(o);
+            // War drums — heavy kick every 2 notes, snare on off-beats
+            if(i%2===0){
+                var kb=ctx.createBuffer(1,ctx.sampleRate*0.1,ctx.sampleRate);var kd=kb.getChannelData(0);
+                for(var s=0;s<kd.length;s++){var p=s/kd.length;kd[s]=Math.sin(p*Math.PI*6*(1-p*0.9))*0.6*Math.exp(-p*4);}
+                var ks=ctx.createBufferSource();var kg=ctx.createGain();kg.gain.value=0.2;
+                ks.buffer=kb;ks.connect(kg);kg.connect(bgmGain);ks.start(now+i*noteLen);ks.stop(now+i*noteLen+0.1);bgmNodes.push(ks);
+            }
+            if(i%4===2){
+                var sb=ctx.createBuffer(1,ctx.sampleRate*0.05,ctx.sampleRate);var sd=sb.getChannelData(0);
+                for(var s2=0;s2<sd.length;s2++)sd[s2]=(Math.random()-0.5)*0.3*Math.exp(-s2/(sd.length*0.15));
+                var ss=ctx.createBufferSource();var sg=ctx.createGain();sg.gain.value=0.15;
+                ss.buffer=sb;ss.connect(sg);sg.connect(bgmGain);ss.start(now+i*noteLen);ss.stop(now+i*noteLen+0.05);bgmNodes.push(ss);
+            }
+            // Chord pads — deep strings
+            if(i%4===0){
+                var ci=Math.floor(i/4)%chords.length;
+                for(var cn=0;cn<chords[ci].length;cn++){
+                    var co=ctx.createOscillator();co.type='triangle';co.frequency.value=chords[ci][cn]*0.5;
+                    var cg=ctx.createGain();cg.gain.setValueAtTime(0.04,now+i*noteLen);
+                    cg.gain.exponentialRampToValueAtTime(0.003,now+i*noteLen+noteLen*3.8);
+                    co.connect(cg);cg.connect(bgmGain);co.start(now+i*noteLen);co.stop(now+i*noteLen+noteLen*4);bgmNodes.push(co);
+                }
+            }
+            // Bass — octave below chord root
+            if(i%4===0){
+                var bi=Math.floor(i/4)%chords.length;
+                var bo=ctx.createOscillator();bo.type='sawtooth';bo.frequency.value=chords[bi][0]*0.25;
+                var bg2=ctx.createGain();bg2.gain.setValueAtTime(0.1,now+i*noteLen);
+                bg2.gain.exponentialRampToValueAtTime(0.008,now+i*noteLen+noteLen*3.8);
+                bo.connect(bg2);bg2.connect(bgmGain);bo.start(now+i*noteLen);bo.stop(now+i*noteLen+noteLen*4);bgmNodes.push(bo);
+            }
+        }
+        _bgmTimer=setTimeout(playLoop,mel.length*noteLen*1000);
+    }
+    playLoop();
+}
 
 // Select screen BGM — intense fighting game style
 let selectBgmPlaying=false, selectBgmGain=null, selectBgmNodes=[], selectBgmTimer=null;
@@ -1987,53 +2042,120 @@ function buildCity() {
         _moonOrient(rover,rp.nx,rp.ny,rp.nz);
         rover.rotateY(0.5);
         cityGroup.add(rover);
-        // ---- Gundam-style Lunar City (Von Braun) ----
+        // ---- Grand Lunar City "Von Braun" (Gundam-style) ----
         var lunarCity=new THREE.Group();
-        var lcBase=toon(0x888899),lcWall=toon(0x667788),lcGlow=new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.4});
-        // Main dome
-        var dome=new THREE.Mesh(new THREE.SphereGeometry(3,16,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshPhongMaterial({color:0x8899AA,transparent:true,opacity:0.35,side:THREE.DoubleSide}));
-        lunarCity.add(dome);
-        // Base platform
-        var lcPlat=new THREE.Mesh(new THREE.CylinderGeometry(4,4.5,0.4,16),lcBase);lcPlat.position.y=-0.2;lunarCity.add(lcPlat);
-        // Buildings inside dome
-        for(var lbi=0;lbi<6;lbi++){
-            var lba=lbi/6*Math.PI*2;
-            var lbr=1.5+Math.random()*0.8;
-            var lbh=0.8+Math.random()*1.5;
-            var lb=new THREE.Mesh(new THREE.BoxGeometry(0.6,lbh,0.6),lcWall);
-            lb.position.set(Math.cos(lba)*lbr,lbh/2,Math.sin(lba)*lbr);
-            lunarCity.add(lb);
-            // Window lights
-            var lw=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.1,0.62),lcGlow);
-            lw.position.set(Math.cos(lba)*lbr,lbh*0.6,Math.sin(lba)*lbr);
-            lunarCity.add(lw);
+        var lcBase=toon(0x888899),lcWall=toon(0x667788),lcDark=toon(0x445566);
+        var lcGlow=new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.4});
+        var lcWarm=new THREE.MeshBasicMaterial({color:0xFFCC66,transparent:true,opacity:0.35});
+        // Crater rim (outer wall)
+        var craterRim=new THREE.Mesh(new THREE.TorusGeometry(18,2.5,8,24),toon(0x666677));
+        craterRim.rotation.x=Math.PI/2;craterRim.position.y=1;lunarCity.add(craterRim);
+        // Crater floor (sunken)
+        var craterFloor=new THREE.Mesh(new THREE.CylinderGeometry(17,17,0.5,24),toon(0x555566));
+        craterFloor.position.y=-2;lunarCity.add(craterFloor);
+        // Main dome — large transparent geodesic
+        var mainDome=new THREE.Mesh(new THREE.SphereGeometry(16,24,16,0,Math.PI*2,0,Math.PI/2),
+            new THREE.MeshPhongMaterial({color:0x8899BB,transparent:true,opacity:0.18,side:THREE.DoubleSide}));
+        mainDome.position.y=0;lunarCity.add(mainDome);
+        // Dome wireframe for geodesic look
+        var domeWire=new THREE.Mesh(new THREE.SphereGeometry(16.1,24,16,0,Math.PI*2,0,Math.PI/2),
+            new THREE.MeshBasicMaterial({color:0x6688AA,wireframe:true,transparent:true,opacity:0.25}));
+        lunarCity.add(domeWire);
+        // Central tower (Anaheim Electronics HQ)
+        var aeHQ=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.8,12,8),lcWall);aeHQ.position.y=6;lunarCity.add(aeHQ);
+        var aeTop=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,6),toon(0x99AABB));aeTop.position.y=12.5;lunarCity.add(aeTop);
+        var aeAnt=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,4,4),toon(0xCCCCCC));aeAnt.position.y=15;lunarCity.add(aeAnt);
+        // AE logo glow
+        var aeLogo=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.8,0.1),lcGlow);aeLogo.position.set(0,10,1.85);lunarCity.add(aeLogo);
+        // Ring of tall buildings (commercial district)
+        for(var lbi=0;lbi<12;lbi++){
+            var lba=lbi/12*Math.PI*2;var lbr=8+Math.random()*3;
+            var lbh=3+Math.random()*6;var lbw=1.2+Math.random()*1.5;
+            var lb=new THREE.Mesh(new THREE.BoxGeometry(lbw,lbh,lbw),lbi%3===0?lcDark:lcWall);
+            lb.position.set(Math.cos(lba)*lbr,lbh/2-1,Math.sin(lba)*lbr);lunarCity.add(lb);
+            // Window rows
+            for(var wri=0;wri<Math.floor(lbh/1.2);wri++){
+                var wm=new THREE.Mesh(new THREE.BoxGeometry(lbw*0.7,0.15,lbw+0.05),lcWarm);
+                wm.position.set(Math.cos(lba)*lbr,wri*1.2+0.5,Math.sin(lba)*lbr);lunarCity.add(wm);
+            }
         }
-        // Central tower
-        var lcTower=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,2.5,8),lcWall);lcTower.position.y=1.25;lunarCity.add(lcTower);
-        var lcAnt=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.5,4),toon(0xCCCCCC));lcAnt.position.y=3;lunarCity.add(lcAnt);
-        // Landing pads
-        for(var lpi=0;lpi<3;lpi++){
-            var lpa=lpi/3*Math.PI*2+0.5;
-            var pad=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.08,8),toon(0x556666));
-            pad.position.set(Math.cos(lpa)*5.5,0,Math.sin(lpa)*5.5);
-            lunarCity.add(pad);
-            var padLight=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),lcGlow);
-            padLight.position.set(Math.cos(lpa)*5.5,0.15,Math.sin(lpa)*5.5);
-            lunarCity.add(padLight);
+        // Inner ring — residential towers
+        for(var lri=0;lri<8;lri++){
+            var lra=lri/8*Math.PI*2+0.4;var lrr=4+Math.random()*2;
+            var lrh=2+Math.random()*4;
+            var lr=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.8,lrh,6),lcWall);
+            lr.position.set(Math.cos(lra)*lrr,lrh/2-1,Math.sin(lra)*lrr);lunarCity.add(lr);
+            var lrw=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.1,1.3),lcWarm);
+            lrw.position.set(Math.cos(lra)*lrr,lrh*0.6,Math.sin(lra)*lrr);lunarCity.add(lrw);
         }
-        // Solar panels
-        for(var spi=0;spi<4;spi++){
-            var spa=spi/4*Math.PI*2+Math.PI/4;
-            var panel=new THREE.Mesh(new THREE.BoxGeometry(2,0.04,0.8),toon(0x224488));
-            panel.position.set(Math.cos(spa)*6,1.5+Math.sin(spi)*0.3,Math.sin(spa)*6);
-            panel.rotation.y=spa;
-            lunarCity.add(panel);
+        // Spaceport — 4 large landing pads on crater rim
+        for(var spi2=0;spi2<4;spi2++){
+            var spa2=spi2/4*Math.PI*2+Math.PI/8;var spr=19;
+            var sPad=new THREE.Mesh(new THREE.CylinderGeometry(3,3,0.3,12),toon(0x556666));
+            sPad.position.set(Math.cos(spa2)*spr,1.5,Math.sin(spa2)*spr);lunarCity.add(sPad);
+            // Pad markings
+            var sMark=new THREE.Mesh(new THREE.RingGeometry(1.5,2,12),new THREE.MeshBasicMaterial({color:0xFFAA00,transparent:true,opacity:0.5,side:THREE.DoubleSide}));
+            sMark.rotation.x=-Math.PI/2;sMark.position.set(Math.cos(spa2)*spr,1.7,Math.sin(spa2)*spr);lunarCity.add(sMark);
+            // Control tower
+            var sTower=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,3,6),lcWall);
+            sTower.position.set(Math.cos(spa2)*(spr+3),3,Math.sin(spa2)*(spr+3));lunarCity.add(sTower);
+            var sLight=new THREE.Mesh(new THREE.SphereGeometry(0.3,4,3),lcGlow);
+            sLight.position.set(Math.cos(spa2)*(spr+3),4.6,Math.sin(spa2)*(spr+3));lunarCity.add(sLight);
         }
-        // Place on opposite side from Apollo
-        var lcp=_moonProject(-15,15);
+        // Mass driver — long rail extending from city
+        var mdGroup=new THREE.Group();
+        var mdRail=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.4,40),toon(0x556677));mdRail.position.z=20;mdGroup.add(mdRail);
+        var mdRail2=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.8,40),toon(0x445566));mdRail2.position.set(-0.8,0.4,20);mdGroup.add(mdRail2);
+        var mdRail3=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.8,40),toon(0x445566));mdRail3.position.set(0.8,0.4,20);mdGroup.add(mdRail3);
+        // Electromagnetic coils along rail
+        for(var mci=0;mci<8;mci++){
+            var mc=new THREE.Mesh(new THREE.TorusGeometry(1.2,0.15,6,12),toon(0x4466AA));
+            mc.position.set(0,0.8,mci*5+2);mc.rotation.y=Math.PI/2;mdGroup.add(mc);
+        }
+        mdGroup.position.set(22,0,0);mdGroup.rotation.y=Math.PI/4;lunarCity.add(mdGroup);
+        // Solar panel arrays (large, on stilts)
+        for(var sai=0;sai<6;sai++){
+            var saa=sai/6*Math.PI*2+Math.PI/6;var sar=24+Math.random()*4;
+            var saG=new THREE.Group();
+            var saPole=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,5,4),toon(0x888888));saPole.position.y=2.5;saG.add(saPole);
+            var saPanel=new THREE.Mesh(new THREE.BoxGeometry(5,0.08,2.5),toon(0x224488));saPanel.position.y=5.2;saG.add(saPanel);
+            var saFrame=new THREE.Mesh(new THREE.BoxGeometry(5.2,0.15,0.1),toon(0x666666));saFrame.position.y=5.2;saG.add(saFrame);
+            saG.position.set(Math.cos(saa)*sar,0,Math.sin(saa)*sar);
+            saG.rotation.y=saa+Math.PI/2;lunarCity.add(saG);
+        }
+        // Fiber-optic light viaducts (glowing tubes inside dome)
+        for(var fvi=0;fvi<6;fvi++){
+            var fva=fvi/6*Math.PI*2;
+            var fv=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,14,6),
+                new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.25}));
+            fv.position.set(Math.cos(fva)*12,7,Math.sin(fva)*12);
+            fv.rotation.z=Math.PI/2*0.3;fv.rotation.y=fva;lunarCity.add(fv);
+        }
+        // Place Von Braun on moon surface
+        var lcp=_moonProject(-20,20);
         lunarCity.position.set(lcp.x,lcp.y,lcp.z);
         _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
         cityGroup.add(lunarCity);
+        // ---- Granada (second city, far side) ----
+        var granada=new THREE.Group();
+        var grRim=new THREE.Mesh(new THREE.TorusGeometry(10,1.5,8,20),toon(0x556666));
+        grRim.rotation.x=Math.PI/2;grRim.position.y=0.5;granada.add(grRim);
+        var grDome=new THREE.Mesh(new THREE.SphereGeometry(9,20,12,0,Math.PI*2,0,Math.PI/2),
+            new THREE.MeshPhongMaterial({color:0x667766,transparent:true,opacity:0.15,side:THREE.DoubleSide}));
+        granada.add(grDome);
+        // Military hangars
+        for(var ghi=0;ghi<6;ghi++){
+            var gha=ghi/6*Math.PI*2;var ghr=5+Math.random()*2;
+            var gh=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),toon(0x445544));
+            gh.position.set(Math.cos(gha)*ghr,0.5,Math.sin(gha)*ghr);gh.rotation.y=gha;granada.add(gh);
+            var ghd=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,0.1),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.3}));
+            ghd.position.set(Math.cos(gha)*(ghr+1.5),0.6,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
+        }
+        var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.2,8,8),toon(0x556655));grTower.position.y=4;granada.add(grTower);
+        var grp=_moonProject(25,-25);
+        granada.position.set(grp.x,grp.y,grp.z);
+        _moonOrient(granada,grp.nx,grp.ny,grp.nz);
+        cityGroup.add(granada);
         // Earth in sky — positioned relative to sphere center, far away
         var earthGroup=new THREE.Group();
         var earth=new THREE.Mesh(new THREE.SphereGeometry(30,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
@@ -5530,6 +5652,21 @@ function updateCity(){
                 bb.mesh.scale.multiplyScalar(1.1);
             } else {
                 bb.mesh.material.opacity=Math.max(0,bb.life/35);
+                // Beam hits eggs (same as being thrown)
+                if(!bb._hitEgg)for(var _bei=0;_bei<allEggs.length;_bei++){
+                    var _be=allEggs[_bei];if(!_be.alive||_be.heldBy||_be.throwTimer>0)continue;
+                    var _bdx=_be.mesh.position.x-bb.mesh.position.x;
+                    var _bdy=_be.mesh.position.y-bb.mesh.position.y;
+                    var _bdz=_be.mesh.position.z-bb.mesh.position.z;
+                    var _bd=Math.sqrt(_bdx*_bdx+_bdy*_bdy+_bdz*_bdz);
+                    if(_bd<2.0){
+                        var _bImp=0.15;
+                        _be.vx+=bb.vx*_bImp;_be.vy+=bb.vy*_bImp+0.1;_be.vz+=bb.vz*_bImp;
+                        _be.throwTimer=15;_be._bounces=1;_be.squash=0.5;
+                        if(_be.isPlayer)playHitSound();
+                        bb._hitEgg=true;bb.life=Math.min(bb.life,3);break;
+                    }
+                }
             }
             if(bb.life<=0){scene.remove(bb.mesh);window._moonBeams.splice(bbi,1);}
         }
@@ -5551,6 +5688,20 @@ function updateCity(){
                 mm.trail[ti].mesh.material.opacity=mm.trail[ti].life/20*0.5;
                 mm.trail[ti].mesh.scale.multiplyScalar(1.04);
                 if(mm.trail[ti].life<=0){scene.remove(mm.trail[ti].mesh);mm.trail.splice(ti,1);}
+            }
+            // Missile hits eggs
+            if(!mm._hitEgg)for(var _mei=0;_mei<allEggs.length;_mei++){
+                var _me=allEggs[_mei];if(!_me.alive||_me.heldBy||_me.throwTimer>0)continue;
+                var _mdx=_me.mesh.position.x-mm.group.position.x;
+                var _mdy=_me.mesh.position.y-mm.group.position.y;
+                var _mdz=_me.mesh.position.z-mm.group.position.z;
+                var _md=Math.sqrt(_mdx*_mdx+_mdy*_mdy+_mdz*_mdz);
+                if(_md<3.0){
+                    var _mImp=0.2;if(_md>0.1){_me.vx+=_mdx/_md*_mImp;_me.vy+=_mdy/_md*_mImp+0.15;_me.vz+=_mdz/_md*_mImp;}
+                    _me.throwTimer=20;_me._bounces=1;_me.squash=0.4;
+                    if(_me.isPlayer)playHitSound();
+                    mm._hitEgg=true;mm.life=0;break;
+                }
             }
             // Missile expired — big explosion
             if(mm.life<=0){
