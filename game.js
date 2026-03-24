@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.34';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.35';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2313,9 +2313,9 @@ function buildCity() {
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
             // Chaotic spawn: random position in sphere shell around moon
-            var gAlt=15+Math.random()*80;
-            if(mu.ms==='sdf1')gAlt=90+Math.random()*50;
-            if(mu.ms==='zenCruiser')gAlt=70+Math.random()*50;
+            var gAlt=120+Math.random()*100;
+            if(mu.ms==='sdf1')gAlt=200+Math.random()*80;
+            if(mu.ms==='zenCruiser')gAlt=160+Math.random()*80;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.7;
             var gOrbitR=MOON_R+gAlt;
@@ -2332,7 +2332,7 @@ function buildCity() {
             // Random waypoint AI state
             var wpAngle=Math.random()*Math.PI*2;
             var wpElev=(Math.random()-0.5)*Math.PI*0.6;
-            var wpR=MOON_R+15+Math.random()*80;
+            var wpR=MOON_R+120+Math.random()*100;
             window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,
                 px:gx2,py:gy2,pz:gz2,
                 wpAngle:wpAngle,wpElev:wpElev,wpR:wpR,
@@ -3957,12 +3957,12 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         if(egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         }else{egg.onGround=false;}
-        // City bounds
+        // City bounds — air wall bounce
         const bound=CITY_SIZE-1;
-        if(egg.mesh.position.x>bound)egg.mesh.position.x=bound;
-        if(egg.mesh.position.x<-bound)egg.mesh.position.x=-bound;
-        if(egg.mesh.position.z>bound)egg.mesh.position.z=bound;
-        if(egg.mesh.position.z<-bound)egg.mesh.position.z=-bound;
+        if(egg.mesh.position.x>bound){egg.mesh.position.x=bound;egg.vx=-Math.abs(egg.vx)*0.5;}
+        if(egg.mesh.position.x<-bound){egg.mesh.position.x=-bound;egg.vx=Math.abs(egg.vx)*0.5;}
+        if(egg.mesh.position.z>bound){egg.mesh.position.z=bound;egg.vz=-Math.abs(egg.vz)*0.5;}
+        if(egg.mesh.position.z<-bound){egg.mesh.position.z=-bound;egg.vz=Math.abs(egg.vz)*0.5;}
         // Building collisions — can land on roof
         // Thrown eggs: check building wall collision → drop coins + stop
         if(egg.throwTimer>0){
@@ -5050,6 +5050,8 @@ function handlePlayerInput(){
         }
         if(nearest){
             playerEgg.holding=nearest; nearest.heldBy=playerEgg;
+            // Drop any prop the grabbed NPC was holding
+            if(nearest.holdingProp){nearest.holdingProp.grabbed=false;nearest.holdingProp=null;}
             nearest.struggleMax=300+Math.floor(Math.random()*240); nearest.struggleTimer=nearest.struggleMax;
             playerEgg.grabCD=20; playGrabSound();
             playerEgg._justGrabbed=true;
@@ -5407,6 +5409,24 @@ function updateCity(){
                 }
             } else {
                 if(c.mesh.position.y<1.2){c.mesh.position.y=1.2;c._scatterVY=Math.abs(c._scatterVY)*0.5;c._scatterVX*=0.7;c._scatterVZ*=0.7;}
+                // Building wall bounce for scattered coins
+                for(var _sci=0;_sci<cityColliders.length;_sci++){
+                    var _sc=cityColliders[_sci];
+                    var _scdx=c.mesh.position.x-_sc.x, _scdz=c.mesh.position.z-_sc.z;
+                    if(Math.abs(_scdx)<_sc.hw+0.5&&Math.abs(_scdz)<_sc.hd+0.5&&c.mesh.position.y<(_sc.h||6)){
+                        var _scox=_sc.hw+0.5-Math.abs(_scdx);
+                        var _scoz=_sc.hd+0.5-Math.abs(_scdz);
+                        if(_scox<_scoz){c.mesh.position.x+=(_scdx>=0?1:-1)*_scox;c._scatterVX*=-0.5;}
+                        else{c.mesh.position.z+=(_scdz>=0?1:-1)*_scoz;c._scatterVZ*=-0.5;}
+                        break;
+                    }
+                }
+                // City boundary bounce for coins
+                var _cb=CITY_SIZE-1;
+                if(c.mesh.position.x>_cb){c.mesh.position.x=_cb;c._scatterVX=-Math.abs(c._scatterVX)*0.4;}
+                if(c.mesh.position.x<-_cb){c.mesh.position.x=-_cb;c._scatterVX=Math.abs(c._scatterVX)*0.4;}
+                if(c.mesh.position.z>_cb){c.mesh.position.z=_cb;c._scatterVZ=-Math.abs(c._scatterVZ)*0.4;}
+                if(c.mesh.position.z<-_cb){c.mesh.position.z=-_cb;c._scatterVZ=Math.abs(c._scatterVZ)*0.4;}
             }
             if(c._scatterTimer<=0){
                 // Settle coin at final position
@@ -5708,7 +5728,7 @@ function updateCity(){
                     scene.add(_newGd.group);
                     _dm.group=_newGd.group;_dm.funnels=_newGd.funnels||null;_dm.saberMesh=_newGd.saberMesh||null;_dm.weapon=_newGd.weapon||null;
                     _dm.hp=_dm.hpMax;_dm._dead=false;
-                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;_dm.wpR=MOON_R+15+Math.random()*80;
+                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;_dm.wpR=MOON_R+120+Math.random()*100;
                     _dm.wpTimer=5;
                 }
                 continue;
@@ -5959,7 +5979,7 @@ function updateHeldEggs(){
     // ---- NPC grab AI (low chance, very close range) ----
     for(var n=0;n<allEggs.length;n++){
         var npc=allEggs[n];
-        if(npc.isPlayer||!npc.alive||npc.heldBy||npc.holding||npc.grabCD>0)continue;
+        if(npc.isPlayer||!npc.alive||npc.heldBy||npc.holding||npc.holdingProp||npc.grabCD>0)continue;
         if(npc.grabCD>0){npc.grabCD--;continue;}
         if(Math.random()>0.004)continue; // very low chance per frame
         // Find nearest non-held egg within 1.5 distance
@@ -5974,10 +5994,63 @@ function updateHeldEggs(){
         }
         if(best){
             npc.holding=best;best.heldBy=npc;
+            // Drop any prop the grabbed NPC was holding
+            if(best.holdingProp){best.holdingProp.grabbed=false;best.holdingProp=null;}
             npc.grabCD=30;
             best.struggleMax=240+Math.floor(Math.random()*240);
             best.struggleTimer=best.struggleMax;
             playGrabSound();
+        } else if(gameState==='city'){
+            // NPC grab city prop if no egg nearby
+            var bestProp=null,bestPD=2.5;
+            for(var pp2=0;pp2<cityProps.length;pp2++){
+                var cp2=cityProps[pp2];
+                if(cp2.grabbed)continue;
+                var cpdx=cp2.group.position.x-npc.mesh.position.x;
+                var cpdz=cp2.group.position.z-npc.mesh.position.z;
+                var cpd2=Math.sqrt(cpdx*cpdx+cpdz*cpdz);
+                if(cpd2<bestPD){bestPD=cpd2;bestProp=cp2;}
+            }
+            if(bestProp){
+                npc.holdingProp=bestProp;
+                bestProp.grabbed=true;
+                bestProp.throwTimer=0;bestProp.throwVx=0;bestProp.throwVy=0;bestProp.throwVz=0;
+                bestProp.group.rotation.set(0,0,0);
+                npc.grabCD=30;
+                npc._npcPropHoldTimer=90+Math.floor(Math.random()*120);
+                playGrabSound();
+            }
+        }
+    }
+    // ---- NPC throw held props ----
+    for(var np2=0;np2<allEggs.length;np2++){
+        var npc2=allEggs[np2];
+        if(npc2.isPlayer||!npc2.alive||!npc2.holdingProp)continue;
+        var hp=npc2.holdingProp;
+        hp.group.position.x=npc2.mesh.position.x;
+        hp.group.position.y=npc2.mesh.position.y+1.8;
+        hp.group.position.z=npc2.mesh.position.z;
+        if(!npc2._npcPropHoldTimer)npc2._npcPropHoldTimer=60;
+        npc2._npcPropHoldTimer--;
+        if(npc2._npcPropHoldTimer<=0){
+            // Throw prop toward nearest egg
+            var throwDir2=npc2.mesh.rotation.y;
+            var nearTgt=null,nearTD=20;
+            for(var nt=0;nt<allEggs.length;nt++){
+                var tgt=allEggs[nt];
+                if(tgt===npc2||!tgt.alive||tgt.heldBy)continue;
+                var ntdx=tgt.mesh.position.x-npc2.mesh.position.x;
+                var ntdz=tgt.mesh.position.z-npc2.mesh.position.z;
+                var ntd=Math.sqrt(ntdx*ntdx+ntdz*ntdz);
+                if(ntd<nearTD){nearTD=ntd;nearTgt=tgt;throwDir2=Math.atan2(ntdx,ntdz);}
+            }
+            npc2.holdingProp=null;
+            var pw2=hp.weight||1.0;var pf2=2.5/pw2;
+            hp.throwVx=Math.sin(throwDir2)*pf2;hp.throwVy=0.18;hp.throwVz=Math.cos(throwDir2)*pf2;
+            hp._bounces=2;hp.throwTimer=25;
+            hp.group.position.set(npc2.mesh.position.x+Math.sin(throwDir2)*1.5,npc2.mesh.position.y+0.5,npc2.mesh.position.z+Math.cos(throwDir2)*1.5);
+            npc2.grabCD=40;
+            playThrowSound();
         }
     }
     // Update held city prop position
@@ -6018,6 +6091,12 @@ function updateHeldEggs(){
                 tp.throwTimer=1;playHitSound();break;
             }
         }
+        // City boundary air wall bounce for props
+        var _pb=CITY_SIZE-1;
+        if(tp.group.position.x>_pb){tp.group.position.x=_pb;tp.throwVx=-Math.abs(tp.throwVx)*0.4;}
+        if(tp.group.position.x<-_pb){tp.group.position.x=-_pb;tp.throwVx=Math.abs(tp.throwVx)*0.4;}
+        if(tp.group.position.z>_pb){tp.group.position.z=_pb;tp.throwVz=-Math.abs(tp.throwVz)*0.4;}
+        if(tp.group.position.z<-_pb){tp.group.position.z=-_pb;tp.throwVz=Math.abs(tp.throwVz)*0.4;}
         if(tp.group.position.y<0.01&&tp.throwVy<0){
             if(tp._bounces>0){tp._bounces--;tp.throwVy=Math.abs(tp.throwVy)*0.45;tp.throwVx*=0.7;tp.throwVz*=0.7;tp.group.position.y=0.01;playHitSound();}
             else{tp.group.position.y=0.01;tp.throwTimer=0;tp.grabbed=false;tp.group.rotation.set(Math.PI/2*(Math.random()*0.4+0.8)*(Math.random()<0.5?1:-1),Math.random()*Math.PI*2,0);tp.x=tp.group.position.x;tp.z=tp.group.position.z;}
