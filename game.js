@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.45';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.46';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -4499,7 +4499,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var wp=warpPipeMeshes[wpi];
                 var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
                 var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                if(wdist<3.5&&!wp._cooldown&&!_pipeTraveling){
+                if(wdist<3.5&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing){
                     wp._cooldown=true;
                     startPipeTravel(wp.x,wp.z,wp.targetStyle);
                     return; // player is now in pipe travel mode
@@ -4507,7 +4507,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 if(wdist>5)wp._cooldown=false;
             }
             // Cloud world moon pipe — proximity prompt
-            if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen){
+            if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen&&!_spinDashing){
                 var mp=_cloudWorldPipe;
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
                 var mdy=egg.mesh.position.y-mp.y;
@@ -5358,6 +5358,22 @@ function handlePlayerInput(){
                     playHitSound();
                 }
             }
+            // Hit city props while spin dashing — knock them away
+            for(var sdpi=0;sdpi<cityProps.length;sdpi++){
+                var sdp=cityProps[sdpi];
+                if(sdp.grabbed)continue;
+                var spdx=sdp.group.position.x-playerEgg.mesh.position.x;
+                var spdz=sdp.group.position.z-playerEgg.mesh.position.z;
+                var spdy=sdp.group.position.y-playerEgg.mesh.position.y;
+                if(currentCityStyle!==5&&Math.abs(spdy)>1.5)continue;
+                var spdd=Math.sqrt(spdx*spdx+spdz*spdz+spdy*spdy);
+                if(spdd<3.0&&spdd>0.01){
+                    var spForce=_spinDashSpeed*1.5;
+                    sdp.throwVx=spdx/spdd*spForce;sdp.throwVy=0.15+spForce*0.2;sdp.throwVz=spdz/spdd*spForce;
+                    sdp.throwTimer=30;sdp._bounces=2;
+                    playHitSound();
+                }
+            }
         }
     }
     // Charge jump: release Space within 0.3s = normal jump, hold past 0.3s = charge mode
@@ -5958,8 +5974,9 @@ function updateCity(){
     }
 
     // Check portal proximity — show prompt on base, enter when walk into ring
+    // Skip portal triggers while spin dashing
     if(_pipeArrivalCooldown>0)_pipeArrivalCooldown--;
-    if(_pipeTraveling||_pipeArrivalCooldown>0){document.getElementById('portal-prompt').style.display='none';} else {
+    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing){document.getElementById('portal-prompt').style.display='none';} else {
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
     var _nearP=null, _nearD=9999;
@@ -6095,7 +6112,7 @@ function updateCity(){
         _babylonTower.group.position.y=_babylonRiseY;
     }
     // ---- Tower of Babel door collision ----
-    if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator){
+    if(_babylonTower&&!_babylonRising&&!_pipeTraveling&&!_portalConfirmOpen&&!_babylonElevator&&!_spinDashing){
         var bt=_babylonTower;
         // Door is on +Z face of tower (bottom entrance)
         var doorX=bt.x, doorZ=bt.z+8.5;
