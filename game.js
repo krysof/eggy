@@ -5721,7 +5721,6 @@ function updateHeldEggs(){
     for(var tpi=0;tpi<cityProps.length;tpi++){
         var tp=cityProps[tpi];
         if(tp.throwTimer<=0)continue;
-        if(tp.grabbed)continue;
         tp.throwTimer--;
         if(tp.throwTimer<=0){
             // Throw ended — reset grabbed state
@@ -5790,7 +5789,6 @@ function updateHeldEggs(){
     for(var ti=0;ti<obstacleObjects.length;ti++){
         var tob=obstacleObjects[ti];
         if(!tob._throwTimer||tob._throwTimer<=0)continue;
-        if(tob._grabbed)continue;
         tob._throwTimer--;
         tob.mesh.position.x+=tob._throwVx;
         tob.mesh.position.y+=tob._throwVy;
