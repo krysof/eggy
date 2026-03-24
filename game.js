@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.43';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.44';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1198,7 +1198,40 @@ function _removeStunStars(egg){
 }
 
 // ---- Sonic spin dash state ----
-var _spinDashing=false, _spinDashTimer=0, _spinDashSpeed=0;
+var _spinDashing=false, _spinDashTimer=0, _spinDashTimerMax=0, _spinDashSpeed=0;
+var _spinDashBar=null;
+function _createSpinDashBar(){
+    var canvas=document.createElement('canvas');
+    canvas.width=256;canvas.height=40;
+    var tex=new THREE.CanvasTexture(canvas);
+    tex.minFilter=THREE.LinearFilter;
+    var mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+    var sprite=new THREE.Sprite(mat);
+    sprite.scale.set(2.5,0.4,1);
+    sprite.renderOrder=1002;
+    sprite._canvas=canvas;sprite._ctx=canvas.getContext('2d');sprite._tex=tex;
+    return sprite;
+}
+function _drawSpinDashBar(sprite,pct){
+    var ctx=sprite._ctx,w=256,h=40;
+    ctx.clearRect(0,0,w,h);
+    function rr(x,y,rw,rh,rad){ctx.beginPath();ctx.moveTo(x+rad,y);ctx.lineTo(x+rw-rad,y);ctx.quadraticCurveTo(x+rw,y,x+rw,y+rad);ctx.lineTo(x+rw,y+rh-rad);ctx.quadraticCurveTo(x+rw,y+rh,x+rw-rad,y+rh);ctx.lineTo(x+rad,y+rh);ctx.quadraticCurveTo(x,y+rh,x,y+rh-rad);ctx.lineTo(x,y+rad);ctx.quadraticCurveTo(x,y,x+rad,y);ctx.closePath();}
+    ctx.fillStyle='rgba(0,0,0,0.85)';
+    rr(2,2,w-4,h-4,8);ctx.fill();
+    // Cyan → blue as it depletes
+    var r2=0,g2=Math.floor(180+75*pct),b3=255;
+    ctx.strokeStyle='rgba('+r2+','+g2+','+b3+','+(0.6+Math.sin(Date.now()*0.02)*0.2)+')';
+    ctx.lineWidth=3;rr(5,5,w-10,h-10,6);ctx.stroke();
+    var fw=Math.max(4,(w-20)*pct);
+    var grad=ctx.createLinearGradient(10,0,10+fw,0);
+    grad.addColorStop(0,'rgb(0,'+Math.floor(g2*0.7)+',200)');
+    grad.addColorStop(1,'rgb('+r2+','+g2+','+b3+')');
+    ctx.fillStyle=grad;
+    rr(10,10,fw,h-20,4);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    rr(10,10,fw,Math.floor((h-20)/2),4);ctx.fill();
+    sprite._tex.needsUpdate=true;
+}
 
 // ---- Sprint bar (gradual charge like jump bar) ----
 var _sprintBar=null, _sprintCharge=0, _sprintChargeMax=40;
@@ -1281,7 +1314,8 @@ function _updateSprintBar(holdingF){
             var sdPct=_sprintCharge/_sprintChargeMax;
             _spinDashing=true;
             _spinDashTimer=Math.floor(80+sdPct*160);
-            _spinDashSpeed=MAX_SPEED*2.0;
+            _spinDashTimerMax=_spinDashTimer;
+            _spinDashSpeed=MAX_SPEED*4.0;
             // Store dash direction from player facing
             var dashDir=playerEgg.mesh.rotation.y;
             playerEgg._dashDirX=Math.sin(dashDir);
@@ -5239,7 +5273,7 @@ function handlePlayerInput(){
     // ---- Sonic spin dash ----
     if(_spinDashing){
         _spinDashTimer--;
-        if(_spinDashTimer<=0){_spinDashing=false;_spinDashSpeed=0;}
+        if(_spinDashTimer<=0){_spinDashing=false;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
         else{
             // Steering during spin dash — WASD/joystick can curve the direction
             var sdSteerX=0, sdSteerZ=0;
@@ -5289,7 +5323,13 @@ function handlePlayerInput(){
                 playerEgg.vx=playerEgg._dashDirX*_spinDashSpeed;
                 playerEgg.vz=playerEgg._dashDirZ*_spinDashSpeed;
             }
-            _spinDashSpeed*=0.985; // slower decay for longer distance
+            // No speed decay — constant speed until bar depletes
+            // Show spin dash progress bar
+            var sdBarPct=_spinDashTimer/_spinDashTimerMax;
+            if(!_spinDashBar){_spinDashBar=_createSpinDashBar();scene.add(_spinDashBar);}
+            _spinDashBar.visible=true;
+            _spinDashBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+2.8,playerEgg.mesh.position.z);
+            _drawSpinDashBar(_spinDashBar,sdBarPct);
             // Spin the egg body rapidly
             playerEgg.mesh.rotation.x+=0.6;
             playerEgg.squash=1.0; // keep normal scale — no sinking
@@ -6914,7 +6954,7 @@ function showScreen(id){
 
 function enterCity(spawnX,spawnZ){
     gameState='city';
-    _spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;
+    _spinDashing=false;_spinDashTimer=0;_spinDashTimerMax=0;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;
     showScreen(null);
     stopSelectBGM();
     stopRaceBGM();
