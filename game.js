@@ -3282,7 +3282,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var curStep=Math.floor(egg.walkPhase/Math.PI);
             if(curStep>prevStep)playStepSound();
         }
-        if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){egg._dropCoinsOnLand=false;egg._coinsDropped=false;}}
+        if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){
+            if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+            egg._dropCoinsOnLand=false;egg._coinsDropped=false;
+        }}
         // Squash recovery
         egg.squash+=(1-egg.squash)*0.1;
         var body=egg.mesh.userData.body;
@@ -3328,7 +3331,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
 
     if(isCity){
         // City ground
-        if(egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;}else{egg.onGround=false;}
+        if(egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
+            if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+        }else{egg.onGround=false;}
         // City bounds
         const bound=CITY_SIZE-1;
         if(egg.mesh.position.x>bound)egg.mesh.position.x=bound;
@@ -3493,7 +3498,11 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         }
     }
 
-    if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){egg._dropCoinsOnLand=false;egg._coinsDropped=false;}}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
+    if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){
+        // Fallback: drop coins when throw ends if not already dropped
+        if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+        egg._dropCoinsOnLand=false;egg._coinsDropped=false;
+    }}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
 
     // Walk anim
     var speed=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
@@ -3979,6 +3988,18 @@ function updateCityNPC(egg){if(egg.heldBy)return;
 // ---- Drop stolen coins from NPC ----
 function _dropNpcStolenCoins(egg){
     if(!egg._stolenCoins||egg._stolenCoins.length===0)return;
+    // Play scatter sound
+    if(sfxEnabled){
+        var ctx=ensureAudio();
+        [600,900,1100,700].forEach(function(f,i){
+            var osc=ctx.createOscillator();var g=ctx.createGain();
+            osc.type='sine';osc.frequency.value=f;
+            g.gain.setValueAtTime(0.1,ctx.currentTime+i*0.06);
+            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+i*0.06+0.1);
+            osc.connect(g);g.connect(ctx.destination);
+            osc.start(ctx.currentTime+i*0.06);osc.stop(ctx.currentTime+i*0.06+0.1);
+        });
+    }
     for(var di=0;di<egg._stolenCoins.length;di++){
         var coinIdx=egg._stolenCoins[di];
         if(coinIdx>=0&&coinIdx<cityCoins.length){
@@ -3988,12 +4009,12 @@ function _dropNpcStolenCoins(egg){
             dc.mesh.visible=true;
             // Sonic-style scatter: coins fly outward in arcs
             var angle=di*(Math.PI*2/egg._stolenCoins.length)+Math.random()*0.5;
-            var scatterSpeed=0.12+Math.random()*0.08;
+            var scatterSpeed=0.18+Math.random()*0.12;
             var svx=Math.cos(angle)*scatterSpeed;
             var svz=Math.sin(angle)*scatterSpeed;
-            var svy=0.18+Math.random()*0.1;
-            dc.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1,egg.mesh.position.z);
-            dc._scatterVX=svx;dc._scatterVY=svy;dc._scatterVZ=svz;dc._scatterTimer=60;
+            var svy=0.25+Math.random()*0.15;
+            dc.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1.5,egg.mesh.position.z);
+            dc._scatterVX=svx;dc._scatterVY=svy;dc._scatterVZ=svz;dc._scatterTimer=80;
             if(currentCityStyle===5){
                 dc._moonBasePos=null; // will be set when scatter ends
                 dc.baseY=undefined;
@@ -4003,8 +4024,10 @@ function _dropNpcStolenCoins(egg){
         }
     }
     // Remove visual coin meshes from NPC
-    for(var ri=0;ri<egg._stolenCoinMeshes.length;ri++){
-        egg.mesh.remove(egg._stolenCoinMeshes[ri]);
+    if(egg._stolenCoinMeshes){
+        for(var ri=0;ri<egg._stolenCoinMeshes.length;ri++){
+            egg.mesh.remove(egg._stolenCoinMeshes[ri]);
+        }
     }
     egg._stolenCoins=[];
     egg._stolenCoinMeshes=[];
