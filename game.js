@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.36';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.37';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3821,6 +3821,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         egg.vy=tvy+vRad*ny;
         egg.vz=tvz+vRad*nz;
         // Apply velocity
+        egg._prevY=egg.mesh.position.y;
         egg.mesh.position.x+=egg.vx+(egg.conveyorVx||0);
         egg.mesh.position.y+=egg.vy;
         egg.mesh.position.z+=egg.vz+(egg.conveyorVz||0);
@@ -3884,7 +3885,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var curStep=Math.floor(egg.walkPhase/Math.PI);
             if(curStep>prevStep)playStepSound();
         }
-        if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){
+        if(egg.throwTimer>0){egg.throwTimer--;var _eDrag=egg._chargeDrag||0.98;egg.vx*=_eDrag;egg.vz*=_eDrag;if(egg.throwTimer<=0){
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
             egg._dropCoinsOnLand=false;egg._coinsDropped=false;
             egg._stunTimer=45;
@@ -3941,6 +3942,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     // ---- Normal flat physics ----
     var grav=GRAVITY;
     egg.vy -= grav;
+    egg._prevY=egg.mesh.position.y;
     egg.mesh.position.x += egg.vx + (egg.conveyorVx||0);
     egg.mesh.position.y += egg.vy;
     // Thrown egg bounce
@@ -4032,10 +4034,12 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
-                // Babel tower: wider landing range to prevent charge-jump clip-through
+                // Babel tower: wider landing range but skip if egg came from far above (charge-jump to cloud)
                 var landBelow=c._babel?6.0:1.0;
+                var skipBabelSnap=false;
+                if(c._babel&&egg._prevY&&egg._prevY>roofY+10){skipBabelSnap=true;}
                 // On top of building body — land on roof (penetration correction only)
-                if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.vy<=0&&egg.mesh.position.y<=roofY+0.05&&egg.mesh.position.y>=roofY-landBelow){
+                if(!skipBabelSnap&&Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.vy<=0&&egg.mesh.position.y<=roofY+0.05&&egg.mesh.position.y>=roofY-landBelow){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
                 }
                 // Jumping upward past building — let egg phase through walls while going up
@@ -4153,7 +4157,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         }
     }
 
-    if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){
+    if(egg.throwTimer>0){egg.throwTimer--;var _eDrag2=egg._chargeDrag||0.98;egg.vx*=_eDrag2;egg.vz*=_eDrag2;if(egg.throwTimer<=0){
         // Fallback: drop coins when throw ends if not already dropped
         if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         egg._dropCoinsOnLand=false;egg._coinsDropped=false;
@@ -4993,7 +4997,7 @@ function handlePlayerInput(){
                 var held=playerEgg.holding;
                 held.heldBy=null; playerEgg.holding=null; if(held.struggleBar){held.mesh.remove(held.struggleBar);held.struggleBar=null;}
                 held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
-                var tw=held.weight||1.0;var tf=0.3/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.03+chargePct*0.1;held.vz=Math.cos(dir)*tf;held._throwTotal=60+Math.floor(chargePct*60);held.throwTimer=held._throwTotal;held._bounces=2;
+                var tw=held.weight||1.0;var tf=0.3/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.03+chargePct*0.18;held.vz=Math.cos(dir)*tf;held._throwTotal=60+Math.floor(chargePct*80);held.throwTimer=held._throwTotal;held._bounces=2+Math.floor(chargePct*2);held._chargeDrag=0.99-chargePct*0.02;
                 if(currentCityStyle===5&&gameState==='city'){held.vx*=0.3;held.vy*=0.3;held.vz*=0.3;held._throwTotal=60;held.throwTimer=60;}
                 held.squash=0.5; playerEgg.grabCD=20;
                 playThrowSound();
@@ -5001,7 +5005,7 @@ function handlePlayerInput(){
             } else if(playerEgg.holdingProp){
                 var prop=playerEgg.holdingProp;
                 playerEgg.holdingProp=null;
-                var pw=prop.weight||1.0;var pf=2.5/pw*throwMul;prop.throwVx=Math.sin(dir)*pf;prop.throwVy=0.18+chargePct*0.15;prop.throwVz=Math.cos(dir)*pf;prop._bounces=2;prop.throwTimer=25+Math.floor(chargePct*30);
+                var pw=prop.weight||1.0;var pf=2.5/pw*throwMul;prop.throwVx=Math.sin(dir)*pf;prop.throwVy=0.18+chargePct*0.25;prop.throwVz=Math.cos(dir)*pf;prop._bounces=2+Math.floor(chargePct*2);prop.throwTimer=25+Math.floor(chargePct*60);prop._chargeDrag=0.98-chargePct*0.02;
                 prop.group.position.set(playerEgg.mesh.position.x+Math.sin(dir)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*1.5);
                 playerEgg.grabCD=20; playThrowSound();
             } else if(playerEgg.holdingObs){
@@ -5009,7 +5013,7 @@ function handlePlayerInput(){
                 playerEgg.holdingObs=null;
                 obs._grabbed=false;
                 obs.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*1.5);
-                var ow=obs._weight||2.0;var of2=4.5/ow*throwMul;obs._throwVx=Math.sin(dir)*of2;obs._throwVy=0.18+chargePct*0.15;obs._throwVz=Math.cos(dir)*of2;obs._throwTimer=Math.floor((50+20/ow)*(1+chargePct));obs._bounces=2;
+                var ow=obs._weight||2.0;var of2=4.5/ow*throwMul;obs._throwVx=Math.sin(dir)*of2;obs._throwVy=0.18+chargePct*0.25;obs._throwVz=Math.cos(dir)*of2;obs._throwTimer=Math.floor((50+20/ow)*(1+chargePct*1.5));obs._bounces=2+Math.floor(chargePct*2);obs._chargeDrag=0.98-chargePct*0.02;
                 playerEgg.grabCD=20; playThrowSound();
             }
         } else if(_holdingSomething&&!playerEgg._justGrabbed&&playerEgg._fHoldFrames<_throwChargeDelay&&playerEgg._fHoldFrames>0){
@@ -5018,7 +5022,7 @@ function handlePlayerInput(){
                 var prop=playerEgg.holdingProp;
                 playerEgg.holdingProp=null;
                 var dir1=playerEgg.mesh.rotation.y;
-                var pw=prop.weight||1.0;var pf=2.5/pw;prop.throwVx=Math.sin(dir1)*pf;prop.throwVy=0.18;prop.throwVz=Math.cos(dir1)*pf;prop._bounces=2;prop.throwTimer=25;
+                var pw=prop.weight||1.0;var pf=2.5/pw;prop.throwVx=Math.sin(dir1)*pf;prop.throwVy=0.18;prop.throwVz=Math.cos(dir1)*pf;prop._bounces=2;prop.throwTimer=25;prop._chargeDrag=0;
                 prop.group.position.set(playerEgg.mesh.position.x+Math.sin(dir1)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir1)*1.5);
                 playerEgg.grabCD=20; playThrowSound();
             } else if(playerEgg.holdingObs){
@@ -6085,7 +6089,8 @@ function updateHeldEggs(){
         tp.group.position.y+=tp.throwVy;
         tp.group.position.z+=tp.throwVz;
         tp.throwVy-=0.012*(tp.weight||1);
-        tp.throwVx*=0.92; tp.throwVz*=0.92;
+        var _tpDrag=tp._chargeDrag||0.92;
+        tp.throwVx*=_tpDrag; tp.throwVz*=_tpDrag;
         tp.group.rotation.x+=0.25; tp.group.rotation.z+=0.2;
         // Building collision for thrown props
         for(var _tpci=0;_tpci<cityColliders.length;_tpci++){
@@ -6151,7 +6156,8 @@ function updateHeldEggs(){
         tob.mesh.position.y+=tob._throwVy;
         tob.mesh.position.z+=tob._throwVz;
         tob._throwVy-=0.012*(tob._weight||2);
-        tob._throwVx*=0.96; tob._throwVz*=0.96;
+        var _obDrag=tob._chargeDrag||0.96;
+        tob._throwVx*=_obDrag; tob._throwVz*=_obDrag;
         if(tob.mesh.position.y<(tob.data.fy||0)+0.5&&tob._throwVy<0){
             if(tob._bounces>0){tob._bounces--;tob._throwVy=Math.abs(tob._throwVy)*0.45;tob._throwVx*=0.7;tob._throwVz*=0.7;tob.mesh.position.y=(tob.data.fy||0)+0.5;playHitSound();}
             else{tob.mesh.position.y=(tob.data.fy||0)+0.5;tob._throwTimer=0;tob._grabbed=false;}
