@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.34 by \u767D\u6CB3\u6101',zht:'v20260323.34 by \u767D\u6CB3\u6101',ja:'v20260323.34 by \u767D\u6CB3\u6101',en:'v20260323.34 by Kryso'},
+    version:{zhs:'v20260323.35 by \u767D\u6CB3\u6101',zht:'v20260323.35 by \u767D\u6CB3\u6101',ja:'v20260323.35 by \u767D\u6CB3\u6101',en:'v20260323.35 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1837,25 +1837,27 @@ function buildCity() {
         window._moonGundams=[];
         window._moonBeams=[];
         window._moonMissiles=[];
-        // 4 Gundams, 10 GMs, 25 Zakus (various colors), 6 Doms
+        // 6 Gundams, 20 GMs, 60 Zakus (various colors), 14 Doms = 100 units
         var msUnits=[];
         // Gundams (white/blue/red)
-        msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'funnel'});msUnits.push({ms:'gundam',weapon:'rifle'});
+        msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'funnel'});msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'rifle'});
         // GMs (beige/red visor)
-        for(var gmi=0;gmi<10;gmi++){msUnits.push({ms:'gm',weapon:Math.random()<0.6?'rifle':'saber'});}
+        for(var gmi=0;gmi<20;gmi++){msUnits.push({ms:'gm',weapon:Math.random()<0.5?'rifle':Math.random()<0.5?'saber':'missile'});}
         // Zakus — various colors
-        var zakuColors=[0x336633,0x225522,0x447744,0xCC2222,0x882222,0x224488,0x335533,0x556655,0x443366,0x228844,0x336633,0x225522,0x447744,0x336633,0x225522,0x447744,0xCC2222,0x336633,0x225522,0x447744,0x336633,0x225522,0x447744,0x556655,0x336633];
-        for(var zki=0;zki<25;zki++){msUnits.push({ms:'zaku',weapon:Math.random()<0.4?'rifle':Math.random()<0.5?'missile':'rifle',color:zakuColors[zki]});}
+        var zakuColors=[0x336633,0x225522,0x447744,0xCC2222,0x882222,0x224488,0x335533,0x556655,0x443366,0x228844];
+        for(var zki=0;zki<60;zki++){msUnits.push({ms:'zaku',weapon:Math.random()<0.35?'rifle':Math.random()<0.5?'missile':'saber',color:zakuColors[zki%zakuColors.length]});}
         // Doms (dark purple/black)
-        for(var dmi=0;dmi<6;dmi++){msUnits.push({ms:'dom',weapon:'rifle'});}
+        for(var dmi=0;dmi<14;dmi++){msUnits.push({ms:'dom',weapon:Math.random()<0.5?'rifle':'missile'});}
         for(var gi=0;gi<msUnits.length;gi++){
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
-            var gAlt=MOON_R*0.3+Math.random()*MOON_R*1.2;
+            // Lower altitude: close to surface (5-80 units above sphere)
+            var gAlt=5+Math.random()*75;
             var gAngle=Math.random()*Math.PI*2;
-            var gElev=(Math.random()-0.5)*Math.PI*0.8;
+            var gElev=(Math.random()-0.5)*Math.PI*0.7;
             var gOrbitR=MOON_R+gAlt;
-            var gSpeed=(0.003+Math.random()*0.006)*(Math.random()<0.5?1:-1);
+            // Faster speed
+            var gSpeed=(0.008+Math.random()*0.012)*(Math.random()<0.5?1:-1);
             gd.group.position.set(
                 Math.cos(gAngle)*Math.cos(gElev)*gOrbitR,
                 MOON_CY+Math.sin(gElev)*gOrbitR,
@@ -1863,7 +1865,7 @@ function buildCity() {
             );
             scene.add(gd.group);
             var faction=(mu.ms==='gundam'||mu.ms==='gm')?'efsf':'zeon';
-            window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,angle:gAngle,elev:gElev,orbitR:gOrbitR,speed:gSpeed,phase:Math.random()*Math.PI*2,actionTimer:Math.floor(Math.random()*60),funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null});
+            window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,angle:gAngle,elev:gElev,orbitR:gOrbitR,speed:gSpeed,phase:Math.random()*Math.PI*2,actionTimer:Math.floor(Math.random()*30),funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null});
         }
         // Pair up saber units for duels (EFSF vs Zeon)
         var efsfSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&g2.faction==='efsf';});
@@ -3322,7 +3324,24 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         if(egg.mesh.position.z>bound)egg.mesh.position.z=bound;
         if(egg.mesh.position.z<-bound)egg.mesh.position.z=-bound;
         // Building collisions — can land on roof
-        if(egg.throwTimer>0){} else for(const c of cityColliders){
+        // Thrown eggs: check building wall collision → drop coins + stop
+        if(egg.throwTimer>0){
+            for(var tci=0;tci<cityColliders.length;tci++){
+                var tc=cityColliders[tci];
+                var tdx=egg.mesh.position.x-tc.x, tdz=egg.mesh.position.z-tc.z;
+                var tinX=Math.abs(tdx)<tc.hw+egg.radius, tinZ=Math.abs(tdz)<tc.hd+egg.radius;
+                if(tinX&&tinZ&&egg.mesh.position.y<(tc.h||6)-0.3){
+                    // Hit building wall — bounce back and drop coins
+                    var toverlapX=tc.hw+egg.radius-Math.abs(tdx);
+                    var toverlapZ=tc.hd+egg.radius-Math.abs(tdz);
+                    if(toverlapX<toverlapZ){egg.mesh.position.x+=Math.sign(tdx)*toverlapX;egg.vx*=-0.3;}
+                    else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
+                    egg.throwTimer=1; // will reach 0 next frame → triggers coin drop
+                    egg.squash=0.6;playHitSound();
+                    break;
+                }
+            }
+        } else for(const c of cityColliders){
             const dx=egg.mesh.position.x-c.x, dz=egg.mesh.position.z-c.z;
             // Cone roof collision — checked independently of box AABB
             if(c.roofR&&c.roofH){
@@ -4092,26 +4111,25 @@ function handlePlayerInput(){
         mx/=len;mz/=len;
         if(currentCityStyle===5&&gameState==='city'){
             // Moon spherical: convert input to tangent plane movement
+            // Use FIXED world axes projected onto tangent plane (not camera-relative)
+            // This gives direct up/down/left/right control
             var pp=playerEgg.mesh.position;
             var dx=pp.x,dy=pp.y-MOON_CY,dz=pp.z;
             var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
             var nx=dx/d,ny=dy/d,nz=dz/d;
-            // Camera-relative tangent vectors
-            var camFwd=new THREE.Vector3();
-            camera.getWorldDirection(camFwd);
-            // Project camera forward onto tangent plane
-            var dotF=camFwd.x*nx+camFwd.y*ny+camFwd.z*nz;
-            var tfx=camFwd.x-dotF*nx, tfy=camFwd.y-dotF*ny, tfz=camFwd.z-dotF*nz;
-            var tfl=Math.sqrt(tfx*tfx+tfy*tfy+tfz*tfz)||1;
-            tfx/=tfl;tfy/=tfl;tfz/=tfl;
-            // Tangent right = normal × forward
-            var trx=ny*tfz-nz*tfy, try2=nz*tfx-nx*tfz, trz=nx*tfy-ny*tfx;
-            var trl=Math.sqrt(trx*trx+try2*try2+trz*trz)||1;
-            trx/=trl;try2/=trl;trz/=trl;
-            // Apply input in tangent plane
-            var ax=(mx*trx+mz*tfx)*MOVE_ACCEL*accelMul;
-            var ay=(mx*try2+mz*tfy)*MOVE_ACCEL*accelMul;
-            var az=(mx*trz+mz*tfz)*MOVE_ACCEL*accelMul;
+            // Project world X axis onto tangent plane → "right"
+            var wrx=1-nx*nx, wry=-nx*ny, wrz=-nx*nz;
+            var wrl=Math.sqrt(wrx*wrx+wry*wry+wrz*wrz)||1;
+            wrx/=wrl;wry/=wrl;wrz/=wrl;
+            // Project world -Z axis onto tangent plane → "forward" (up on screen)
+            var wfx=-(-nz*nx), wfy=-(-nz*ny), wfz=-(1-nz*nz);
+            // Actually: project (0,0,-1) onto tangent: v - dot(v,n)*n
+            wfx=0-(-1)*nz*nx; wfy=0-(-1)*nz*ny; wfz=-1-(-1)*nz*nz;
+            var wfl=Math.sqrt(wfx*wfx+wfy*wfy+wfz*wfz)||1;
+            wfx/=wfl;wfy/=wfl;wfz/=wfl;
+            var ax=(mx*wrx+mz*wfx)*MOVE_ACCEL*accelMul;
+            var ay=(mx*wry+mz*wfy)*MOVE_ACCEL*accelMul;
+            var az=(mx*wrz+mz*wfz)*MOVE_ACCEL*accelMul;
             playerEgg.vx+=ax;playerEgg.vy+=ay;playerEgg.vz+=az;
         } else {
             playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
@@ -4685,59 +4703,66 @@ function updateCity(){
         for(var ggi=0;ggi<window._moonGundams.length;ggi++){
             var gm=window._moonGundams[ggi];
             gm.angle+=gm.speed;
-            gm.phase+=0.02;
-            // Wobble elevation slightly
-            var eWob=gm.elev+Math.sin(gt*0.5+ggi)*0.05;
+            gm.phase+=0.03;
+            // Wobble elevation
+            var eWob=gm.elev+Math.sin(gt*0.7+ggi)*0.08;
             var gx=Math.cos(gm.angle)*Math.cos(eWob)*gm.orbitR;
             var gy=MOON_CY+Math.sin(eWob)*gm.orbitR;
             var gz=Math.sin(gm.angle)*Math.cos(eWob)*gm.orbitR;
             gm.group.position.set(gx,gy,gz);
-            // Face direction of travel (tangent to orbit)
+            // Face direction of travel
             var tx2=-Math.sin(gm.angle)*Math.cos(eWob);
             var ty2=0;
             var tz2=Math.cos(gm.angle)*Math.cos(eWob);
             if(gm.speed<0){tx2=-tx2;tz2=-tz2;}
             gm.group.lookAt(gx+tx2*10,gy+ty2*10,gz+tz2*10);
-            // Saber duel: swing saber
+            // Saber duel: fast swing
             if(gm.type==='saber'&&gm.saberMesh){
-                gm.saberMesh.rotation.x=-0.3+Math.sin(gt*6+ggi*2)*0.8;
-                gm.saberMesh.rotation.z=Math.sin(gt*5+ggi*3)*0.4;
+                gm.saberMesh.rotation.x=-0.3+Math.sin(gt*8+ggi*2)*0.9;
+                gm.saberMesh.rotation.z=Math.sin(gt*7+ggi*3)*0.5;
+                // Saber clash sparks
+                if(gm.duelPartner&&Math.random()<0.04&&window._moonBeams.length<200){
+                    var sp=new THREE.Mesh(new THREE.SphereGeometry(0.3,4,3),new THREE.MeshBasicMaterial({color:0xFFFF44,transparent:true,opacity:1.0}));
+                    sp.position.set(gx+(Math.random()-0.5)*2,gy+(Math.random()-0.5)*2,gz+(Math.random()-0.5)*2);
+                    scene.add(sp);
+                    window._moonBeams.push({mesh:sp,life:8,vx:(Math.random()-0.5)*0.5,vy:(Math.random()-0.5)*0.5,vz:(Math.random()-0.5)*0.5});
+                }
             }
-            // Funnels: orbit around parent Gundam
+            // Funnels: orbit + shoot
             if(gm.type==='funnel'&&gm.funnels){
                 for(var ffi=0;ffi<gm.funnels.length;ffi++){
                     var ff=gm.funnels[ffi];
-                    ff.angle+=0.04;
-                    var fd=ff.dist+Math.sin(gt*2+ffi)*0.5;
+                    ff.angle+=0.06;
+                    var fd=ff.dist+Math.sin(gt*3+ffi)*0.5;
                     ff.mesh.position.set(Math.cos(ff.angle)*fd,Math.sin(ff.angle*0.7+ffi)*fd*0.5,Math.sin(ff.angle)*fd);
-                    // Funnel beam: 2% chance per frame
-                    if(Math.random()<0.02&&window._moonBeams.length<80){
+                    if(Math.random()<0.03&&window._moonBeams.length<200){
                         var bDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
                         var fWorld=new THREE.Vector3();ff.mesh.getWorldPosition(fWorld);
                         var fb=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,8,4),new THREE.MeshBasicMaterial({color:0xFF44FF,transparent:true,opacity:0.9}));
                         fb.position.copy(fWorld);fb.lookAt(fWorld.x+bDir.x,fWorld.y+bDir.y,fWorld.z+bDir.z);fb.rotateX(Math.PI/2);
                         scene.add(fb);
-                        window._moonBeams.push({mesh:fb,life:30,vx:bDir.x*2,vy:bDir.y*2,vz:bDir.z*2});
+                        window._moonBeams.push({mesh:fb,life:25,vx:bDir.x*3,vy:bDir.y*3,vz:bDir.z*3});
                     }
                 }
             }
-            // Rifle: periodic beam shot
+            // Rifle: frequent beam shots
             gm.actionTimer--;
             if(gm.type==='rifle'&&gm.actionTimer<=0){
-                gm.actionTimer=25+Math.floor(Math.random()*40);
-                if(window._moonBeams.length<80){
-                    var bm=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,12,4),new THREE.MeshBasicMaterial({color:0xFF8844,transparent:true,opacity:0.9}));
+                gm.actionTimer=12+Math.floor(Math.random()*25);
+                if(window._moonBeams.length<200){
+                    var beamColor=gm.faction==='efsf'?0xFF8844:0x44FF44;
+                    var bm=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,12,4),new THREE.MeshBasicMaterial({color:beamColor,transparent:true,opacity:0.9}));
                     var fwd=new THREE.Vector3(tx2,ty2,tz2).normalize();
                     bm.position.set(gx+fwd.x*3,gy+fwd.y*3,gz+fwd.z*3);
                     bm.lookAt(gx+fwd.x*20,gy+fwd.y*20,gz+fwd.z*20);bm.rotateX(Math.PI/2);
                     scene.add(bm);
-                    window._moonBeams.push({mesh:bm,life:40,vx:fwd.x*3,vy:fwd.y*3,vz:fwd.z*3});
+                    window._moonBeams.push({mesh:bm,life:35,vx:fwd.x*4,vy:fwd.y*4,vz:fwd.z*4});
                 }
             }
-            // Missile: periodic launch
+            // Missile: frequent launch
             if(gm.type==='missile'&&gm.actionTimer<=0){
-                gm.actionTimer=40+Math.floor(Math.random()*60);
-                if(window._moonMissiles.length<60){
+                gm.actionTimer=20+Math.floor(Math.random()*35);
+                if(window._moonMissiles.length<100){
                     var mg=new THREE.Group();
                     var mbody=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.06,1.0,6),new THREE.MeshStandardMaterial({color:0x888888}));
                     mbody.rotation.x=Math.PI/2;mg.add(mbody);
@@ -4745,20 +4770,45 @@ function updateCity(){
                     mnose.rotation.x=-Math.PI/2;mnose.position.z=0.65;mg.add(mnose);
                     var mflame=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.5,4),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.7}));
                     mflame.rotation.x=Math.PI/2;mflame.position.z=-0.7;mg.add(mflame);
-                    var mfwd=new THREE.Vector3(tx2+(Math.random()-0.5)*0.3,ty2+(Math.random()-0.5)*0.3,tz2+(Math.random()-0.5)*0.3).normalize();
+                    var mfwd=new THREE.Vector3(tx2+(Math.random()-0.5)*0.4,ty2+(Math.random()-0.5)*0.4,tz2+(Math.random()-0.5)*0.4).normalize();
                     mg.position.set(gx,gy,gz);
                     mg.lookAt(gx+mfwd.x,gy+mfwd.y,gz+mfwd.z);
                     scene.add(mg);
-                    window._moonMissiles.push({group:mg,life:120,vx:mfwd.x*1.5,vy:mfwd.y*1.5,vz:mfwd.z*1.5,trail:[]});
+                    window._moonMissiles.push({group:mg,life:80,vx:mfwd.x*2.5,vy:mfwd.y*2.5,vz:mfwd.z*2.5,trail:[]});
+                }
+            }
+            // Random explosions near MS (battle damage effects)
+            if(Math.random()<0.008&&window._moonBeams.length<200){
+                var exOff=3+Math.random()*5;
+                var exDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+                var exSize=1.0+Math.random()*2.0;
+                var exColors=[0xFF4400,0xFF8800,0xFFCC00,0xFF6600];
+                var exColor=exColors[Math.floor(Math.random()*exColors.length)];
+                var exMesh=new THREE.Mesh(new THREE.SphereGeometry(exSize,6,4),new THREE.MeshBasicMaterial({color:exColor,transparent:true,opacity:0.9}));
+                exMesh.position.set(gx+exDir.x*exOff,gy+exDir.y*exOff,gz+exDir.z*exOff);
+                scene.add(exMesh);
+                window._moonBeams.push({mesh:exMesh,life:15,vx:exDir.x*0.3,vy:exDir.y*0.3,vz:exDir.z*0.3,_isExplosion:true});
+                // Debris particles
+                for(var dbi=0;dbi<3;dbi++){
+                    var dbDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+                    var dbMesh=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.2,0.2),new THREE.MeshBasicMaterial({color:0x666666,transparent:true,opacity:0.8}));
+                    dbMesh.position.copy(exMesh.position);
+                    scene.add(dbMesh);
+                    window._moonBeams.push({mesh:dbMesh,life:20,vx:dbDir.x*1.5,vy:dbDir.y*1.5,vz:dbDir.z*1.5});
                 }
             }
         }
-        // Update beams
+        // Update beams + explosions
         for(var bbi=window._moonBeams.length-1;bbi>=0;bbi--){
             var bb=window._moonBeams[bbi];
             bb.mesh.position.x+=bb.vx;bb.mesh.position.y+=bb.vy;bb.mesh.position.z+=bb.vz;
             bb.life--;
-            bb.mesh.material.opacity=bb.life/40;
+            if(bb._isExplosion){
+                bb.mesh.material.opacity=bb.life/15*0.9;
+                bb.mesh.scale.multiplyScalar(1.06);
+            } else {
+                bb.mesh.material.opacity=Math.max(0,bb.life/35);
+            }
             if(bb.life<=0){scene.remove(bb.mesh);window._moonBeams.splice(bbi,1);}
         }
         // Update missiles with smoke trails
@@ -4767,25 +4817,38 @@ function updateCity(){
             mm.group.position.x+=mm.vx;mm.group.position.y+=mm.vy;mm.group.position.z+=mm.vz;
             mm.life--;
             // Smoke trail puff
-            if(mm.life%4===0&&mm.trail.length<15){
+            if(mm.life%3===0&&mm.trail.length<12){
                 var puff=new THREE.Mesh(new THREE.SphereGeometry(0.15+Math.random()*0.15,4,3),new THREE.MeshBasicMaterial({color:0xAAAAAA,transparent:true,opacity:0.5}));
                 puff.position.copy(mm.group.position);
                 scene.add(puff);
-                mm.trail.push({mesh:puff,life:25});
+                mm.trail.push({mesh:puff,life:20});
             }
             // Fade trail
             for(var ti=mm.trail.length-1;ti>=0;ti--){
                 mm.trail[ti].life--;
-                mm.trail[ti].mesh.material.opacity=mm.trail[ti].life/25*0.5;
-                mm.trail[ti].mesh.scale.multiplyScalar(1.03);
+                mm.trail[ti].mesh.material.opacity=mm.trail[ti].life/20*0.5;
+                mm.trail[ti].mesh.scale.multiplyScalar(1.04);
                 if(mm.trail[ti].life<=0){scene.remove(mm.trail[ti].mesh);mm.trail.splice(ti,1);}
             }
-            // Missile expired — explode
+            // Missile expired — big explosion
             if(mm.life<=0){
-                // Small flash
-                var flash=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,4),new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.8}));
-                flash.position.copy(mm.group.position);scene.add(flash);
-                window._moonBeams.push({mesh:flash,life:12,vx:0,vy:0,vz:0});
+                // Multi-layer explosion
+                var exColors2=[0xFF4400,0xFF8800,0xFFCC00];
+                for(var exi=0;exi<3;exi++){
+                    var exR=1.0+exi*0.8;
+                    var flash=new THREE.Mesh(new THREE.SphereGeometry(exR,6,4),new THREE.MeshBasicMaterial({color:exColors2[exi],transparent:true,opacity:0.9-exi*0.2}));
+                    flash.position.copy(mm.group.position);
+                    flash.position.x+=(Math.random()-0.5)*0.5;flash.position.y+=(Math.random()-0.5)*0.5;flash.position.z+=(Math.random()-0.5)*0.5;
+                    scene.add(flash);
+                    window._moonBeams.push({mesh:flash,life:10+exi*4,vx:0,vy:0,vz:0,_isExplosion:true});
+                }
+                // Shrapnel
+                for(var shi=0;shi<4;shi++){
+                    var shDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+                    var shMesh=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.15,0.15),new THREE.MeshBasicMaterial({color:0x888888,transparent:true,opacity:0.7}));
+                    shMesh.position.copy(mm.group.position);scene.add(shMesh);
+                    window._moonBeams.push({mesh:shMesh,life:18,vx:shDir.x*2,vy:shDir.y*2,vz:shDir.z*2});
+                }
                 for(var tri=mm.trail.length-1;tri>=0;tri--){scene.remove(mm.trail[tri].mesh);}
                 scene.remove(mm.group);window._moonMissiles.splice(mmi2,1);
             }
