@@ -1,5 +1,5 @@
 // ============================================================
-//  蛋仔世界 — Egg World  (Hub City + Race Portals)
+//  蛋宝世界 — DANBO World  (Hub City + Race Portals)
 // ============================================================
 /* global THREE */
 
@@ -13,9 +13,10 @@ var _langCode=(function(){
     return 'en';
 })();
 var I18N={
-    title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
-    subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:(function(){var v='v20260324.15';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
+    subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
+    slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
+    version:(function(){var v='v20260324.17';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -37,16 +38,16 @@ var I18N={
     jump:{zhs:'\u8DF3',zht:'\u8DF3',ja:'\u30B8\u30E3\u30F3\u30D7',en:'Jump'},
     walkIn:{zhs:'\u8D70\u8FD1\u8FDB\u5165',zht:'\u8D70\u8FD1\u9032\u5165',ja:'\u8FD1\u3065\u3044\u3066\u5165\u308B',en:'Walk in to enter'},
     charNames:{
-        zhs:['经典蛋','小狗','马骝','公鸡','蟑螂','小猫','小猪','青蛙'],
-        zht:['\u7D93\u5178\u86CB','\u5C0F\u72D7','\u99AC\u9A1D','\u516C\u96DE','\u8708\u87C2','\u5C0F\u8C93','\u5C0F\u8C6C','\u9752\u86D9'],
-        ja:['\u305F\u307E\u3054','\u30A4\u30CC','\u30B5\u30EB','\u30CB\u30EF\u30C8\u30EA','\u30B4\u30AD\u30D6\u30EA','\u30CD\u30B3','\u30D6\u30BF','\u30AB\u30A8\u30EB'],
-        en:['Classic Egg','Puppy','Monkey','Rooster','Cockroach','Kitty','Piggy','Frog']
+        zhs:['\u86CB\u5B9D','\u5C0F\u72D7','\u9A6C\u9A9D','\u516C\u9E21','\u87F3\u8782','\u5C0F\u732B','\u5C0F\u732A','\u9752\u86D9'],
+        zht:['\u86CB\u5B9D','\u5C0F\u72D7','\u99AC\u9A1D','\u516C\u96DE','\u8708\u87C2','\u5C0F\u8C93','\u5C0F\u8C6C','\u9752\u86D9'],
+        ja:['\u30C0\u30F3\u30DC','\u30A4\u30CC','\u30B5\u30EB','\u30CB\u30EF\u30C8\u30EA','\u30B4\u30AD\u30D6\u30EA','\u30CD\u30B3','\u30D6\u30BF','\u30AB\u30A8\u30EB'],
+        en:['Danbo','Puppy','Monkey','Rooster','Cockroach','Kitty','Piggy','Frog']
     },
     cityNames:{
-        zhs:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u7403\u57CE'],
-        zht:['\uD83C\uDFD9\uFE0F \u86CB\u4ED4\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u7403\u57CE'],
-        ja:['\uD83C\uDFD9\uFE0F \u305F\u307E\u3054\u30B7\u30C6\u30A3','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3','\uD83C\uDF19 \u30E0\u30FC\u30F3\u30B7\u30C6\u30A3'],
-        en:['\uD83C\uDFD9\uFE0F Egg City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City','\uD83C\uDF19 Moon City']
+        zhs:['\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
+        zht:['\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
+        ja:['\uD83C\uDFD9\uFE0F \u30C0\u30F3\u30DC\u30B7\u30C6\u30A3','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3','\uD83C\uDF19 \u30EB\u30CA\u30FC\u30BE\u30FC\u30F3'],
+        en:['\uD83C\uDFD9\uFE0F DANBO City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City','\uD83C\uDF19 Lunar Zone']
     },
     raceNames:{
         zhs:['\uD83C\uDF00 \u7591\u72C2\u8D5B\u9053','\uD83D\uDD28 \u9524\u5B50\u98CE\u66B4','\u26A1 \u6781\u9650\u6311\u6218','\uD83D\uDC51 \u51A0\u519B\u4E4B\u8DEF','\uD83D\uDC8E \u7EFF\u5B9D\u77F3\u5C71\u4E18','\uD83D\uDD25 \u706B\u7130\u5C71\u8C37','\u2744\uFE0F \u51B0\u971C\u6ED1\u9053','\uD83C\uDF08 \u5F69\u8679\u5929\u7A7A','\uD83C\uDF44 \u8611\u83C7\u738B\u56FD','\uD83D\uDD25 \u5CA9\u6D46\u57CE\u5821','\u2601\uFE0F \u4E91\u7AEF\u5929\u5802','\uD83C\uDFF0 \u5E93\u5DF4\u57CE\u5821'],
@@ -170,6 +171,7 @@ function _applyLang(){
     var h1=document.querySelector('#start-screen h1');if(h1)h1.textContent=L('title');
     var sub=document.querySelector('.subtitle');if(sub)sub.textContent=L('subtitle');
     var ver=document.querySelector('.version-text');if(ver)ver.textContent=L('version');
+    var slo=document.querySelector('.slogan-text');if(slo)slo.textContent=L('slogan');
     var sb=document.getElementById('start-btn');if(sb)sb.textContent=L('startBtn');
     var st=document.querySelector('.select-title');if(st)st.textContent=L('selectTitle');
     var cb=document.getElementById('confirm-btn');if(cb)cb.textContent=L('confirmBtn');
@@ -688,14 +690,14 @@ scene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.8));
 // ---- Skins ----
 // ---- Characters ----
 const CHARACTERS = [
-    {name:'经典蛋',type:'egg',color:0xFFF5D6,accent:0xFFCC00,icon:'🥚',portrait:'#FFF5D6'},
-    {name:'小狗',type:'dog',color:0xC8915A,accent:0x8B5E3C,icon:'🐶',portrait:'#C8915A'},
-    {name:'马骝',type:'monkey',color:0xD4956B,accent:0xFFCC88,icon:'🐵',portrait:'#D4956B'},
-    {name:'公鸡',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'🐓',portrait:'#FFEECC'},
-    {name:'蟑螂',type:'cockroach',color:0x6B3A2A,accent:0x3D2215,icon:'🪳',portrait:'#6B3A2A'},
-    {name:'小猫',type:'cat',color:0xFFAA77,accent:0xFF8844,icon:'🐱',portrait:'#FFAA77'},
-    {name:'小猪',type:'pig',color:0xFFBBCC,accent:0xFF8899,icon:'🐷',portrait:'#FFBBCC'},
-    {name:'青蛙',type:'frog',color:0x55BB55,accent:0x338833,icon:'🐸',portrait:'#55BB55'},
+    {name:'\u86CB\u5B9D',type:'egg',color:0xFFDD44,accent:0xFFAA00,icon:'\uD83E\uDD5A',portrait:'#FFDD44'},
+    {name:'\u5C0F\u72D7',type:'dog',color:0x66BBFF,accent:0x3388CC,icon:'\uD83D\uDC36',portrait:'#66BBFF'},
+    {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866'},
+    {name:'\u516C\u9E21',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC'},
+    {name:'\u87F3\u8782',type:'cockroach',color:0x88DD66,accent:0x55AA33,icon:'\uD83E\uDEB3',portrait:'#88DD66'},
+    {name:'\u5C0F\u732B',type:'cat',color:0xFFAACC,accent:0xFF6699,icon:'\uD83D\uDC31',portrait:'#FFAACC'},
+    {name:'\u5C0F\u732A',type:'pig',color:0xBB88FF,accent:0x8855CC,icon:'\uD83D\uDC37',portrait:'#BB88FF'},
+    {name:'\u9752\u86D9',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55'},
 ];
 let selectedChar = 0;
 // Apply localized character names
@@ -1162,22 +1164,38 @@ function createEggMesh(color, accent, charType) {
     const body=new THREE.Mesh(bodyGeo,toon(color));
     body.position.y=0.7; g.add(body);
 
-    // ---- Big cute eyes (on body surface) ----
-    const eyeWhiteG=new THREE.SphereGeometry(0.14,12,10);
-    const pupilG=new THREE.SphereGeometry(0.09,10,8);
-    const shineG=new THREE.SphereGeometry(0.035,6,4);
+    // ---- Cracked eggshell on top (signature feature) ----
+    var shellMat=toon(0xFFFFF0);
+    for(var si=0;si<5;si++){
+        var sa=si/5*Math.PI*2+0.3;
+        var sh=0.08+Math.random()*0.12;
+        var sw=0.15+Math.random()*0.08;
+        var shard=new THREE.Mesh(new THREE.BoxGeometry(sw,sh,0.03),shellMat);
+        shard.position.set(Math.cos(sa)*0.28,1.15+sh*0.5,Math.sin(sa)*0.28);
+        shard.rotation.z=Math.cos(sa)*0.3;
+        shard.rotation.x=-Math.sin(sa)*0.3;
+        shard.rotation.y=sa;
+        body.add(shard);
+    }
+    // Shell rim ring
+    var rimGeo=new THREE.TorusGeometry(0.3,0.03,6,16);
+    var rim=new THREE.Mesh(rimGeo,shellMat);
+    rim.position.y=1.12;rim.rotation.x=Math.PI/2;
+    body.add(rim);
+
+    // ---- Big cute eyes (larger, more expressive) ----
+    const eyeWhiteG=new THREE.SphereGeometry(0.17,12,10);
+    const pupilG=new THREE.SphereGeometry(0.1,10,8);
+    const shineG=new THREE.SphereGeometry(0.04,6,4);
     [-1,1].forEach(s=>{
-        // White
         const ew=new THREE.Mesh(eyeWhiteG,toon(0xffffff));
-        ew.position.set(s*0.22, 0.88, 0.48); ew.scale.set(1,1.15,0.7);
+        ew.position.set(s*0.24, 0.88, 0.46); ew.scale.set(1,1.2,0.7);
         body.add(ew);
-        // Pupil
-        const ep=new THREE.Mesh(pupilG,toon(0x111111));
-        ep.position.set(s*0.22, 0.86, 0.54);
+        const ep=new THREE.Mesh(pupilG,toon(0x222222));
+        ep.position.set(s*0.24, 0.86, 0.53);
         body.add(ep);
-        // Shine
         const es=new THREE.Mesh(shineG,toon(0xffffff));
-        es.position.set(s*0.22+s*0.04, 0.91, 0.57);
+        es.position.set(s*0.24+s*0.04, 0.92, 0.56);
         body.add(es);
     });
 
@@ -1198,6 +1216,15 @@ function createEggMesh(color, accent, charType) {
         const bl=new THREE.Mesh(blG,blM);
         bl.position.set(s*0.38, 0.72, 0.42); bl.rotation.y=s*0.5;
         body.add(bl);
+    });
+
+    // ---- Small arms (Q-style stubs) ----
+    var armMat=toon(color);
+    [-1,1].forEach(s=>{
+        var arm=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),armMat);
+        arm.position.set(s*0.52,0.65,0);
+        arm.scale.set(0.8,1.2,0.8);
+        body.add(arm);
     });
 
 
@@ -1443,12 +1470,12 @@ const cityProps = []; // {group, x, z, radius, type, grabbed, origY}
 const CITY_SIZE = 80; // half-size of city ground
 var currentCityStyle=0;
 var CITY_STYLES=[
-    {name:'🏙️ 蛋仔城',ground:0x6EC850,path:0xDDCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
+    {name:'\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE',ground:0x6EC850,path:0xDDCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
     {name:'🏜️ 沙漠城',ground:0xDDCC88,path:0xCCBB77,sky:0xFFCC66,bColors:[0xDDAA66,0xCC9955,0xEEBB77,0xBB8844,0xDDCC88,0xCCAA55,0xEECC99,0xBB9966],roof:0xAA6633,tree:0x88AA44,fog:0xFFEECC},
     {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
-    {name:'🌙 月球城',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null}
+    {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -1717,6 +1744,31 @@ function buildCity() {
         leg2.position.set(0.8,0.25,0); bg.add(leg2);
         cityGroup.add(bg);
         cityProps.push({group:bg, x:bx, z:bz, radius:1.2, type:'bench', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:2.5});
+    }
+    // ---- Hidden entrances ----
+    if(currentCityStyle!==5){
+        // Sewer entrance (manhole near fountain)
+        var sewerG=new THREE.Group();
+        var manhole=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.08,16),toon(0x555555));
+        manhole.position.y=0.02;sewerG.add(manhole);
+        var mhRim=new THREE.Mesh(new THREE.TorusGeometry(0.8,0.06,6,16),toon(0x444444));
+        mhRim.position.y=0.06;mhRim.rotation.x=Math.PI/2;sewerG.add(mhRim);
+        var mhGlow=new THREE.Mesh(new THREE.CircleGeometry(0.7,12),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
+        mhGlow.position.y=0.05;mhGlow.rotation.x=-Math.PI/2;sewerG.add(mhGlow);
+        sewerG.position.set(8,0,-8);cityGroup.add(sewerG);
+        portals.push({mesh:sewerG,ring:mhRim,inner:mhGlow,name:'\uD83D\uDEBD Lunar Zone',desc:'Secret tunnel...',raceIndex:-1,x:8,z:-8,y:0,color:0x44FF88,_hiddenType:'sewer',_targetStyle:5});
+        // Tree hole entrance (inside a large tree)
+        var thG=new THREE.Group();
+        var thTrunk=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,4,8),toon(0x8B6914));
+        thTrunk.position.y=2;thG.add(thTrunk);
+        var thCanopy=new THREE.Mesh(new THREE.SphereGeometry(3,8,6),toon(0x228B22));
+        thCanopy.position.y=5;thG.add(thCanopy);
+        var thHole=new THREE.Mesh(new THREE.CircleGeometry(0.6,8),new THREE.MeshBasicMaterial({color:0x221100,side:THREE.DoubleSide}));
+        thHole.position.set(0,1.2,1.25);thG.add(thHole);
+        var thGlow=new THREE.Mesh(new THREE.CircleGeometry(0.5,8),new THREE.MeshBasicMaterial({color:0xFFAA44,transparent:true,opacity:0.4,side:THREE.DoubleSide}));
+        thGlow.position.set(0,1.2,1.3);thG.add(thGlow);
+        thG.position.set(-35,0,35);cityGroup.add(thG);
+        portals.push({mesh:thG,ring:thHole,inner:thGlow,name:'\uD83C\uDF33 Secret Grove',desc:'A hidden path...',raceIndex:-1,x:-35,z:35,y:0,color:0xFFAA44,_hiddenType:'tree',_targetStyle:5});
     }
     } // end if not moon
 
@@ -2218,6 +2270,10 @@ function buildPortals() {
         const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.3, 8, 24), toon(pColor, {emissive:pColor, emissiveIntensity:0.3}));
         ring.position.y = 2.5; ring.castShadow = true;
         g.add(ring);
+
+        // Outer glow ring
+        var glowRing=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.15,6,24),new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.3}));
+        glowRing.position.y=2.5;g.add(glowRing);
 
         // Swirling inner
         const inner = new THREE.Mesh(new THREE.CircleGeometry(1.7, 20), toon(pColor, {transparent:true, opacity:0.4, side:THREE.DoubleSide, emissive:pColor, emissiveIntensity:0.5}));
@@ -4887,7 +4943,8 @@ function updateCity(){
     }
     if(_nearP&&_nearD<6.0){
         _pp.style.display='block';
-        if(_nearD<2.5&&!_portalConfirmOpen&&_portalDismissed!==_nearP.raceIndex){
+        var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
+        if(_nearD<2.5&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
             _pp.style.display='none';
             showPortalConfirm(_nearP);
         } else if(!_portalConfirmOpen){
@@ -5483,10 +5540,11 @@ function updateHeldEggs(){
 
 
 // ---- Portal confirm dialog ----
-var _portalConfirmOpen=false, _portalConfirmRace=-1, _portalDismissed=null;
+var _portalConfirmOpen=false, _portalConfirmRace=-1, _portalConfirmTarget=-1, _portalDismissed=null;
 function showPortalConfirm(portal){
     _portalConfirmOpen=true;
     _portalConfirmRace=portal.raceIndex;
+    _portalConfirmTarget=portal._targetStyle||(-1);
     _portalDismissed=null;
     var box=document.getElementById('portal-confirm');
     document.getElementById('portal-confirm-name').textContent=portal.name;
@@ -5494,16 +5552,19 @@ function showPortalConfirm(portal){
     box.style.display='flex';
 }
 function hidePortalConfirm(){
-    _portalDismissed=_portalConfirmRace;
+    _portalDismissed=(_portalConfirmRace>=0)?_portalConfirmRace:('h'+_portalConfirmTarget);
     _portalConfirmOpen=false;
     _portalConfirmRace=-1;
+    _portalConfirmTarget=-1;
     document.getElementById('portal-confirm').style.display='none';
 }
 function confirmPortalEnter(){
     var ri=_portalConfirmRace;
+    var ts=_portalConfirmTarget;
     hidePortalConfirm();
     document.getElementById('portal-prompt').style.display='none';
-    if(ri>=0) enterRace(ri);
+    if(ri>=0){ enterRace(ri); }
+    else if(ts>=0){ switchCity(ts); }
 }
 document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else if(_moonPipePromptOpen){_confirmMoonPipeEnter();}else{confirmPortalEnter();}});
 document.getElementById('portal-no').addEventListener('click',function(){if(_babylonPromptOpen){_hideBabylonPrompt();}else if(_moonPipePromptOpen){_hideMoonPipePrompt();}else{hidePortalConfirm();}});
@@ -6007,6 +6068,7 @@ document.getElementById('race-back-btn').addEventListener('click', goBackToCity)
     var h1=document.querySelector('#start-screen h1');if(h1)h1.textContent=L('title');
     var sub=document.querySelector('.subtitle');if(sub)sub.textContent=L('subtitle');
     var ver=document.querySelector('.version-text');if(ver)ver.textContent=L('version');
+    var slo2=document.querySelector('.slogan-text');if(slo2)slo2.textContent=L('slogan');
     var sb=_e('start-btn');if(sb)sb.textContent=L('startBtn');
     var st=document.querySelector('.select-title');if(st)st.textContent=L('selectTitle');
     var cb=_e('confirm-btn');if(cb)cb.textContent=L('confirmBtn');

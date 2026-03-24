@@ -9,8 +9,9 @@ body{overflow:hidden;background:#000;font-family:'Segoe UI','PingFang SC','Micro
 .title-area{text-align:center}
 .egg-bounce{font-size:64px;animation:bounce .8s ease-in-out infinite}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
-h1{font-size:clamp(28px,7vw,48px);color:#fff;text-shadow:3px 3px 0 rgba(0,0,0,.15);letter-spacing:5px}
-.subtitle{font-size:clamp(10px,2vw,13px);color:rgba(255,255,255,.8);letter-spacing:5px;margin-top:2px}
+h1{font-size:clamp(32px,8vw,56px);color:#fff;text-shadow:3px 3px 0 #FF8800,6px 6px 0 rgba(0,0,0,.2);letter-spacing:6px;font-weight:900}
+.subtitle{font-size:clamp(12px,2.5vw,16px);color:rgba(255,255,255,.9);letter-spacing:8px;margin-top:4px;font-weight:700}
+.slogan-text{font-size:clamp(10px,1.8vw,13px);color:rgba(255,255,255,.65);letter-spacing:3px;margin-top:6px;font-style:italic}
 .version-text{font-size:clamp(10px,2vw,13px);color:rgba(255,255,255,.75);letter-spacing:2px;margin-top:8px}
 .btn{padding:12px 38px;border:none;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .1s;min-width:180px;letter-spacing:1px}
 .btn:hover{transform:scale(1.04)}.btn:active{transform:scale(.97)}
