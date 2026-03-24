@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:(function(){var v='v20260324.10';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.11';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1314,7 +1314,7 @@ function createEgg(x,z,color,accent,isPlayer,targetScene,charType){
         aiSkill:0.4+Math.random()*0.6,
         aiTargetX:x, aiReactTimer:Math.random()*30, aiJumpCD:0,
         conveyorVx:0, conveyorVz:0, onPlatform:null,
-        heldBy:null, holding:null, grabCD:0, struggleTimer:0, struggleMax:0, struggleBar:null, throwTimer:0, holdingObs:null, holdingProp:null, weight:1.0,
+        heldBy:null, holding:null, grabCD:0, struggleTimer:0, struggleMax:0, struggleBar:null, throwTimer:0, holdingObs:null, holdingProp:null, weight:1.0, _stunTimer:0,
     };
     allEggs.push(egg);
     return egg;
@@ -3442,6 +3442,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
             egg._dropCoinsOnLand=false;egg._coinsDropped=false;
+            egg._stunTimer=45;
         }}
         // Squash recovery
         egg.squash+=(1-egg.squash)*0.1;
@@ -3480,6 +3481,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound();
                 // Drop coins on first impact
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+            } else {egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;egg._stunTimer=45;playHitSound();
+                if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+                egg._dropCoinsOnLand=false;egg._coinsDropped=false;
             }
         }
     }
@@ -3511,7 +3515,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                     if(toverlapX<toverlapZ){egg.mesh.position.x+=Math.sign(tdx)*toverlapX;egg.vx*=-0.3;}
                     else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
                     if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
-                    egg.throwTimer=1;
+                    egg.throwTimer=1;egg._stunTimer=45;
                     egg.squash=0.6;playHitSound();
                     break;
                 }
@@ -3681,6 +3685,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         // Fallback: drop coins when throw ends if not already dropped
         if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         egg._dropCoinsOnLand=false;egg._coinsDropped=false;
+        egg._stunTimer=45;
     }}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
 
     // Walk anim
@@ -3960,6 +3965,9 @@ function updateObstacles(){
 // ============================================================
 function updateCityNPC(egg){if(egg.heldBy)return;
     if(!egg.alive)return;
+    // Thrown or stunned NPCs cannot act
+    if(egg.throwTimer>0)return;
+    if(egg._stunTimer>0){egg._stunTimer--;egg.vx*=0.9;egg.vz*=0.9;return;}
     // ---- NPC coin stealing (priority behavior) ----
     if(!egg._stolenCoins)egg._stolenCoins=[];
     if(!egg._stolenCoinMeshes)egg._stolenCoinMeshes=[];
@@ -4224,6 +4232,8 @@ function _dropNpcStolenCoins(egg){
 
 function updateRaceAI(egg){
     if(!egg.alive||egg.finished||egg.isPlayer||egg.cityNPC)return;
+    if(egg.throwTimer>0)return;
+    if(egg._stunTimer>0){egg._stunTimer--;egg.vx*=0.9;egg.vz*=0.9;return;}
     // Initialize race personality if needed
     if(!egg._raceStyle){
         var r=Math.random();
@@ -4310,6 +4320,9 @@ function handlePlayerInput(){
     if(!playerEgg||!playerEgg.alive)return;
     if(_portalConfirmOpen)return;
     if(playerEgg.finished&&gameState==='racing')return;
+    // Cannot control while thrown or stunned (except struggle when held)
+    if(playerEgg.throwTimer>0)return;
+    if(playerEgg._stunTimer>0){playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;return;}
     let mx=0,mz=0;
     if(keys['KeyA']||keys['ArrowLeft'])mx-=1;
     if(keys['KeyD']||keys['ArrowRight'])mx+=1;
@@ -4391,7 +4404,7 @@ function handlePlayerInput(){
             if(_jumpCharging&&_jumpCharge>0){
                 // Release from charge mode → charged jump
                 var pct2=_jumpCharge/_jumpChargeMax;
-                var jumpF=JUMP_FORCE*(1+pct2*2);
+                var jumpF=JUMP_FORCE*(1.2+pct2*1.8);
                 if(currentCityStyle===5&&gameState==='city'){
                     var jp2=playerEgg.mesh.position;
                     var jdx2=jp2.x,jdy2=jp2.y-MOON_CY,jdz2=jp2.z;
@@ -4410,9 +4423,9 @@ function handlePlayerInput(){
                     var jp=playerEgg.mesh.position;
                     var jdx=jp.x,jdy=jp.y-MOON_CY,jdz=jp.z;
                     var jd=Math.sqrt(jdx*jdx+jdy*jdy+jdz*jdz)||1;
-                    playerEgg.vx+=jdx/jd*JUMP_FORCE*2;playerEgg.vy+=jdy/jd*JUMP_FORCE*2;playerEgg.vz+=jdz/jd*JUMP_FORCE*2;
+                    playerEgg.vx+=jdx/jd*JUMP_FORCE;playerEgg.vy+=jdy/jd*JUMP_FORCE;playerEgg.vz+=jdz/jd*JUMP_FORCE;
                 } else {
-                    playerEgg.vy=JUMP_FORCE*2;
+                    playerEgg.vy=JUMP_FORCE;
                 }
                 playerEgg.squash=0.65;playJumpSound();
             }
@@ -4476,8 +4489,8 @@ function handlePlayerInput(){
             var dir=playerEgg.mesh.rotation.y;
             var chargePct=(playerEgg._throwCharge||0)/_throwChargeMax;
             var throwMul=1+chargePct*4;
-            held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+2.0, playerEgg.mesh.position.z+Math.cos(dir)*2);
-            var tw=held.weight||1.0;var tf=9.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=0.22+chargePct*0.3;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
+            held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
+            var tw=held.weight||1.0;var tf=9.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.05+chargePct*0.15;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
             held.squash=0.5; playerEgg.grabCD=20;
             playThrowSound();
             held._dropCoinsOnLand=true;held._coinsDropped=false;
@@ -4502,8 +4515,8 @@ function handlePlayerInput(){
                 var held2=playerEgg.holding;
                 held2.heldBy=null; playerEgg.holding=null; if(held2.struggleBar){held2.mesh.remove(held2.struggleBar);held2.struggleBar=null;}
                 var dir2=playerEgg.mesh.rotation.y;
-                held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+2.0, playerEgg.mesh.position.z+Math.cos(dir2)*2);
-                var tw2=held2.weight||1.0;var tf2=9.0/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=0.22;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
+                held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir2)*2);
+                var tw2=held2.weight||1.0;var tf2=9.0/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
                 held2.squash=0.5; playerEgg.grabCD=20;
                 playThrowSound();
                 held2._dropCoinsOnLand=true;held2._coinsDropped=false;
@@ -5214,7 +5227,7 @@ function updateHeldEggs(){
             holder.grabCD=40; egg.grabCD=40;
             var throwDir=holder.mesh.rotation.y;
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
-            var ntw=egg.weight||1.0;var ntf=9.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=0.22;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
+            var ntw=egg.weight||1.0;var ntf=9.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
             egg.squash=0.5; playThrowSound();
             egg._dropCoinsOnLand=true;egg._coinsDropped=false;
             continue;
@@ -5539,7 +5552,7 @@ function enterCity(spawnX,spawnZ){
     for(var ni=0;ni<cityNPCs.length;ni++){
         var npc=cityNPCs[ni];
         npc.holding=null;npc.heldBy=null;npc.holdingObs=null;npc.holdingProp=null;
-        npc.throwTimer=0;npc.grabCD=60;npc.finished=false;
+        npc.throwTimer=0;npc.grabCD=60;npc.finished=false;npc._stunTimer=0;
         if(npc.struggleBar){try{npc.mesh.remove(npc.struggleBar);}catch(e){}npc.struggleBar=null;}
     }
 
