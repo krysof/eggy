@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.65';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.66';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2298,7 +2298,10 @@ function buildCity() {
         var mhGlow=new THREE.Mesh(new THREE.CircleGeometry(0.7,12),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
         mhGlow.position.y=0.05;mhGlow.rotation.x=-Math.PI/2;sewerG.add(mhGlow);
         sewerG.position.set(8,0,-8);cityGroup.add(sewerG);
-        portals.push({mesh:sewerG,ring:mhRim,inner:mhGlow,name:'\uD83D\uDEBD Lunar Zone',desc:'Secret tunnel...',raceIndex:-1,x:8,z:-8,y:0,color:0x44FF88,_hiddenType:'sewer',_targetStyle:5});
+        portals.push({mesh:sewerG,ring:mhRim,inner:mhGlow,
+            name:{zhs:'\uD83D\uDEBD \u6708\u7403\u79D8\u9053',zht:'\uD83D\uDEBD \u6708\u7403\u79D8\u9053',ja:'\uD83D\uDEBD \u6708\u3078\u306E\u79D8\u5BC6\u30C8\u30F3\u30CD\u30EB',en:'\uD83D\uDEBD Lunar Tunnel'}[_langCode],
+            desc:{zhs:'\u795E\u79D8\u7684\u5730\u4E0B\u901A\u9053...',zht:'\u795E\u79D8\u7684\u5730\u4E0B\u901A\u9053...',ja:'\u79D8\u5BC6\u306E\u5730\u4E0B\u901A\u8DEF...',en:'A secret underground passage...'}[_langCode],
+            raceIndex:-1,x:8,z:-8,y:0,color:0x44FF88,_hiddenType:'sewer',_targetStyle:5});
         // Tree hole entrance (inside a large tree)
         var thG=new THREE.Group();
         var thTrunk=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,4,8),toon(0x8B6914));
@@ -2310,7 +2313,10 @@ function buildCity() {
         var thGlow=new THREE.Mesh(new THREE.CircleGeometry(0.5,8),new THREE.MeshBasicMaterial({color:0xFFAA44,transparent:true,opacity:0.4,side:THREE.DoubleSide}));
         thGlow.position.set(0,1.2,1.3);thG.add(thGlow);
         thG.position.set(-35,0,35);cityGroup.add(thG);
-        portals.push({mesh:thG,ring:thHole,inner:thGlow,name:'\uD83C\uDF33 Secret Grove',desc:'A hidden path...',raceIndex:-1,x:-35,z:35,y:0,color:0xFFAA44,_hiddenType:'tree',_targetStyle:5});
+        portals.push({mesh:thG,ring:thHole,inner:thGlow,
+            name:{zhs:'\uD83C\uDF33 \u795E\u79D8\u6811\u6D1E',zht:'\uD83C\uDF33 \u795E\u79D8\u6A39\u6D1E',ja:'\uD83C\uDF33 \u795E\u79D8\u306E\u6728\u306E\u7A74',en:'\uD83C\uDF33 Secret Grove'}[_langCode],
+            desc:{zhs:'\u901A\u5F80\u6708\u7403\u7684\u9690\u85CF\u5C0F\u5F84...',zht:'\u901A\u5F80\u6708\u7403\u7684\u96B1\u85CF\u5C0F\u5F91...',ja:'\u6708\u3078\u306E\u96A0\u3057\u901A\u8DEF...',en:'A hidden path to the moon...'}[_langCode],
+            raceIndex:-1,x:-35,z:35,y:0,color:0xFFAA44,_hiddenType:'tree',_targetStyle:5});
     }
     } // end if not moon
 
@@ -2390,12 +2396,15 @@ function buildCity() {
         var lcBase=toon(0x888899),lcWall=toon(0x667788),lcDark=toon(0x445566);
         var lcGlow=new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.4});
         var lcWarm=new THREE.MeshBasicMaterial({color:0xFFCC66,transparent:true,opacity:0.35});
-        // Crater rim (outer wall)
-        var craterRim=new THREE.Mesh(new THREE.TorusGeometry(18,2.5,8,24),toon(0x666677));
-        craterRim.rotation.x=Math.PI/2;craterRim.position.y=1;lunarCity.add(craterRim);
+        // Crater rim (outer wall — raised)
+        var craterRim=new THREE.Mesh(new THREE.TorusGeometry(18,3,8,24),toon(0x666677));
+        craterRim.rotation.x=Math.PI/2;craterRim.position.y=2;lunarCity.add(craterRim);
         // Crater floor (sunken)
         var craterFloor=new THREE.Mesh(new THREE.CylinderGeometry(17,17,0.5,24),toon(0x555566));
-        craterFloor.position.y=-2;lunarCity.add(craterFloor);
+        craterFloor.position.y=-3;lunarCity.add(craterFloor);
+        // Crater inner wall (sloped)
+        var craterWall=new THREE.Mesh(new THREE.CylinderGeometry(17,18.5,5,24,1,true),toon(0x556677));
+        craterWall.position.y=-0.5;lunarCity.add(craterWall);
         // Main dome — large transparent geodesic
         var mainDome=new THREE.Mesh(new THREE.SphereGeometry(16,24,16,0,Math.PI*2,0,Math.PI/2),
             new THREE.MeshPhongMaterial({color:0x8899BB,transparent:true,opacity:0.18,side:THREE.DoubleSide}));
@@ -2405,11 +2414,25 @@ function buildCity() {
             new THREE.MeshBasicMaterial({color:0x6688AA,wireframe:true,transparent:true,opacity:0.25}));
         lunarCity.add(domeWire);
         // Central tower (Anaheim Electronics HQ)
-        var aeHQ=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.8,12,8),lcWall);aeHQ.position.y=6;lunarCity.add(aeHQ);
-        var aeTop=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,6),toon(0x99AABB));aeTop.position.y=12.5;lunarCity.add(aeTop);
-        var aeAnt=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,4,4),toon(0xCCCCCC));aeAnt.position.y=15;lunarCity.add(aeAnt);
+        var aeHQ=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.5,18,8),lcWall);aeHQ.position.y=9;lunarCity.add(aeHQ);
+        var aeTop=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,6),toon(0x99AABB));aeTop.position.y=18.5;lunarCity.add(aeTop);
+        var aeAnt=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,8,4),toon(0xCCCCCC));aeAnt.position.y=23;lunarCity.add(aeAnt);
         // AE logo glow
-        var aeLogo=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.8,0.1),lcGlow);aeLogo.position.set(0,10,1.85);lunarCity.add(aeLogo);
+        var aeLogo=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.6,0.1),lcGlow);aeLogo.position.set(0,14,1.55);lunarCity.add(aeLogo);
+        // Tall needle spires (Gundam-style Von Braun skyline)
+        for(var nsi=0;nsi<20;nsi++){
+            var nsa=nsi/20*Math.PI*2+Math.random()*0.3;
+            var nsr=3+Math.random()*14;
+            var nsh=8+Math.random()*18;
+            var nsw=0.15+Math.random()*0.3;
+            var ns=new THREE.Mesh(new THREE.CylinderGeometry(nsw*0.3,nsw,nsh,5),toon(0x778899));
+            ns.position.set(Math.cos(nsa)*nsr,nsh/2-1,Math.sin(nsa)*nsr);lunarCity.add(ns);
+            // Spire tip glow
+            if(Math.random()<0.5){
+                var nsGlow=new THREE.Mesh(new THREE.SphereGeometry(0.2,4,3),new THREE.MeshBasicMaterial({color:0x88CCFF,transparent:true,opacity:0.6}));
+                nsGlow.position.set(Math.cos(nsa)*nsr,nsh-0.5,Math.sin(nsa)*nsr);lunarCity.add(nsGlow);
+            }
+        }
         // Ring of tall buildings (commercial district)
         for(var lbi=0;lbi<12;lbi++){
             var lba=lbi/12*Math.PI*2;var lbr=8+Math.random()*3;
@@ -2510,12 +2533,24 @@ function buildCity() {
         ];
         // ---- Granada (second city, far side) ----
         var granada=new THREE.Group();
-        var grRim=new THREE.Mesh(new THREE.TorusGeometry(10,1.5,8,20),toon(0x556666));
+        // Deep crater rim
+        var grRim=new THREE.Mesh(new THREE.TorusGeometry(10,2,8,20),toon(0x556666));
         grRim.rotation.x=Math.PI/2;grRim.position.y=0.5;granada.add(grRim);
-        var grDome=new THREE.Mesh(new THREE.SphereGeometry(9,20,12,0,Math.PI*2,0,Math.PI/2),
-            new THREE.MeshPhongMaterial({color:0x667766,transparent:true,opacity:0.15,side:THREE.DoubleSide}));
-        granada.add(grDome);
-        // Military hangars
+        // Crater bowl (sunken floor)
+        var grFloor=new THREE.Mesh(new THREE.CylinderGeometry(9,9,0.5,20),toon(0x334455));
+        grFloor.position.y=-3;granada.add(grFloor);
+        // Crater inner wall (sloped)
+        var grWall=new THREE.Mesh(new THREE.CylinderGeometry(9,10.5,4,20,1,true),toon(0x445566));
+        grWall.position.y=-1;granada.add(grWall);
+        // Blue glow from within (Granada's signature blue lighting)
+        var grGlowFloor=new THREE.Mesh(new THREE.CircleGeometry(8,20),new THREE.MeshBasicMaterial({color:0x2244AA,transparent:true,opacity:0.15,side:THREE.DoubleSide}));
+        grGlowFloor.rotation.x=-Math.PI/2;grGlowFloor.position.y=-2.5;granada.add(grGlowFloor);
+        // Concentric ring lights (blue)
+        for(var gri=0;gri<3;gri++){
+            var grRing=new THREE.Mesh(new THREE.TorusGeometry(3+gri*2.5,0.08,6,24),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.3}));
+            grRing.rotation.x=Math.PI/2;grRing.position.y=-2.4;granada.add(grRing);
+        }
+        // Military hangars (inside crater)
         for(var ghi=0;ghi<6;ghi++){
             var gha=ghi/6*Math.PI*2;var ghr=5+Math.random()*2;
             var gh=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),toon(0x445544));
@@ -2523,7 +2558,14 @@ function buildCity() {
             var ghd=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,0.1),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.3}));
             ghd.position.set(Math.cos(gha)*(ghr+1.5),0.6,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
         }
-        var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.2,8,8),toon(0x556655));grTower.position.y=4;granada.add(grTower);
+        var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.6,1.0,10,8),toon(0x556655));grTower.position.y=5;granada.add(grTower);
+        // Granada spires (military comm towers)
+        for(var gsi=0;gsi<8;gsi++){
+            var gsa=gsi/8*Math.PI*2+0.2;var gsr=3+Math.random()*5;
+            var gsh=5+Math.random()*10;
+            var gs=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.2,gsh,4),toon(0x667766));
+            gs.position.set(Math.cos(gsa)*gsr,gsh/2-2,Math.sin(gsa)*gsr);granada.add(gs);
+        }
         // Place Granada on flat ground (left side, behind Von Braun)
         granada.position.set(-200,0,-200);
         granada.scale.set(8,8,8);
@@ -5476,6 +5518,7 @@ function handlePlayerInput(){
                     sde.throwTimer=20;sde._bounces=1;sde.squash=0.4;
                     sde._stunTimer=Math.floor(40+_spinDashSpeed*200);
                     playHitSound();
+                    _dropNpcStolenCoins(sde);
                 }
             }
             // Hit city props while spin dashing — knock them away
@@ -6545,7 +6588,14 @@ function _ensureChatInput(){
         e.stopPropagation();
         if(e.code==='Enter'){
             var msg=field.value.trim();
-            if(msg&&playerEgg)_showChatBubble(playerEgg,msg);
+            if(msg){
+                // Check for chat commands (don't show bubble)
+                if(_processChatCommand(msg)){
+                    field.value='';_closeChatInput();
+                    return;
+                }
+                if(playerEgg)_showChatBubble(playerEgg,msg);
+            }
             field.value='';_closeChatInput();
         }
         if(e.code==='Escape'){field.value='';_closeChatInput();}
@@ -6565,6 +6615,19 @@ function _closeChatInput(){
     if(_chatInput)_chatInput.style.display='none';
     var field=document.getElementById('chat-field');
     if(field)field.blur();
+}
+function _processChatCommand(msg){
+    var cmd=msg.toLowerCase().replace(/\s+/g,' ').trim();
+    // /fly me to the moon — teleport to moon
+    if(cmd==='/fly me to the moon'||cmd==='fly me to the moon'){
+        if(playerEgg&&currentCityStyle!==5&&gameState==='city'){
+            startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,5,playerEgg.mesh.position.y);
+        }
+        return true;
+    }
+    // Commands start with / are hidden
+    if(msg.charAt(0)==='/') return true;
+    return false;
 }
 function _showChatBubble(egg,msg){
     if(!egg||!egg.mesh)return;
@@ -6867,6 +6930,7 @@ function updateHeldEggs(){
             if(tpd<tp.radius+0.8){
                 var impW=tp.weight||1;tpeg.vx+=tpdx/tpd*0.4*impW;tpeg.vz+=tpdz/tpd*0.4*impW;tpeg.vy=0.3+0.12*impW;tpeg.squash=0.4;tpeg.throwTimer=15;tpeg._bounces=1;
                 if(tpeg.isPlayer)playHitSound();
+                _dropNpcStolenCoins(tpeg);
             }
         }
         // Hit other props
@@ -6913,6 +6977,7 @@ function updateHeldEggs(){
             var tdz=teg.mesh.position.z-tob.mesh.position.z;
             if(Math.sqrt(tdx*tdx+tdz*tdz)<1.5){
                 var oiw=tob._weight||2;teg.vx+=tdx*0.35*oiw;teg.vz+=tdz*0.35*oiw;teg.vy=0.3+0.12*oiw;teg.squash=0.4;teg.throwTimer=15;teg._bounces=1;if(teg.isPlayer)playHitSound();
+                _dropNpcStolenCoins(teg);
             }
         }
         if(tob._throwTimer<=0){
@@ -6972,6 +7037,10 @@ function confirmPortalEnter(){
         // Return to Earth with pipe travel effect — go back to previous city
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
         startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
+    }
+    else if((ht==='sewer'||ht==='tree')&&playerEgg&&ts>=0){
+        // Hidden portals use pipe travel
+        startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,ts,playerEgg.mesh.position.y);
     }
     else if(ts>=0){ switchCity(ts); }
 }
