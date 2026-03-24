@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.60';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.61';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2848,13 +2848,13 @@ function buildCity() {
         var _moonMiniGames=[
             {name:{zhs:'\uD83D\uDE80 \u6708\u7403\u8D5B\u8DD1',zht:'\uD83D\uDE80 \u6708\u7403\u8CFD\u8DD1',ja:'\uD83D\uDE80 \u6708\u9762\u30EC\u30FC\u30B9',en:'\uD83D\uDE80 Lunar Race'},
              desc:{zhs:'\u4F4E\u91CD\u529B\u969C\u788D\u8D5B',zht:'\u4F4E\u91CD\u529B\u969C\u7919\u8CFD',ja:'\u4F4E\u91CD\u529B\u969C\u5BB3\u7269\u30EC\u30FC\u30B9',en:'Low-G Obstacle Race'},
-             color:0xFF8844,lx:6,lz:-4,ri:0},
+             color:0xFF8844,lx:3,lz:-2,ri:0},
             {name:{zhs:'\uD83D\uDCA5 \u9668\u77F3\u95EA\u907F',zht:'\uD83D\uDCA5 \u9668\u77F3\u9583\u907F',ja:'\uD83D\uDCA5 \u968E\u77F3\u56DE\u907F',en:'\uD83D\uDCA5 Meteor Dodge'},
              desc:{zhs:'\u8EB2\u907F\u964B\u77F3\u96E8',zht:'\u8EB2\u907F\u964B\u77F3\u96E8',ja:'\u968E\u77F3\u3092\u907F\u3051\u308D',en:'Dodge the meteor shower'},
-             color:0xFF4444,lx:-5,lz:6,ri:1},
+             color:0xFF4444,lx:-3,lz:3,ri:1},
             {name:{zhs:'\uD83C\uDF19 \u6708\u7403\u5F39\u8DF3',zht:'\uD83C\uDF19 \u6708\u7403\u5F48\u8DF3',ja:'\uD83C\uDF19 \u6708\u9762\u30D0\u30A6\u30F3\u30B9',en:'\uD83C\uDF19 Moon Bounce'},
              desc:{zhs:'\u5F39\u8DF3\u5230\u6700\u9AD8\u70B9',zht:'\u5F48\u8DF3\u5230\u6700\u9AD8\u9EDE',ja:'\u6700\u9AD8\u70B9\u307E\u3067\u30D0\u30A6\u30F3\u30B9',en:'Bounce to the top'},
-             color:0xFFDD44,lx:4,lz:8,ri:2}
+             color:0xFFDD44,lx:2,lz:4,ri:2}
         ];
         for(var mgi=0;mgi<_moonMiniGames.length;mgi++){
             var mg2=_moonMiniGames[mgi];
@@ -6344,11 +6344,19 @@ function updateCity(){
                 _dm._respawnTimer=300+Math.floor(Math.random()*300); // 5-10 seconds
             }
         }
+        // Determine if player is inside a city shield — hide all battle visuals if so
+        var _playerInShield=playerEgg?_checkMoonShield(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z):null;
+        // Hide/show Gundam groups based on player shield status
+        for(var _gvi=0;_gvi<window._moonGundams.length;_gvi++){
+            var _gvm=window._moonGundams[_gvi];
+            if(_gvm.group)_gvm.group.visible=!_playerInShield;
+        }
         // Update beams + explosions
         for(var bbi=window._moonBeams.length-1;bbi>=0;bbi--){
             var bb=window._moonBeams[bbi];
             bb.mesh.position.x+=bb.vx;bb.mesh.position.y+=bb.vy;bb.mesh.position.z+=bb.vz;
             bb.life--;
+            bb.mesh.visible=!_playerInShield;
             if(bb._isExplosion){
                 bb.mesh.material.opacity=bb.life/15*0.9;
                 bb.mesh.scale.multiplyScalar(1.1);
@@ -6389,6 +6397,7 @@ function updateCity(){
             var mm=window._moonMissiles[mmi2];
             mm.group.position.x+=mm.vx;mm.group.position.y+=mm.vy;mm.group.position.z+=mm.vz;
             mm.life--;
+            mm.group.visible=!_playerInShield;
             // Smoke trail puff
             if(mm.life%3===0&&mm.trail.length<12){
                 var puff=new THREE.Mesh(new THREE.SphereGeometry(0.15+Math.random()*0.15,4,3),new THREE.MeshBasicMaterial({color:0xAAAAAA,transparent:true,opacity:0.5}));
@@ -6401,6 +6410,7 @@ function updateCity(){
                 mm.trail[ti].life--;
                 mm.trail[ti].mesh.material.opacity=mm.trail[ti].life/20*0.5;
                 mm.trail[ti].mesh.scale.multiplyScalar(1.04);
+                mm.trail[ti].mesh.visible=!_playerInShield;
                 if(mm.trail[ti].life<=0){scene.remove(mm.trail[ti].mesh);mm.trail.splice(ti,1);}
             }
             // Missile hits shields — AT Field
