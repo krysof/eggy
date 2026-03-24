@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.17';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.18';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2019,7 +2019,10 @@ function buildCity() {
                 phase:Math.random()*Math.PI*2,
                 actionTimer:Math.floor(Math.random()*30),
                 funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null,
-                target:null,dodgeTimer:0,dodgeDir:null
+                target:null,dodgeTimer:0,dodgeDir:null,
+                hp:mu.ms==='sdf1'?50:mu.ms==='zenCruiser'?30:mu.ms==='gundam'?12:mu.ms==='dom'?10:8,
+                hpMax:mu.ms==='sdf1'?50:mu.ms==='zenCruiser'?30:mu.ms==='gundam'?12:mu.ms==='dom'?10:8,
+                _dead:false,_respawnTimer:0,_msType:mu.ms,_weaponType:mu.weapon,_color:mu.color
             });
         }
         // Pair up saber units for duels (EFSF vs Zeon)
@@ -2314,7 +2317,7 @@ function buildPortals() {
 // ---- Collectible coins in city ----
 function buildCityCoins() {
     for(let i=0;i<90;i++){
-        var coinSpread=currentCityStyle===5?MOON_R*1.5:CITY_SIZE*1.5;
+        var coinSpread=currentCityStyle===5?MOON_R*1.5:CITY_SIZE*0.9;
         const cx=(Math.random()-0.5)*coinSpread*2, cz=(Math.random()-0.5)*coinSpread*2;
         let skip=false;
         if(currentCityStyle!==5){
@@ -2742,9 +2745,10 @@ function addClouds(){
     // Tallest roof is about y=19, cloud world at y=42
     // Need steps every ~4 units (easy charge jump) from y=22 to y=40
     // Place staircase columns near several buildings
-    var stairPositions=[
-        {x:-30,z:-30},{x:30,z:25},{x:-50,z:-15},{x:50,z:35},{x:0,z:55},{x:-20,z:40}
-    ];
+    var stairPositions=[];
+    for(var _si=0;_si<6;_si++){
+        stairPositions.push({x:(Math.random()-0.5)*100,z:(Math.random()-0.5)*100});
+    }
     for(var si=0;si<stairPositions.length;si++){
         var sp=stairPositions[si];
         var baseY=22; // just above typical roof clouds
@@ -2972,8 +2976,9 @@ function _buildBabylonTower(){
     // Glowing entrance indicator
     var doorGlow=new THREE.Mesh(new THREE.PlaneGeometry(2,3.5),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
     doorGlow.position.set(0,2,baseD/2+0.3);g.add(doorGlow);
-    // Position near center
-    var towerX=10, towerZ=10;
+    // Position randomly (avoid center fountain area)
+    var towerX=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
+    var towerZ=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
     _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
@@ -4078,6 +4083,10 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         var tc=cityCoins[egg._coinTarget];
         if(tc.collected||tc._stolenBy){egg._coinTarget=null;}
         else{
+            // Abandon coin target if it's outside city bounds
+            var _tcBound=CITY_SIZE-3;
+            if(currentCityStyle!==5&&(Math.abs(tc.mesh.position.x)>_tcBound||Math.abs(tc.mesh.position.z)>_tcBound)){egg._coinTarget=null;}
+            else{
             egg._coinTargetTimer=(egg._coinTargetTimer||0)-1;
             if(egg._coinTargetTimer<=0){egg._coinTarget=null;}
             else{
@@ -4087,6 +4096,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 var tcd=Math.sqrt(tcdx*tcdx+tcdy*tcdy+tcdz*tcdz);
                 if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.7;egg.vy+=(tcdy/tcd)*MOVE_ACCEL*0.7;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.7;}
                 _chasingCoin=true;
+            }
             }
         }
     }
@@ -4173,6 +4183,18 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg.aiWanderTimer=60+Math.random()*120;
             egg.aiTargetX=(Math.random()-0.5)*55;
             egg.aiTargetZ=(Math.random()-0.5)*55;
+        }
+        // Clamp wander target inside city bounds
+        var _npcBound=CITY_SIZE-5;
+        if(egg.aiTargetX>_npcBound)egg.aiTargetX=_npcBound;
+        if(egg.aiTargetX<-_npcBound)egg.aiTargetX=-_npcBound;
+        if(egg.aiTargetZ>_npcBound)egg.aiTargetZ=_npcBound;
+        if(egg.aiTargetZ<-_npcBound)egg.aiTargetZ=-_npcBound;
+        // Push NPC away from city edge
+        var _epx=egg.mesh.position.x, _epz=egg.mesh.position.z;
+        if(Math.abs(_epx)>_npcBound||Math.abs(_epz)>_npcBound){
+            egg.aiTargetX=(Math.random()-0.5)*30;
+            egg.aiTargetZ=(Math.random()-0.5)*30;
         }
         var dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
         var dist=Math.sqrt(dx*dx+dz*dz);
@@ -4416,8 +4438,9 @@ function handlePlayerInput(){
     if(keys['KeyW']||keys['ArrowUp'])mz-=1;
     if(keys['KeyS']||keys['ArrowDown'])mz+=1;
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
-    // Sprint: hold F — gradual speed ramp (same key as grab/throw)
-    var holdingF=keys['KeyF']&&!_portalConfirmOpen;
+    // Sprint: hold F — gradual speed ramp (only when not holding something)
+    var _holdAnything=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
+    var holdingF=keys['KeyF']&&!_portalConfirmOpen&&!_holdAnything;
     var sprintPct=_updateSprintBar(holdingF);
     var accelMul=1+sprintPct*1.0;
     var speedMul=1+sprintPct*1.0;
@@ -4587,8 +4610,8 @@ function handlePlayerInput(){
             held.squash=0.5; playerEgg.grabCD=20;
             playThrowSound();
             held._dropCoinsOnLand=true;held._coinsDropped=false;
-        } else if(playerEgg._fHoldFrames<_throwChargeDelay&&playerEgg._fHoldFrames>0){
-            // Quick tap release (< 0.3s) → normal throw or grab
+        } else if(_holdingSomething&&playerEgg._fHoldFrames<_throwChargeDelay&&playerEgg._fHoldFrames>0){
+            // Quick tap F while holding → normal throw (separate press from grab)
             if(playerEgg.holdingProp){
                 var prop=playerEgg.holdingProp;
                 playerEgg.holdingProp=null;
@@ -5124,6 +5147,7 @@ function updateCity(){
         }
         for(var ggi=0;ggi<window._moonGundams.length;ggi++){
             var gm=window._moonGundams[ggi];
+            if(gm._dead)continue;
             gm.phase+=0.03;
             // Waypoint AI: move toward random waypoint near player
             gm.wpTimer--;
@@ -5245,6 +5269,60 @@ function updateCity(){
                     scene.add(dbMesh);
                     window._moonBeams.push({mesh:dbMesh,life:20,vx:dbDir.x*1.5,vy:dbDir.y*1.5,vz:dbDir.z*1.5});
                 }
+                // Deal damage to this MS
+                gm.hp=(gm.hp||gm.hpMax)-1;
+            }
+        }
+        // ---- MS destruction: remove dead units with big explosion ----
+        for(var _di=window._moonGundams.length-1;_di>=0;_di--){
+            var _dm=window._moonGundams[_di];
+            if(_dm._dead){
+                // Respawn timer countdown
+                _dm._respawnTimer--;
+                if(_dm._respawnTimer<=0){
+                    // Respawn: rebuild MS and fly in from Earth direction
+                    var _newGd=_buildMobileSuit(_dm._msType,_dm._weaponType,_dm._color);
+                    // Spawn from Earth direction (high altitude, far away)
+                    var _earthAng=Math.atan2(-60,80)+((Math.random()-0.5)*0.8);
+                    var _earthElev=0.5+(Math.random()-0.5)*0.4;
+                    var _spawnR=MOON_R+80+Math.random()*40;
+                    var _sx=Math.cos(_earthAng)*Math.cos(_earthElev)*_spawnR;
+                    var _sy=MOON_CY+Math.sin(_earthElev)*_spawnR;
+                    var _sz=Math.sin(_earthAng)*Math.cos(_earthElev)*_spawnR;
+                    _newGd.group.position.set(_sx,_sy,_sz);
+                    scene.add(_newGd.group);
+                    _dm.group=_newGd.group;_dm.funnels=_newGd.funnels||null;_dm.saberMesh=_newGd.saberMesh||null;_dm.weapon=_newGd.weapon||null;
+                    _dm.hp=_dm.hpMax;_dm._dead=false;
+                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;_dm.wpR=MOON_R+4+Math.random()*25;
+                    _dm.wpTimer=5;
+                }
+                continue;
+            }
+            if(_dm.hp<=0&&!_dm._dead){
+                // Destroy: big explosion + scatter debris
+                var _dpos=_dm.group.position;
+                var _dScale=_dm.ms==='sdf1'?4:_dm.ms==='zenCruiser'?3:1.5;
+                for(var _ei=0;_ei<6;_ei++){
+                    var _eDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+                    var _eR=_dScale*(1+_ei*0.5);
+                    var _eC=[0xFF4400,0xFF8800,0xFFCC00,0xFFFFFF][_ei%4];
+                    var _eM=new THREE.Mesh(new THREE.SphereGeometry(_eR,6,4),new THREE.MeshBasicMaterial({color:_eC,transparent:true,opacity:0.95}));
+                    _eM.position.set(_dpos.x+_eDir.x*_ei*0.5,_dpos.y+_eDir.y*_ei*0.5,_dpos.z+_eDir.z*_ei*0.5);
+                    scene.add(_eM);
+                    window._moonBeams.push({mesh:_eM,life:12+_ei*3,vx:_eDir.x*0.4,vy:_eDir.y*0.4,vz:_eDir.z*0.4,_isExplosion:true});
+                }
+                // Scatter debris pieces
+                for(var _dbi=0;_dbi<8;_dbi++){
+                    var _dbD=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
+                    var _dbM=new THREE.Mesh(new THREE.BoxGeometry(0.3*_dScale,0.2*_dScale,0.15*_dScale),new THREE.MeshBasicMaterial({color:0x555566,transparent:true,opacity:0.8}));
+                    _dbM.position.copy(_dpos);scene.add(_dbM);
+                    window._moonBeams.push({mesh:_dbM,life:30,vx:_dbD.x*2.5,vy:_dbD.y*2.5,vz:_dbD.z*2.5});
+                }
+                playExplosionSound();
+                // Hide the MS group
+                scene.remove(_dm.group);
+                _dm._dead=true;
+                _dm._respawnTimer=300+Math.floor(Math.random()*300); // 5-10 seconds
             }
         }
         // Update beams + explosions
