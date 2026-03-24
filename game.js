@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.59';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.60';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3589,11 +3589,11 @@ function updatePipeTravel(){
         _pipeArrivalCooldown=60; // 1 second grace period before portal checks
         if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
         if(currentCityStyle===5){
-            // Moon flat: spawn in battlefield area (right side)
-            playerEgg.mesh.position.set(50,3,0);
+            // Moon flat: spawn inside Von Braun city
+            playerEgg.mesh.position.set(-200,3,0);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
-            camera.position.set(50,12,19);camera.lookAt(50,0,0);
+            camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
         } else {
             playerEgg.mesh.position.set(0,3,0);
@@ -5596,7 +5596,7 @@ function handlePlayerInput(){
                 held2.heldBy=null; playerEgg.holding=null; if(held2.struggleBar){held2.mesh.remove(held2.struggleBar);held2.struggleBar=null;}
                 var dir2=playerEgg.mesh.rotation.y;
                 held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir2)*2);
-                var tw2=held2.weight||1.0;var tf2=0.35/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=0.12;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=60;held2.throwTimer=60;held2._bounces=2;
+                var tw2=held2.weight||1.0;var tf2=0.4/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=0.15;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=80;held2.throwTimer=80;held2._bounces=2;held2._chargeDrag=0.992;
                 held2.squash=0.5; playerEgg.grabCD=20;
                 playThrowSound();
                 held2._dropCoinsOnLand=true;held2._coinsDropped=false;
@@ -6365,9 +6365,10 @@ function updateCity(){
                         bb.vx*=-0.3;bb.vy*=-0.3;bb.vz*=-0.3;
                     }
                 }
-                // Beam hits eggs (same as being thrown)
+                // Beam hits eggs (same as being thrown) — skip eggs inside city shields
                 if(!bb._hitEgg)for(var _bei=0;_bei<allEggs.length;_bei++){
                     var _be=allEggs[_bei];if(!_be.alive||_be.heldBy||_be.throwTimer>0)continue;
+                    if(_checkMoonShield(_be.mesh.position.x,_be.mesh.position.y,_be.mesh.position.z))continue;
                     var _bdx=_be.mesh.position.x-bb.mesh.position.x;
                     var _bdy=_be.mesh.position.y-bb.mesh.position.y;
                     var _bdz=_be.mesh.position.z-bb.mesh.position.z;
@@ -6412,9 +6413,10 @@ function updateCity(){
                     mm._shieldHit=true;mm.life=0;
                 }
             }
-            // Missile hits eggs
+            // Missile hits eggs — skip eggs inside city shields
             if(!mm._hitEgg)for(var _mei=0;_mei<allEggs.length;_mei++){
                 var _me=allEggs[_mei];if(!_me.alive||_me.heldBy||_me.throwTimer>0)continue;
+                if(_checkMoonShield(_me.mesh.position.x,_me.mesh.position.y,_me.mesh.position.z))continue;
                 var _mdx=_me.mesh.position.x-mm.group.position.x;
                 var _mdy=_me.mesh.position.y-mm.group.position.y;
                 var _mdz=_me.mesh.position.z-mm.group.position.z;
