@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.68';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.69';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2590,10 +2590,13 @@ function buildCity() {
         // Granada central tower
         cityColliders.push({x:-200,z:-200,hw:8,hd:8,h:70});
         // Add moon city meshes to building occlusion array
-        var _vbMeshes=[];lunarCity.traverse(function(c){if(c.isMesh)_vbMeshes.push(c);});
-        cityBuildingMeshes.push({meshes:_vbMeshes,x:-200,z:0,hw:150,hd:150,h:100});
-        var _grMeshes=[];granada.traverse(function(c){if(c.isMesh)_grMeshes.push(c);});
-        cityBuildingMeshes.push({meshes:_grMeshes,x:-200,z:-200,hw:90,hd:90,h:70});
+        // Collect all meshes from each city group for occlusion
+        var _vbAllMeshes=[];lunarCity.traverse(function(c){if(c.isMesh)_vbAllMeshes.push(c);});
+        var _grAllMeshes=[];granada.traverse(function(c){if(c.isMesh)_grAllMeshes.push(c);});
+        // Von Braun: central tower area (narrow box so it only fades when directly behind)
+        cityBuildingMeshes.push({meshes:_vbAllMeshes,x:-200,z:0,hw:15,hd:15,h:100});
+        // Granada: central area
+        cityBuildingMeshes.push({meshes:_grAllMeshes,x:-200,z:-200,hw:10,hd:10,h:70});
         // Earth in sky — semi-realistic scale (Earth radius ~3.67x Moon)
         var earthGroup=new THREE.Group();
         var _earthR=29340; // Earth radius in game units (real ratio to moon)
@@ -5254,6 +5257,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     sde2.throwTimer=15;sde2._bounces=1;sde2.squash=0.5;
                     sde2._stunTimer=Math.floor(30+Math.random()*40);
                     if(sde2.isPlayer)playHitSound();
+                    _dropNpcStolenCoins(sde2);
                 }
             }
         } else {
@@ -5410,7 +5414,16 @@ function handlePlayerInput(){
     if(_portalConfirmOpen)return;
     if(playerEgg.finished&&gameState==='racing')return;
     // Cannot control while thrown or stunned (except struggle when held)
-    if(playerEgg.throwTimer>0)return;
+    if(playerEgg.throwTimer>0||playerEgg._stunTimer>0){
+        // Interrupt: drop held items and cancel charges when hit
+        if(playerEgg.holding){var _ih=playerEgg.holding;_ih.heldBy=null;playerEgg.holding=null;if(_ih.struggleBar){_ih.mesh.remove(_ih.struggleBar);_ih.struggleBar=null;}playerEgg.grabCD=20;}
+        if(playerEgg.holdingProp){playerEgg.holdingProp.grabbed=false;playerEgg.holdingProp=null;playerEgg.grabCD=20;}
+        if(playerEgg.holdingObs){playerEgg.holdingObs._grabbed=false;playerEgg.holdingObs=null;playerEgg.grabCD=20;}
+        _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
+        playerEgg._throwCharging=false;playerEgg._throwCharge=0;
+        _sprintCharge=0;
+        if(playerEgg.throwTimer>0)return;
+    }
     if(playerEgg._stunTimer>0){playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;
         // Cancel spin dash on stun
         if(_spinDashing){_spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
@@ -6462,6 +6475,7 @@ function updateCity(){
                         _be.vx+=bb.vx*_bImp;_be.vy+=bb.vy*_bImp+0.1;_be.vz+=bb.vz*_bImp;
                         _be.throwTimer=15;_be._bounces=1;_be.squash=0.5;
                         if(_be.isPlayer)playHitSound();
+                        _dropNpcStolenCoins(_be);
                         bb._hitEgg=true;bb.life=Math.min(bb.life,3);break;
                     }
                 }
@@ -6511,6 +6525,7 @@ function updateCity(){
                     var _mImp=0.2;if(_md>0.1){_me.vx+=_mdx/_md*_mImp;_me.vy+=_mdy/_md*_mImp+0.15;_me.vz+=_mdz/_md*_mImp;}
                     _me.throwTimer=20;_me._bounces=1;_me.squash=0.4;
                     if(_me.isPlayer)playHitSound();
+                    _dropNpcStolenCoins(_me);
                     mm._hitEgg=true;mm.life=0;break;
                 }
             }
@@ -7342,6 +7357,7 @@ function checkThrownEggImpact(eggList){
                 a.vx*=0.3;a.vz*=0.3;
                 a.throwTimer=Math.min(a.throwTimer,5);
                 playHitSound();
+                _dropNpcStolenCoins(b);
             }
         }
     }
