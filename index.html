@@ -17,7 +17,7 @@
       <h1>蛋宝世界</h1>
       <p class="subtitle">D A N B O &nbsp; W O R L D</p>
       <p class="slogan-text">探索城市 · 穿越世界 · 一起冒险</p>
-      <p class="version-text">v20260324.19</p>
+      <p class="version-text">v20260324.32</p>
     </div>
     <button id="start-btn" class="btn btn-primary">🎮 Start Game</button>
   </div>
@@ -59,12 +59,18 @@
     <button id="sfx-btn" class="sound-toggle" title="SFX">🔊</button>
   </div>
 
+  <!-- SOTN area name reveal -->
+  <div id="area-name-overlay" class="area-name-overlay" style="display:none;">
+    <div class="area-name-text" id="area-name-text"></div>
+  </div>
+
   <!-- City HUD -->
   <div id="city-hud" class="hidden">
     <div class="hud-top">
       <span class="hud-pill" id="city-name-hud">🏙️ Egg City</span>
       <span class="hud-pill" id="coin-hud">⭐ 0</span>
-      <span class="hud-pill">F Grab/Throw</span>
+      <span class="hud-pill">F Grab/Throw | Hold to Charge</span>
+      <span class="hud-pill" id="zoom-hud">Scroll Zoom</span>
     </div>
   </div>
 

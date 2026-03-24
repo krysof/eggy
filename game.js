@@ -16,13 +16,14 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.31';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.32';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
     portalYes:{zhs:'\u2705 \u8FDB\u5165 (Y/\u56DE\u8F66)',zht:'\u2705 \u9032\u5165 (Y/Enter)',ja:'\u2705 \u5165\u308B (Y/Enter)',en:'\u2705 Enter (Y/Enter)'},
     portalNo:{zhs:'\u274C \u53D6\u6D88 (N/ESC)',zht:'\u274C \u53D6\u6D88 (N/ESC)',ja:'\u274C \u30AD\u30E3\u30F3\u30BB\u30EB (N/ESC)',en:'\u274C Cancel (N/ESC)'},
-    grabThrow:{zhs:'F \u6293/\u6254',zht:'F \u6293/\u64F2',ja:'F \u3064\u304B\u3080/\u6295\u3052\u308B',en:'F Grab/Throw'},
+    grabThrow:{zhs:'F \u6293/\u6254 | \u957F\u6309\u84C4\u529B',zht:'F \u6293/\u64F2 | \u9577\u6309\u84C4\u529B',ja:'F \u3064\u304B\u3080/\u6295\u3052\u308B | \u9577\u62BC\u3057\u30C1\u30E3\u30FC\u30B8',en:'F Grab/Throw | Hold to Charge'},
+    zoomHint:{zhs:'\u6EDA\u8F6E \u7F29\u653E',zht:'\u6EFE\u8F2A \u7E2E\u653E',ja:'\u30DB\u30A4\u30FC\u30EB \u30BA\u30FC\u30E0',en:'Scroll Zoom'},
     raceBack:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',ja:'\uD83C\uDFD9\uFE0F \u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back'},
     backCity:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE\u57CE\u5E02',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE\u57CE\u5E02',ja:'\uD83C\uDFD9\uFE0F \u8857\u306B\u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back to City'},
     resultDone:{zhs:'\u5B8C\u6210\uFF01',zht:'\u5B8C\u6210\uFF01',ja:'\u5B8C\u4E86\uFF01',en:'Done!'},
@@ -181,6 +182,7 @@ function _applyLang(){
     var sb2=document.getElementById('sfx-btn');if(sb2)sb2.title=L('sfx');
     var pills=document.querySelectorAll('#city-hud .hud-pill');
     if(pills.length>=3)pills[2].textContent=L('grabThrow');
+    var zh=document.getElementById('zoom-hud');if(zh)zh.textContent=L('zoomHint');
     var rb=document.getElementById('race-back-btn');if(rb)rb.textContent=L('raceBack');
     var bc=document.getElementById('back-city-btn');if(bc)bc.textContent=L('backCity');
     var rt=document.getElementById('result-title');if(rt)rt.textContent=L('resultDone');
@@ -2968,6 +2970,8 @@ function updatePipeTravel(){
             camera.up.set(0,1,0);
         }
         for(var i=0;i<warpPipeMeshes.length;i++)warpPipeMeshes[i]._cooldown=true;
+        // SOTN area name reveal after pipe travel
+        _showCityAreaName(currentCityStyle);
     }
 }
 
@@ -3001,6 +3005,8 @@ function switchCity(targetStyle){
         camera.position.set(0,12,19);camera.lookAt(0,0,5);
         camera.up.set(0,1,0);
     }
+    // SOTN area name reveal
+    _showCityAreaName(currentCityStyle);
 }
 
 // ---- NPC eggs wandering city ----
@@ -3282,7 +3288,7 @@ function _buildBabylonTower(){
     var ctx2=canvas.getContext('2d');
     ctx2.fillStyle='rgba(0,0,0,0.6)';ctx2.fillRect(0,0,256,64);
     ctx2.fillStyle='#FFD700';ctx2.font='bold 22px sans-serif';ctx2.textAlign='center';
-    var towerLabel={zhs:'\u5DF4\u522B\u5854 \u2191 \u4E91\u4E16\u754C',zht:'\u5DF4\u5225\u5854 \u2191 \u96F2\u4E16\u754C',ja:'\u30D0\u30D9\u30EB\u306E\u5854 \u2191 \u96F2',en:'Babel \u2191 Cloud World'};
+    var towerLabel={zhs:'\u5DF4\u522B\u5854 \u2191 \u4E91\u4E2D\u754C',zht:'\u5DF4\u5225\u5854 \u2191 \u96F2\u4E2D\u754C',ja:'\u30D0\u30D9\u30EB\u306E\u5854 \u2191 \u96F2\u4E2D\u754C',en:'Babel \u2191 Cloud Realm'};
     ctx2.fillText(towerLabel[_langCode]||towerLabel.en,128,42);
     var tex=new THREE.CanvasTexture(canvas);
     var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
@@ -5478,6 +5484,7 @@ function updateCity(){
             playerEgg.mesh.position.set(bt2.x,bt2.topY+1,bt2.z);
             playerEgg.onGround=true;
             _babylonPromptDismissed=true; // don't immediately prompt to go back down
+            _showCloudAreaName();
         }
         // Arrived at bottom
         if(_babylonElevDir===-1&&_babylonElevY<=1){
@@ -6117,7 +6124,7 @@ function _showBabylonPrompt(dir){
     _portalConfirmOpen=true;
     var box=document.getElementById('portal-confirm');
     var babelName={zhs:'\u5DF4\u522B\u5854',zht:'\u5DF4\u5225\u5854',ja:'\u30D0\u30D9\u30EB\u306E\u5854',en:'Tower of Babel'};
-    var upDesc={zhs:'\u4E58\u5750\u7535\u68AF\u524D\u5F80\u4E91\u4E16\u754C\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u524D\u5F80\u96F2\u4E16\u754C\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u96F2\u306E\u4E16\u754C\u3078\uFF1F',en:'Take elevator to Cloud World?'};
+    var upDesc={zhs:'\u4E58\u5750\u7535\u68AF\u524D\u5F80\u4E91\u4E2D\u754C\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u524D\u5F80\u96F2\u4E2D\u754C\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u96F2\u4E2D\u754C\u3078\uFF1F',en:'Take elevator to Cloud Realm?'};
     var downDesc={zhs:'\u4E58\u5750\u7535\u68AF\u8FD4\u56DE\u5730\u9762\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u8FD4\u56DE\u5730\u9762\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u5730\u4E0A\u3078\uFF1F',en:'Take elevator back down?'};
     document.getElementById('portal-confirm-name').textContent=babelName[_langCode]||babelName.en;
     document.getElementById('portal-confirm-desc').textContent=(dir===-1?downDesc:upDesc)[_langCode]||(dir===-1?downDesc:upDesc).en;
@@ -6198,6 +6205,40 @@ addEventListener('keydown',function(e){
 });
 
 // ============================================================
+//  SOTN Area Name Reveal
+// ============================================================
+var _areaNameTimer=null;
+var _areaNames={
+    zhs:['\u86CB\u5B9D\u57CE \u2014 \u5E0C\u671B\u4E4B\u8857','\u6C99\u6F20\u57CE \u2014 \u9EC4\u91D1\u4E4B\u7802','\u51B0\u96EA\u57CE \u2014 \u6C38\u51BB\u4E4B\u5730','\u7194\u5CA9\u57CE \u2014 \u706B\u7130\u4E4B\u5FC3','\u7CD6\u679C\u57CE \u2014 \u68A6\u5E7B\u4E50\u56ED','\u6708\u9762\u90FD\u5E02 \u2014 \u5BD2\u5BC2\u4E4B\u6D77'],
+    zht:['\u86CB\u5B9D\u57CE \u2014 \u5E0C\u671B\u4E4B\u8857','\u6C99\u6F20\u57CE \u2014 \u9EC3\u91D1\u4E4B\u7802','\u51B0\u96EA\u57CE \u2014 \u6C38\u51CD\u4E4B\u5730','\u7194\u5CA9\u57CE \u2014 \u706B\u7130\u4E4B\u5FC3','\u7CD6\u679C\u57CE \u2014 \u5922\u5E7B\u6A02\u5712','\u6708\u9762\u90FD\u5E02 \u2014 \u5BD2\u5BC2\u4E4B\u6D77'],
+    ja:['\u30C0\u30F3\u30DC\u30B7\u30C6\u30A3 \u2014 \u5E0C\u671B\u306E\u8857','\u7802\u6F20\u30B7\u30C6\u30A3 \u2014 \u9EC4\u91D1\u306E\u7802','\u6C37\u96EA\u30B7\u30C6\u30A3 \u2014 \u6C38\u51CD\u306E\u5730','\u6EB6\u5CA9\u30B7\u30C6\u30A3 \u2014 \u708E\u306E\u5FC3\u81D3','\u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3 \u2014 \u5922\u306E\u697D\u5712','\u30EB\u30CA\u30FC\u30BE\u30FC\u30F3 \u2014 \u9759\u5BC2\u306E\u6D77'],
+    en:['DANBO City \u2014 Street of Hope','Desert City \u2014 Golden Sands','Ice City \u2014 Frozen Lands','Lava City \u2014 Heart of Flame','Candy City \u2014 Dreamland','Lunar Zone \u2014 Sea of Silence']
+};
+var _areaNameCloud={zhs:'\u4E91\u4E2D\u754C \u2014 \u5929\u7A7A\u4E4B\u57CE',zht:'\u96F2\u4E2D\u754C \u2014 \u5929\u7A7A\u4E4B\u57CE',ja:'\u96F2\u4E2D\u754C \u2014 \u5929\u7A7A\u306E\u57CE',en:'Cloud Realm \u2014 City in the Sky'};
+function _showAreaName(name){
+    if(!name)return;
+    var overlay=document.getElementById('area-name-overlay');
+    var text=document.getElementById('area-name-text');
+    if(!overlay||!text)return;
+    if(_areaNameTimer){clearTimeout(_areaNameTimer);_areaNameTimer=null;}
+    overlay.style.display='none';
+    text.style.animation='none';
+    // Force reflow to restart animation
+    void text.offsetWidth;
+    text.textContent=name;
+    text.style.animation='sotnReveal 3.5s ease-out forwards';
+    overlay.style.display='flex';
+    _areaNameTimer=setTimeout(function(){overlay.style.display='none';_areaNameTimer=null;},3600);
+}
+function _showCityAreaName(cityIdx){
+    var names=_areaNames[_langCode]||_areaNames.en;
+    if(cityIdx>=0&&cityIdx<names.length)_showAreaName(names[cityIdx]);
+}
+function _showCloudAreaName(){
+    _showAreaName(_areaNameCloud[_langCode]||_areaNameCloud.en);
+}
+
+// ============================================================
 //  GAME FLOW
 // ============================================================
 function showScreen(id){
@@ -6248,6 +6289,8 @@ function enterCity(spawnX,spawnZ){
     }
     // Check if Tower of Babel should already be triggered
     if(coins>=10&&!_babylonTriggered&&currentCityStyle!==5){_triggerBabylonEvent();}
+    // SOTN area name reveal
+    _showCityAreaName(currentCityStyle);
 }
 
 function enterRace(raceIndex){
@@ -6298,6 +6341,9 @@ function enterRace(raceIndex){
     gameState='raceIntro';
     stopBGM(); startRaceBGM(raceIndex);
     const race=RACES[raceIndex];
+    // SOTN area name reveal for race
+    var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
+    if(raceNames[raceIndex])_showAreaName(raceNames[raceIndex]);
     document.getElementById('round-label').textContent=race.name;
     document.getElementById('round-name').textContent=race.desc;
     document.getElementById('round-desc').textContent=L('rushGoal');
@@ -6619,6 +6665,7 @@ document.getElementById('race-back-btn').addEventListener('click', goBackToCity)
     // Grab/throw pill in city HUD
     var pills=document.querySelectorAll('#city-hud .hud-pill');
     if(pills.length>=3)pills[2].textContent=L('grabThrow');
+    var zh2=_e('zoom-hud');if(zh2)zh2.textContent=L('zoomHint');
     var rb=_e('race-back-btn');if(rb)rb.textContent=L('raceBack');
     var bc=_e('back-city-btn');if(bc)bc.textContent=L('backCity');
     var rt=_e('result-title');if(rt)rt.textContent=L('resultDone');
