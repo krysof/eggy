@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.39';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.40';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -166,10 +166,11 @@ if(sfxBtn) sfxBtn.addEventListener("click",function(){
 
 // Language toggle button
 var _langOrder=['auto','zhs','zht','ja','en'];
-var _langLabels={auto:'Auto',zhs:'简',zht:'繁',ja:'JP',en:'EN'};
+var _langLabels={auto:'Auto',zhs:'\u7B80',zht:'\u7E41',ja:'JP',en:'EN'};
+var _autoLabels={zhs:'\u81EA\u52A8',zht:'\u81EA\u52D5',ja:'\u81EA\u52D5',en:'Auto'};
 var langBtn=document.getElementById("lang-btn");
 function _getLangBtnText(){
-    if(_langMode==='auto')return '\uD83C\uDF10Auto';
+    if(_langMode==='auto')return '\uD83C\uDF10'+(_autoLabels[_langCode]||'Auto');
     return '\uD83C\uDF10'+_langLabels[_langMode];
 }
 function _applyLang(){
@@ -885,17 +886,26 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
 scene.fog = new THREE.Fog(0x87CEEB, 80, 400);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 50000);
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 2000000);
 window.addEventListener('resize', ()=>{ R.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
 
 // ---- Lighting ----
-scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-sun.position.set(30,50,30); sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
-const ssc=sun.shadow.camera; ssc.left=-70;ssc.right=70;ssc.top=70;ssc.bottom=-70;ssc.near=1;ssc.far=160;
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const sun = new THREE.DirectionalLight(0xFFEECC, 2.0);
+sun.position.set(60,80,40); sun.castShadow=true;
+sun.shadow.mapSize.set(4096,4096);
+const ssc=sun.shadow.camera; ssc.left=-120;ssc.right=120;ssc.top=120;ssc.bottom=-120;ssc.near=1;ssc.far=300;
+sun.shadow.bias=-0.001;
 scene.add(sun); scene.add(sun.target);
-scene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.8));
+scene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.5));
+// Sun visual mesh (visible in ground cities)
+var _sunMesh=new THREE.Mesh(new THREE.SphereGeometry(8,16,12),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
+_sunMesh.position.copy(sun.position).multiplyScalar(3);
+scene.add(_sunMesh);
+// Sun glow
+var _sunGlow=new THREE.Mesh(new THREE.SphereGeometry(12,16,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.25,fog:false}));
+_sunGlow.position.copy(_sunMesh.position);
+scene.add(_sunGlow);
 
 // ---- Skins ----
 // ---- Characters ----
@@ -1512,7 +1522,7 @@ function createEggMesh(color, accent, charType) {
     }
     bodyGeo.computeVertexNormals();
     var body=new THREE.Mesh(bodyGeo,toon(color));
-    body.position.y=0.7; g.add(body);
+    body.position.y=0.7; body.castShadow=true; body.receiveShadow=true; g.add(body);
 
     // Cracked eggshell — ONLY for egg character
     if (charType==='egg') {
@@ -1913,7 +1923,7 @@ function buildCity() {
         for(var pi=0;pi<15;pi++){
             var pa=Math.random()*Math.PI*2;
             var pp=Math.random()*0.3;
-            var pr=40+Math.random()*80;
+            var pr=80+Math.random()*160;
             var patch=new THREE.Mesh(new THREE.CircleGeometry(pr,16),toon(0x666677));
             var ppx=Math.cos(pa)*pp*MOON_R*0.6, ppz=Math.sin(pa)*pp*MOON_R*0.6;
             var ppp=_moonProject(ppx,ppz);
@@ -2185,7 +2195,7 @@ function buildCity() {
     // ---- Moon City special decorations ----
     if(currentCityStyle===5){
         // Craters — projected onto sphere surface (outside city zones)
-        var _moonCityCenters=[{fx:-1200,fz:1200,r:22},{fx:1600,fz:-1600,r:14}]; // flat coords + local radius for exclusion
+        var _moonCityCenters=[{fx:-2400,fz:2400,r:22},{fx:3200,fz:-3200,r:14}]; // flat coords + local radius for exclusion
         for(var ci=0;ci<40;ci++){
             var crx=(Math.random()-0.5)*MOON_R*2;
             var crz=(Math.random()-0.5)*MOON_R*2;
@@ -2197,12 +2207,12 @@ function buildCity() {
                 if(Math.sqrt(_cdx*_cdx+_cdz*_cdz)<_cc.r*240+500)_skipCrater=true;
             }
             if(_skipCrater)continue;
-            var crr=10+Math.random()*30;
+            var crr=20+Math.random()*60;
             var cp=_moonProject(crx,crz);
             var craterG=new THREE.Group();
-            var crater=new THREE.Mesh(new THREE.CylinderGeometry(crr,crr*1.1,8,16),toon(0x555566));
-            crater.position.y=-3;craterG.add(crater);
-            var rim=new THREE.Mesh(new THREE.TorusGeometry(crr,6,6,16),toon(0x777788));
+            var crater=new THREE.Mesh(new THREE.CylinderGeometry(crr,crr*1.1,16,16),toon(0x555566));
+            crater.position.y=-6;craterG.add(crater);
+            var rim=new THREE.Mesh(new THREE.TorusGeometry(crr,10,6,16),toon(0x777788));
             rim.position.y=1;rim.rotation.x=Math.PI/2;craterG.add(rim);
             craterG.position.set(cp.x,cp.y,cp.z);
             _moonOrient(craterG,cp.nx,cp.ny,cp.nz);
@@ -2238,10 +2248,10 @@ function buildCity() {
         stripes.position.set(5.8,2.5,0.01);apollo.add(stripes);
         var stripes2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
         stripes2.position.set(5.8,3.1,0.01);apollo.add(stripes2);
-        var ap=_moonProject(2800,2800);
+        var ap=_moonProject(5600,5600);
         apollo.position.set(ap.x,ap.y,ap.z);
         _moonOrient(apollo,ap.nx,ap.ny,ap.nz);
-        apollo.scale.set(20,20,20);
+        apollo.scale.set(40,40,40);
         cityGroup.add(apollo);
         // Lunar Rover — projected onto sphere
         var rover=new THREE.Group();
@@ -2256,10 +2266,10 @@ function buildCity() {
         }
         var rDish=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
-        var rp=_moonProject(2600,3000);
+        var rp=_moonProject(5200,6000);
         rover.position.set(rp.x,rp.y,rp.z);
         _moonOrient(rover,rp.nx,rp.ny,rp.nz);
-        rover.scale.set(20,20,20);
+        rover.scale.set(40,40,40);
         rover.rotateY(0.5);
         cityGroup.add(rover);
         // ---- Grand Lunar City "Von Braun" (Gundam-style) ----
@@ -2352,7 +2362,7 @@ function buildCity() {
             fv.rotation.z=Math.PI/2*0.3;fv.rotation.y=fva;lunarCity.add(fv);
         }
         // Place Von Braun on moon surface
-        var lcp=_moonProject(-1200,1200);
+        var lcp=_moonProject(-2400,2400);
         lunarCity.position.set(lcp.x,lcp.y,lcp.z);
         _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
         lunarCity.scale.set(240,240,240);
@@ -2378,7 +2388,7 @@ function buildCity() {
             lunarCity.add(doorG);
         }
         // Shield sphere (barely visible)
-        var _vbShieldR=4800;
+        var _vbShieldR=9600;
         var vbShield=new THREE.Mesh(new THREE.SphereGeometry(_vbShieldR,32,24),
             new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
         vbShield.position.set(lcp.x,lcp.y,lcp.z);
@@ -2400,7 +2410,7 @@ function buildCity() {
             ghd.position.set(Math.cos(gha)*(ghr+1.5),0.6,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
         }
         var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.2,8,8),toon(0x556655));grTower.position.y=4;granada.add(grTower);
-        var grp=_moonProject(1600,-1600);
+        var grp=_moonProject(3200,-3200);
         granada.position.set(grp.x,grp.y,grp.z);
         _moonOrient(granada,grp.nx,grp.ny,grp.nz);
         granada.scale.set(240,240,240);
@@ -2419,7 +2429,7 @@ function buildCity() {
             granada.add(gdoorG);
         }
         // Granada shield
-        var _grShieldR=3000;
+        var _grShieldR=6000;
         var grShield=new THREE.Mesh(new THREE.SphereGeometry(_grShieldR,24,16),
             new THREE.MeshBasicMaterial({color:0x88FFAA,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
         grShield.position.set(grp.x,grp.y,grp.z);
@@ -2429,8 +2439,8 @@ function buildCity() {
         // Von Braun: buildings are in local coords, scale 240, centered at lcp
         // Store city zones for NPC spawning and collision
         window._moonCities=[
-            {cx:lcp.x,cy:lcp.y,cz:lcp.z,nx:lcp.nx,ny:lcp.ny,nz:lcp.nz,r:_vbShieldR,scale:240,name:'Von Braun',flatX:-1200,flatZ:1200},
-            {cx:grp.x,cy:grp.y,cz:grp.z,nx:grp.nx,ny:grp.ny,nz:grp.nz,r:_grShieldR,scale:240,name:'Granada',flatX:1600,flatZ:-1600}
+            {cx:lcp.x,cy:lcp.y,cz:lcp.z,nx:lcp.nx,ny:lcp.ny,nz:lcp.nz,r:_vbShieldR,scale:240,name:'Von Braun',flatX:-2400,flatZ:2400},
+            {cx:grp.x,cy:grp.y,cz:grp.z,nx:grp.nx,ny:grp.ny,nz:grp.nz,r:_grShieldR,scale:240,name:'Granada',flatX:3200,flatZ:-3200}
         ];
         // Moon city building colliders — sphere colliders in world space
         // Von Braun: central tower r=1.8*240=432, ring buildings at r=8-11 from center
@@ -2442,84 +2452,135 @@ function buildCity() {
             var mba=mbi/12*Math.PI*2;var mbr=(8+Math.random()*3)*240;
             var mbLocalX=Math.cos(mba)*mbr/240;var mbLocalZ=Math.sin(mba)*mbr/240;
             // Project local position relative to Von Braun center
-            var mbFlat=_moonProject(-1200+mbLocalX*240,1200+mbLocalZ*240);
+            var mbFlat=_moonProject(-2400+mbLocalX*240,2400+mbLocalZ*240);
             window._moonBldgColliders.push({cx:mbFlat.x,cy:mbFlat.y,cz:mbFlat.z,r:400,h:2400,city:0});
         }
         // Granada hangars (6 at radius 5-7)
         for(var gci=0;gci<6;gci++){
             var gca=gci/6*Math.PI*2;var gcr=(5+Math.random()*2)*240;
             var gcLocalX=Math.cos(gca)*gcr/240;var gcLocalZ=Math.sin(gca)*gcr/240;
-            var gcFlat=_moonProject(1600+gcLocalX*240,-1600+gcLocalZ*240);
+            var gcFlat=_moonProject(3200+gcLocalX*240,-3200+gcLocalZ*240);
             window._moonBldgColliders.push({cx:gcFlat.x,cy:gcFlat.y,cz:gcFlat.z,r:500,h:1200,city:1});
         }
         // Granada central tower
         window._moonBldgColliders.push({cx:grp.x,cy:grp.y,cz:grp.z,r:300,h:8*240,city:1});
-        // Earth in sky — positioned relative to sphere center, far away
+        // Earth in sky — semi-realistic scale (Earth radius ~3.67x Moon)
         var earthGroup=new THREE.Group();
-        var earth=new THREE.Mesh(new THREE.SphereGeometry(30,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
+        var _earthR=29340; // Earth radius in game units (real ratio to moon)
+        var earth=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
         earthGroup.add(earth);
         for(var ei=0;ei<8;ei++){
             var ea=ei/8*Math.PI*2;
             var ep=(Math.random()-0.5)*Math.PI*0.7;
-            var cont=new THREE.Mesh(new THREE.SphereGeometry(8+Math.random()*6,10,8),new THREE.MeshBasicMaterial({color:0x33AA44,fog:false}));
-            cont.position.set(Math.cos(ea)*Math.cos(ep)*26,Math.sin(ep)*26,Math.sin(ea)*Math.cos(ep)*26);
+            var cont=new THREE.Mesh(new THREE.SphereGeometry(0.26+Math.random()*0.2,10,8),new THREE.MeshBasicMaterial({color:0x33AA44,fog:false}));
+            cont.position.set(Math.cos(ea)*Math.cos(ep)*0.87,Math.sin(ep)*0.87,Math.sin(ea)*Math.cos(ep)*0.87);
             cont.scale.set(1,0.5,1);
             earthGroup.add(cont);
         }
-        var iceCap1=new THREE.Mesh(new THREE.SphereGeometry(8,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
-        iceCap1.position.set(0,28,0);earthGroup.add(iceCap1);
-        var iceCap2=new THREE.Mesh(new THREE.SphereGeometry(6,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
-        iceCap2.position.set(0,-28,0);earthGroup.add(iceCap2);
-        var atmo=new THREE.Mesh(new THREE.SphereGeometry(32,32,24),new THREE.MeshBasicMaterial({color:0x6699FF,transparent:true,opacity:0.15,side:THREE.BackSide,fog:false}));
+        var iceCap1=new THREE.Mesh(new THREE.SphereGeometry(0.27,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
+        iceCap1.position.set(0,0.93,0);earthGroup.add(iceCap1);
+        var iceCap2=new THREE.Mesh(new THREE.SphereGeometry(0.2,10,8),new THREE.MeshBasicMaterial({color:0xDDEEFF,fog:false}));
+        iceCap2.position.set(0,-0.93,0);earthGroup.add(iceCap2);
+        var atmo=new THREE.Mesh(new THREE.SphereGeometry(1.07,32,24),new THREE.MeshBasicMaterial({color:0x6699FF,transparent:true,opacity:0.15,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo);
-        var atmo2=new THREE.Mesh(new THREE.SphereGeometry(35,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
+        var atmo2=new THREE.Mesh(new THREE.SphereGeometry(1.17,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo2);
-        // Position earth above and to the side — visible from sphere top
-        earthGroup.position.set(6000,MOON_CY+24000,-4000);
-        earthGroup.scale.set(480,480,480); // realistic Earth/Moon ratio (~3.67x diameter)
+        // Earth-Moon distance: compressed to 400,000 units (real ~1.77M)
+        var _earthDist=400000;
+        earthGroup.position.set(_earthDist*0.6,MOON_CY+_earthDist*0.7,-_earthDist*0.3);
+        earthGroup.scale.set(_earthR,_earthR,_earthR);
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
+
+        // ---- Solar System — Sun and planets at compressed but proportional distances ----
+        // Sun: radius 696,000km → 80,000 units (compressed), distance 150M km → 1,200,000 units
+        var _sunSolar=new THREE.Mesh(new THREE.SphereGeometry(80000,24,16),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
+        _sunSolar.position.set(-800000,MOON_CY+600000,400000);
+        scene.add(_sunSolar);
+        var _sunSolarGlow=new THREE.Mesh(new THREE.SphereGeometry(100000,16,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.15,fog:false}));
+        _sunSolarGlow.position.copy(_sunSolar.position);
+        scene.add(_sunSolarGlow);
+        // Point light from sun direction for moon lighting
+        var _solarLight=new THREE.DirectionalLight(0xFFEECC,1.0);
+        _solarLight.position.copy(_sunSolar.position).normalize().multiplyScalar(100);
+        scene.add(_solarLight);
+
+        // Planets (compressed distances, exaggerated sizes for visibility)
+        var _planets=[
+            {name:'Mercury',color:0xAA9988,r:200,dist:300000,angle:0.8},
+            {name:'Venus',color:0xFFCC88,r:500,dist:450000,angle:2.1},
+            // Earth is already placed above
+            {name:'Mars',color:0xCC6644,r:350,dist:600000,angle:3.5},
+            {name:'Jupiter',color:0xDDAA66,r:5800,dist:900000,angle:1.2},
+            {name:'Saturn',color:0xDDCC88,r:4800,dist:1100000,angle:4.0},
+            {name:'Uranus',color:0x88CCDD,r:2000,dist:1300000,angle:5.5},
+            {name:'Neptune',color:0x4466CC,r:1900,dist:1500000,angle:0.3},
+            {name:'Pluto',color:0xBBAA99,r:100,dist:1700000,angle:2.8}
+        ];
+        window._solarPlanets=[];
+        for(var _pi=0;_pi<_planets.length;_pi++){
+            var _pl=_planets[_pi];
+            var _pm=new THREE.Mesh(new THREE.SphereGeometry(_pl.r,12,8),new THREE.MeshBasicMaterial({color:_pl.color,fog:false}));
+            var _pa=_pl.angle;
+            var _pelev=(Math.random()-0.3)*0.2; // slight orbital inclination
+            _pm.position.set(
+                _sunSolar.position.x+Math.cos(_pa)*_pl.dist,
+                MOON_CY+Math.sin(_pelev)*_pl.dist*0.1+_pl.dist*0.3,
+                _sunSolar.position.z+Math.sin(_pa)*_pl.dist
+            );
+            scene.add(_pm);
+            window._solarPlanets.push({mesh:_pm,data:_pl});
+            // Saturn rings
+            if(_pl.name==='Saturn'){
+                var ring=new THREE.Mesh(new THREE.RingGeometry(_pl.r*1.3,_pl.r*2.2,32),new THREE.MeshBasicMaterial({color:0xCCBB88,transparent:true,opacity:0.5,side:THREE.DoubleSide,fog:false}));
+                ring.position.copy(_pm.position);
+                ring.rotation.x=Math.PI*0.35;
+                scene.add(ring);
+            }
+        }
+
+        // ---- Nebulae (large colorful gas clouds in deep space) ----
+        window._moonNebulae=[];
+        var nebColors=[0x330044,0x220033,0x440022,0x110033,0x330033,0x220044,0x441122,0x112244];
+        for(var ni=0;ni<20;ni++){
+            var na=Math.random()*Math.PI*2;
+            var ne2=(Math.random()-0.5)*Math.PI;
+            var nd=200000+Math.random()*800000;
+            var nnx=Math.cos(na)*Math.cos(ne2)*nd;
+            var nny=MOON_CY+Math.sin(ne2)*nd;
+            var nnz=Math.sin(na)*Math.cos(ne2)*nd;
+            var ns=20000+Math.random()*60000;
+            var nc=nebColors[Math.floor(Math.random()*nebColors.length)];
+            var neb=new THREE.Mesh(new THREE.SphereGeometry(ns,8,6),new THREE.MeshBasicMaterial({color:nc,transparent:true,opacity:0.08+Math.random()*0.06,fog:false,side:THREE.BackSide}));
+            neb.position.set(nnx,nny,nnz);
+            scene.add(neb);
+            window._moonNebulae.push(neb);
+        }
+
         // ---- Twinkling stars — surround the sphere ----
         window._moonStars=[];
         var starColors=[0xFFFFFF,0xFFFFFF,0xFFFFFF,0xCCDDFF,0xAABBFF,0xFFEECC,0xFFCCDD,0xDDCCFF];
-        for(var sti=0;sti<350;sti++){
+        for(var sti=0;sti<500;sti++){
             var sa=Math.random()*Math.PI*2;
-            var se=(Math.random()-0.5)*Math.PI; // full sphere distribution
-            var sd=MOON_R*1.5+Math.random()*MOON_R*2;
+            var se=(Math.random()-0.5)*Math.PI;
+            var sd=MOON_R*2+Math.random()*MOON_R*4;
             var sx=Math.cos(sa)*Math.cos(se)*sd;
             var sy=MOON_CY+Math.sin(se)*sd;
             var sz=Math.sin(sa)*Math.cos(se)*sd;
-            var ss=4+Math.random()*16;
+            var ss=8+Math.random()*32;
             var sc=starColors[Math.floor(Math.random()*starColors.length)];
             var star=new THREE.Mesh(new THREE.SphereGeometry(ss,4,3),new THREE.MeshBasicMaterial({color:sc,fog:false,transparent:true}));
             star.position.set(sx,sy,sz);
             scene.add(star);
             window._moonStars.push({mesh:star,phase:Math.random()*Math.PI*2,speed:0.5+Math.random()*3});
         }
-        // ---- Nebula clouds ----
-        window._moonNebulae=[];
-        var nebColors=[0x330044,0x220033,0x440022,0x110033,0x330033,0x220044];
-        for(var ni=0;ni<12;ni++){
-            var na=Math.random()*Math.PI*2;
-            var ne2=(Math.random()-0.5)*Math.PI;
-            var nd=MOON_R*1.2+Math.random()*MOON_R*1.5;
-            var nnx=Math.cos(na)*Math.cos(ne2)*nd;
-            var nny=MOON_CY+Math.sin(ne2)*nd;
-            var nnz=Math.sin(na)*Math.cos(ne2)*nd;
-            var ns=400+Math.random()*600;
-            var nc=nebColors[Math.floor(Math.random()*nebColors.length)];
-            var neb=new THREE.Mesh(new THREE.SphereGeometry(ns,8,6),new THREE.MeshBasicMaterial({color:nc,transparent:true,opacity:0.12+Math.random()*0.1,fog:false,side:THREE.BackSide}));
-            neb.position.set(nnx,nny,nnz);
-            scene.add(neb);
-            window._moonNebulae.push(neb);
-        }
         // Footprints — projected onto sphere (near Apollo landing site, outside cities)
         var fpMat=toon(0x666677);
         for(var fi=0;fi<15;fi++){
-            var ffx=(Math.random()-0.5)*200+2800;
-            var ffz=(Math.random()-0.5)*200+2800;
+            var ffx=(Math.random()-0.5)*400+5600;
+            var ffz=(Math.random()-0.5)*400+5600;
             var fpp=_moonProject(ffx,ffz);
-            var fp=new THREE.Mesh(new THREE.BoxGeometry(6,0.4,10),fpMat);
+            var fp=new THREE.Mesh(new THREE.BoxGeometry(12,0.8,20),fpMat);
             fp.position.set(fpp.x,fpp.y,fpp.z);
             _moonOrient(fp,fpp.nx,fpp.ny,fpp.nz);
             fp.rotateY(Math.random()*Math.PI*2);
@@ -2536,7 +2597,7 @@ function buildCity() {
                 if(Math.sqrt(_rdx*_rdx+_rdz*_rdz)<_rc.r*240+500)_skipRock=true;
             }
             if(_skipRock)continue;
-            var rs=4+Math.random()*12;
+            var rs=8+Math.random()*24;
             var rkp=_moonProject(rrx,rrz);
             var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(rs,0),toon(0x888899));
             rock.position.set(rkp.x+rkp.nx*rs*0.4,rkp.y+rkp.ny*rs*0.4,rkp.z+rkp.nz*rs*0.4);
@@ -2574,7 +2635,7 @@ function buildCity() {
             var gy2=MOON_CY+Math.sin(gElev)*gOrbitR;
             var gz2=Math.sin(gAngle)*Math.cos(gElev)*gOrbitR;
             gd.group.position.set(gx2,gy2,gz2);
-            gd.group.scale.set(20,20,20);
+            gd.group.scale.set(40,40,40);
             scene.add(gd.group);
             var faction;
             if(mu.ms==='gundam'||mu.ms==='gm')faction='efsf';
@@ -3018,6 +3079,8 @@ function clearCity(){
     window._moonShields=null;
     window._moonCities=null;
     window._moonBldgColliders=null;
+    // Remove solar system objects
+    if(window._solarPlanets){window._solarPlanets=null;}
     // Remove Tower of Babel
     if(_babylonTower){scene.remove(_babylonTower.group);_babylonTower=null;}
     _babylonTriggered=false;_babylonRising=false;_babylonRiseY=-52;_earthquakeTimer=0;
@@ -3031,6 +3094,16 @@ function applyCityTheme(){
     // Fog
     if(st.fog){scene.fog=new THREE.Fog(st.fog,60,180);}
     else{scene.fog=null;}
+    // Sun visibility — only in ground cities, not on moon
+    var isMoon=(currentCityStyle===5);
+    _sunMesh.visible=!isMoon;
+    _sunGlow.visible=!isMoon;
+    sun.visible=!isMoon;
+    // Follow player with shadow camera
+    if(!isMoon){
+        sun.shadow.camera.far=300;
+        sun.intensity=2.0;
+    }
     // Update HUD
     document.getElementById('city-name-hud').textContent=st.name;
 }
@@ -3235,6 +3308,7 @@ function updatePipeTravel(){
 function switchCity(targetStyle){
     if(targetStyle===currentCityStyle)return;
     currentCityStyle=targetStyle;
+    _cameraZoom=1.0; // reset zoom on city switch
     // Remember player was near a pipe — spawn at center of new city
     clearCity();
     buildCity();
@@ -3308,6 +3382,7 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
         var s=minS+Math.random()*(maxS-minS);
         var m=new THREE.Mesh(cg2,cm2);
         m.scale.set(s,s*0.45,s*0.7);
+        m.castShadow=true;m.receiveShadow=true;
         var pz=Math.random()*1.5-0.75;
         m.position.set(j*2.5,0,pz);
         g.add(m);
@@ -3574,12 +3649,13 @@ function _buildBabylonTower(){
     // Glowing entrance indicator
     var doorGlow=new THREE.Mesh(new THREE.PlaneGeometry(2,3.5),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
     doorGlow.position.set(0,2,baseD/2+0.3);g.add(doorGlow);
-    // Position near a cloud staircase so tower connects to cloud world
+    // Position directly adjacent to a cloud staircase so tower connects to cloud world
     var towerX, towerZ;
     if(window._stairPositions&&window._stairPositions.length>0){
         var sp=window._stairPositions[0];
-        towerX=sp.x+((Math.random()<0.5?1:-1)*(2+Math.random()*4));
-        towerZ=sp.z+((Math.random()<0.5?1:-1)*(2+Math.random()*4));
+        // Place tower right next to the staircase base (within 10 units)
+        towerX=sp.x+((Math.random()<0.5?1:-1)*(8+Math.random()*2));
+        towerZ=sp.z+((Math.random()<0.5?1:-1)*(8+Math.random()*2));
     } else {
         towerX=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
         towerZ=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
@@ -4026,7 +4102,7 @@ function buildObs(seg,ri,sm){
 //  PHYSICS
 // ============================================================
 const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
-var MOON_R=4000; // moon sphere radius
+var MOON_R=8000; // moon sphere radius (doubled for 4x surface area)
 var MOON_CY=-MOON_R; // sphere center Y (top of sphere at y=0)
 
 // Project a flat (x,0,z) position onto the moon sphere surface
@@ -5523,8 +5599,11 @@ function updateCamera(){
         _earthquakeTimer--;
     }
     camera.lookAt(p.x, p.y+1, p.z-4);
-    sun.position.set(p.x+30,50,p.z+30);
+    sun.position.set(p.x+60,80,p.z+40);
     sun.target.position.set(p.x,0,p.z);
+    // Sun mesh follows directional light direction (far away visual)
+    _sunMesh.position.set(p.x+180,240,p.z+120);
+    _sunGlow.position.copy(_sunMesh.position);
 
     // Building occlusion — fade buildings between camera and player
     // BUT don't fade if player is standing on the roof
@@ -5698,6 +5777,8 @@ function updateCity(){
         var _dx=px-portals[pi].x, _dz=pz-portals[pi].z;
         var _dy=(currentCityStyle===5)?(py-(portals[pi].y||0)):0;
         var _d=Math.sqrt(_dx*_dx+_dz*_dz+_dy*_dy);
+        // Ground portals: only trigger when player is near ground level (y < 8)
+        if(currentCityStyle!==5&&py>8)continue;
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
     if(_nearP&&_nearD<6.0){
@@ -6060,7 +6141,7 @@ function updateCity(){
                     var _sy=MOON_CY+Math.sin(_earthElev)*_spawnR;
                     var _sz=Math.sin(_earthAng)*Math.cos(_earthElev)*_spawnR;
                     _newGd.group.position.set(_sx,_sy,_sz);
-                    _newGd.group.scale.set(20,20,20);
+                    _newGd.group.scale.set(40,40,40);
                     scene.add(_newGd.group);
                     _dm.group=_newGd.group;_dm.funnels=_newGd.funnels||null;_dm.saberMesh=_newGd.saberMesh||null;_dm.weapon=_newGd.weapon||null;
                     _dm.hp=_dm.hpMax;_dm._dead=false;
