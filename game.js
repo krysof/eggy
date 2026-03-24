@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.40';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.41';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -26,6 +26,7 @@ var I18N={
     portalNo:{zhs:'\u274C \u53D6\u6D88 (N/ESC)',zht:'\u274C \u53D6\u6D88 (N/ESC)',ja:'\u274C \u30AD\u30E3\u30F3\u30BB\u30EB (N/ESC)',en:'\u274C Cancel (N/ESC)'},
     grabThrow:{zhs:'F \u6293/\u6254 | \u957F\u6309\u84C4\u529B',zht:'F \u6293/\u64F2 | \u9577\u6309\u84C4\u529B',ja:'F \u3064\u304B\u3080/\u6295\u3052\u308B | \u9577\u62BC\u3057\u30C1\u30E3\u30FC\u30B8',en:'F Grab/Throw | Hold to Charge'},
     zoomHint:{zhs:'\u6EDA\u8F6E \u7F29\u653E',zht:'\u6EFE\u8F2A \u7E2E\u653E',ja:'\u30DB\u30A4\u30FC\u30EB \u30BA\u30FC\u30E0',en:'Scroll Zoom'},
+    moonCamHint:{zhs:'\u53F3\u952E\u62D6\u52A8 \u65CB\u8F6C\u89C6\u89D2',zht:'\u53F3\u9375\u62D6\u52D5 \u65CB\u8F49\u8996\u89D2',ja:'\u53F3\u30AF\u30EA\u30C3\u30AF\u30C9\u30E9\u30C3\u30B0 \u8996\u70B9\u56DE\u8EE2',en:'Right-drag to orbit camera'},
     raceBack:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',ja:'\uD83C\uDFD9\uFE0F \u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back'},
     backCity:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE\u57CE\u5E02',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE\u57CE\u5E02',ja:'\uD83C\uDFD9\uFE0F \u8857\u306B\u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back to City'},
     resultDone:{zhs:'\u5B8C\u6210\uFF01',zht:'\u5B8C\u6210\uFF01',ja:'\u5B8C\u4E86\uFF01',en:'Done!'},
@@ -194,7 +195,7 @@ function _applyLang(){
     var sb2=document.getElementById('sfx-btn');if(sb2)sb2.title=L('sfx');
     var pills=document.querySelectorAll('#city-hud .hud-pill');
     if(pills.length>=3)pills[2].textContent=L('grabThrow');
-    var zh=document.getElementById('zoom-hud');if(zh)zh.textContent=L('zoomHint');
+    var zh=document.getElementById('zoom-hud');if(zh)zh.textContent=(currentCityStyle===5)?L('moonCamHint'):L('zoomHint');
     var rb=document.getElementById('race-back-btn');if(rb)rb.textContent=L('raceBack');
     var bc=document.getElementById('back-city-btn');if(bc)bc.textContent=L('backCity');
     var rt=document.getElementById('result-title');if(rt)rt.textContent=L('resultDone');
@@ -3329,6 +3330,7 @@ function switchCity(targetStyle){
     if(currentCityStyle===5){
         var sp2=_moonProject(0,5);
         playerEgg.mesh.position.set(sp2.x,sp2.y+0.5,sp2.z);
+        _moonCamYaw=0;_moonCamPitch=0.35;
         camera.position.set(sp2.x+sp2.nx*24,sp2.y+sp2.ny*24,sp2.z+sp2.nz*24);
         camera.up.set(sp2.nx,sp2.ny,sp2.nz);
         camera.lookAt(sp2.x,sp2.y,sp2.z);
@@ -5535,54 +5537,149 @@ function handlePlayerInput(){
 //  CAMERA
 // ============================================================
 var _cameraZoom=1.0; // 1.0 = default, smaller = closer, larger = farther
+// Moon third-person camera orbit angles (mouse-controlled)
+var _moonCamYaw=0; // horizontal orbit angle around player (radians)
+var _moonCamPitch=0.35; // vertical angle (0=level, positive=above)
+var _moonCamDragging=false;
+var _moonCamLastX=0, _moonCamLastY=0;
 document.addEventListener('wheel',function(e){
     _cameraZoom+=e.deltaY*0.001*Math.max(1,_cameraZoom*0.5);
     if(_cameraZoom<0.04)_cameraZoom=0.04;
     if(_cameraZoom>1000)_cameraZoom=1000;
 },{passive:true});
+// Mouse drag to orbit camera on moon (right-click or middle-click)
+document.addEventListener('mousedown',function(e){
+    if(currentCityStyle===5&&gameState==='city'&&(e.button===2||e.button===1)){
+        _moonCamDragging=true;_moonCamLastX=e.clientX;_moonCamLastY=e.clientY;
+        e.preventDefault();
+    }
+});
+document.addEventListener('mousemove',function(e){
+    if(_moonCamDragging){
+        var dx=e.clientX-_moonCamLastX, dy=e.clientY-_moonCamLastY;
+        _moonCamYaw-=dx*0.005;
+        _moonCamPitch+=dy*0.005;
+        if(_moonCamPitch<0.05)_moonCamPitch=0.05;
+        if(_moonCamPitch>1.2)_moonCamPitch=1.2;
+        _moonCamLastX=e.clientX;_moonCamLastY=e.clientY;
+    }
+});
+document.addEventListener('mouseup',function(e){
+    if(e.button===2||e.button===1)_moonCamDragging=false;
+});
+document.addEventListener('contextmenu',function(e){
+    if(currentCityStyle===5&&gameState==='city')e.preventDefault();
+});
+// Touch orbit for mobile — two-finger drag rotates camera
+var _moonTouchOrbit=false, _moonTouchStartX=0, _moonTouchStartY=0;
+document.addEventListener('touchstart',function(e){
+    if(currentCityStyle===5&&gameState==='city'&&e.touches.length===2){
+        _moonTouchOrbit=true;
+        _moonTouchStartX=(e.touches[0].clientX+e.touches[1].clientX)*0.5;
+        _moonTouchStartY=(e.touches[0].clientY+e.touches[1].clientY)*0.5;
+    }
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+    if(_moonTouchOrbit&&e.touches.length===2){
+        var mx=(e.touches[0].clientX+e.touches[1].clientX)*0.5;
+        var my=(e.touches[0].clientY+e.touches[1].clientY)*0.5;
+        _moonCamYaw-=(mx-_moonTouchStartX)*0.005;
+        _moonCamPitch+=(my-_moonTouchStartY)*0.005;
+        if(_moonCamPitch<0.05)_moonCamPitch=0.05;
+        if(_moonCamPitch>1.2)_moonCamPitch=1.2;
+        _moonTouchStartX=mx;_moonTouchStartY=my;
+    }
+},{passive:true});
+document.addEventListener('touchend',function(e){
+    if(e.touches.length<2)_moonTouchOrbit=false;
+},{passive:true});
 function updateCamera(){
     if(!playerEgg)return;
     const p=playerEgg.mesh.position;
     if(gameState==='city'&&currentCityStyle===5){
-        // Moon spherical camera — follows behind player movement
+        // Moon third-person camera — orbits behind player, mouse-controlled yaw/pitch
         var dx=p.x,dy=p.y-MOON_CY,dz=p.z;
         var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
         var nx=dx/d,ny=dy/d,nz=dz/d;
-        var camH=10*_cameraZoom;
-        var camBack=14*_cameraZoom;
-        // Use player's stored forward direction to determine "behind"
-        if(!window._moonCamBack)window._moonCamBack=new THREE.Vector3(0,0,1);
-        // Get player tangential velocity as movement direction
-        var pvx=playerEgg.vx||0,pvy=playerEgg.vy||0,pvz=playerEgg.vz||0;
-        var vRad=pvx*nx+pvy*ny+pvz*nz;
-        var tvx=pvx-vRad*nx, tvy=pvy-vRad*ny, tvz=pvz-vRad*nz;
-        var tSpd=Math.sqrt(tvx*tvx+tvy*tvy+tvz*tvz);
-        if(tSpd>0.01){
-            // Player is moving — update camera back direction (opposite of movement)
-            var mfx=-tvx/tSpd, mfy=-tvy/tSpd, mfz=-tvz/tSpd;
-            window._moonCamBack.x+=(mfx-window._moonCamBack.x)*0.04;
-            window._moonCamBack.y+=(mfy-window._moonCamBack.y)*0.04;
-            window._moonCamBack.z+=(mfz-window._moonCamBack.z)*0.04;
-        }
-        // Re-project camBack onto current tangent plane
-        var cb=window._moonCamBack;
-        var dotCB=cb.x*nx+cb.y*ny+cb.z*nz;
-        var cbx=cb.x-dotCB*nx, cby=cb.y-dotCB*ny, cbz=cb.z-dotCB*nz;
-        var cbl=Math.sqrt(cbx*cbx+cby*cby+cbz*cbz);
-        if(cbl<0.01){cbx=0;cby=0;cbz=1;dotCB=cbz*nz;cbx-=dotCB*nx;cby-=dotCB*ny;cbz-=dotCB*nz;cbl=Math.sqrt(cbx*cbx+cby*cby+cbz*cbz);}
-        cbx/=cbl;cby/=cbl;cbz/=cbl;
-        // Update stored direction
-        cb.set(cbx,cby,cbz);
-        var tx=p.x+nx*camH+cbx*camBack;
-        var ty=p.y+ny*camH+cby*camBack;
-        var tz=p.z+nz*camH+cbz*camBack;
-        camera.position.x+=(tx-camera.position.x)*0.08;
-        camera.position.y+=(ty-camera.position.y)*0.08;
-        camera.position.z+=(tz-camera.position.z)*0.08;
+        var camDist=14*_cameraZoom;
+        var camUp=8*_cameraZoom;
+        // Build a local coordinate frame on the sphere surface at player position
+        // "up" = surface normal (nx,ny,nz)
+        // Need a tangent "right" and "forward" — use a reference direction
+        // Use world up (0,1,0) projected onto tangent plane as initial forward
+        var refX=0,refY=1,refZ=0;
+        var dotRef=refX*nx+refY*ny+refZ*nz;
+        var fwdX=refX-dotRef*nx, fwdY=refY-dotRef*ny, fwdZ=refZ-dotRef*nz;
+        var fwdL=Math.sqrt(fwdX*fwdX+fwdY*fwdY+fwdZ*fwdZ);
+        if(fwdL<0.01){refX=1;refY=0;refZ=0;dotRef=refX*nx+refY*ny+refZ*nz;fwdX=refX-dotRef*nx;fwdY=refY-dotRef*ny;fwdZ=refZ-dotRef*nz;fwdL=Math.sqrt(fwdX*fwdX+fwdY*fwdY+fwdZ*fwdZ);}
+        fwdX/=fwdL;fwdY/=fwdL;fwdZ/=fwdL;
+        // Right = cross(forward, up)
+        var rtX=fwdY*nz-fwdZ*ny, rtY=fwdZ*nx-fwdX*nz, rtZ=fwdX*ny-fwdY*nx;
+        var rtL=Math.sqrt(rtX*rtX+rtY*rtY+rtZ*rtZ)||1;
+        rtX/=rtL;rtY/=rtL;rtZ/=rtL;
+        // Recalculate forward = cross(up, right) for orthogonality
+        fwdX=ny*rtZ-nz*rtY;fwdY=nz*rtX-nx*rtZ;fwdZ=nx*rtY-ny*rtX;
+        // Apply yaw rotation around surface normal
+        var cosY=Math.cos(_moonCamYaw), sinY=Math.sin(_moonCamYaw);
+        var orbX=cosY*(-fwdX)+sinY*rtX;
+        var orbY=cosY*(-fwdY)+sinY*rtY;
+        var orbZ=cosY*(-fwdZ)+sinY*rtZ;
+        // Apply pitch — blend between tangent direction and surface normal (up)
+        var cosP=Math.cos(_moonCamPitch), sinP=Math.sin(_moonCamPitch);
+        var camOffX=orbX*cosP*camDist+nx*sinP*camUp;
+        var camOffY=orbY*cosP*camDist+ny*sinP*camUp;
+        var camOffZ=orbZ*cosP*camDist+nz*sinP*camUp;
+        var tx=p.x+camOffX;
+        var ty=p.y+camOffY;
+        var tz=p.z+camOffZ;
+        camera.position.x+=(tx-camera.position.x)*0.1;
+        camera.position.y+=(ty-camera.position.y)*0.1;
+        camera.position.z+=(tz-camera.position.z)*0.1;
         camera.up.set(nx,ny,nz);
         camera.lookAt(p.x+nx*1,p.y+ny*1,p.z+nz*1);
         sun.position.set(p.x+30*nx,p.y+30*ny+50,p.z+30*nz);
         sun.target.position.set(p.x,p.y,p.z);
+
+        // Moon building occlusion — fade buildings between camera and player
+        if(window._moonBldgColliders){
+            // Raycast from camera to player in 3D
+            var rcx=camera.position.x, rcy=camera.position.y, rcz=camera.position.z;
+            var rdx=p.x-rcx, rdy=p.y-rcy, rdz=p.z-rcz;
+            var rdLen=Math.sqrt(rdx*rdx+rdy*rdy+rdz*rdz)||1;
+            // Check each moon city building group for occlusion
+            // Von Braun and Granada buildings are children of lunarCity/granada groups
+            // Use cityGroup children — find city dome groups and fade their children
+            for(var _oci=0;_oci<cityGroup.children.length;_oci++){
+                var _ocObj=cityGroup.children[_oci];
+                if(!_ocObj.isGroup)continue;
+                // Check if this group is between camera and player (sphere test)
+                var _ocPos=_ocObj.position;
+                var _ocDx=_ocPos.x-rcx, _ocDy=_ocPos.y-rcy, _ocDz=_ocPos.z-rcz;
+                // Project onto ray
+                var _ocT=(_ocDx*rdx+_ocDy*rdy+_ocDz*rdz)/(rdLen*rdLen);
+                var _shouldFade=false;
+                if(_ocT>0.05&&_ocT<0.95){
+                    // Closest point on ray to object center
+                    var _cpx=rcx+rdx*_ocT, _cpy=rcy+rdy*_ocT, _cpz=rcz+rdz*_ocT;
+                    var _cpDist=Math.sqrt((_ocPos.x-_cpx)*(_ocPos.x-_cpx)+(_ocPos.y-_cpy)*(_ocPos.y-_cpy)+(_ocPos.z-_cpz)*(_ocPos.z-_cpz));
+                    // Use scale-based radius estimate
+                    var _ocScale=Math.max(_ocObj.scale.x,_ocObj.scale.y,_ocObj.scale.z);
+                    if(_ocScale>10&&_cpDist<_ocScale*12)_shouldFade=true;
+                }
+                var _targetOp=_shouldFade?0.15:1.0;
+                _ocObj.traverse(function(child){
+                    if(child.isMesh&&child.material){
+                        var mat=child.material;
+                        if(!mat.hasOwnProperty('_origOpacity')){mat._origOpacity=mat.opacity||1;mat._origTransparent=mat.transparent||false;}
+                        var goal=_targetOp*mat._origOpacity;
+                        mat.opacity+=(goal-mat.opacity)*0.12;
+                        mat.transparent=true;
+                        mat.depthWrite=mat.opacity>0.9;
+                        mat.needsUpdate=true;
+                    }
+                });
+            }
+        }
         return;
     }
     // Normal flat camera
@@ -6796,7 +6893,8 @@ function enterCity(spawnX,spawnZ){
         // Project player onto sphere surface
         var sp=_moonProject(sx,sz);
         playerEgg.mesh.position.set(sp.x,sp.y+0.5,sp.z);
-        // Camera starts above player along surface normal + behind
+        // Reset third-person camera orbit
+        _moonCamYaw=0;_moonCamPitch=0.35;
         var camH=10, camBack=14;
         camera.position.set(sp.x+sp.nx*(camH+camBack),sp.y+sp.ny*(camH+camBack),sp.z+sp.nz*(camH+camBack));
         camera.up.set(sp.nx,sp.ny,sp.nz);
@@ -7185,7 +7283,7 @@ document.getElementById('race-back-btn').addEventListener('click', goBackToCity)
     // Grab/throw pill in city HUD
     var pills=document.querySelectorAll('#city-hud .hud-pill');
     if(pills.length>=3)pills[2].textContent=L('grabThrow');
-    var zh2=_e('zoom-hud');if(zh2)zh2.textContent=L('zoomHint');
+    var zh2=_e('zoom-hud');if(zh2)zh2.textContent=(currentCityStyle===5)?L('moonCamHint'):L('zoomHint');
     var rb=_e('race-back-btn');if(rb)rb.textContent=L('raceBack');
     var bc=_e('back-city-btn');if(bc)bc.textContent=L('backCity');
     var rt=_e('result-title');if(rt)rt.textContent=L('resultDone');
