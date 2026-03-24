@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.38';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.39';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -132,6 +132,11 @@ function _unlockAudio(){
     setTimeout(function(){
         if(audioCtx&&audioCtx.state==='running')_audioUnlocked=true;
         else if(audioCtx)audioCtx.resume();
+        // Start title BGM once audio is unlocked and we're on start screen
+        if(_audioUnlocked&&!titleBgmPlaying&&gameState==='menu'){
+            var ss=document.getElementById('start-screen');
+            if(ss&&ss.classList.contains('active'))startTitleBGM();
+        }
     },100);
 }
 // Keep retrying on every touch/click/key until unlocked
@@ -147,7 +152,7 @@ if(musicBtn) musicBtn.addEventListener("click",function(){
     soundEnabled=!soundEnabled;
     musicBtn.textContent=soundEnabled?"🎵":"🚫";
     musicBtn.classList.toggle("muted",!soundEnabled);
-    if(!soundEnabled){stopBGM();stopRaceBGM();stopSelectBGM();}
+    if(!soundEnabled){stopBGM();stopRaceBGM();stopSelectBGM();stopTitleBGM();}
     else if(gameState==="city") startBGM();
     else if(gameState==="racing"||gameState==="raceIntro") startRaceBGM(currentRaceIndex);
 });
@@ -442,6 +447,110 @@ function _selectLoop(ctx){
     doLoop();
 }
 function stopSelectBGM(){selectBgmPlaying=false;if(selectBgmTimer){clearTimeout(selectBgmTimer);selectBgmTimer=null;}selectBgmNodes.forEach(function(n){try{n.stop();}catch(e){}});selectBgmNodes=[];if(selectBgmGain){selectBgmGain.gain.value=0;selectBgmGain=null;}}
+
+// ============================================================
+// Title screen BGM — SF2-style dramatic opening (heavy drums, brass stabs, rising melody)
+// ============================================================
+var titleBgmPlaying=false, titleBgmGain=null, titleBgmNodes=[], titleBgmTimer=null;
+function startTitleBGM(){
+    if(titleBgmPlaying||!soundEnabled)return;
+    var ctx=ensureAudio();
+    if(!ctx)return;
+    if(ctx.state==='suspended'){ctx.resume().then(function(){if(!titleBgmPlaying){titleBgmPlaying=true;_titleLoop(ctx);}});titleBgmPlaying=true;return;}
+    titleBgmPlaying=true;_titleLoop(ctx);
+}
+function _titleLoop(ctx){
+    titleBgmGain=ctx.createGain();titleBgmGain.gain.value=0.16;titleBgmGain.connect(ctx.destination);
+    // Cm-Ab-Eb-Bb-Cm-Fm-G-Cm — dramatic minor key, martial feel
+    var chords=[
+        [261.63,311.13,392],[207.65,261.63,311.13],[311.13,392,466.16],[233.08,293.66,349.23],
+        [261.63,311.13,392],[174.61,220,261.63],[196,246.94,293.66],[261.63,311.13,392]
+    ];
+    // Heroic brass melody — rising motif with dramatic pauses
+    var melA=[523.25,0,523.25,587.33,659.25,0,784,784,659.25,587.33,523.25,0,466.16,523.25,587.33,659.25];
+    var melB=[784,0,880,784,659.25,0,587.33,523.25,587.33,659.25,784,0,880,988,880,784];
+    var noteLen=0.2;
+    var loopN=0;
+    function doLoop(){
+        if(!titleBgmPlaying)return;
+        var now=ctx.currentTime;
+        var mel=loopN%2===0?melA:melB;loopN++;
+        for(var i=0;i<mel.length;i++){
+            // Brass lead — sawtooth with attack
+            if(mel[i]>0){
+                var o=ctx.createOscillator();var g=ctx.createGain();
+                o.type='sawtooth';o.frequency.setValueAtTime(mel[i],now+i*noteLen);
+                o.frequency.exponentialRampToValueAtTime(mel[i]*0.99,now+i*noteLen+noteLen*0.8);
+                g.gain.setValueAtTime(0,now+i*noteLen);
+                g.gain.linearRampToValueAtTime(0.12,now+i*noteLen+0.02);
+                g.gain.setValueAtTime(0.1,now+i*noteLen+noteLen*0.4);
+                g.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*0.95);
+                o.connect(g);g.connect(titleBgmGain);o.start(now+i*noteLen);o.stop(now+i*noteLen+noteLen);
+                titleBgmNodes.push(o);
+                // Octave doubling for power
+                var o2=ctx.createOscillator();var g2=ctx.createGain();
+                o2.type='square';o2.frequency.value=mel[i]*0.5;
+                g2.gain.setValueAtTime(0.04,now+i*noteLen);
+                g2.gain.exponentialRampToValueAtTime(0.003,now+i*noteLen+noteLen*0.9);
+                o2.connect(g2);g2.connect(titleBgmGain);o2.start(now+i*noteLen);o2.stop(now+i*noteLen+noteLen);
+                titleBgmNodes.push(o2);
+            }
+            // Chord stabs — every 4 notes, brass-like
+            if(i%4===0){
+                var ci=Math.floor(i/4)%chords.length;
+                for(var cn=0;cn<chords[ci].length;cn++){
+                    var co=ctx.createOscillator();var cg=ctx.createGain();
+                    co.type='sawtooth';co.frequency.value=chords[ci][cn]*0.5;
+                    cg.gain.setValueAtTime(0,now+i*noteLen);
+                    cg.gain.linearRampToValueAtTime(0.06,now+i*noteLen+0.01);
+                    cg.gain.exponentialRampToValueAtTime(0.004,now+i*noteLen+noteLen*3.5);
+                    co.connect(cg);cg.connect(titleBgmGain);co.start(now+i*noteLen);co.stop(now+i*noteLen+noteLen*4);
+                    titleBgmNodes.push(co);
+                }
+            }
+            // Heavy taiko-style kick drum — every 2 notes
+            if(i%2===0){
+                var kb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.15),ctx.sampleRate);
+                var kd=kb.getChannelData(0);
+                for(var s=0;s<kd.length;s++){var p=s/kd.length;kd[s]=Math.sin(p*Math.PI*5*(1-p*0.9))*0.7*Math.exp(-p*3.5);}
+                var ks=ctx.createBufferSource();var kg=ctx.createGain();kg.gain.value=0.22;
+                ks.buffer=kb;ks.connect(kg);kg.connect(titleBgmGain);ks.start(now+i*noteLen);ks.stop(now+i*noteLen+0.15);
+                titleBgmNodes.push(ks);
+            }
+            // Snare crack on beats 2 and 4 (every 4 notes, offset by 2)
+            if(i%4===2){
+                var sb2=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.07),ctx.sampleRate);
+                var sd=sb2.getChannelData(0);
+                for(var s2=0;s2<sd.length;s2++)sd[s2]=(Math.random()-0.5)*0.5*Math.exp(-s2/(sd.length*0.12));
+                var ss=ctx.createBufferSource();var sg=ctx.createGain();sg.gain.value=0.18;
+                ss.buffer=sb2;ss.connect(sg);sg.connect(titleBgmGain);ss.start(now+i*noteLen);ss.stop(now+i*noteLen+0.07);
+                titleBgmNodes.push(ss);
+            }
+            // Deep bass — root of chord, sub-bass
+            if(i%4===0){
+                var bi=Math.floor(i/4)%chords.length;
+                var bo=ctx.createOscillator();var bg2=ctx.createGain();
+                bo.type='sine';bo.frequency.value=chords[bi][0]*0.25;
+                bg2.gain.setValueAtTime(0.14,now+i*noteLen);
+                bg2.gain.exponentialRampToValueAtTime(0.008,now+i*noteLen+noteLen*3.8);
+                bo.connect(bg2);bg2.connect(titleBgmGain);bo.start(now+i*noteLen);bo.stop(now+i*noteLen+noteLen*4);
+                titleBgmNodes.push(bo);
+            }
+            // Cymbal crash on loop start
+            if(i===0){
+                var cb2=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.3),ctx.sampleRate);
+                var cd=cb2.getChannelData(0);
+                for(var s3=0;s3<cd.length;s3++)cd[s3]=(Math.random()-0.5)*0.3*Math.exp(-s3/(cd.length*0.25));
+                var cs=ctx.createBufferSource();var csg=ctx.createGain();csg.gain.value=0.1;
+                cs.buffer=cb2;cs.connect(csg);csg.connect(titleBgmGain);cs.start(now);cs.stop(now+0.3);
+                titleBgmNodes.push(cs);
+            }
+        }
+        titleBgmTimer=setTimeout(doLoop,mel.length*noteLen*1000);
+    }
+    doLoop();
+}
+function stopTitleBGM(){titleBgmPlaying=false;if(titleBgmTimer){clearTimeout(titleBgmTimer);titleBgmTimer=null;}titleBgmNodes.forEach(function(n){try{n.stop();}catch(e){}});titleBgmNodes=[];if(titleBgmGain){titleBgmGain.gain.value=0;titleBgmGain=null;}}
 
 // ============================================================
 // Race BGM — 3 styles for 12 levels
@@ -1041,6 +1150,45 @@ function _updateChargeBar(){
     }
 }
 
+// ---- Stun stars (SF2 style spinning stars above head) ----
+function _createStunStars(egg){
+    if(egg._stunStars)return;
+    var group=new THREE.Group();
+    var starCount=4;
+    var starMat=new THREE.MeshBasicMaterial({color:0xFFFF00,transparent:true,opacity:0.9});
+    var stars=[];
+    for(var i=0;i<starCount;i++){
+        var s=new THREE.Mesh(new THREE.OctahedronGeometry(0.18,0),starMat);
+        group.add(s);
+        stars.push(s);
+    }
+    scene.add(group);
+    egg._stunStars={group:group,stars:stars,phase:0};
+}
+function _updateStunStars(egg){
+    if(egg._stunTimer>0){
+        if(!egg._stunStars)_createStunStars(egg);
+        var ss=egg._stunStars;
+        ss.phase+=0.12;
+        var p=egg.mesh.position;
+        ss.group.position.set(p.x,p.y+2.2,p.z);
+        for(var i=0;i<ss.stars.length;i++){
+            var a=ss.phase+i/ss.stars.length*Math.PI*2;
+            ss.stars[i].position.set(Math.cos(a)*0.7,Math.sin(ss.phase*2+i)*0.15,Math.sin(a)*0.7);
+            ss.stars[i].rotation.y=ss.phase*3;
+        }
+        ss.group.visible=true;
+    } else {
+        if(egg._stunStars){egg._stunStars.group.visible=false;}
+    }
+}
+function _removeStunStars(egg){
+    if(egg._stunStars){scene.remove(egg._stunStars.group);egg._stunStars=null;}
+}
+
+// ---- Sonic spin dash state ----
+var _spinDashing=false, _spinDashTimer=0, _spinDashSpeed=0;
+
 // ---- Sprint bar (gradual charge like jump bar) ----
 var _sprintBar=null, _sprintCharge=0, _sprintChargeMax=40;
 function _createSprintBar(){
@@ -1115,7 +1263,22 @@ function _updateSprintBar(holdingF){
         if(playerEgg._sprintHoldFrames>=18){
             _sprintCharge=Math.min(_sprintCharge+1,_sprintChargeMax);
         }
+        playerEgg._wasSprintHolding=true;
     } else {
+        // Trigger spin dash on release if charge was high enough
+        if(playerEgg._wasSprintHolding&&_sprintCharge>=_sprintChargeMax*0.3&&!_spinDashing){
+            var sdPct=_sprintCharge/_sprintChargeMax;
+            _spinDashing=true;
+            _spinDashTimer=Math.floor(20+sdPct*40);
+            _spinDashSpeed=MAX_SPEED*(1.5+sdPct*2.5);
+            // Store dash direction from player facing
+            var dashDir=playerEgg.mesh.rotation.y;
+            playerEgg._dashDirX=Math.sin(dashDir);
+            playerEgg._dashDirZ=Math.cos(dashDir);
+            // Sonic spin sound
+            if(sfxEnabled){var ctx=ensureAudio();if(ctx){var ct=ctx.currentTime;var o=ctx.createOscillator();var g=ctx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(200,ct);o.frequency.exponentialRampToValueAtTime(800,ct+0.15);o.frequency.exponentialRampToValueAtTime(400,ct+0.3);g.gain.setValueAtTime(0.12,ct);g.gain.exponentialRampToValueAtTime(0.001,ct+0.35);o.connect(g);g.connect(ctx.destination);o.start(ct);o.stop(ct+0.35);}}
+        }
+        playerEgg._wasSprintHolding=false;
         playerEgg._sprintHoldFrames=0;
         _sprintCharge=Math.max(_sprintCharge-2,0);
     }
@@ -2021,10 +2184,19 @@ function buildCity() {
 
     // ---- Moon City special decorations ----
     if(currentCityStyle===5){
-        // Craters — projected onto sphere surface
+        // Craters — projected onto sphere surface (outside city zones)
+        var _moonCityCenters=[{fx:-1200,fz:1200,r:22},{fx:1600,fz:-1600,r:14}]; // flat coords + local radius for exclusion
         for(var ci=0;ci<40;ci++){
             var crx=(Math.random()-0.5)*MOON_R*2;
             var crz=(Math.random()-0.5)*MOON_R*2;
+            // Skip if inside a city zone
+            var _skipCrater=false;
+            for(var _cci=0;_cci<_moonCityCenters.length;_cci++){
+                var _cc=_moonCityCenters[_cci];
+                var _cdx=crx-_cc.fx,_cdz=crz-_cc.fz;
+                if(Math.sqrt(_cdx*_cdx+_cdz*_cdz)<_cc.r*240+500)_skipCrater=true;
+            }
+            if(_skipCrater)continue;
             var crr=10+Math.random()*30;
             var cp=_moonProject(crx,crz);
             var craterG=new THREE.Group();
@@ -2066,7 +2238,7 @@ function buildCity() {
         stripes.position.set(5.8,2.5,0.01);apollo.add(stripes);
         var stripes2=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.08,0.03),toon(0xDD2222));
         stripes2.position.set(5.8,3.1,0.01);apollo.add(stripes2);
-        var ap=_moonProject(160,-160);
+        var ap=_moonProject(2800,2800);
         apollo.position.set(ap.x,ap.y,ap.z);
         _moonOrient(apollo,ap.nx,ap.ny,ap.nz);
         apollo.scale.set(20,20,20);
@@ -2084,7 +2256,7 @@ function buildCity() {
         }
         var rDish=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,4,0,Math.PI*2,0,Math.PI/2),toon(0xDDDDDD));
         rDish.position.set(0,1.5,0);rDish.rotation.x=Math.PI;rover.add(rDish);
-        var rp=_moonProject(-140,120);
+        var rp=_moonProject(2600,3000);
         rover.position.set(rp.x,rp.y,rp.z);
         _moonOrient(rover,rp.nx,rp.ny,rp.nz);
         rover.scale.set(20,20,20);
@@ -2185,6 +2357,26 @@ function buildCity() {
         _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
         lunarCity.scale.set(240,240,240);
         cityGroup.add(lunarCity);
+        // Von Braun city doors — 4 entrances (N/S/E/W) on crater rim
+        var _vbDoorAngles=[0,Math.PI/2,Math.PI,Math.PI*1.5];
+        var _vbDoorR=18.5; // on crater rim
+        for(var vdi=0;vdi<4;vdi++){
+            var vda=_vbDoorAngles[vdi];
+            var doorG=new THREE.Group();
+            // Door frame
+            var doorFrame=new THREE.Mesh(new THREE.BoxGeometry(3,4,0.5),toon(0x4466AA));
+            doorFrame.position.y=2;doorG.add(doorFrame);
+            // Door opening (glowing)
+            var doorGlow=new THREE.Mesh(new THREE.BoxGeometry(2.2,3.2,0.3),new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.4}));
+            doorGlow.position.y=1.8;doorG.add(doorGlow);
+            // Arch top
+            var doorArch=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.5,8,1,false,0,Math.PI),toon(0x4466AA));
+            doorArch.position.y=4;doorArch.rotation.z=Math.PI/2;doorArch.rotation.y=Math.PI/2;doorG.add(doorArch);
+            // Position on rim
+            doorG.position.set(Math.cos(vda)*_vbDoorR,1,Math.sin(vda)*_vbDoorR);
+            doorG.rotation.y=vda+Math.PI; // face outward
+            lunarCity.add(doorG);
+        }
         // Shield sphere (barely visible)
         var _vbShieldR=4800;
         var vbShield=new THREE.Mesh(new THREE.SphereGeometry(_vbShieldR,32,24),
@@ -2213,6 +2405,19 @@ function buildCity() {
         _moonOrient(granada,grp.nx,grp.ny,grp.nz);
         granada.scale.set(240,240,240);
         cityGroup.add(granada);
+        // Granada city doors — 4 entrances (N/S/E/W) on rim
+        var _grDoorR=10.5;
+        for(var gdi=0;gdi<4;gdi++){
+            var gda=gdi/4*Math.PI*2;
+            var gdoorG=new THREE.Group();
+            var gdFrame=new THREE.Mesh(new THREE.BoxGeometry(2.5,3.5,0.4),toon(0x446644));
+            gdFrame.position.y=1.75;gdoorG.add(gdFrame);
+            var gdGlow=new THREE.Mesh(new THREE.BoxGeometry(1.8,2.8,0.3),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.4}));
+            gdGlow.position.y=1.5;gdoorG.add(gdGlow);
+            gdoorG.position.set(Math.cos(gda)*_grDoorR,0.5,Math.sin(gda)*_grDoorR);
+            gdoorG.rotation.y=gda+Math.PI;
+            granada.add(gdoorG);
+        }
         // Granada shield
         var _grShieldR=3000;
         var grShield=new THREE.Mesh(new THREE.SphereGeometry(_grShieldR,24,16),
@@ -2308,11 +2513,11 @@ function buildCity() {
             scene.add(neb);
             window._moonNebulae.push(neb);
         }
-        // Footprints — projected onto sphere
+        // Footprints — projected onto sphere (near Apollo landing site, outside cities)
         var fpMat=toon(0x666677);
         for(var fi=0;fi<15;fi++){
-            var ffx=(Math.random()-0.5)*200+160;
-            var ffz=(Math.random()-0.5)*200-160;
+            var ffx=(Math.random()-0.5)*200+2800;
+            var ffz=(Math.random()-0.5)*200+2800;
             var fpp=_moonProject(ffx,ffz);
             var fp=new THREE.Mesh(new THREE.BoxGeometry(6,0.4,10),fpMat);
             fp.position.set(fpp.x,fpp.y,fpp.z);
@@ -2320,10 +2525,17 @@ function buildCity() {
             fp.rotateY(Math.random()*Math.PI*2);
             cityGroup.add(fp);
         }
-        // Moon rocks — projected onto sphere
+        // Moon rocks — projected onto sphere (outside city zones)
         for(var ri2=0;ri2<25;ri2++){
             var rrx=(Math.random()-0.5)*MOON_R*2;
             var rrz=(Math.random()-0.5)*MOON_R*2;
+            var _skipRock=false;
+            for(var _rci=0;_rci<_moonCityCenters.length;_rci++){
+                var _rc=_moonCityCenters[_rci];
+                var _rdx=rrx-_rc.fx,_rdz=rrz-_rc.fz;
+                if(Math.sqrt(_rdx*_rdx+_rdz*_rdz)<_rc.r*240+500)_skipRock=true;
+            }
+            if(_skipRock)continue;
             var rs=4+Math.random()*12;
             var rkp=_moonProject(rrx,rrz);
             var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(rs,0),toon(0x888899));
@@ -2352,8 +2564,8 @@ function buildCity() {
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
             // Chaotic spawn: random position in sphere shell around moon
-            var gAlt=2400+Math.random()*2000;
-            if(mu.ms==='sdf1')gAlt=4000+Math.random()*1600;
+            var gAlt=120+Math.random()*180; // regular MS: close to surface
+            if(mu.ms==='sdf1')gAlt=4000+Math.random()*1600; // large ships: far away
             if(mu.ms==='zenCruiser')gAlt=3200+Math.random()*1600;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.7;
@@ -2372,7 +2584,9 @@ function buildCity() {
             // Random waypoint AI state
             var wpAngle=Math.random()*Math.PI*2;
             var wpElev=(Math.random()-0.5)*Math.PI*0.6;
-            var wpR=MOON_R+2400+Math.random()*2000;
+            var wpR=MOON_R+120+Math.random()*180;
+            if(mu.ms==='sdf1')wpR=MOON_R+4000+Math.random()*1600;
+            if(mu.ms==='zenCruiser')wpR=MOON_R+3200+Math.random()*1600;
             window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,
                 px:gx2,py:gy2,pz:gz2,
                 wpAngle:wpAngle,wpElev:wpElev,wpR:wpR,
@@ -2782,7 +2996,7 @@ function clearCity(){
     window._fountainPoolWater=null;
     window._fountainInnerWater=null;
     // Remove city NPCs
-    for(var i=0;i<cityNPCs.length;i++){scene.remove(cityNPCs[i].mesh);}
+    for(var i=0;i<cityNPCs.length;i++){_removeStunStars(cityNPCs[i]);scene.remove(cityNPCs[i].mesh);}
     cityNPCs.length=0;
     // Remove from allEggs
     for(var j=allEggs.length-1;j>=0;j--){if(allEggs[j].cityNPC){scene.remove(allEggs[j].mesh);allEggs.splice(j,1);}}
@@ -3952,7 +4166,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         if(egg.throwTimer>0){egg.throwTimer--;var _eDrag=egg._chargeDrag||0.98;egg.vx*=_eDrag;egg.vz*=_eDrag;if(egg.throwTimer<=0){
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
             egg._dropCoinsOnLand=false;egg._coinsDropped=false;
-            egg._stunTimer=45;
+            var _impSpd=Math.sqrt(egg.vx*egg.vx+egg.vy*egg.vy+egg.vz*egg.vz);
+            egg._stunTimer=Math.floor(30+_impSpd*300);
             // Force-push out of buildings after throw ends
             if(isCity){
                 for(var _fci=0;_fci<cityColliders.length;_fci++){
@@ -4017,7 +4232,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound();
                 // Drop coins on first impact
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
-            } else {egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;egg._stunTimer=45;playHitSound();
+            } else {var _impSpd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;egg._stunTimer=Math.floor(30+_impSpd2*300);playHitSound();
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                 egg._dropCoinsOnLand=false;egg._coinsDropped=false;
             }
@@ -4051,7 +4266,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                     if(toverlapX<toverlapZ){egg.mesh.position.x+=Math.sign(tdx)*toverlapX;egg.vx*=-0.3;}
                     else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
                     if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
-                    egg.throwTimer=1;egg._stunTimer=45;
+                    var _wallImpSpd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+                    egg.throwTimer=1;egg._stunTimer=Math.floor(30+_wallImpSpd*400);
                     egg.squash=0.6;playHitSound();
                     break;
                 }
@@ -4225,7 +4441,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         // Fallback: drop coins when throw ends if not already dropped
         if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         egg._dropCoinsOnLand=false;egg._coinsDropped=false;
-        egg._stunTimer=45;
+        var _impSpd3=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+        egg._stunTimer=Math.floor(30+_impSpd3*300);
     }}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
 
     // Walk anim
@@ -4940,6 +5157,38 @@ function handlePlayerInput(){
         if(playerEgg._sprintSmokeTick%3===0)_spawnButtSmoke(playerEgg,sprintPct*0.6);
         if(playerEgg._sprintSmokeTick%5===0)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,sprintPct*0.3);
     } else { playerEgg._sprintSmokeTick=0; }
+    // ---- Sonic spin dash ----
+    if(_spinDashing){
+        _spinDashTimer--;
+        if(_spinDashTimer<=0){_spinDashing=false;_spinDashSpeed=0;}
+        else{
+            // Apply dash velocity in stored direction
+            playerEgg.vx=playerEgg._dashDirX*_spinDashSpeed;
+            playerEgg.vz=playerEgg._dashDirZ*_spinDashSpeed;
+            _spinDashSpeed*=0.97; // gradual slowdown
+            // Spin the egg body rapidly
+            playerEgg.mesh.rotation.x+=0.6;
+            playerEgg.squash=0.75; // slightly squashed ball shape
+            // Spawn ground dust while dashing
+            if(_spinDashTimer%2===0)_spawnGroundDust(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,0.4);
+            // Hit NPCs while spin dashing — knock them away
+            for(var sdi=0;sdi<allEggs.length;sdi++){
+                var sde=allEggs[sdi];
+                if(sde===playerEgg||!sde.alive||sde.heldBy)continue;
+                var sddx=sde.mesh.position.x-playerEgg.mesh.position.x;
+                var sddz=sde.mesh.position.z-playerEgg.mesh.position.z;
+                var sddy=sde.mesh.position.y-playerEgg.mesh.position.y;
+                var sdd=Math.sqrt(sddx*sddx+sddz*sddz+sddy*sddy);
+                if(sdd<2.5&&sdd>0.01){
+                    var sdForce=_spinDashSpeed*2;
+                    sde.vx+=sddx/sdd*sdForce;sde.vy+=0.2+sdForce*0.3;sde.vz+=sddz/sdd*sdForce;
+                    sde.throwTimer=20;sde._bounces=1;sde.squash=0.4;
+                    sde._stunTimer=Math.floor(40+_spinDashSpeed*200);
+                    playHitSound();
+                }
+            }
+        }
+    }
     // Charge jump: release Space within 0.3s = normal jump, hold past 0.3s = charge mode
     var _onGroundOrGrace=playerEgg.onGround;
     if(!playerEgg.onGround&&_jumpCharging){
@@ -5552,6 +5801,7 @@ function updateCity(){
     for(const npc of cityNPCs){
         updateCityNPC(npc);
         updateEggPhysics(npc, true);
+        _updateStunStars(npc);
     }
 
     // ---- Tower of Babel rise animation ----
@@ -5663,9 +5913,9 @@ function updateCity(){
                 gm.wpAngle=_plAng+(Math.random()-0.5)*Math.PI*1.3;
                 gm.wpElev=_plElev+(Math.random()-0.5)*Math.PI*0.6;
                 gm.wpElev=Math.max(-Math.PI*0.45,Math.min(Math.PI*0.45,gm.wpElev));
-                gm.wpR=MOON_R+4+Math.random()*25;
-                if(gm.ms==='sdf1')gm.wpR=MOON_R+30+Math.random()*15;
-                if(gm.ms==='zenCruiser')gm.wpR=MOON_R+25+Math.random()*15;
+                gm.wpR=MOON_R+120+Math.random()*180;
+                if(gm.ms==='sdf1')gm.wpR=MOON_R+4000+Math.random()*1600;
+                if(gm.ms==='zenCruiser')gm.wpR=MOON_R+3200+Math.random()*1600;
             }
             // Random dodge maneuver
             if(gm.dodgeTimer>0){gm.dodgeTimer--;}
@@ -5804,7 +6054,8 @@ function updateCity(){
                     // Spawn from Earth direction (high altitude, far away)
                     var _earthAng=Math.atan2(-60,80)+((Math.random()-0.5)*0.8);
                     var _earthElev=0.5+(Math.random()-0.5)*0.4;
-                    var _spawnR=MOON_R+1600+Math.random()*800;
+                    var _isLargeShip=(_dm._msType==='sdf1'||_dm._msType==='zenCruiser');
+                    var _spawnR=_isLargeShip?MOON_R+3000+Math.random()*2000:MOON_R+200+Math.random()*200;
                     var _sx=Math.cos(_earthAng)*Math.cos(_earthElev)*_spawnR;
                     var _sy=MOON_CY+Math.sin(_earthElev)*_spawnR;
                     var _sz=Math.sin(_earthAng)*Math.cos(_earthElev)*_spawnR;
@@ -5813,7 +6064,8 @@ function updateCity(){
                     scene.add(_newGd.group);
                     _dm.group=_newGd.group;_dm.funnels=_newGd.funnels||null;_dm.saberMesh=_newGd.saberMesh||null;_dm.weapon=_newGd.weapon||null;
                     _dm.hp=_dm.hpMax;_dm._dead=false;
-                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;_dm.wpR=MOON_R+2400+Math.random()*2000;
+                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;
+                    _dm.wpR=_isLargeShip?MOON_R+3000+Math.random()*2000:MOON_R+120+Math.random()*180;
                     _dm.wpTimer=5;
                 }
                 continue;
@@ -6433,6 +6685,7 @@ function showScreen(id){
 
 function enterCity(spawnX,spawnZ){
     gameState='city';
+    _spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;
     showScreen(null);
     stopSelectBGM();
     stopRaceBGM();
@@ -6647,6 +6900,7 @@ function animate(now){
             handlePlayerInput();
         }
         if(playerEgg&&!_pipeTraveling) updateEggPhysics(playerEgg, true);
+        if(playerEgg) _updateStunStars(playerEgg);
         updateCity();
         const cityEggList = [playerEgg, ...cityNPCs].filter(e=>e&&e.alive);
         resolveEggCollisions(cityEggList);
@@ -6706,6 +6960,7 @@ applyCityTheme();
 var _startBtn=document.getElementById('start-btn');
 function _handleStart(){
     _unlockAudio();
+    stopTitleBGM();
     var ctx=ensureAudio();
     if(ctx&&ctx.state==='suspended')ctx.resume();
     showScreen('select-screen');
@@ -6740,7 +6995,7 @@ addEventListener('keydown',function(e){
             e.preventDefault();
             var ss=document.getElementById('start-screen');
             if(ss&&ss.classList.contains('active')){
-                showScreen('select-screen');ensureAudio();startSelectBGM();playMenuConfirm();
+                showScreen('select-screen');stopTitleBGM();ensureAudio();startSelectBGM();playMenuConfirm();
             } else {
                 var sel=document.getElementById('select-screen');
                 if(sel&&sel.classList.contains('active')){
