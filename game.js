@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.24';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.25';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -4772,10 +4772,6 @@ function handlePlayerInput(){
         playerEgg._throwCharging=false;
         playerEgg._throwCharge=0;
         playerEgg._justGrabbed=false;
-        if(!_holdingSomething)console.log('[F-PRESS] fPressStart=true, grabCD='+playerEgg.grabCD+', holding='+!!_holdingSomething);
-    }
-    if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD>0){
-        console.log('[F-PRESS] BLOCKED by grabCD='+playerEgg.grabCD);
     }
     // Count hold frames while F is down
     if(keys['KeyF']){
@@ -4838,18 +4834,14 @@ function handlePlayerInput(){
     if(playerEgg._fPressStart&&!_holdingSomething&&playerEgg.grabCD<=0){
         playerEgg._fPressStart=false;
         var nearest=null, nearDist=2.5;
-        var _dbgCandidates=0;
         for(var ei=0;ei<allEggs.length;ei++){
             var e=allEggs[ei];
-            if(e===playerEgg)continue;
+            if(e===playerEgg||!e.alive||e.heldBy)continue;
             var dx2=e.mesh.position.x-playerEgg.mesh.position.x;
             var dz2=e.mesh.position.z-playerEgg.mesh.position.z;
             var d2=Math.sqrt(dx2*dx2+dz2*dz2);
-            if(d2<5){_dbgCandidates++;console.log('[GRAB] egg#'+ei+' dist='+d2.toFixed(2)+' alive='+e.alive+' heldBy='+(e.heldBy?'yes':'no')+' throwT='+e.throwTimer+' stunT='+e._stunTimer+' grabCD='+e.grabCD);}
-            if(!e.alive||e.heldBy)continue;
             if(d2<nearDist){nearDist=d2;nearest=e;}
         }
-        if(!nearest)console.log('[GRAB] no target found, candidates='+_dbgCandidates);
         if(nearest){
             playerEgg.holding=nearest; nearest.heldBy=playerEgg;
             nearest.struggleMax=300+Math.floor(Math.random()*240); nearest.struggleTimer=nearest.struggleMax;
@@ -5726,6 +5718,13 @@ function updateHeldEggs(){
         var tp=cityProps[tpi];
         if(tp.throwTimer<=0)continue;
         tp.throwTimer--;
+        if(tp.throwTimer<=0){
+            // Throw ended — reset state
+            tp.grabbed=false;tp.group.rotation.set(0,0,0);
+            tp.x=tp.group.position.x;tp.z=tp.group.position.z;
+            if(tp.group.position.y>0.01){tp.throwVy=-0.05;tp.throwTimer=1;} // still in air, keep falling
+            continue;
+        }
         tp.group.position.x+=tp.throwVx;
         tp.group.position.y+=tp.throwVy;
         tp.group.position.z+=tp.throwVz;
@@ -5806,6 +5805,7 @@ function updateHeldEggs(){
             }
         }
         if(tob._throwTimer<=0){
+            tob._grabbed=false;
             // Reset obstacle to original position after a delay
             tob._resetDelay=120;
         }
