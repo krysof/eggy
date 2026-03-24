@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.66';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.67';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2287,37 +2287,7 @@ function buildCity() {
         cityGroup.add(bg);
         cityProps.push({group:bg, x:bx, z:bz, radius:1.2, type:'bench', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:2.5});
     }
-    // ---- Hidden entrances ----
-    if(currentCityStyle!==5){
-        // Sewer entrance (manhole near fountain)
-        var sewerG=new THREE.Group();
-        var manhole=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.08,16),toon(0x555555));
-        manhole.position.y=0.02;sewerG.add(manhole);
-        var mhRim=new THREE.Mesh(new THREE.TorusGeometry(0.8,0.06,6,16),toon(0x444444));
-        mhRim.position.y=0.06;mhRim.rotation.x=Math.PI/2;sewerG.add(mhRim);
-        var mhGlow=new THREE.Mesh(new THREE.CircleGeometry(0.7,12),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
-        mhGlow.position.y=0.05;mhGlow.rotation.x=-Math.PI/2;sewerG.add(mhGlow);
-        sewerG.position.set(8,0,-8);cityGroup.add(sewerG);
-        portals.push({mesh:sewerG,ring:mhRim,inner:mhGlow,
-            name:{zhs:'\uD83D\uDEBD \u6708\u7403\u79D8\u9053',zht:'\uD83D\uDEBD \u6708\u7403\u79D8\u9053',ja:'\uD83D\uDEBD \u6708\u3078\u306E\u79D8\u5BC6\u30C8\u30F3\u30CD\u30EB',en:'\uD83D\uDEBD Lunar Tunnel'}[_langCode],
-            desc:{zhs:'\u795E\u79D8\u7684\u5730\u4E0B\u901A\u9053...',zht:'\u795E\u79D8\u7684\u5730\u4E0B\u901A\u9053...',ja:'\u79D8\u5BC6\u306E\u5730\u4E0B\u901A\u8DEF...',en:'A secret underground passage...'}[_langCode],
-            raceIndex:-1,x:8,z:-8,y:0,color:0x44FF88,_hiddenType:'sewer',_targetStyle:5});
-        // Tree hole entrance (inside a large tree)
-        var thG=new THREE.Group();
-        var thTrunk=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,4,8),toon(0x8B6914));
-        thTrunk.position.y=2;thG.add(thTrunk);
-        var thCanopy=new THREE.Mesh(new THREE.SphereGeometry(3,8,6),toon(0x228B22));
-        thCanopy.position.y=5;thG.add(thCanopy);
-        var thHole=new THREE.Mesh(new THREE.CircleGeometry(0.6,8),new THREE.MeshBasicMaterial({color:0x221100,side:THREE.DoubleSide}));
-        thHole.position.set(0,1.2,1.25);thG.add(thHole);
-        var thGlow=new THREE.Mesh(new THREE.CircleGeometry(0.5,8),new THREE.MeshBasicMaterial({color:0xFFAA44,transparent:true,opacity:0.4,side:THREE.DoubleSide}));
-        thGlow.position.set(0,1.2,1.3);thG.add(thGlow);
-        thG.position.set(-35,0,35);cityGroup.add(thG);
-        portals.push({mesh:thG,ring:thHole,inner:thGlow,
-            name:{zhs:'\uD83C\uDF33 \u795E\u79D8\u6811\u6D1E',zht:'\uD83C\uDF33 \u795E\u79D8\u6A39\u6D1E',ja:'\uD83C\uDF33 \u795E\u79D8\u306E\u6728\u306E\u7A74',en:'\uD83C\uDF33 Secret Grove'}[_langCode],
-            desc:{zhs:'\u901A\u5F80\u6708\u7403\u7684\u9690\u85CF\u5C0F\u5F84...',zht:'\u901A\u5F80\u6708\u7403\u7684\u96B1\u85CF\u5C0F\u5F91...',ja:'\u6708\u3078\u306E\u96A0\u3057\u901A\u8DEF...',en:'A hidden path to the moon...'}[_langCode],
-            raceIndex:-1,x:-35,z:35,y:0,color:0xFFAA44,_hiddenType:'tree',_targetStyle:5});
-    }
+    // (Hidden entrances removed — moon only reachable from cloud world)
     } // end if not moon
 
     // ---- Moon City special decorations (FLAT) ----
@@ -2619,6 +2589,11 @@ function buildCity() {
         }
         // Granada central tower
         cityColliders.push({x:-200,z:-200,hw:8,hd:8,h:70});
+        // Add moon city meshes to building occlusion array
+        var _vbMeshes=[];lunarCity.traverse(function(c){if(c.isMesh)_vbMeshes.push(c);});
+        cityBuildingMeshes.push({meshes:_vbMeshes,x:-200,z:0,hw:150,hd:150,h:100});
+        var _grMeshes=[];granada.traverse(function(c){if(c.isMesh)_grMeshes.push(c);});
+        cityBuildingMeshes.push({meshes:_grMeshes,x:-200,z:-200,hw:90,hd:90,h:70});
         // Earth in sky — semi-realistic scale (Earth radius ~3.67x Moon)
         var earthGroup=new THREE.Group();
         var _earthR=29340; // Earth radius in game units (real ratio to moon)
@@ -2976,9 +2951,16 @@ function buildCity() {
             var gAlt=30+Math.random()*60; // altitude above ground
             if(mu.ms==='sdf1')gAlt=200+Math.random()*100;
             if(mu.ms==='zenCruiser')gAlt=150+Math.random()*100;
-            // Spread across battlefield (x>0 side)
-            var gFlatX=50+(Math.random())*300;
-            var gFlatZ=(Math.random()-0.5)*600;
+            // Spread across entire battlefield area (all directions, avoid cities)
+            var gAngle=Math.random()*Math.PI*2;
+            var gDist=80+Math.random()*300;
+            var gFlatX=Math.cos(gAngle)*gDist;
+            var gFlatZ=Math.sin(gAngle)*gDist;
+            // Avoid spawning inside city zones
+            var _gInCity=false;
+            if(Math.sqrt((gFlatX+200)*(gFlatX+200)+gFlatZ*gFlatZ)<170)_gInCity=true;
+            if(Math.sqrt((gFlatX+200)*(gFlatX+200)+(gFlatZ+200)*(gFlatZ+200))<110)_gInCity=true;
+            if(_gInCity){gFlatX=100+Math.random()*250;gFlatZ=(Math.random()-0.5)*500;}
             gd.group.position.set(gFlatX,gAlt,gFlatZ);
             gd.group.scale.set(2,2,2);
             scene.add(gd.group);
@@ -3738,8 +3720,10 @@ function addClouds(){
     // Need steps every ~4 units (easy charge jump) from y=22 to y=40
     // Place staircase columns near several buildings
     var stairPositions=[];
-    for(var _si=0;_si<6;_si++){
-        stairPositions.push({x:(Math.random()-0.5)*100,z:(Math.random()-0.5)*100});
+    // First staircase near center (close to Babel tower at 8,0)
+    stairPositions.push({x:4,z:8});
+    for(var _si=0;_si<5;_si++){
+        stairPositions.push({x:(Math.random()-0.5)*80,z:(Math.random()-0.5)*80});
     }
     window._stairPositions=stairPositions;
     for(var si=0;si<stairPositions.length;si++){
@@ -3974,17 +3958,10 @@ function _buildBabylonTower(){
         if(dd.dx!==0)dGlow.rotation.y=Math.PI/2;
         g.add(dGlow);
     }
-    // Position directly adjacent to a cloud staircase so tower connects to cloud world
+    // Position near city center so tower is close to cloud world moon pipe above
     var towerX, towerZ;
-    if(window._stairPositions&&window._stairPositions.length>0){
-        var sp=window._stairPositions[0];
-        // Place tower directly adjacent to the staircase (fixed 8 units offset)
-        towerX=sp.x+8;
-        towerZ=sp.z;
-    } else {
-        towerX=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
-        towerZ=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
-    }
+    towerX=8;
+    towerZ=0;
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
     _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
@@ -6267,8 +6244,8 @@ function updateCity(){
             // Random dodge maneuver
             if(gm.dodgeTimer>0){gm.dodgeTimer--;}
             else if(Math.random()<0.02){gm.dodgeTimer=10+Math.floor(Math.random()*15);gm.dodgeDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();}
-            // Compute waypoint world position (flat battlefield)
-            var wpx=50+Math.cos(gm.wpAngle)*150+Math.cos(gm.wpElev)*100;
+            // Compute waypoint world position (spread across battlefield)
+            var wpx=Math.cos(gm.wpAngle)*200;
             var wpy=gm.wpR;
             var wpz=Math.sin(gm.wpAngle)*200;
             // Steer toward waypoint
@@ -6398,11 +6375,13 @@ function updateCity(){
                 if(_dm._respawnTimer<=0){
                     // Respawn: rebuild MS and fly in above battlefield
                     var _newGd=_buildMobileSuit(_dm._msType,_dm._weaponType,_dm._color);
-                    // Spawn above battlefield (flat, x>0 side)
+                    // Spawn above battlefield (spread across map)
                     var _isLargeShip=(_dm._msType==='sdf1'||_dm._msType==='zenCruiser');
-                    var _sx=50+Math.random()*300;
+                    var _rsAngle=Math.random()*Math.PI*2;
+                    var _rsDist=100+Math.random()*250;
+                    var _sx=Math.cos(_rsAngle)*_rsDist;
                     var _sy=_isLargeShip?200+Math.random()*100:30+Math.random()*60;
-                    var _sz=(Math.random()-0.5)*600;
+                    var _sz=Math.sin(_rsAngle)*_rsDist;
                     _newGd.group.position.set(_sx,_sy,_sz);
                     _newGd.group.scale.set(2,2,2);
                     scene.add(_newGd.group);
@@ -7037,10 +7016,6 @@ function confirmPortalEnter(){
         // Return to Earth with pipe travel effect — go back to previous city
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
         startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
-    }
-    else if((ht==='sewer'||ht==='tree')&&playerEgg&&ts>=0){
-        // Hidden portals use pipe travel
-        startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,ts,playerEgg.mesh.position.y);
     }
     else if(ts>=0){ switchCity(ts); }
 }
