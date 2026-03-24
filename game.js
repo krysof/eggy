@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:(function(){var v='v20260324.14';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.15';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -4525,7 +4525,7 @@ function handlePlayerInput(){
             var chargePct=(playerEgg._throwCharge||0)/_throwChargeMax;
             var throwMul=1+chargePct*4;
             held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
-            var tw=held.weight||1.0;var tf=2.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.05+chargePct*0.15;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
+            var tw=held.weight||1.0;var tf=0.4/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.05+chargePct*0.15;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
             // Moon: reduce throw speed (low gravity = flies too far)
             if(currentCityStyle===5&&gameState==='city'){held.vx*=0.3;held.vy*=0.3;held.vz*=0.3;held._throwTotal=60;held.throwTimer=60;}
             held.squash=0.5; playerEgg.grabCD=20;
@@ -4553,7 +4553,7 @@ function handlePlayerInput(){
                 held2.heldBy=null; playerEgg.holding=null; if(held2.struggleBar){held2.mesh.remove(held2.struggleBar);held2.struggleBar=null;}
                 var dir2=playerEgg.mesh.rotation.y;
                 held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir2)*2);
-                var tw2=held2.weight||1.0;var tf2=2.0/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
+                var tw2=held2.weight||1.0;var tf2=0.4/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
                 // Moon: reduce throw speed
                 if(currentCityStyle===5&&gameState==='city'){held2.vx*=0.3;held2.vy*=0.3;held2.vz*=0.3;held2._throwTotal=60;held2.throwTimer=60;}
                 held2.squash=0.5; playerEgg.grabCD=20;
@@ -5297,7 +5297,7 @@ function updateHeldEggs(){
             holder.grabCD=40; egg.grabCD=40;
             var throwDir=holder.mesh.rotation.y;
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
-            var ntw=egg.weight||1.0;var ntf=2.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
+            var ntw=egg.weight||1.0;var ntf=0.4/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
             if(currentCityStyle===5&&gameState==='city'){egg.vx*=0.3;egg.vy*=0.3;egg.vz*=0.3;egg._throwTotal=60;egg.throwTimer=60;}
             egg.squash=0.5; playThrowSound();
             egg._dropCoinsOnLand=true;egg._coinsDropped=false;
