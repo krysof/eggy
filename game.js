@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:(function(){var v='v20260324.12';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.13';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -4525,7 +4525,7 @@ function handlePlayerInput(){
             var chargePct=(playerEgg._throwCharge||0)/_throwChargeMax;
             var throwMul=1+chargePct*4;
             held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
-            var tw=held.weight||1.0;var tf=9.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.05+chargePct*0.15;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
+            var tw=held.weight||1.0;var tf=2.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.05+chargePct*0.15;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
             // Moon: reduce throw speed (low gravity = flies too far)
             if(currentCityStyle===5&&gameState==='city'){held.vx*=0.3;held.vy*=0.3;held.vz*=0.3;held._throwTotal=60;held.throwTimer=60;}
             held.squash=0.5; playerEgg.grabCD=20;
@@ -4553,7 +4553,7 @@ function handlePlayerInput(){
                 held2.heldBy=null; playerEgg.holding=null; if(held2.struggleBar){held2.mesh.remove(held2.struggleBar);held2.struggleBar=null;}
                 var dir2=playerEgg.mesh.rotation.y;
                 held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir2)*2);
-                var tw2=held2.weight||1.0;var tf2=9.0/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
+                var tw2=held2.weight||1.0;var tf2=2.0/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
                 // Moon: reduce throw speed
                 if(currentCityStyle===5&&gameState==='city'){held2.vx*=0.3;held2.vy*=0.3;held2.vz*=0.3;held2._throwTotal=60;held2.throwTimer=60;}
                 held2.squash=0.5; playerEgg.grabCD=20;
@@ -4653,24 +4653,38 @@ function updateCamera(){
     if(!playerEgg)return;
     const p=playerEgg.mesh.position;
     if(gameState==='city'&&currentCityStyle===5){
-        // Moon spherical camera — fixed orientation (not behind player)
+        // Moon spherical camera — follows behind player movement
         var dx=p.x,dy=p.y-MOON_CY,dz=p.z;
         var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
         var nx=dx/d,ny=dy/d,nz=dz/d;
-        // Camera position: above player along normal + offset back in world Z
         var camH=10*_cameraZoom;
         var camBack=14*_cameraZoom;
-        // Use surface normal as up, offset camera along a fixed world-ish direction
-        // Project world Z onto tangent plane for consistent "back" direction
-        var wBack=new THREE.Vector3(0,0,1);
-        var dotB=wBack.x*nx+wBack.y*ny+wBack.z*nz;
-        wBack.x-=dotB*nx;wBack.y-=dotB*ny;wBack.z-=dotB*nz;
-        var wbl=Math.sqrt(wBack.x*wBack.x+wBack.y*wBack.y+wBack.z*wBack.z);
-        if(wbl<0.01){wBack.set(1,0,0);dotB=wBack.x*nx+wBack.y*ny+wBack.z*nz;wBack.x-=dotB*nx;wBack.y-=dotB*ny;wBack.z-=dotB*nz;wbl=wBack.length();}
-        wBack.x/=wbl;wBack.y/=wbl;wBack.z/=wbl;
-        var tx=p.x+nx*camH+wBack.x*camBack;
-        var ty=p.y+ny*camH+wBack.y*camBack;
-        var tz=p.z+nz*camH+wBack.z*camBack;
+        // Use player's stored forward direction to determine "behind"
+        if(!window._moonCamBack)window._moonCamBack=new THREE.Vector3(0,0,1);
+        // Get player tangential velocity as movement direction
+        var pvx=playerEgg.vx||0,pvy=playerEgg.vy||0,pvz=playerEgg.vz||0;
+        var vRad=pvx*nx+pvy*ny+pvz*nz;
+        var tvx=pvx-vRad*nx, tvy=pvy-vRad*ny, tvz=pvz-vRad*nz;
+        var tSpd=Math.sqrt(tvx*tvx+tvy*tvy+tvz*tvz);
+        if(tSpd>0.01){
+            // Player is moving — update camera back direction (opposite of movement)
+            var mfx=-tvx/tSpd, mfy=-tvy/tSpd, mfz=-tvz/tSpd;
+            window._moonCamBack.x+=(mfx-window._moonCamBack.x)*0.04;
+            window._moonCamBack.y+=(mfy-window._moonCamBack.y)*0.04;
+            window._moonCamBack.z+=(mfz-window._moonCamBack.z)*0.04;
+        }
+        // Re-project camBack onto current tangent plane
+        var cb=window._moonCamBack;
+        var dotCB=cb.x*nx+cb.y*ny+cb.z*nz;
+        var cbx=cb.x-dotCB*nx, cby=cb.y-dotCB*ny, cbz=cb.z-dotCB*nz;
+        var cbl=Math.sqrt(cbx*cbx+cby*cby+cbz*cbz);
+        if(cbl<0.01){cbx=0;cby=0;cbz=1;dotCB=cbz*nz;cbx-=dotCB*nx;cby-=dotCB*ny;cbz-=dotCB*nz;cbl=Math.sqrt(cbx*cbx+cby*cby+cbz*cbz);}
+        cbx/=cbl;cby/=cbl;cbz/=cbl;
+        // Update stored direction
+        cb.set(cbx,cby,cbz);
+        var tx=p.x+nx*camH+cbx*camBack;
+        var ty=p.y+ny*camH+cby*camBack;
+        var tz=p.z+nz*camH+cbz*camBack;
         camera.position.x+=(tx-camera.position.x)*0.08;
         camera.position.y+=(ty-camera.position.y)*0.08;
         camera.position.z+=(tz-camera.position.z)*0.08;
@@ -5273,7 +5287,7 @@ function updateHeldEggs(){
             holder.grabCD=40; egg.grabCD=40;
             var throwDir=holder.mesh.rotation.y;
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
-            var ntw=egg.weight||1.0;var ntf=9.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
+            var ntw=egg.weight||1.0;var ntf=2.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
             if(currentCityStyle===5&&gameState==='city'){egg.vx*=0.3;egg.vy*=0.3;egg.vz*=0.3;egg._throwTotal=60;egg.throwTimer=60;}
             egg.squash=0.5; playThrowSound();
             egg._dropCoinsOnLand=true;egg._coinsDropped=false;
