@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.20';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.21';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -694,7 +694,7 @@ const CHARACTERS = [
     {name:'\u5C0F\u72D7',type:'dog',color:0xC8915A,accent:0xA0704A,icon:'\uD83D\uDC36',portrait:'#C8915A'},
     {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866'},
     {name:'\u516C\u9E21',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC'},
-    {name:'\u87F3\u8782',type:'cockroach',color:0x6633AA,accent:0x441188,icon:'\uD83E\uDEB3',portrait:'#6633AA'},
+    {name:'\u87F3\u8782',type:'cockroach',color:0x8B4513,accent:0x5C2E0A,icon:'\uD83E\uDEB3',portrait:'#8B4513'},
     {name:'\u5C0F\u732B',type:'cat',color:0xDDDDDD,accent:0xAAAAAA,icon:'\uD83D\uDC31',portrait:'#DDDDDD'},
     {name:'\u5C0F\u732A',type:'pig',color:0xFFAAAA,accent:0xFF7788,icon:'\uD83D\uDC37',portrait:'#FFAAAA'},
     {name:'\u9752\u86D9',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55'},
@@ -802,13 +802,13 @@ function drawPortrait(ch) {
         [-1,1].forEach(s => {
             portraitCtx.beginPath(); portraitCtx.moveTo(cx+s*10,cy-55);
             portraitCtx.quadraticCurveTo(cx+s*35,cy-85,cx+s*45,cy-70);
-            portraitCtx.strokeStyle='#551199'; portraitCtx.lineWidth=3; portraitCtx.stroke();
+            portraitCtx.strokeStyle='#5C2E0A'; portraitCtx.lineWidth=3; portraitCtx.stroke();
             // Tip ball
             portraitCtx.beginPath(); portraitCtx.arc(cx+s*45,cy-70,5,0,Math.PI*2);
-            portraitCtx.fillStyle='#7744CC'; portraitCtx.fill();
+            portraitCtx.fillStyle='#8B6040'; portraitCtx.fill();
         });
         portraitCtx.beginPath(); portraitCtx.moveTo(cx,cy-30); portraitCtx.lineTo(cx,cy+40);
-        portraitCtx.strokeStyle='rgba(80,30,120,0.3)'; portraitCtx.lineWidth=1.5; portraitCtx.stroke();
+        portraitCtx.strokeStyle='rgba(60,30,10,0.3)'; portraitCtx.lineWidth=1.5; portraitCtx.stroke();
     } else if (ch.type==='pig') {
         portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy+10,16,12,0,0,Math.PI*2);
         portraitCtx.fillStyle='#FF8899'; portraitCtx.fill();
@@ -1418,11 +1418,11 @@ function createEggMesh(color, accent, charType) {
             }
             var antCurve=new THREE.CatmullRomCurve3(antPts);
             var antGeo=new THREE.TubeGeometry(antCurve,10,0.025,6,false);
-            var ant=new THREE.Mesh(antGeo,toon(0x551199));
+            var ant=new THREE.Mesh(antGeo,toon(0x5C2E0A));
             ant.userData._antSide=s;
             body.add(ant);
             antennae.push(ant);
-            var tip=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,4),toon(0x7744CC));
+            var tip=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,4),toon(0x8B6040));
             tip.position.set(s*0.45,1.6,-0.05);
             tip.userData._antSide=s;
             body.add(tip);
@@ -1430,12 +1430,12 @@ function createEggMesh(color, accent, charType) {
         });
         g.userData._antennae=antennae;
         // Shell line
-        var sline=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.6,0.02),toon(0x331177));
+        var sline=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.6,0.02),toon(0x3D2215));
         sline.position.set(0,0.8,-0.1); body.add(sline);
         // Small legs
         [-1,1].forEach(function(s){
             for(var j=0;j<2;j++){
-                var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.25,3),toon(0x441188));
+                var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.25,3),toon(0x5C2E0A));
                 leg.position.set(s*0.45,0.4+j*0.25,0); leg.rotation.z=s*0.8;
                 body.add(leg);
             }
