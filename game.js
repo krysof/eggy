@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.33';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.34';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -768,7 +768,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
 scene.fog = new THREE.Fog(0x87CEEB, 80, 400);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 2000);
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 5000);
 window.addEventListener('resize', ()=>{ R.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
 
 // ---- Lighting ----
@@ -2170,13 +2170,13 @@ function buildCity() {
             fv.rotation.z=Math.PI/2*0.3;fv.rotation.y=fva;lunarCity.add(fv);
         }
         // Place Von Braun on moon surface
-        var lcp=_moonProject(-20,20);
+        var lcp=_moonProject(-60,60);
         lunarCity.position.set(lcp.x,lcp.y,lcp.z);
         _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
-        lunarCity.scale.set(4,4,4);
+        lunarCity.scale.set(12,12,12);
         cityGroup.add(lunarCity);
         // Shield sphere (barely visible)
-        var _vbShieldR=80;
+        var _vbShieldR=240;
         var vbShield=new THREE.Mesh(new THREE.SphereGeometry(_vbShieldR,32,24),
             new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
         vbShield.position.set(lcp.x,lcp.y,lcp.z);
@@ -2198,13 +2198,13 @@ function buildCity() {
             ghd.position.set(Math.cos(gha)*(ghr+1.5),0.6,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
         }
         var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.2,8,8),toon(0x556655));grTower.position.y=4;granada.add(grTower);
-        var grp=_moonProject(25,-25);
+        var grp=_moonProject(80,-80);
         granada.position.set(grp.x,grp.y,grp.z);
         _moonOrient(granada,grp.nx,grp.ny,grp.nz);
-        granada.scale.set(4,4,4);
+        granada.scale.set(12,12,12);
         cityGroup.add(granada);
         // Granada shield
-        var _grShieldR=50;
+        var _grShieldR=150;
         var grShield=new THREE.Mesh(new THREE.SphereGeometry(_grShieldR,24,16),
             new THREE.MeshBasicMaterial({color:0x88FFAA,transparent:true,opacity:0.03,side:THREE.DoubleSide}));
         grShield.position.set(grp.x,grp.y,grp.z);
@@ -2231,8 +2231,8 @@ function buildCity() {
         var atmo2=new THREE.Mesh(new THREE.SphereGeometry(35,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo2);
         // Position earth above and to the side — visible from sphere top
-        earthGroup.position.set(80,MOON_CY+400,-60);
-        earthGroup.scale.set(7.3,7.3,7.3); // realistic Earth/Moon ratio (~3.67x diameter)
+        earthGroup.position.set(300,MOON_CY+1200,-200);
+        earthGroup.scale.set(24,24,24); // realistic Earth/Moon ratio (~3.67x diameter)
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
         // ---- Twinkling stars — surround the sphere ----
@@ -2299,23 +2299,23 @@ function buildCity() {
         // MS units: 6 Gundam, 20 GM, 60 Zaku, 14 Dom = 100 Gundam-verse
         // Macross: 8 VF-1 Valkyrie, 1 SDF-1, 15 Zentradi pods, 6 Zentradi cruisers = 30 Macross
         var msUnits=[];
-        msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'funnel'});msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'rifle'});
-        for(var gmi=0;gmi<20;gmi++){msUnits.push({ms:'gm',weapon:Math.random()<0.5?'rifle':Math.random()<0.5?'saber':'missile'});}
+        msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'funnel'});msUnits.push({ms:'gundam',weapon:'rifle'});
+        for(var gmi=0;gmi<12;gmi++){msUnits.push({ms:'gm',weapon:Math.random()<0.5?'rifle':Math.random()<0.5?'saber':'missile'});}
         var zakuColors=[0x336633,0x225522,0x447744,0xCC2222,0x882222,0x224488,0x335533,0x556655,0x443366,0x228844];
-        for(var zki=0;zki<60;zki++){msUnits.push({ms:'zaku',weapon:Math.random()<0.35?'rifle':Math.random()<0.5?'missile':'saber',color:zakuColors[zki%zakuColors.length]});}
-        for(var dmi=0;dmi<14;dmi++){msUnits.push({ms:'dom',weapon:Math.random()<0.5?'rifle':'missile'});}
+        for(var zki=0;zki<35;zki++){msUnits.push({ms:'zaku',weapon:Math.random()<0.35?'rifle':Math.random()<0.5?'missile':'saber',color:zakuColors[zki%zakuColors.length]});}
+        for(var dmi=0;dmi<8;dmi++){msUnits.push({ms:'dom',weapon:Math.random()<0.5?'rifle':'missile'});}
         // Macross units
-        for(var vfi=0;vfi<8;vfi++){msUnits.push({ms:'valkyrie',weapon:'rifle'});}
+        for(var vfi=0;vfi<5;vfi++){msUnits.push({ms:'valkyrie',weapon:'rifle'});}
         msUnits.push({ms:'sdf1',weapon:'missile'});
-        for(var zpi=0;zpi<15;zpi++){msUnits.push({ms:'zenPod',weapon:'rifle'});}
-        for(var zci=0;zci<6;zci++){msUnits.push({ms:'zenCruiser',weapon:'missile'});}
+        for(var zpi=0;zpi<10;zpi++){msUnits.push({ms:'zenPod',weapon:'rifle'});}
+        for(var zci=0;zci<4;zci++){msUnits.push({ms:'zenCruiser',weapon:'missile'});}
         for(var gi=0;gi<msUnits.length;gi++){
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
             // Chaotic spawn: random position in sphere shell around moon
-            var gAlt=4+Math.random()*25;
-            if(mu.ms==='sdf1')gAlt=30+Math.random()*15;
-            if(mu.ms==='zenCruiser')gAlt=25+Math.random()*15;
+            var gAlt=15+Math.random()*80;
+            if(mu.ms==='sdf1')gAlt=90+Math.random()*50;
+            if(mu.ms==='zenCruiser')gAlt=70+Math.random()*50;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.7;
             var gOrbitR=MOON_R+gAlt;
@@ -2332,7 +2332,7 @@ function buildCity() {
             // Random waypoint AI state
             var wpAngle=Math.random()*Math.PI*2;
             var wpElev=(Math.random()-0.5)*Math.PI*0.6;
-            var wpR=MOON_R+4+Math.random()*25;
+            var wpR=MOON_R+15+Math.random()*80;
             window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,
                 px:gx2,py:gy2,pz:gz2,
                 wpAngle:wpAngle,wpElev:wpElev,wpR:wpR,
@@ -3759,7 +3759,7 @@ function buildObs(seg,ri,sm){
 //  PHYSICS
 // ============================================================
 const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
-var MOON_R=60; // moon sphere radius
+var MOON_R=200; // moon sphere radius
 var MOON_CY=-MOON_R; // sphere center Y (top of sphere at y=0)
 
 // Project a flat (x,0,z) position onto the moon sphere surface
@@ -4024,8 +4024,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
+                // Babel tower: wider landing range to prevent charge-jump clip-through
+                var landBelow=c._babel?6.0:1.0;
                 // On top of building body — land on roof (penetration correction only)
-                if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.vy<=0&&egg.mesh.position.y<=roofY+0.05&&egg.mesh.position.y>=roofY-1.0){
+                if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.vy<=0&&egg.mesh.position.y<=roofY+0.05&&egg.mesh.position.y>=roofY-landBelow){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
                 }
                 // Jumping upward past building — let egg phase through walls while going up
@@ -5552,7 +5554,7 @@ function updateCity(){
             // Waypoint AI: move toward random waypoint near player
             gm.wpTimer--;
             if(gm.wpTimer<=0){
-                gm.wpTimer=40+Math.floor(Math.random()*80);
+                gm.wpTimer=60+Math.floor(Math.random()*120);
                 // Bias waypoints toward player position (within ~120 degrees)
                 gm.wpAngle=_plAng+(Math.random()-0.5)*Math.PI*1.3;
                 gm.wpElev=_plElev+(Math.random()-0.5)*Math.PI*0.6;
@@ -5630,7 +5632,7 @@ function updateCity(){
             // Rifle: frequent beam shots
             gm.actionTimer--;
             if(gm.type==='rifle'&&gm.actionTimer<=0){
-                gm.actionTimer=12+Math.floor(Math.random()*25);
+                gm.actionTimer=25+Math.floor(Math.random()*45);
                 if(window._moonBeams.length<300){
                     var beamColor=gm.faction==='efsf'?0xFF8844:gm.faction==='unSpacy'?0x44CCFF:gm.faction==='zentradi'?0x88FF44:0x44FF44;
                     var bm=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,4,4),new THREE.MeshBasicMaterial({color:beamColor,transparent:true,opacity:0.9}));
@@ -5644,7 +5646,7 @@ function updateCity(){
             }
             // Missile: frequent launch
             if(gm.type==='missile'&&gm.actionTimer<=0){
-                gm.actionTimer=20+Math.floor(Math.random()*35);
+                gm.actionTimer=40+Math.floor(Math.random()*60);
                 if(window._moonMissiles.length<150){
                     var mg=new THREE.Group();
                     var mbody=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.06,1.0,6),new THREE.MeshStandardMaterial({color:0x888888}));
@@ -5706,7 +5708,7 @@ function updateCity(){
                     scene.add(_newGd.group);
                     _dm.group=_newGd.group;_dm.funnels=_newGd.funnels||null;_dm.saberMesh=_newGd.saberMesh||null;_dm.weapon=_newGd.weapon||null;
                     _dm.hp=_dm.hpMax;_dm._dead=false;
-                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;_dm.wpR=MOON_R+4+Math.random()*25;
+                    _dm.wpAngle=_earthAng;_dm.wpElev=_earthElev;_dm.wpR=MOON_R+15+Math.random()*80;
                     _dm.wpTimer=5;
                 }
                 continue;
