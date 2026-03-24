@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.56';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.57';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1211,8 +1211,10 @@ function _updateChargeBar(){
 function _createStunStars(egg){
     if(egg._stunStars)return;
     var group=new THREE.Group();
-    // SF2-style variety: randomly pick stun type per egg
-    var stunType=Math.floor(Math.random()*4); // 0=small stars, 1=big stars, 2=ducks, 3=birds
+    // Stun type based on severity: longer stun = higher tier visual
+    // 0=small stars (light), 1=big stars, 2=ducks, 3=birds (heavy)
+    var dur=egg._stunTimer||0;
+    var stunType=dur<60?0:dur<120?1:dur<200?2:3;
     var items=[];
     for(var i=0;i<4;i++){
         var s;
@@ -5346,7 +5348,10 @@ function handlePlayerInput(){
     if(playerEgg.finished&&gameState==='racing')return;
     // Cannot control while thrown or stunned (except struggle when held)
     if(playerEgg.throwTimer>0)return;
-    if(playerEgg._stunTimer>0){playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;return;}
+    if(playerEgg._stunTimer>0){playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;
+        // Cancel spin dash on stun
+        if(_spinDashing){_spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
+        return;}
     let mx=0,mz=0;
     if(keys['KeyA']||keys['ArrowLeft'])mx-=1;
     if(keys['KeyD']||keys['ArrowRight'])mx+=1;
@@ -5551,7 +5556,7 @@ function handlePlayerInput(){
                 var held=playerEgg.holding;
                 held.heldBy=null; playerEgg.holding=null; if(held.struggleBar){held.mesh.remove(held.struggleBar);held.struggleBar=null;}
                 held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
-                var tw=held.weight||1.0;var tf=0.3/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.03+chargePct*0.18;held.vz=Math.cos(dir)*tf;held._throwTotal=60+Math.floor(chargePct*80);held.throwTimer=held._throwTotal;held._bounces=2+Math.floor(chargePct*2);held._chargeDrag=0.99-chargePct*0.02;
+                var tw=held.weight||1.0;var tf=0.5/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=0.05+chargePct*0.25;held.vz=Math.cos(dir)*tf;held._throwTotal=80+Math.floor(chargePct*100);held.throwTimer=held._throwTotal;held._bounces=2+Math.floor(chargePct*2);held._chargeDrag=0.985+chargePct*0.01;
                 held.squash=0.5; playerEgg.grabCD=20;
                 playThrowSound();
                 held._dropCoinsOnLand=true;held._coinsDropped=false;
@@ -5591,7 +5596,7 @@ function handlePlayerInput(){
                 held2.heldBy=null; playerEgg.holding=null; if(held2.struggleBar){held2.mesh.remove(held2.struggleBar);held2.struggleBar=null;}
                 var dir2=playerEgg.mesh.rotation.y;
                 held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir2)*2);
-                var tw2=held2.weight||1.0;var tf2=0.3/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=60;held2.throwTimer=60;held2._bounces=2;
+                var tw2=held2.weight||1.0;var tf2=0.2/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=40;held2.throwTimer=40;held2._bounces=1;
                 held2.squash=0.5; playerEgg.grabCD=20;
                 playThrowSound();
                 held2._dropCoinsOnLand=true;held2._coinsDropped=false;
