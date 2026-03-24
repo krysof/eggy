@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.42';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.43';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1281,7 +1281,7 @@ function _updateSprintBar(holdingF){
             var sdPct=_sprintCharge/_sprintChargeMax;
             _spinDashing=true;
             _spinDashTimer=Math.floor(80+sdPct*160);
-            _spinDashSpeed=MAX_SPEED*(3.0+sdPct*6.0);
+            _spinDashSpeed=MAX_SPEED*2.0;
             // Store dash direction from player facing
             var dashDir=playerEgg.mesh.rotation.y;
             playerEgg._dashDirX=Math.sin(dashDir);
@@ -3285,11 +3285,12 @@ function updatePipeTravel(){
         _pipeArrivalCooldown=60; // 1 second grace period before portal checks
         if(_pipeTubeGroup){scene.remove(_pipeTubeGroup);_pipeTubeGroup=null;}
         if(currentCityStyle===5){
-            // Moon: spawn at top of sphere
-            var sp=_moonProject(0,0);
+            // Moon: spawn near Von Braun city (avoid north pole camera degeneracy)
+            var sp=_moonProject(-2400,2400);
             playerEgg.mesh.position.set(sp.x,sp.y+3,sp.z);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
+            _moonCamYaw=0;_moonCamPitch=0.35;
             camera.position.set(sp.x+sp.nx*24,sp.y+sp.ny*24,sp.z+sp.nz*24);
             camera.up.set(sp.nx,sp.ny,sp.nz);
             camera.lookAt(sp.x,sp.y,sp.z);
@@ -3328,7 +3329,7 @@ function switchCity(targetStyle){
     playerEgg=createEgg(0,5,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
     if(currentCityStyle===5){
-        var sp2=_moonProject(0,5);
+        var sp2=_moonProject(-2400,2400);
         playerEgg.mesh.position.set(sp2.x,sp2.y+0.5,sp2.z);
         _moonCamYaw=0;_moonCamPitch=0.35;
         camera.position.set(sp2.x+sp2.nx*24,sp2.y+sp2.ny*24,sp2.z+sp2.nz*24);
@@ -6940,7 +6941,8 @@ function enterCity(spawnX,spawnZ){
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
     if(currentCityStyle===5){
-        // Project player onto sphere surface
+        // Spawn near Von Braun city (avoid north pole where camera degenerates)
+        if(sx===0&&sz===5){sx=-2400;sz=2400;}
         var sp=_moonProject(sx,sz);
         playerEgg.mesh.position.set(sp.x,sp.y+0.5,sp.z);
         // Reset third-person camera orbit
