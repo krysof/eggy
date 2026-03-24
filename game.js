@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.32';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.33';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3208,24 +3208,26 @@ addClouds();
 function playRumbleSound(){
     if(!sfxEnabled)return;
     var ctx=ensureAudio();if(!ctx)return;
-    // Low frequency rumble — noise + low oscillator
     var dur=3.0;
     var bufSize=Math.floor(ctx.sampleRate*dur);
     var buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
     var data=buf.getChannelData(0);
     for(var i=0;i<bufSize;i++){
         var t=i/ctx.sampleRate;
-        // Low rumble noise + sine wobble
-        data[i]=(Math.random()-0.5)*0.3*Math.sin(t*40)*Math.exp(-t*0.3)
+        // Deep rumble + mid-range cracking for audibility on all speakers
+        data[i]=(Math.random()-0.5)*0.35*Math.sin(t*40)*Math.exp(-t*0.3)
             +Math.sin(t*55)*0.15*Math.exp(-t*0.4)
-            +Math.sin(t*30+Math.sin(t*7)*3)*0.12*Math.exp(-t*0.35);
+            +Math.sin(t*30+Math.sin(t*7)*3)*0.12*Math.exp(-t*0.35)
+            +(Math.random()-0.5)*0.2*Math.exp(-t*0.5)
+            +Math.sin(t*180+Math.random()*0.5)*0.08*Math.exp(-t*0.6)
+            +Math.sin(t*110)*0.1*Math.exp(-t*0.45);
     }
     var src=ctx.createBufferSource();src.buffer=buf;
-    var g=ctx.createGain();g.gain.setValueAtTime(0.4,ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0.5,ctx.currentTime+0.5);
+    var g=ctx.createGain();g.gain.setValueAtTime(0.5,ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.6,ctx.currentTime+0.5);
     g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+dur);
-    // Low-pass filter for deep rumble
-    var filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=120;filt.Q.value=1;
+    // Wider low-pass to let mid-range through
+    var filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=350;filt.Q.value=0.7;
     src.connect(filt);filt.connect(g);g.connect(ctx.destination);
     src.start();src.stop(ctx.currentTime+dur);
 }
@@ -4972,20 +4974,34 @@ function handlePlayerInput(){
     }
     // F released
     if(!keys['KeyF']&&playerEgg._fWasDown){
-        if(playerEgg._throwCharging&&playerEgg.holding&&!playerEgg._justGrabbed){
-            // Charge throw release → power throw NPC
-            var held=playerEgg.holding;
-            held.heldBy=null; playerEgg.holding=null; if(held.struggleBar){held.mesh.remove(held.struggleBar);held.struggleBar=null;}
+        if(playerEgg._throwCharging&&_holdingSomething&&!playerEgg._justGrabbed){
+            // Charge throw release → power throw
             var dir=playerEgg.mesh.rotation.y;
             var chargePct=(playerEgg._throwCharge||0)/_throwChargeMax;
             var throwMul=1+chargePct*4;
-            held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
-            var tw=held.weight||1.0;var tf=0.3/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.03+chargePct*0.1;held.vz=Math.cos(dir)*tf;held._throwTotal=60+Math.floor(chargePct*60);held.throwTimer=held._throwTotal;held._bounces=2;
-            // Moon: reduce throw speed (low gravity = flies too far)
-            if(currentCityStyle===5&&gameState==='city'){held.vx*=0.3;held.vy*=0.3;held.vz*=0.3;held._throwTotal=60;held.throwTimer=60;}
-            held.squash=0.5; playerEgg.grabCD=20;
-            playThrowSound();
-            held._dropCoinsOnLand=true;held._coinsDropped=false;
+            if(playerEgg.holding){
+                var held=playerEgg.holding;
+                held.heldBy=null; playerEgg.holding=null; if(held.struggleBar){held.mesh.remove(held.struggleBar);held.struggleBar=null;}
+                held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
+                var tw=held.weight||1.0;var tf=0.3/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.03+chargePct*0.1;held.vz=Math.cos(dir)*tf;held._throwTotal=60+Math.floor(chargePct*60);held.throwTimer=held._throwTotal;held._bounces=2;
+                if(currentCityStyle===5&&gameState==='city'){held.vx*=0.3;held.vy*=0.3;held.vz*=0.3;held._throwTotal=60;held.throwTimer=60;}
+                held.squash=0.5; playerEgg.grabCD=20;
+                playThrowSound();
+                held._dropCoinsOnLand=true;held._coinsDropped=false;
+            } else if(playerEgg.holdingProp){
+                var prop=playerEgg.holdingProp;
+                playerEgg.holdingProp=null;
+                var pw=prop.weight||1.0;var pf=2.5/pw*throwMul;prop.throwVx=Math.sin(dir)*pf;prop.throwVy=0.18+chargePct*0.15;prop.throwVz=Math.cos(dir)*pf;prop._bounces=2;prop.throwTimer=25+Math.floor(chargePct*30);
+                prop.group.position.set(playerEgg.mesh.position.x+Math.sin(dir)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*1.5);
+                playerEgg.grabCD=20; playThrowSound();
+            } else if(playerEgg.holdingObs){
+                var obs=playerEgg.holdingObs;
+                playerEgg.holdingObs=null;
+                obs._grabbed=false;
+                obs.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*1.5, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*1.5);
+                var ow=obs._weight||2.0;var of2=4.5/ow*throwMul;obs._throwVx=Math.sin(dir)*of2;obs._throwVy=0.18+chargePct*0.15;obs._throwVz=Math.cos(dir)*of2;obs._throwTimer=Math.floor((50+20/ow)*(1+chargePct));obs._bounces=2;
+                playerEgg.grabCD=20; playThrowSound();
+            }
         } else if(_holdingSomething&&!playerEgg._justGrabbed&&playerEgg._fHoldFrames<_throwChargeDelay&&playerEgg._fHoldFrames>0){
             // Quick tap F while holding → normal throw (separate press from grab)
             if(playerEgg.holdingProp){
@@ -5076,7 +5092,7 @@ function handlePlayerInput(){
         }
     }
     // Show charge throw bar while charging
-    if(playerEgg._throwCharging&&playerEgg.holding){
+    if(playerEgg._throwCharging&&_holdingSomething){
         var chPct=(playerEgg._throwCharge||0)/60;
         if(chPct>0.01){
             if(!playerEgg._throwChargeBar){
