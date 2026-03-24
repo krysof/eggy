@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.67';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.68';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3720,8 +3720,8 @@ function addClouds(){
     // Need steps every ~4 units (easy charge jump) from y=22 to y=40
     // Place staircase columns near several buildings
     var stairPositions=[];
-    // First staircase near center (close to Babel tower at 8,0)
-    stairPositions.push({x:4,z:8});
+    // First staircase near center (close to Babel tower at 12,0)
+    stairPositions.push({x:8,z:8});
     for(var _si=0;_si<5;_si++){
         stairPositions.push({x:(Math.random()-0.5)*80,z:(Math.random()-0.5)*80});
     }
@@ -3737,10 +3737,10 @@ function addClouds(){
             _makeCloud(sx,sy,sz,2,3,2,4);
         }
     }
-    // ---- Cloud World (y=42) — large platform layer ----
-    var cwY=42;
-    // Central large cloud platform (3x bigger — moon pipe sits here)
-    _makeCloud(0,cwY,0,6,8,10,16);
+    // ---- Cloud World (y=46) — large platform layer ----
+    var cwY=46;
+    // Central HUGE cloud platform — the highest cloud, moon pipe sits here
+    _makeCloud(0,cwY,0,8,10,14,20);
     // Ring of cloud platforms around center
     for(var ai=0;ai<8;ai++){
         var ang=ai/8*Math.PI*2;
@@ -3885,7 +3885,7 @@ function _buildBabylonTower(){
     var g=new THREE.Group();
     // Ziggurat — 8 stacked layers reaching above cloud world (y=48)
     var layers=8;
-    var baseW=16, baseD=16, layerH=6;
+    var baseW=16, baseD=16, layerH=6.4;
     var colors=[0xD4A460,0xC8963C,0xBB8833,0xAA7722,0x996611,0x885500,0x774400,0x663300];
     for(var i=0;i<layers;i++){
         var w=baseW-i*1.5;
@@ -3958,18 +3958,18 @@ function _buildBabylonTower(){
         if(dd.dx!==0)dGlow.rotation.y=Math.PI/2;
         g.add(dGlow);
     }
-    // Position near city center so tower is close to cloud world moon pipe above
+    // Position on edge of the big cloud — tower top is ~5 units above cloud, offset from moon pipe
     var towerX, towerZ;
-    towerX=8;
+    towerX=12;
     towerZ=0;
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
     _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
-    // Add bridge clouds from tower top to cloud world
-    for(var bci=0;bci<4;bci++){
-        var bcx=towerX+(Math.random()-0.5)*12;
-        var bcz=towerZ+(Math.random()-0.5)*12;
-        var bcy=topY-2+bci*2;
+    // Add bridge clouds from tower top down to the big cloud platform
+    for(var bci=0;bci<5;bci++){
+        var bcx=towerX-bci*2.5;
+        var bcz=towerZ+(Math.random()-0.5)*6;
+        var bcy=topY-bci*1.5;
         _makeCloud(bcx,bcy,bcz,2,3,2,4);
     }
 }
