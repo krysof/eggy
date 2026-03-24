@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:(function(){var v='v20260324.13';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.14';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5057,15 +5057,25 @@ function updateCity(){
     // ---- Gundam battle animation ----
     if(window._moonGundams){
         var gt=Date.now()*0.001;
+        // Get player angular position on sphere for MS clustering
+        var _plAng=0, _plElev=0;
+        if(playerEgg){
+            var _pdx=playerEgg.mesh.position.x, _pdy=playerEgg.mesh.position.y-MOON_CY, _pdz=playerEgg.mesh.position.z;
+            var _pd=Math.sqrt(_pdx*_pdx+_pdy*_pdy+_pdz*_pdz)||1;
+            _plAng=Math.atan2(_pdz,_pdx);
+            _plElev=Math.asin(_pdy/_pd);
+        }
         for(var ggi=0;ggi<window._moonGundams.length;ggi++){
             var gm=window._moonGundams[ggi];
             gm.phase+=0.03;
-            // Waypoint AI: move toward random waypoint, pick new one when close or timer expires
+            // Waypoint AI: move toward random waypoint near player
             gm.wpTimer--;
             if(gm.wpTimer<=0){
                 gm.wpTimer=40+Math.floor(Math.random()*80);
-                gm.wpAngle=Math.random()*Math.PI*2;
-                gm.wpElev=(Math.random()-0.5)*Math.PI*0.6;
+                // Bias waypoints toward player position (within ~120 degrees)
+                gm.wpAngle=_plAng+(Math.random()-0.5)*Math.PI*1.3;
+                gm.wpElev=_plElev+(Math.random()-0.5)*Math.PI*0.6;
+                gm.wpElev=Math.max(-Math.PI*0.45,Math.min(Math.PI*0.45,gm.wpElev));
                 gm.wpR=MOON_R+4+Math.random()*25;
                 if(gm.ms==='sdf1')gm.wpR=MOON_R+30+Math.random()*15;
                 if(gm.ms==='zenCruiser')gm.wpR=MOON_R+25+Math.random()*15;
