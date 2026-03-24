@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:{zhs:'v20260323.35 by \u767D\u6CB3\u6101',zht:'v20260323.35 by \u767D\u6CB3\u6101',ja:'v20260323.35 by \u767D\u6CB3\u6101',en:'v20260323.35 by Kryso'},
+    version:{zhs:'v20260323.36 by \u767D\u6CB3\u6101',zht:'v20260323.36 by \u767D\u6CB3\u6101',ja:'v20260323.36 by \u767D\u6CB3\u6101',en:'v20260323.36 by Kryso'},
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -933,9 +933,15 @@ function _playSprintTick(pct){
 
 function _updateSprintBar(holdingF){
     if(!playerEgg)return 0;
+    // 0.3s delay (18 frames) before sprint starts
+    if(!playerEgg._sprintHoldFrames)playerEgg._sprintHoldFrames=0;
     if(holdingF){
-        _sprintCharge=Math.min(_sprintCharge+1,_sprintChargeMax);
+        playerEgg._sprintHoldFrames++;
+        if(playerEgg._sprintHoldFrames>=18){
+            _sprintCharge=Math.min(_sprintCharge+1,_sprintChargeMax);
+        }
     } else {
+        playerEgg._sprintHoldFrames=0;
         _sprintCharge=Math.max(_sprintCharge-2,0);
     }
     var pct=_sprintCharge/_sprintChargeMax;
@@ -3263,7 +3269,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         egg.vx=ftx+vRad2*nx2;egg.vy=fty+vRad2*ny2;egg.vz=ftz+vRad2*nz2;
         // Thrown egg bounce on sphere
         if(egg.throwTimer>0&&height2<0.1&&vRad<-0.05){
-            if(egg._bounces>0){egg._bounces--;var bv=Math.abs(vRad)*0.5;egg.vx+=nx2*bv;egg.vy+=ny2*bv;egg.vz+=nz2*bv;egg.squash=0.6;playHitSound();}
+            if(egg._bounces>0){egg._bounces--;var bv=Math.abs(vRad)*0.5;egg.vx+=nx2*bv;egg.vy+=ny2*bv;egg.vz+=nz2*bv;egg.squash=0.6;playHitSound();
+                // Drop coins on first impact
+                if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+            }
         }
         // Walk anim
         var prevPhase=egg.walkPhase;
@@ -3273,7 +3282,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             var curStep=Math.floor(egg.walkPhase/Math.PI);
             if(curStep>prevStep)playStepSound();
         }
-        if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0&&egg._dropCoinsOnLand){egg._dropCoinsOnLand=false;_dropNpcStolenCoins(egg);}}
+        if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){egg._dropCoinsOnLand=false;egg._coinsDropped=false;}}
         // Squash recovery
         egg.squash+=(1-egg.squash)*0.1;
         var body=egg.mesh.userData.body;
@@ -3308,7 +3317,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         var _bFloor=0.01;
         if(!isCity){var _bgz=-egg.mesh.position.z;_bFloor=getFloorY(_bgz)+0.01;}
         if(egg.mesh.position.y<=_bFloor){
-            if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound();}
+            if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound();
+                // Drop coins on first impact
+                if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+            }
         }
     }
     egg.mesh.position.z += egg.vz + (egg.conveyorVz||0);
@@ -3336,7 +3348,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                     var toverlapZ=tc.hd+egg.radius-Math.abs(tdz);
                     if(toverlapX<toverlapZ){egg.mesh.position.x+=Math.sign(tdx)*toverlapX;egg.vx*=-0.3;}
                     else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
-                    egg.throwTimer=1; // will reach 0 next frame → triggers coin drop
+                    if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
+                    egg.throwTimer=1;
                     egg.squash=0.6;playHitSound();
                     break;
                 }
@@ -3480,7 +3493,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         }
     }
 
-    if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0&&egg._dropCoinsOnLand){egg._dropCoinsOnLand=false;_dropNpcStolenCoins(egg);}}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
+    if(egg.throwTimer>0){egg.throwTimer--;egg.vx*=0.98;egg.vz*=0.98;if(egg.throwTimer<=0){egg._dropCoinsOnLand=false;egg._coinsDropped=false;}}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
 
     // Walk anim
     var speed=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
@@ -4135,48 +4148,66 @@ function handlePlayerInput(){
             playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
         }
     }
-    // Charge jump: hold Space to charge, release to jump
-    // Grace period: allow brief off-ground (slopes/bumps) without canceling charge
+    // Charge jump: tap Space = instant jump, hold 0.3s (18 frames) = start charging
     var _onGroundOrGrace=playerEgg.onGround;
     if(!playerEgg.onGround&&_jumpCharging){
         if(!playerEgg._chargeGrace)playerEgg._chargeGrace=0;
         playerEgg._chargeGrace++;
-        if(playerEgg._chargeGrace<=8)_onGroundOrGrace=true; // 8 frame grace
+        if(playerEgg._chargeGrace<=8)_onGroundOrGrace=true;
     } else {
         playerEgg._chargeGrace=0;
     }
-    if(keys['Space']&&_onGroundOrGrace&&!_jumpCharging){_jumpCharging=true;_jumpCharge=0;_chargeBeepTimer=0;_chargeHoldTimer=0;}
-    if(_jumpCharging&&keys['Space']&&_onGroundOrGrace){
-        if(_jumpCharge<_jumpChargeMax){
-            _jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);
-            var pct=_jumpCharge/_jumpChargeMax;
-            var beepInterval=Math.max(3,Math.floor(15-pct*12));
-            _chargeBeepTimer++;
-            if(_chargeBeepTimer>=beepInterval){_chargeBeepTimer=0;_playChargeBeep(pct);}
-            // Butt smoke while charging
-            if(_jumpCharge%4===0)_spawnButtSmoke(playerEgg,pct);
-        } else {
-            _chargeHoldTimer++;
-            _chargeBeepTimer++;
-            if(_chargeBeepTimer>=3){_chargeBeepTimer=0;_playChargeBeep(0.8+0.2*Math.random());}
-            if(_chargeHoldTimer%3===0)_spawnButtSmoke(playerEgg,1.0);
-            if(_chargeHoldTimer>=_chargeHoldMax){
-                _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
-            }
-        }
-    }
-    if(_jumpCharging&&(!keys['Space']||!_onGroundOrGrace)){
-        if(_onGroundOrGrace&&_jumpCharge>0){
-            var pct2=_jumpCharge/_jumpChargeMax;
-            var jumpF=JUMP_FORCE*(1+pct2*2);
+    // Track how long Space is held before charging starts
+    if(!playerEgg._spaceHoldFrames)playerEgg._spaceHoldFrames=0;
+    if(!playerEgg._spaceJumped)playerEgg._spaceJumped=false;
+    var _chargeDelay=18; // 0.3s at 60fps
+    if(keys['Space']&&_onGroundOrGrace){
+        playerEgg._spaceHoldFrames++;
+        // Instant jump on first press
+        if(playerEgg._spaceHoldFrames===1&&!playerEgg._spaceJumped){
+            playerEgg._spaceJumped=true;
             if(currentCityStyle===5&&gameState==='city'){
-                // Moon: jump along surface normal
                 var jp=playerEgg.mesh.position;
                 var jdx=jp.x,jdy=jp.y-MOON_CY,jdz=jp.z;
                 var jd=Math.sqrt(jdx*jdx+jdy*jdy+jdz*jdz)||1;
-                playerEgg.vx+=jdx/jd*jumpF;
-                playerEgg.vy+=jdy/jd*jumpF;
-                playerEgg.vz+=jdz/jd*jumpF;
+                playerEgg.vx+=jdx/jd*JUMP_FORCE;playerEgg.vy+=jdy/jd*JUMP_FORCE;playerEgg.vz+=jdz/jd*JUMP_FORCE;
+            } else {
+                playerEgg.vy=JUMP_FORCE;
+            }
+            playerEgg.squash=0.65;playJumpSound();
+        }
+        // After 0.3s hold, start charging
+        if(playerEgg._spaceHoldFrames>=_chargeDelay&&!_jumpCharging){
+            _jumpCharging=true;_jumpCharge=0;_chargeBeepTimer=0;_chargeHoldTimer=0;
+        }
+        if(_jumpCharging){
+            if(_jumpCharge<_jumpChargeMax){
+                _jumpCharge=Math.min(_jumpCharge+1,_jumpChargeMax);
+                var pct=_jumpCharge/_jumpChargeMax;
+                var beepInterval=Math.max(3,Math.floor(15-pct*12));
+                _chargeBeepTimer++;
+                if(_chargeBeepTimer>=beepInterval){_chargeBeepTimer=0;_playChargeBeep(pct);}
+                if(_jumpCharge%4===0)_spawnButtSmoke(playerEgg,pct);
+            } else {
+                _chargeHoldTimer++;
+                _chargeBeepTimer++;
+                if(_chargeBeepTimer>=3){_chargeBeepTimer=0;_playChargeBeep(0.8+0.2*Math.random());}
+                if(_chargeHoldTimer%3===0)_spawnButtSmoke(playerEgg,1.0);
+                if(_chargeHoldTimer>=_chargeHoldMax){
+                    _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
+                }
+            }
+        }
+    }
+    if(!keys['Space']||!_onGroundOrGrace){
+        if(_jumpCharging&&_onGroundOrGrace&&_jumpCharge>0){
+            var pct2=_jumpCharge/_jumpChargeMax;
+            var jumpF=JUMP_FORCE*(1+pct2*2);
+            if(currentCityStyle===5&&gameState==='city'){
+                var jp2=playerEgg.mesh.position;
+                var jdx2=jp2.x,jdy2=jp2.y-MOON_CY,jdz2=jp2.z;
+                var jd2=Math.sqrt(jdx2*jdx2+jdy2*jdy2+jdz2*jdz2)||1;
+                playerEgg.vx+=jdx2/jd2*jumpF;playerEgg.vy+=jdy2/jd2*jumpF;playerEgg.vz+=jdz2/jd2*jumpF;
             } else {
                 playerEgg.vy=jumpF;
             }
@@ -4186,6 +4217,7 @@ function handlePlayerInput(){
             _ascendSmoke=true;_ascendSmokePct=pct2;
         }
         _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
+        if(!keys['Space']){playerEgg._spaceHoldFrames=0;playerEgg._spaceJumped=false;}
     }
     _updateChargeBar();
     // Ascending butt smoke while rising from charged jump
@@ -4211,12 +4243,68 @@ function handlePlayerInput(){
         var curMax=MAX_SPEED*speedMul;
         if(spd>curMax){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
     }
-    // Grab / Throw (F key — triggers once per press via _fJustPressed)
+    // Grab / Throw (F key)
     if(playerEgg.grabCD>0) playerEgg.grabCD--;
+    if(!playerEgg._fHoldFrames)playerEgg._fHoldFrames=0;
+    if(!playerEgg._throwCharging)playerEgg._throwCharging=false;
+    var _throwChargeDelay=18; // 0.3s at 60fps
+    var _throwChargeMax=60; // 1 second max charge
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0){
         playerEgg._fJustPressed=true;
+        playerEgg._fHoldFrames=0;
+        playerEgg._throwCharging=false;
     } else {
         playerEgg._fJustPressed=false;
+    }
+    // Track F hold duration for charge throw
+    if(keys['KeyF']&&playerEgg.holding){
+        playerEgg._fHoldFrames++;
+        if(playerEgg._fHoldFrames>=_throwChargeDelay){
+            playerEgg._throwCharging=true;
+            if(!playerEgg._throwCharge)playerEgg._throwCharge=0;
+            playerEgg._throwCharge=Math.min((playerEgg._throwCharge||0)+1,_throwChargeMax);
+        }
+    }
+    // Release F while charge throwing → power throw
+    if(!keys['KeyF']&&playerEgg._fWasDown&&playerEgg._throwCharging&&playerEgg.holding){
+        var held=playerEgg.holding;
+        held.heldBy=null; playerEgg.holding=null; if(held.struggleBar){held.mesh.remove(held.struggleBar);held.struggleBar=null;}
+        var dir=playerEgg.mesh.rotation.y;
+        var chargePct=(playerEgg._throwCharge||0)/_throwChargeMax;
+        var throwMul=1+chargePct*4; // up to 5x throw power
+        held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+2.0, playerEgg.mesh.position.z+Math.cos(dir)*2);
+        var tw=held.weight||1.0;var tf=9.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=0.22+chargePct*0.3;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
+        held.squash=0.5; playerEgg.grabCD=20;
+        playThrowSound();
+        held._dropCoinsOnLand=true;held._coinsDropped=false;
+        playerEgg._throwCharging=false;playerEgg._throwCharge=0;playerEgg._fHoldFrames=0;
+        playerEgg._fWasDown=!!keys['KeyF'];
+        // Skip normal F handling below
+    } else
+    // Show charge throw bar
+    if(playerEgg._throwCharging&&playerEgg.holding){
+        // Update charge throw bar visual
+        var chPct=(playerEgg._throwCharge||0)/_throwChargeMax;
+        if(chPct>0.01){
+            if(!playerEgg._throwChargeBar){
+                var tc=document.createElement('canvas');tc.width=128;tc.height=16;
+                var ttex=new THREE.CanvasTexture(tc);
+                playerEgg._throwChargeBar=new THREE.Sprite(new THREE.SpriteMaterial({map:ttex,transparent:true}));
+                playerEgg._throwChargeBar.scale.set(2,0.3,1);
+                scene.add(playerEgg._throwChargeBar);
+            }
+            playerEgg._throwChargeBar.visible=true;
+            playerEgg._throwChargeBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+3.2,playerEgg.mesh.position.z);
+            var tctx=playerEgg._throwChargeBar.material.map.image.getContext('2d');
+            tctx.clearRect(0,0,128,16);
+            tctx.fillStyle='rgba(0,0,0,0.5)';tctx.fillRect(0,0,128,16);
+            var grd=tctx.createLinearGradient(0,0,128*chPct,0);
+            grd.addColorStop(0,'#FF4444');grd.addColorStop(1,'#FFAA00');
+            tctx.fillStyle=grd;tctx.fillRect(2,2,124*chPct,12);
+            playerEgg._throwChargeBar.material.map.needsUpdate=true;
+        }
+    } else {
+        if(playerEgg._throwChargeBar){playerEgg._throwChargeBar.visible=false;}
     }
     playerEgg._fWasDown=!!keys['KeyF'];
     if(playerEgg._fJustPressed){
@@ -4245,7 +4333,7 @@ function handlePlayerInput(){
             var tw=held.weight||1.0;var tf=9.0/tw;held.vx=Math.sin(dir)*tf;held.vy=0.22;held.vz=Math.cos(dir)*tf;held._throwTotal=120;held.throwTimer=120;held._bounces=2;
             held.squash=0.5; playerEgg.grabCD=20;
             playThrowSound();
-            held._dropCoinsOnLand=true; // drop stolen coins when NPC lands
+            held._dropCoinsOnLand=true;held._coinsDropped=false; // drop stolen coins on first impact
         } else {
             var nearest=null, nearDist=2.5;
             for(var ei=0;ei<allEggs.length;ei++){
@@ -4906,7 +4994,7 @@ function updateHeldEggs(){
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
             var ntw=egg.weight||1.0;var ntf=9.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=0.22;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
             egg.squash=0.5; playThrowSound();
-            egg._dropCoinsOnLand=true;
+            egg._dropCoinsOnLand=true;egg._coinsDropped=false;
             continue;
         }
         // Escape!
