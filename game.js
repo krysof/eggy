@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.61';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.62';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -186,7 +186,7 @@ function _openLangMenu(){
     if(_langMenuOpen){_closeLangMenu();return;}
     _langMenuOpen=true;
     _langMenu=document.createElement('div');
-    _langMenu.style.cssText='position:absolute;bottom:100%;right:0;margin-bottom:4px;background:rgba(0,0,0,0.85);border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:4px 0;min-width:130px;backdrop-filter:blur(8px);z-index:99;';
+    _langMenu.style.cssText='position:absolute;top:100%;right:0;margin-top:4px;background:rgba(0,0,0,0.85);border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:4px 0;min-width:130px;backdrop-filter:blur(8px);z-index:99;';
     for(var li=0;li<_langOrder.length;li++){
         (function(code){
             var item=document.createElement('div');
@@ -2844,44 +2844,7 @@ function buildCity() {
         portals.push({mesh:earthPortalG,ring:epRing,inner:epInner,
             name:'\uD83C\uDF0D '+L('earthReturn'),desc:L('earthReturnDesc'),
             raceIndex:-1,x:-200+8*5,z:8*5,y:0,color:0x3366CC,_hiddenType:'earthReturn',_targetStyle:0});
-        // ---- Moon-themed mini-game portals inside Von Braun ----
-        var _moonMiniGames=[
-            {name:{zhs:'\uD83D\uDE80 \u6708\u7403\u8D5B\u8DD1',zht:'\uD83D\uDE80 \u6708\u7403\u8CFD\u8DD1',ja:'\uD83D\uDE80 \u6708\u9762\u30EC\u30FC\u30B9',en:'\uD83D\uDE80 Lunar Race'},
-             desc:{zhs:'\u4F4E\u91CD\u529B\u969C\u788D\u8D5B',zht:'\u4F4E\u91CD\u529B\u969C\u7919\u8CFD',ja:'\u4F4E\u91CD\u529B\u969C\u5BB3\u7269\u30EC\u30FC\u30B9',en:'Low-G Obstacle Race'},
-             color:0xFF8844,lx:3,lz:-2,ri:0},
-            {name:{zhs:'\uD83D\uDCA5 \u9668\u77F3\u95EA\u907F',zht:'\uD83D\uDCA5 \u9668\u77F3\u9583\u907F',ja:'\uD83D\uDCA5 \u968E\u77F3\u56DE\u907F',en:'\uD83D\uDCA5 Meteor Dodge'},
-             desc:{zhs:'\u8EB2\u907F\u964B\u77F3\u96E8',zht:'\u8EB2\u907F\u964B\u77F3\u96E8',ja:'\u968E\u77F3\u3092\u907F\u3051\u308D',en:'Dodge the meteor shower'},
-             color:0xFF4444,lx:-3,lz:3,ri:1},
-            {name:{zhs:'\uD83C\uDF19 \u6708\u7403\u5F39\u8DF3',zht:'\uD83C\uDF19 \u6708\u7403\u5F48\u8DF3',ja:'\uD83C\uDF19 \u6708\u9762\u30D0\u30A6\u30F3\u30B9',en:'\uD83C\uDF19 Moon Bounce'},
-             desc:{zhs:'\u5F39\u8DF3\u5230\u6700\u9AD8\u70B9',zht:'\u5F48\u8DF3\u5230\u6700\u9AD8\u9EDE',ja:'\u6700\u9AD8\u70B9\u307E\u3067\u30D0\u30A6\u30F3\u30B9',en:'Bounce to the top'},
-             color:0xFFDD44,lx:2,lz:4,ri:2}
-        ];
-        for(var mgi=0;mgi<_moonMiniGames.length;mgi++){
-            var mg2=_moonMiniGames[mgi];
-            var mgG=new THREE.Group();
-            // Portal ring
-            var mgRing=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.2,8,16),new THREE.MeshBasicMaterial({color:mg2.color,transparent:true,opacity:0.6}));
-            mgRing.position.y=2;mgG.add(mgRing);
-            // Inner glow
-            var mgInner=new THREE.Mesh(new THREE.CircleGeometry(1.2,12),new THREE.MeshBasicMaterial({color:mg2.color,transparent:true,opacity:0.35,side:THREE.DoubleSide}));
-            mgInner.position.y=2;mgG.add(mgInner);
-            // Base pedestal
-            var mgPed=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2,0.4,8),toon(0x556677));
-            mgPed.position.y=0.2;mgG.add(mgPed);
-            // Orbiting particles
-            for(var mpi=0;mpi<4;mpi++){
-                var mpP=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),new THREE.MeshBasicMaterial({color:mg2.color,transparent:true,opacity:0.7}));
-                mpP.userData.orbitPhase=mpi/4*Math.PI*2;
-                mgG.add(mpP);
-            }
-            var mgWorldX=-200+mg2.lx*8;
-            var mgWorldZ=mg2.lz*8;
-            mgG.position.set(mgWorldX,0,mgWorldZ);
-            cityGroup.add(mgG);
-            portals.push({mesh:mgG,ring:mgRing,inner:mgInner,
-                name:mg2.name[_langCode]||mg2.name.en,desc:mg2.desc[_langCode]||mg2.desc.en,
-                raceIndex:mg2.ri,x:mgWorldX,z:mgWorldZ,y:0,color:mg2.color});
-        }
+        // (Moon mini-game portals removed — races are Earth-only)
         // ---- Moon city props (inside Von Braun) ----
         // Oxygen tanks
         var _vbPropsData=[
