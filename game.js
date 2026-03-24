@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.46';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.47';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -227,93 +227,86 @@ function startBGM(){
     if(currentCityStyle===5)_playMoonBGMLoop(ctx);else _playBGMLoop(ctx);
 }
 function _playBGMLoop(ctx){
-    bgmGain=ctx.createGain(); bgmGain.gain.value=0.15; bgmGain.connect(ctx.destination);
-    // Chord progressions (C-Am-F-G pattern, two octaves of melody)
-    const chords=[
-        [262,330,392],[220,262,330],[175,220,262],[196,247,294],
-        [262,330,392],[220,262,330],[175,220,262],[196,247,330]
-    ];
-    const melodyA=[784,880,784,659,698,784,880,988,784,659,523,587,659,784,880,784];
-    const melodyB=[659,698,784,880,784,698,659,587,523,587,659,523,440,494,523,659];
-    const noteLen=0.18;
-    let loopCount=0;
+    // Dispatch to per-city BGM
+    if(currentCityStyle===1)return _playDesertBGM(ctx);
+    if(currentCityStyle===2)return _playIceBGM(ctx);
+    if(currentCityStyle===3)return _playLavaBGM(ctx);
+    if(currentCityStyle===4)return _playCandyBGM(ctx);
+    return _playDefaultBGM(ctx);
+}
+// Helper: generic looping BGM engine
+function _bgmEngine(ctx,melA,melB,chords,noteLen,vol,leadType,bassVol,padType){
+    bgmGain=ctx.createGain();bgmGain.gain.value=vol||0.15;bgmGain.connect(ctx.destination);
+    var loopCount=0;
     function playLoop(){
         if(!bgmPlaying)return;
-        const now=ctx.currentTime;
-        const melody=loopCount%2===0?melodyA:melodyB;
-        loopCount++;
-        for(let i=0;i<melody.length;i++){
-            // Melody — triangle wave with vibrato
-            const osc=ctx.createOscillator(); const g=ctx.createGain();
-            osc.type='triangle';
-            osc.frequency.setValueAtTime(melody[i],now+i*noteLen);
-            // Slight pitch bend for expression
-            osc.frequency.exponentialRampToValueAtTime(melody[i]*1.01,now+i*noteLen+noteLen*0.3);
-            osc.frequency.exponentialRampToValueAtTime(melody[i],now+i*noteLen+noteLen*0.8);
-            g.gain.setValueAtTime(0,now+i*noteLen);
-            g.gain.linearRampToValueAtTime(0.14,now+i*noteLen+0.02);
-            g.gain.setValueAtTime(0.12,now+i*noteLen+noteLen*0.5);
-            g.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*0.95);
-            osc.connect(g); g.connect(bgmGain);
-            osc.start(now+i*noteLen); osc.stop(now+i*noteLen+noteLen);
-            bgmNodes.push(osc);
-            // Harmony — soft sine a third above
-            if(i%2===0){
-                const h=ctx.createOscillator(); const hg=ctx.createGain();
-                h.type='sine'; h.frequency.value=melody[i]*1.25;
-                hg.gain.setValueAtTime(0.04,now+i*noteLen);
-                hg.gain.exponentialRampToValueAtTime(0.003,now+i*noteLen+noteLen*1.8);
-                h.connect(hg); hg.connect(bgmGain);
-                h.start(now+i*noteLen); h.stop(now+i*noteLen+noteLen*2);
-                bgmNodes.push(h);
-            }
-            // Chord pads — change every 4 notes
-            if(i%4===0){
-                const ci=Math.floor(i/4)%chords.length;
-                for(let cn=0;cn<chords[ci].length;cn++){
-                    const co=ctx.createOscillator(); const cg=ctx.createGain();
-                    co.type='sine'; co.frequency.value=chords[ci][cn];
-                    cg.gain.setValueAtTime(0.035,now+i*noteLen);
-                    cg.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*3.8);
-                    co.connect(cg); cg.connect(bgmGain);
-                    co.start(now+i*noteLen); co.stop(now+i*noteLen+noteLen*4);
-                    bgmNodes.push(co);
-                }
-            }
-            // Bass — root note of chord
-            if(i%4===0){
-                const ci=Math.floor(i/4)%chords.length;
-                const bo=ctx.createOscillator(); const bg2=ctx.createGain();
-                bo.type='sine'; bo.frequency.value=chords[ci][0]*0.5;
-                bg2.gain.setValueAtTime(0.1,now+i*noteLen);
-                bg2.gain.exponentialRampToValueAtTime(0.008,now+i*noteLen+noteLen*3.8);
-                bo.connect(bg2); bg2.connect(bgmGain);
-                bo.start(now+i*noteLen); bo.stop(now+i*noteLen+noteLen*4);
-                bgmNodes.push(bo);
-            }
-            // Percussion — soft kick on beats, hi-hat on off-beats
-            if(i%4===0){
-                const kb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.08),ctx.sampleRate);
-                const kd=kb.getChannelData(0);
-                for(let s=0;s<kd.length;s++){const p=s/kd.length;kd[s]=Math.sin(p*Math.PI*8*(1-p*0.8))*0.4*Math.exp(-p*6);}
-                const ks=ctx.createBufferSource(); const kg=ctx.createGain(); kg.gain.value=0.12;
-                ks.buffer=kb; ks.connect(kg); kg.connect(bgmGain);
-                ks.start(now+i*noteLen); ks.stop(now+i*noteLen+0.08);
-                bgmNodes.push(ks);
-            }
-            if(i%2===1){
-                const hb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.03),ctx.sampleRate);
-                const hd=hb.getChannelData(0);
-                for(let s=0;s<hd.length;s++) hd[s]=(Math.random()-0.5)*0.15*Math.exp(-s/(hd.length*0.1));
-                const hs=ctx.createBufferSource(); const hg=ctx.createGain(); hg.gain.value=0.06;
-                hs.buffer=hb; hs.connect(hg); hg.connect(bgmGain);
-                hs.start(now+i*noteLen); hs.stop(now+i*noteLen+0.03);
-                bgmNodes.push(hs);
-            }
+        var now=ctx.currentTime;var mel=loopCount%2===0?melA:melB;loopCount++;
+        for(var i=0;i<mel.length;i++){
+            var o=ctx.createOscillator();var g=ctx.createGain();
+            o.type=leadType||'triangle';o.frequency.setValueAtTime(mel[i],now+i*noteLen);
+            o.frequency.exponentialRampToValueAtTime(mel[i]*1.01,now+i*noteLen+noteLen*0.3);
+            o.frequency.exponentialRampToValueAtTime(mel[i],now+i*noteLen+noteLen*0.8);
+            g.gain.setValueAtTime(0,now+i*noteLen);g.gain.linearRampToValueAtTime(0.14,now+i*noteLen+0.02);
+            g.gain.setValueAtTime(0.12,now+i*noteLen+noteLen*0.5);g.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*0.95);
+            o.connect(g);g.connect(bgmGain);o.start(now+i*noteLen);o.stop(now+i*noteLen+noteLen);bgmNodes.push(o);
+            if(i%2===0){var h=ctx.createOscillator();var hg=ctx.createGain();h.type='sine';h.frequency.value=mel[i]*1.25;
+                hg.gain.setValueAtTime(0.04,now+i*noteLen);hg.gain.exponentialRampToValueAtTime(0.003,now+i*noteLen+noteLen*1.8);
+                h.connect(hg);hg.connect(bgmGain);h.start(now+i*noteLen);h.stop(now+i*noteLen+noteLen*2);bgmNodes.push(h);}
+            if(i%4===0){var ci=Math.floor(i/4)%chords.length;
+                for(var cn=0;cn<chords[ci].length;cn++){var co=ctx.createOscillator();var cg=ctx.createGain();
+                    co.type=padType||'sine';co.frequency.value=chords[ci][cn];cg.gain.setValueAtTime(0.035,now+i*noteLen);
+                    cg.gain.exponentialRampToValueAtTime(0.005,now+i*noteLen+noteLen*3.8);co.connect(cg);cg.connect(bgmGain);
+                    co.start(now+i*noteLen);co.stop(now+i*noteLen+noteLen*4);bgmNodes.push(co);}
+                var bo=ctx.createOscillator();var bg2=ctx.createGain();bo.type='sine';bo.frequency.value=chords[ci][0]*0.5;
+                bg2.gain.setValueAtTime(bassVol||0.1,now+i*noteLen);bg2.gain.exponentialRampToValueAtTime(0.008,now+i*noteLen+noteLen*3.8);
+                bo.connect(bg2);bg2.connect(bgmGain);bo.start(now+i*noteLen);bo.stop(now+i*noteLen+noteLen*4);bgmNodes.push(bo);}
+            if(i%4===0){var kb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.08),ctx.sampleRate);var kd=kb.getChannelData(0);
+                for(var s=0;s<kd.length;s++){var p=s/kd.length;kd[s]=Math.sin(p*Math.PI*8*(1-p*0.8))*0.4*Math.exp(-p*6);}
+                var ks=ctx.createBufferSource();var kg=ctx.createGain();kg.gain.value=0.12;ks.buffer=kb;ks.connect(kg);kg.connect(bgmGain);
+                ks.start(now+i*noteLen);ks.stop(now+i*noteLen+0.08);bgmNodes.push(ks);}
+            if(i%2===1){var hb=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.03),ctx.sampleRate);var hd=hb.getChannelData(0);
+                for(var s2=0;s2<hd.length;s2++)hd[s2]=(Math.random()-0.5)*0.15*Math.exp(-s2/(hd.length*0.1));
+                var hs=ctx.createBufferSource();var hg2=ctx.createGain();hg2.gain.value=0.06;hs.buffer=hb;hs.connect(hg2);hg2.connect(bgmGain);
+                hs.start(now+i*noteLen);hs.stop(now+i*noteLen+0.03);bgmNodes.push(hs);}
         }
-        _bgmTimer=setTimeout(playLoop, melody.length*noteLen*1000);
+        _bgmTimer=setTimeout(playLoop,mel.length*noteLen*1000);
     }
     playLoop();
+}
+// City 0: Default — cheerful C major
+function _playDefaultBGM(ctx){
+    var chords=[[262,330,392],[220,262,330],[175,220,262],[196,247,294],[262,330,392],[220,262,330],[175,220,262],[196,247,330]];
+    var melA=[784,880,784,659,698,784,880,988,784,659,523,587,659,784,880,784];
+    var melB=[659,698,784,880,784,698,659,587,523,587,659,523,440,494,523,659];
+    _bgmEngine(ctx,melA,melB,chords,0.18,0.15,'triangle');
+}
+// City 1: Desert — Arabic/mysterious Phrygian mode, slower
+function _playDesertBGM(ctx){
+    var chords=[[220,277,330],[208,262,311],[196,247,294],[220,277,349]];
+    var melA=[660,622,587,554,587,622,660,698,660,622,554,523,494,523,554,587];
+    var melB=[698,660,622,587,554,523,554,587,622,660,698,740,698,660,622,587];
+    _bgmEngine(ctx,melA,melB,chords,0.24,0.13,'sawtooth',0.08);
+}
+// City 2: Ice — gentle, crystalline, high register
+function _playIceBGM(ctx){
+    var chords=[[330,415,494],[294,370,440],[262,330,392],[294,370,494]];
+    var melA=[988,880,784,880,988,1047,988,880,784,698,784,880,988,1047,1175,988];
+    var melB=[784,880,988,880,784,698,659,698,784,880,784,698,659,587,659,784];
+    _bgmEngine(ctx,melA,melB,chords,0.20,0.12,'sine',0.06,'sine');
+}
+// City 3: Lava — heavy, dark, minor key with distorted bass
+function _playLavaBGM(ctx){
+    var chords=[[147,175,220],[131,165,196],[147,175,220],[165,196,247]];
+    var melA=[440,415,392,349,330,349,392,440,494,440,392,349,330,294,330,349];
+    var melB=[494,440,392,440,494,523,494,440,392,349,330,294,262,294,330,392];
+    _bgmEngine(ctx,melA,melB,chords,0.22,0.14,'sawtooth',0.13);
+}
+// City 4: Candy — bouncy, playful, major pentatonic
+function _playCandyBGM(ctx){
+    var chords=[[330,415,523],[294,370,440],[349,440,523],[392,494,587]];
+    var melA=[523,587,659,784,659,587,523,659,784,880,784,659,523,587,659,784];
+    var melB=[880,784,659,587,523,587,659,784,880,988,880,784,659,587,523,659];
+    _bgmEngine(ctx,melA,melB,chords,0.16,0.14,'triangle',0.08);
 }
 function stopBGM(){bgmPlaying=false;if(_bgmTimer){clearTimeout(_bgmTimer);_bgmTimer=null;}bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
 
@@ -1165,16 +1158,44 @@ function _updateChargeBar(){
 function _createStunStars(egg){
     if(egg._stunStars)return;
     var group=new THREE.Group();
-    var starCount=4;
-    var starMat=new THREE.MeshBasicMaterial({color:0xFFFF00,transparent:true,opacity:0.9});
-    var stars=[];
-    for(var i=0;i<starCount;i++){
-        var s=new THREE.Mesh(new THREE.OctahedronGeometry(0.18,0),starMat);
+    // SF2-style variety: randomly pick stun type per egg
+    var stunType=Math.floor(Math.random()*4); // 0=small stars, 1=big stars, 2=ducks, 3=birds
+    var items=[];
+    for(var i=0;i<4;i++){
+        var s;
+        if(stunType===0){
+            // Small yellow stars
+            s=new THREE.Mesh(new THREE.OctahedronGeometry(0.15,0),new THREE.MeshBasicMaterial({color:0xFFFF00,transparent:true,opacity:0.9}));
+        } else if(stunType===1){
+            // Big white stars with glow
+            s=new THREE.Mesh(new THREE.OctahedronGeometry(0.28,0),new THREE.MeshBasicMaterial({color:0xFFFFCC,transparent:true,opacity:0.85}));
+        } else if(stunType===2){
+            // Little ducks (yellow sphere body + orange beak)
+            s=new THREE.Group();
+            var body=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),new THREE.MeshBasicMaterial({color:0xFFDD00}));
+            s.add(body);
+            var head=new THREE.Mesh(new THREE.SphereGeometry(0.09,5,4),new THREE.MeshBasicMaterial({color:0xFFDD00}));
+            head.position.set(0,0.12,0.06);s.add(head);
+            var beak=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.08,4),new THREE.MeshBasicMaterial({color:0xFF8800}));
+            beak.position.set(0,0.12,0.16);beak.rotation.x=Math.PI/2;s.add(beak);
+            var eye=new THREE.Mesh(new THREE.SphereGeometry(0.02,3,3),new THREE.MeshBasicMaterial({color:0x000000}));
+            eye.position.set(0.04,0.15,0.12);s.add(eye);
+        } else {
+            // Little birds (blue body + wings)
+            s=new THREE.Group();
+            var bb=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),new THREE.MeshBasicMaterial({color:0x4488FF}));
+            s.add(bb);
+            var wing1=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.02,0.1),new THREE.MeshBasicMaterial({color:0x6699FF}));
+            wing1.position.set(-0.15,0.04,0);s.add(wing1);
+            var wing2=wing1.clone();wing2.position.set(0.15,0.04,0);s.add(wing2);
+            var bbeak=new THREE.Mesh(new THREE.ConeGeometry(0.03,0.06,3),new THREE.MeshBasicMaterial({color:0xFF6600}));
+            bbeak.position.set(0,0,0.14);bbeak.rotation.x=Math.PI/2;s.add(bbeak);
+        }
         group.add(s);
-        stars.push(s);
+        items.push(s);
     }
     scene.add(group);
-    egg._stunStars={group:group,stars:stars,phase:0};
+    egg._stunStars={group:group,stars:items,phase:0,type:stunType};
 }
 function _updateStunStars(egg){
     if(egg._stunTimer>0){
@@ -1185,12 +1206,33 @@ function _updateStunStars(egg){
         ss.group.position.set(p.x,p.y+2.2,p.z);
         for(var i=0;i<ss.stars.length;i++){
             var a=ss.phase+i/ss.stars.length*Math.PI*2;
-            ss.stars[i].position.set(Math.cos(a)*0.7,Math.sin(ss.phase*2+i)*0.15,Math.sin(a)*0.7);
-            ss.stars[i].rotation.y=ss.phase*3;
+            var ix=Math.cos(a)*0.7,iz=Math.sin(a)*0.7;
+            var iy=Math.sin(ss.phase*2+i)*0.15;
+            ss.stars[i].position.set(ix,iy,iz);
+            if(ss.type<=1){
+                // Stars spin
+                ss.stars[i].rotation.y=ss.phase*3;
+            } else if(ss.type===2){
+                // Ducks bob and face outward
+                ss.stars[i].rotation.y=a+Math.PI;
+                ss.stars[i].position.y=iy+Math.sin(ss.phase*3+i*1.5)*0.08;
+            } else {
+                // Birds flap wings and face forward
+                ss.stars[i].rotation.y=a+Math.PI/2;
+                if(ss.stars[i].children&&ss.stars[i].children.length>1){
+                    var flapAngle=Math.sin(ss.phase*8+i*2)*0.4;
+                    ss.stars[i].children[1].rotation.z=flapAngle;
+                    ss.stars[i].children[2].rotation.z=-flapAngle;
+                }
+            }
         }
         ss.group.visible=true;
     } else {
-        if(egg._stunStars){egg._stunStars.group.visible=false;}
+        // Remove stun stars when stun ends so next stun picks a new random type
+        if(egg._stunStars&&egg._stunStars.group.visible){
+            egg._stunStars.group.visible=false;
+            scene.remove(egg._stunStars.group);egg._stunStars=null;
+        }
     }
 }
 function _removeStunStars(egg){
@@ -2663,12 +2705,16 @@ function buildCity() {
             var gAlt=120+Math.random()*180; // regular MS: close to surface
             if(mu.ms==='sdf1')gAlt=4000+Math.random()*1600; // large ships: far away
             if(mu.ms==='zenCruiser')gAlt=3200+Math.random()*1600;
-            var gAngle=Math.random()*Math.PI*2;
-            var gElev=(Math.random()-0.5)*Math.PI*0.7;
+            // Spawn near moon cities (Von Braun or Granada)
+            var nearCity=gi%2===0?{fx:-2400,fz:2400}:{fx:3200,fz:-3200};
+            var gSpread=800; // spread around city
+            var gFlatX=nearCity.fx+(Math.random()-0.5)*gSpread;
+            var gFlatZ=nearCity.fz+(Math.random()-0.5)*gSpread;
+            var gSurf=_moonProject(gFlatX,gFlatZ);
             var gOrbitR=MOON_R+gAlt;
-            var gx2=Math.cos(gAngle)*Math.cos(gElev)*gOrbitR;
-            var gy2=MOON_CY+Math.sin(gElev)*gOrbitR;
-            var gz2=Math.sin(gAngle)*Math.cos(gElev)*gOrbitR;
+            var gx2=gSurf.nx*gOrbitR;
+            var gy2=MOON_CY+gSurf.ny*gOrbitR;
+            var gz2=gSurf.nz*gOrbitR;
             gd.group.position.set(gx2,gy2,gz2);
             gd.group.scale.set(40,40,40);
             scene.add(gd.group);
