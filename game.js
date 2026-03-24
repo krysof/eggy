@@ -15,7 +15,7 @@ var _langCode=(function(){
 var I18N={
     title:{zhs:'蛋仔世界',zht:'蛋仔世界',ja:'\u305F\u307E\u3054\u30EF\u30FC\u30EB\u30C9',en:'Egg World'},
     subtitle:{zhs:'E G G   W O R L D',zht:'E G G   W O R L D',ja:'E G G   W O R L D',en:'E G G   W O R L D'},
-    version:(function(){var v='v20260324.11';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.12';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -591,6 +591,37 @@ function playThrowSound(){
     osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t+0.15);
 }
 
+// ---- Battle sounds (moon MS combat) ----
+var _beamSoundCD=0, _explSoundCD=0, _missileSoundCD=0;
+function playBeamSound(){
+    if(!sfxEnabled||_beamSoundCD>0)return;_beamSoundCD=4;
+    var ctx=ensureAudio();if(!ctx)return;var t=ctx.currentTime;
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(1200+Math.random()*400,t);o.frequency.exponentialRampToValueAtTime(600,t+0.08);
+    g.gain.setValueAtTime(0.04,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.1);
+}
+function playExplosionSound(){
+    if(!sfxEnabled||_explSoundCD>0)return;_explSoundCD=8;
+    var ctx=ensureAudio();if(!ctx)return;var t=ctx.currentTime;
+    var buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.3),ctx.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++){var p=i/d.length;d[i]=(Math.random()-0.5)*Math.exp(-p*3)*(1-p);}
+    var ns=ctx.createBufferSource();var ng=ctx.createGain();ng.gain.value=0.08;
+    ns.buffer=buf;ns.connect(ng);ng.connect(ctx.destination);ns.start(t);ns.stop(t+0.3);
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.type='sine';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(30,t+0.25);
+    g.gain.setValueAtTime(0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.3);
+}
+function playMissileSound(){
+    if(!sfxEnabled||_missileSoundCD>0)return;_missileSoundCD=6;
+    var ctx=ensureAudio();if(!ctx)return;var t=ctx.currentTime;
+    var o=ctx.createOscillator();var g=ctx.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(300,t);o.frequency.linearRampToValueAtTime(800,t+0.15);
+    g.gain.setValueAtTime(0.03,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+    o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.18);
+}
 
 // Menu sound effects
 function playMenuMove(){
@@ -642,7 +673,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB);
 scene.fog = new THREE.Fog(0x87CEEB, 80, 400);
 
-const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 1200);
+const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 2000);
 window.addEventListener('resize', ()=>{ R.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
 
 // ---- Lighting ----
@@ -1826,8 +1857,8 @@ function buildCity() {
         var atmo2=new THREE.Mesh(new THREE.SphereGeometry(35,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo2);
         // Position earth above and to the side — visible from sphere top
-        earthGroup.position.set(40,MOON_CY+100,-30);
-        earthGroup.scale.set(0.4,0.4,0.4); // smaller earth for smaller moon
+        earthGroup.position.set(80,MOON_CY+400,-60);
+        earthGroup.scale.set(7.3,7.3,7.3); // realistic Earth/Moon ratio (~3.67x diameter)
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
         // ---- Twinkling stars — surround the sphere ----
@@ -1908,9 +1939,9 @@ function buildCity() {
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
             // Chaotic spawn: random position in sphere shell around moon
-            var gAlt=2+Math.random()*15;
-            if(mu.ms==='sdf1')gAlt=18+Math.random()*8;
-            if(mu.ms==='zenCruiser')gAlt=14+Math.random()*10;
+            var gAlt=4+Math.random()*25;
+            if(mu.ms==='sdf1')gAlt=30+Math.random()*15;
+            if(mu.ms==='zenCruiser')gAlt=25+Math.random()*15;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.7;
             var gOrbitR=MOON_R+gAlt;
@@ -1927,7 +1958,7 @@ function buildCity() {
             // Random waypoint AI state
             var wpAngle=Math.random()*Math.PI*2;
             var wpElev=(Math.random()-0.5)*Math.PI*0.6;
-            var wpR=MOON_R+2+Math.random()*15;
+            var wpR=MOON_R+4+Math.random()*25;
             window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,
                 px:gx2,py:gy2,pz:gz2,
                 wpAngle:wpAngle,wpElev:wpElev,wpR:wpR,
@@ -3322,7 +3353,7 @@ function buildObs(seg,ri,sm){
 //  PHYSICS
 // ============================================================
 const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
-var MOON_R=30; // moon sphere radius (King Kai planet size)
+var MOON_R=60; // moon sphere radius
 var MOON_CY=-MOON_R; // sphere center Y (top of sphere at y=0)
 
 // Project a flat (x,0,z) position onto the moon sphere surface
@@ -4339,20 +4370,24 @@ function handlePlayerInput(){
         mx/=len;mz/=len;
         if(currentCityStyle===5&&gameState==='city'){
             // Moon spherical: convert input to tangent plane movement
-            // Use FIXED world axes projected onto tangent plane (not camera-relative)
-            // This gives direct up/down/left/right control
+            // Use CAMERA-relative axes projected onto tangent plane
             var pp=playerEgg.mesh.position;
             var dx=pp.x,dy=pp.y-MOON_CY,dz=pp.z;
             var d=Math.sqrt(dx*dx+dy*dy+dz*dz)||1;
             var nx=dx/d,ny=dy/d,nz=dz/d;
-            // Project world X axis onto tangent plane → "right"
-            var wrx=1-nx*nx, wry=-nx*ny, wrz=-nx*nz;
+            // Camera right vector (from camera matrix)
+            var camMat=camera.matrixWorld.elements;
+            var crx=camMat[0],cry=camMat[1],crz=camMat[2];
+            // Camera forward = -Z column of camera matrix
+            var cfx=-camMat[8],cfy=-camMat[9],cfz=-camMat[10];
+            // Project camera right onto tangent plane
+            var dotR=crx*nx+cry*ny+crz*nz;
+            var wrx=crx-dotR*nx, wry=cry-dotR*ny, wrz=crz-dotR*nz;
             var wrl=Math.sqrt(wrx*wrx+wry*wry+wrz*wrz)||1;
             wrx/=wrl;wry/=wrl;wrz/=wrl;
-            // Project world +Z axis onto tangent plane → "forward"
-            // v = (0,0,1), projected = v - dot(v,n)*n
-            // mz=-1 (W key) * forward(+Z) = movement in -Z = away from camera = UP on screen
-            var wfx=-nz*nx, wfy=-nz*ny, wfz=1-nz*nz;
+            // Project camera forward onto tangent plane
+            var dotF=cfx*nx+cfy*ny+cfz*nz;
+            var wfx=cfx-dotF*nx, wfy=cfy-dotF*ny, wfz=cfz-dotF*nz;
             var wfl=Math.sqrt(wfx*wfx+wfy*wfy+wfz*wfz)||1;
             wfx/=wfl;wfy/=wfl;wfz/=wfl;
             var ax=(mx*wrx+mz*wfx)*MOVE_ACCEL*accelMul;
@@ -4404,7 +4439,7 @@ function handlePlayerInput(){
             if(_jumpCharging&&_jumpCharge>0){
                 // Release from charge mode → charged jump
                 var pct2=_jumpCharge/_jumpChargeMax;
-                var jumpF=JUMP_FORCE*(1.2+pct2*1.8);
+                var jumpF=JUMP_FORCE*(1.6+pct2*2.4);
                 if(currentCityStyle===5&&gameState==='city'){
                     var jp2=playerEgg.mesh.position;
                     var jdx2=jp2.x,jdy2=jp2.y-MOON_CY,jdz2=jp2.z;
@@ -4423,9 +4458,9 @@ function handlePlayerInput(){
                     var jp=playerEgg.mesh.position;
                     var jdx=jp.x,jdy=jp.y-MOON_CY,jdz=jp.z;
                     var jd=Math.sqrt(jdx*jdx+jdy*jdy+jdz*jdz)||1;
-                    playerEgg.vx+=jdx/jd*JUMP_FORCE;playerEgg.vy+=jdy/jd*JUMP_FORCE;playerEgg.vz+=jdz/jd*JUMP_FORCE;
+                    playerEgg.vx+=jdx/jd*JUMP_FORCE*1.5;playerEgg.vy+=jdy/jd*JUMP_FORCE*1.5;playerEgg.vz+=jdz/jd*JUMP_FORCE*1.5;
                 } else {
-                    playerEgg.vy=JUMP_FORCE;
+                    playerEgg.vy=JUMP_FORCE*1.5;
                 }
                 playerEgg.squash=0.65;playJumpSound();
             }
@@ -4491,6 +4526,8 @@ function handlePlayerInput(){
             var throwMul=1+chargePct*4;
             held.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir)*2);
             var tw=held.weight||1.0;var tf=9.0/tw*throwMul;held.vx=Math.sin(dir)*tf;held.vy=-0.05+chargePct*0.15;held.vz=Math.cos(dir)*tf;held._throwTotal=120+Math.floor(chargePct*120);held.throwTimer=held._throwTotal;held._bounces=2;
+            // Moon: reduce throw speed (low gravity = flies too far)
+            if(currentCityStyle===5&&gameState==='city'){held.vx*=0.3;held.vy*=0.3;held.vz*=0.3;held._throwTotal=60;held.throwTimer=60;}
             held.squash=0.5; playerEgg.grabCD=20;
             playThrowSound();
             held._dropCoinsOnLand=true;held._coinsDropped=false;
@@ -4517,6 +4554,8 @@ function handlePlayerInput(){
                 var dir2=playerEgg.mesh.rotation.y;
                 held2.mesh.position.set(playerEgg.mesh.position.x+Math.sin(dir2)*2, playerEgg.mesh.position.y+0.5, playerEgg.mesh.position.z+Math.cos(dir2)*2);
                 var tw2=held2.weight||1.0;var tf2=9.0/tw2;held2.vx=Math.sin(dir2)*tf2;held2.vy=-0.02;held2.vz=Math.cos(dir2)*tf2;held2._throwTotal=120;held2.throwTimer=120;held2._bounces=2;
+                // Moon: reduce throw speed
+                if(currentCityStyle===5&&gameState==='city'){held2.vx*=0.3;held2.vy*=0.3;held2.vz*=0.3;held2._throwTotal=60;held2.throwTimer=60;}
                 held2.squash=0.5; playerEgg.grabCD=20;
                 playThrowSound();
                 held2._dropCoinsOnLand=true;held2._coinsDropped=false;
@@ -4777,6 +4816,9 @@ function updateCity(){
     }
     // Fountain splash when player walks in water
     if(_splashCooldown>0)_splashCooldown--;
+    if(_beamSoundCD>0)_beamSoundCD--;
+    if(_explSoundCD>0)_explSoundCD--;
+    if(_missileSoundCD>0)_missileSoundCD--;
     var _fdist=Math.sqrt(px*px+pz*pz);
     var _pspd=playerEgg?Math.sqrt((playerEgg.vx||0)*(playerEgg.vx||0)+(playerEgg.vz||0)*(playerEgg.vz||0)):0;
     if(_fdist<6.5&&playerEgg.mesh.position.y<1.5&&window._fountainSplashParticles){
@@ -5010,9 +5052,9 @@ function updateCity(){
                 gm.wpTimer=40+Math.floor(Math.random()*80);
                 gm.wpAngle=Math.random()*Math.PI*2;
                 gm.wpElev=(Math.random()-0.5)*Math.PI*0.6;
-                gm.wpR=MOON_R+2+Math.random()*15;
-                if(gm.ms==='sdf1')gm.wpR=MOON_R+18+Math.random()*8;
-                if(gm.ms==='zenCruiser')gm.wpR=MOON_R+14+Math.random()*10;
+                gm.wpR=MOON_R+4+Math.random()*25;
+                if(gm.ms==='sdf1')gm.wpR=MOON_R+30+Math.random()*15;
+                if(gm.ms==='zenCruiser')gm.wpR=MOON_R+25+Math.random()*15;
             }
             // Random dodge maneuver
             if(gm.dodgeTimer>0){gm.dodgeTimer--;}
@@ -5079,6 +5121,7 @@ function updateCity(){
                     bm.lookAt(gx+fwd3.x*20,gy+fwd3.y*20,gz+fwd3.z*20);bm.rotateX(Math.PI/2);
                     scene.add(bm);
                     window._moonBeams.push({mesh:bm,life:35,vx:fwd3.x*4,vy:fwd3.y*4,vz:fwd3.z*4});
+                    playBeamSound();
                 }
             }
             // Missile: frequent launch
@@ -5098,6 +5141,7 @@ function updateCity(){
                     mg.lookAt(gx+mfwd3.x,gy+mfwd3.y,gz+mfwd3.z);
                     scene.add(mg);
                     window._moonMissiles.push({group:mg,life:80,vx:mfwd3.x*2.5,vy:mfwd3.y*2.5,vz:mfwd3.z*2.5,trail:[]});
+                    playMissileSound();
                 }
             }
             // Random explosions near MS (battle damage effects)
@@ -5111,6 +5155,7 @@ function updateCity(){
                 exMesh.position.set(gx+exDir.x*exOff,gy+exDir.y*exOff,gz+exDir.z*exOff);
                 scene.add(exMesh);
                 window._moonBeams.push({mesh:exMesh,life:15,vx:exDir.x*0.3,vy:exDir.y*0.3,vz:exDir.z*0.3,_isExplosion:true});
+                playExplosionSound();
                 // Debris particles
                 for(var dbi=0;dbi<3;dbi++){
                     var dbDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
@@ -5165,6 +5210,7 @@ function updateCity(){
                     scene.add(flash);
                     window._moonBeams.push({mesh:flash,life:10+exi*4,vx:0,vy:0,vz:0,_isExplosion:true});
                 }
+                playExplosionSound();
                 // Shrapnel
                 for(var shi=0;shi<4;shi++){
                     var shDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
@@ -5228,6 +5274,7 @@ function updateHeldEggs(){
             var throwDir=holder.mesh.rotation.y;
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
             var ntw=egg.weight||1.0;var ntf=9.0/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=120;egg.throwTimer=120;egg._bounces=2;
+            if(currentCityStyle===5&&gameState==='city'){egg.vx*=0.3;egg.vy*=0.3;egg.vz*=0.3;egg._throwTotal=60;egg.throwTimer=60;}
             egg.squash=0.5; playThrowSound();
             egg._dropCoinsOnLand=true;egg._coinsDropped=false;
             continue;
