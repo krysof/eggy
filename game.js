@@ -4,7 +4,7 @@
 /* global THREE */
 
 // ---- i18n Localization ----
-var _langCode=(function(){
+var _autoLangCode=(function(){
     var nav=navigator.language||navigator.userLanguage||'en';
     nav=nav.toLowerCase();
     if(nav.indexOf('zh-tw')===0||nav.indexOf('zh-hant')===0||nav.indexOf('zh-hk')===0)return 'zht';
@@ -12,11 +12,13 @@ var _langCode=(function(){
     if(nav.indexOf('ja')===0)return 'ja';
     return 'en';
 })();
+var _langMode='auto'; // 'auto' or manual code
+var _langCode=_autoLangCode;
 var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.35';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.36';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -158,9 +160,13 @@ if(sfxBtn) sfxBtn.addEventListener("click",function(){
 });
 
 // Language toggle button
-var _langOrder=['zhs','zht','ja','en'];
-var _langLabels={zhs:'简',zht:'繁',ja:'JP',en:'EN'};
+var _langOrder=['auto','zhs','zht','ja','en'];
+var _langLabels={auto:'Auto',zhs:'简',zht:'繁',ja:'JP',en:'EN'};
 var langBtn=document.getElementById("lang-btn");
+function _getLangBtnText(){
+    if(_langMode==='auto')return '\uD83C\uDF10Auto';
+    return '\uD83C\uDF10'+_langLabels[_langMode];
+}
 function _applyLang(){
     // Re-localize arrays
     for(var i=0;i<CHARACTERS.length;i++){CHARACTERS[i].name=I18N.charNames[_langCode][i]||CHARACTERS[i].name;}
@@ -190,15 +196,17 @@ function _applyLang(){
     var jb=document.getElementById('jump-btn');if(jb)jb.textContent=L('jump');
     var cn=document.getElementById('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
     var pn2=document.getElementById('portrait-name');if(pn2&&CHARACTERS[selectedChar])pn2.textContent=CHARACTERS[selectedChar].name;
-    if(langBtn)langBtn.textContent='\uD83C\uDF10'+_langLabels[_langCode];
+    if(langBtn)langBtn.textContent=_getLangBtnText();
     // Rebuild warp pipe signs with new city names
     if(typeof buildWarpPipes==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildWarpPipes();}
 }
 if(langBtn){
-    langBtn.textContent='\uD83C\uDF10'+_langLabels[_langCode];
+    langBtn.textContent=_getLangBtnText();
     langBtn.addEventListener("click",function(){
-        var idx=_langOrder.indexOf(_langCode);
-        _langCode=_langOrder[(idx+1)%_langOrder.length];
+        var idx=_langOrder.indexOf(_langMode);
+        _langMode=_langOrder[(idx+1)%_langOrder.length];
+        if(_langMode==='auto'){_langCode=_autoLangCode;}
+        else{_langCode=_langMode;}
         _applyLang();
     });
 }
