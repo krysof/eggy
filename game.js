@@ -16,7 +16,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.21';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.22';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2381,6 +2381,7 @@ const RACES = [
 for(var _ri=0;_ri<RACES.length;_ri++){RACES[_ri].name=I18N.raceNames[_langCode][_ri]||RACES[_ri].name;RACES[_ri].desc=I18N.raceDescs[_langCode][_ri]||RACES[_ri].desc;}
 
 function buildPortals() {
+    if(currentCityStyle===5) return; // No race portals on moon
     RACES.forEach((race,i)=>{
         const g = new THREE.Group();
         var portalX=race.x, portalY=0, portalZ=race.z;
@@ -2895,6 +2896,7 @@ function addClouds(){
     for(var _si=0;_si<6;_si++){
         stairPositions.push({x:(Math.random()-0.5)*100,z:(Math.random()-0.5)*100});
     }
+    window._stairPositions=stairPositions;
     for(var si=0;si<stairPositions.length;si++){
         var sp=stairPositions[si];
         var baseY=22; // just above typical roof clouds
@@ -3122,12 +3124,26 @@ function _buildBabylonTower(){
     // Glowing entrance indicator
     var doorGlow=new THREE.Mesh(new THREE.PlaneGeometry(2,3.5),new THREE.MeshBasicMaterial({color:0x44FF88,transparent:true,opacity:0.3,side:THREE.DoubleSide}));
     doorGlow.position.set(0,2,baseD/2+0.3);g.add(doorGlow);
-    // Position randomly (avoid center fountain area)
-    var towerX=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
-    var towerZ=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
+    // Position near a cloud staircase so tower connects to cloud world
+    var towerX, towerZ;
+    if(window._stairPositions&&window._stairPositions.length>0){
+        var sp=window._stairPositions[0];
+        towerX=sp.x+((Math.random()<0.5?1:-1)*(2+Math.random()*4));
+        towerZ=sp.z+((Math.random()<0.5?1:-1)*(2+Math.random()*4));
+    } else {
+        towerX=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
+        towerZ=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
+    }
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
     _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
+    // Add bridge clouds from tower top to cloud world
+    for(var bci=0;bci<4;bci++){
+        var bcx=towerX+(Math.random()-0.5)*12;
+        var bcz=towerZ+(Math.random()-0.5)*12;
+        var bcy=topY-2+bci*2;
+        _makeCloud(bcx,bcy,bcz,2,3,2,4);
+    }
 }
 
 function _triggerBabylonEvent(){
@@ -5743,7 +5759,7 @@ function updateHeldEggs(){
         tob._throwVx*=0.96; tob._throwVz*=0.96;
         if(tob.mesh.position.y<(tob.data.fy||0)+0.5&&tob._throwVy<0){
             if(tob._bounces>0){tob._bounces--;tob._throwVy=Math.abs(tob._throwVy)*0.45;tob._throwVx*=0.7;tob._throwVz*=0.7;tob.mesh.position.y=(tob.data.fy||0)+0.5;playHitSound();}
-            else{tob.mesh.position.y=(tob.data.fy||0)+0.5;tob._throwTimer=0;}
+            else{tob.mesh.position.y=(tob.data.fy||0)+0.5;tob._throwTimer=0;tob._grabbed=false;}
         }
         // Hit other eggs with thrown obstacle
         for(var te=0;te<allEggs.length;te++){
