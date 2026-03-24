@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260324.54';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260324.55';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2473,6 +2473,11 @@ function buildCity() {
         }
         // Von Braun collider zone (flat)
         window._moonShields=[];
+        // AT Field shields around cities — MS and projectiles can't enter
+        // doors: array of {angle, width} for player pass-through openings
+        window._moonShields.push({x:-200,y:0,z:0,r:160,
+            doors:[{a:0,w:0.25},{a:Math.PI/2,w:0.25},{a:Math.PI,w:0.25},{a:Math.PI*1.5,w:0.25}]
+        }); // Von Braun dome
         window._moonCities=[
             {cx:-200,cy:0,cz:0,r:160,scale:8,name:'Von Braun',flatX:-200,flatZ:0}
         ];
@@ -2511,6 +2516,22 @@ function buildCity() {
         }
         // Granada collider zone (flat)
         window._moonCities.push({cx:-200,cy:0,cz:-200,r:100,scale:8,name:'Granada',flatX:-200,flatZ:-200});
+        window._moonShields.push({x:-200,y:0,z:-200,r:100,
+            doors:[{a:0,w:0.3},{a:Math.PI/2,w:0.3},{a:Math.PI,w:0.3},{a:Math.PI*1.5,w:0.3}]
+        }); // Granada dome
+        // Visible AT Field shield domes (translucent hexagonal-look spheres)
+        var _shieldMat=new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.04,side:THREE.DoubleSide});
+        var _shieldWire=new THREE.MeshBasicMaterial({color:0xFF6600,wireframe:true,transparent:true,opacity:0.06});
+        // Von Braun shield dome
+        var vbShield=new THREE.Mesh(new THREE.SphereGeometry(160,24,16,0,Math.PI*2,0,Math.PI/2),_shieldMat);
+        vbShield.position.set(-200,0,0);scene.add(vbShield);
+        var vbWire=new THREE.Mesh(new THREE.SphereGeometry(160.5,24,16,0,Math.PI*2,0,Math.PI/2),_shieldWire);
+        vbWire.position.set(-200,0,0);scene.add(vbWire);
+        // Granada shield dome
+        var grShield=new THREE.Mesh(new THREE.SphereGeometry(100,20,12,0,Math.PI*2,0,Math.PI/2),_shieldMat);
+        grShield.position.set(-200,0,-200);scene.add(grShield);
+        var grWire2=new THREE.Mesh(new THREE.SphereGeometry(100.5,20,12,0,Math.PI*2,0,Math.PI/2),_shieldWire);
+        grWire2.position.set(-200,0,-200);scene.add(grWire2);
         // Moon city building colliders — flat box colliders
         window._moonBldgColliders=[];
         // Von Braun central tower
@@ -2709,7 +2730,7 @@ function buildCity() {
                 px:gFlatX,py:gAlt,pz:gFlatZ,
                 wpAngle:wpAngle,wpElev:wpElev,wpR:wpR,
                 wpTimer:30+Math.floor(Math.random()*60),
-                speed:mu.ms==='sdf1'?0.03:mu.ms==='zenCruiser'?0.04:0.06+Math.random()*0.06,
+                speed:mu.ms==='sdf1'?1.0:mu.ms==='zenCruiser'?1.2:1.8+Math.random()*1.8,
                 phase:Math.random()*Math.PI*2,
                 actionTimer:Math.floor(Math.random()*30),
                 funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null,
@@ -4167,6 +4188,60 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         if(egg.mesh.position.x<-bound){egg.mesh.position.x=-bound;egg.vx=Math.abs(egg.vx)*0.5;}
         if(egg.mesh.position.z>bound){egg.mesh.position.z=bound;egg.vz=-Math.abs(egg.vz)*0.5;}
         if(egg.mesh.position.z<-bound){egg.mesh.position.z=-bound;egg.vz=Math.abs(egg.vz)*0.5;}
+        // AT Field shield collision — block player/NPC except at door openings
+        if(currentCityStyle===5&&window._moonShields){
+            for(var _si=0;_si<window._moonShields.length;_si++){
+                var _sh=window._moonShields[_si];
+                var _sdx=egg.mesh.position.x-_sh.x;
+                var _sdz=egg.mesh.position.z-_sh.z;
+                var _sdist=Math.sqrt(_sdx*_sdx+_sdz*_sdz);
+                // Check if egg is near the shield boundary (inside or crossing)
+                if(_sdist<_sh.r+1&&_sdist>_sh.r-4){
+                    // Check if near a door opening
+                    var _sAngle=Math.atan2(_sdz,_sdx);
+                    if(_sAngle<0)_sAngle+=Math.PI*2;
+                    var _atDoor=false;
+                    for(var _di=0;_di<_sh.doors.length;_di++){
+                        var _da=_sh.doors[_di].a;var _dw=_sh.doors[_di].w;
+                        var _diff=Math.abs(_sAngle-_da);
+                        if(_diff>Math.PI)_diff=Math.PI*2-_diff;
+                        if(_diff<_dw){_atDoor=true;break;}
+                    }
+                    if(!_atDoor){
+                        // Push egg out of shield
+                        if(_sdist<_sh.r){
+                            // Inside shield trying to exit — allow (push inward is wrong), push outward
+                            // Actually: block entry. If egg is inside and moving outward, let them.
+                            // If egg is outside and moving inward, block.
+                            // Simplify: if egg crossed into shield from outside, push out
+                            var _moveDir=egg.vx*_sdx+egg.vz*_sdz; // dot product: negative = moving inward
+                            if(_moveDir<0){
+                                // Moving inward — push back out
+                                var _pushR=_sh.r+0.5;
+                                egg.mesh.position.x=_sh.x+(_sdx/_sdist)*_pushR;
+                                egg.mesh.position.z=_sh.z+(_sdz/_sdist)*_pushR;
+                                // Reflect velocity along shield normal
+                                var _nx=_sdx/_sdist,_nz=_sdz/_sdist;
+                                var _vdot=egg.vx*_nx+egg.vz*_nz;
+                                egg.vx-=2*_vdot*_nx;egg.vz-=2*_vdot*_nz;
+                                egg.vx*=0.3;egg.vz*=0.3;
+                            }
+                        }else{
+                            // Outside shield trying to enter — push out
+                            var _pushR2=_sh.r+0.5;
+                            egg.mesh.position.x=_sh.x+(_sdx/_sdist)*_pushR2;
+                            egg.mesh.position.z=_sh.z+(_sdz/_sdist)*_pushR2;
+                            var _nx2=_sdx/_sdist,_nz2=_sdz/_sdist;
+                            var _vdot2=egg.vx*_nx2+egg.vz*_nz2;
+                            if(_vdot2<0){
+                                egg.vx-=2*_vdot2*_nx2;egg.vz-=2*_vdot2*_nz2;
+                                egg.vx*=0.3;egg.vz*=0.3;
+                            }
+                        }
+                    }
+                }
+            }
+        }
         // Building collisions — can land on roof
         // Thrown eggs: check building wall collision → drop coins + stop
         if(egg.throwTimer>0){
