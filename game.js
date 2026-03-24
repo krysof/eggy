@@ -1758,6 +1758,53 @@ function buildCity() {
         _moonOrient(rover,rp.nx,rp.ny,rp.nz);
         rover.rotateY(0.5);
         cityGroup.add(rover);
+        // ---- Gundam-style Lunar City (Von Braun) ----
+        var lunarCity=new THREE.Group();
+        var lcBase=toon(0x888899),lcWall=toon(0x667788),lcGlow=new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.4});
+        // Main dome
+        var dome=new THREE.Mesh(new THREE.SphereGeometry(3,16,12,0,Math.PI*2,0,Math.PI/2),new THREE.MeshPhongMaterial({color:0x8899AA,transparent:true,opacity:0.35,side:THREE.DoubleSide}));
+        lunarCity.add(dome);
+        // Base platform
+        var lcPlat=new THREE.Mesh(new THREE.CylinderGeometry(4,4.5,0.4,16),lcBase);lcPlat.position.y=-0.2;lunarCity.add(lcPlat);
+        // Buildings inside dome
+        for(var lbi=0;lbi<6;lbi++){
+            var lba=lbi/6*Math.PI*2;
+            var lbr=1.5+Math.random()*0.8;
+            var lbh=0.8+Math.random()*1.5;
+            var lb=new THREE.Mesh(new THREE.BoxGeometry(0.6,lbh,0.6),lcWall);
+            lb.position.set(Math.cos(lba)*lbr,lbh/2,Math.sin(lba)*lbr);
+            lunarCity.add(lb);
+            // Window lights
+            var lw=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.1,0.62),lcGlow);
+            lw.position.set(Math.cos(lba)*lbr,lbh*0.6,Math.sin(lba)*lbr);
+            lunarCity.add(lw);
+        }
+        // Central tower
+        var lcTower=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,2.5,8),lcWall);lcTower.position.y=1.25;lunarCity.add(lcTower);
+        var lcAnt=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,1.5,4),toon(0xCCCCCC));lcAnt.position.y=3;lunarCity.add(lcAnt);
+        // Landing pads
+        for(var lpi=0;lpi<3;lpi++){
+            var lpa=lpi/3*Math.PI*2+0.5;
+            var pad=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.08,8),toon(0x556666));
+            pad.position.set(Math.cos(lpa)*5.5,0,Math.sin(lpa)*5.5);
+            lunarCity.add(pad);
+            var padLight=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),lcGlow);
+            padLight.position.set(Math.cos(lpa)*5.5,0.15,Math.sin(lpa)*5.5);
+            lunarCity.add(padLight);
+        }
+        // Solar panels
+        for(var spi=0;spi<4;spi++){
+            var spa=spi/4*Math.PI*2+Math.PI/4;
+            var panel=new THREE.Mesh(new THREE.BoxGeometry(2,0.04,0.8),toon(0x224488));
+            panel.position.set(Math.cos(spa)*6,1.5+Math.sin(spi)*0.3,Math.sin(spa)*6);
+            panel.rotation.y=spa;
+            lunarCity.add(panel);
+        }
+        // Place on opposite side from Apollo
+        var lcp=_moonProject(-15,15);
+        lunarCity.position.set(lcp.x,lcp.y,lcp.z);
+        _moonOrient(lunarCity,lcp.nx,lcp.ny,lcp.nz);
+        cityGroup.add(lunarCity);
         // Earth in sky — positioned relative to sphere center, far away
         var earthGroup=new THREE.Group();
         var earth=new THREE.Mesh(new THREE.SphereGeometry(30,32,24),new THREE.MeshBasicMaterial({color:0x3366CC,fog:false}));
@@ -1844,47 +1891,61 @@ function buildCity() {
         window._moonGundams=[];
         window._moonBeams=[];
         window._moonMissiles=[];
-        // 6 Gundams, 20 GMs, 60 Zakus (various colors), 14 Doms = 100 units
+        // MS units: 6 Gundam, 20 GM, 60 Zaku, 14 Dom = 100 Gundam-verse
+        // Macross: 8 VF-1 Valkyrie, 1 SDF-1, 15 Zentradi pods, 6 Zentradi cruisers = 30 Macross
         var msUnits=[];
-        // Gundams (white/blue/red)
         msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'funnel'});msUnits.push({ms:'gundam',weapon:'rifle'});msUnits.push({ms:'gundam',weapon:'saber'});msUnits.push({ms:'gundam',weapon:'rifle'});
-        // GMs (beige/red visor)
         for(var gmi=0;gmi<20;gmi++){msUnits.push({ms:'gm',weapon:Math.random()<0.5?'rifle':Math.random()<0.5?'saber':'missile'});}
-        // Zakus — various colors
         var zakuColors=[0x336633,0x225522,0x447744,0xCC2222,0x882222,0x224488,0x335533,0x556655,0x443366,0x228844];
         for(var zki=0;zki<60;zki++){msUnits.push({ms:'zaku',weapon:Math.random()<0.35?'rifle':Math.random()<0.5?'missile':'saber',color:zakuColors[zki%zakuColors.length]});}
-        // Doms (dark purple/black)
         for(var dmi=0;dmi<14;dmi++){msUnits.push({ms:'dom',weapon:Math.random()<0.5?'rifle':'missile'});}
+        // Macross units
+        for(var vfi=0;vfi<8;vfi++){msUnits.push({ms:'valkyrie',weapon:'rifle'});}
+        msUnits.push({ms:'sdf1',weapon:'missile'});
+        for(var zpi=0;zpi<15;zpi++){msUnits.push({ms:'zenPod',weapon:'rifle'});}
+        for(var zci=0;zci<6;zci++){msUnits.push({ms:'zenCruiser',weapon:'missile'});}
         for(var gi=0;gi<msUnits.length;gi++){
             var mu=msUnits[gi];
             var gd=_buildMobileSuit(mu.ms,mu.weapon,mu.color);
-            // Lower altitude: close to surface (2-20 units above sphere)
-            var gAlt=2+Math.random()*18;
+            // Chaotic spawn: random position in sphere shell around moon
+            var gAlt=2+Math.random()*15;
+            if(mu.ms==='sdf1')gAlt=18+Math.random()*8;
+            if(mu.ms==='zenCruiser')gAlt=14+Math.random()*10;
             var gAngle=Math.random()*Math.PI*2;
             var gElev=(Math.random()-0.5)*Math.PI*0.7;
             var gOrbitR=MOON_R+gAlt;
-            // Faster speed
-            var gSpeed=(0.008+Math.random()*0.012)*(Math.random()<0.5?1:-1);
-            gd.group.position.set(
-                Math.cos(gAngle)*Math.cos(gElev)*gOrbitR,
-                MOON_CY+Math.sin(gElev)*gOrbitR,
-                Math.sin(gAngle)*Math.cos(gElev)*gOrbitR
-            );
+            var gx2=Math.cos(gAngle)*Math.cos(gElev)*gOrbitR;
+            var gy2=MOON_CY+Math.sin(gElev)*gOrbitR;
+            var gz2=Math.sin(gAngle)*Math.cos(gElev)*gOrbitR;
+            gd.group.position.set(gx2,gy2,gz2);
             scene.add(gd.group);
-            var faction=(mu.ms==='gundam'||mu.ms==='gm')?'efsf':'zeon';
-            window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,angle:gAngle,elev:gElev,orbitR:gOrbitR,speed:gSpeed,phase:Math.random()*Math.PI*2,actionTimer:Math.floor(Math.random()*30),funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null});
+            var faction;
+            if(mu.ms==='gundam'||mu.ms==='gm')faction='efsf';
+            else if(mu.ms==='valkyrie'||mu.ms==='sdf1')faction='unSpacy';
+            else if(mu.ms==='zenPod'||mu.ms==='zenCruiser')faction='zentradi';
+            else faction='zeon';
+            // Random waypoint AI state
+            var wpAngle=Math.random()*Math.PI*2;
+            var wpElev=(Math.random()-0.5)*Math.PI*0.6;
+            var wpR=MOON_R+2+Math.random()*15;
+            window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,
+                px:gx2,py:gy2,pz:gz2,
+                wpAngle:wpAngle,wpElev:wpElev,wpR:wpR,
+                wpTimer:30+Math.floor(Math.random()*60),
+                speed:mu.ms==='sdf1'?0.03:mu.ms==='zenCruiser'?0.04:0.06+Math.random()*0.06,
+                phase:Math.random()*Math.PI*2,
+                actionTimer:Math.floor(Math.random()*30),
+                funnels:gd.funnels||null,saberMesh:gd.saberMesh||null,weapon:gd.weapon||null,
+                target:null,dodgeTimer:0,dodgeDir:null
+            });
         }
         // Pair up saber units for duels (EFSF vs Zeon)
-        var efsfSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&g2.faction==='efsf';});
+        var efsfSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&(g2.faction==='efsf');});
         var zeonSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&g2.faction==='zeon';});
         var pairCount=Math.min(efsfSabers.length,zeonSabers.length);
         for(var sp=0;sp<pairCount;sp++){
             efsfSabers[sp].duelPartner=zeonSabers[sp];
             zeonSabers[sp].duelPartner=efsfSabers[sp];
-            zeonSabers[sp].angle=efsfSabers[sp].angle+0.12;
-            zeonSabers[sp].elev=efsfSabers[sp].elev;
-            zeonSabers[sp].orbitR=efsfSabers[sp].orbitR+3;
-            zeonSabers[sp].speed=efsfSabers[sp].speed;
         }
     }
 }
@@ -1954,6 +2015,14 @@ function _buildMobileSuit(msType,weaponType,customColor){
         var dsk=new THREE.Mesh(new THREE.CylinderGeometry(0.8,1.4,1.8,8),dblk);dsk.position.y=-2.3;g.add(dsk);
         var dgl=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.3,0.3,8),new THREE.MeshBasicMaterial({color:0x6644FF,transparent:true,opacity:0.4}));dgl.position.y=-3.3;g.add(dgl);
         var dbp=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.2,0.5),gray);dbp.position.set(0,0.2,-0.8);g.add(dbp);
+    } else if(msType==='valkyrie'){
+        return _buildValkyrie();
+    } else if(msType==='sdf1'){
+        return _buildSDF1();
+    } else if(msType==='zenPod'){
+        return _buildZenPod();
+    } else if(msType==='zenCruiser'){
+        return _buildZenCruiser();
     }
     // Weapons (shared across all MS types)
     if(weaponType==='rifle'){
@@ -1964,13 +2033,99 @@ function _buildMobileSuit(msType,weaponType,customColor){
         sb.position.set(1.5,-0.5,0.8);sb.rotation.x=-0.3;g.add(sb);result.saberMesh=sb;
     } else if(weaponType==='funnel'){
         var funnels=[];
-        for(var fi2=0;fi2<6;fi2++){var fn=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.6,4),toon(0x8866AA));var fa2=fi2*Math.PI*2/6;fn.position.set(Math.cos(fa2)*3,Math.sin(fa2)*2,Math.sin(fa2)*3);g.add(fn);funnels.push({mesh:fn,angle:fa2,dist:3+Math.random()});}
+        for(var fi2=0;fi2<6;fi2++){var fnG=new THREE.Group();var fnBody=new THREE.Mesh(new THREE.ConeGeometry(0.35,0.9,4),toon(0x8866AA));fnG.add(fnBody);var fnGlow=new THREE.Mesh(new THREE.SphereGeometry(0.2,4,3),new THREE.MeshBasicMaterial({color:0xFF44FF,transparent:true,opacity:0.5}));fnGlow.position.y=-0.5;fnG.add(fnGlow);var fa2=fi2*Math.PI*2/6;fnG.position.set(Math.cos(fa2)*3,Math.sin(fa2)*2,Math.sin(fa2)*3);g.add(fnG);funnels.push({mesh:fnG,angle:fa2,dist:3+Math.random()});}
         result.funnels=funnels;
     } else if(weaponType==='missile'){
         [[-1.5],[1.5]].forEach(function(p){var pd=new THREE.Group();for(var mi=0;mi<3;mi++){var tb=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.8,6),darkGray);tb.position.set(0,0,mi*0.25-0.25);tb.rotation.x=Math.PI/2;pd.add(tb);}pd.position.set(p[0],1.1,0);g.add(pd);});
     }
-    g.scale.set(1.5,1.5,1.5);
+    g.scale.set(0.4,0.4,0.4); // realistic proportions, visible at moon scale
+    if(msType==='sdf1')g.scale.set(0.8,0.8,0.8);
+    if(msType==='zenCruiser')g.scale.set(0.3,0.3,0.3);
     return result;
+}
+// ---- Macross units ----
+function _buildValkyrie(){
+    var g=new THREE.Group();
+    var w=toon(0xEEEEEE),r=toon(0xCC2222),b=toon(0x2244AA),dk=toon(0x444455);
+    // Fuselage
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(0.8,0.5,3.5),w));
+    // Nose cone
+    var nose=new THREE.Mesh(new THREE.ConeGeometry(0.35,1.5,6),w);nose.rotation.x=Math.PI/2;nose.position.z=2.5;g.add(nose);
+    // Canopy
+    var canopy=new THREE.Mesh(new THREE.SphereGeometry(0.25,6,4,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.6}));
+    canopy.position.set(0,0.35,1.2);g.add(canopy);
+    // Wings (swept)
+    var wingL=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.08,1.2),w);wingL.position.set(-1.5,0,-0.3);wingL.rotation.y=0.15;g.add(wingL);
+    var wingR=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.08,1.2),w);wingR.position.set(1.5,0,-0.3);wingR.rotation.y=-0.15;g.add(wingR);
+    // Tail fins
+    var tailV=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.8,0.6),b);tailV.position.set(0,0.4,-1.5);g.add(tailV);
+    var tailL=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.06,0.5),w);tailL.position.set(-0.5,0,-1.5);g.add(tailL);
+    var tailR=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.06,0.5),w);tailR.position.set(0.5,0,-1.5);g.add(tailR);
+    // Engines
+    var eng1=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,1.0,6),dk);eng1.rotation.x=Math.PI/2;eng1.position.set(-0.4,-0.15,-1.8);g.add(eng1);
+    var eng2=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,1.0,6),dk);eng2.rotation.x=Math.PI/2;eng2.position.set(0.4,-0.15,-1.8);g.add(eng2);
+    // Engine glow
+    var gl1=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.6,6),new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.6}));gl1.rotation.x=-Math.PI/2;gl1.position.set(-0.4,-0.15,-2.4);g.add(gl1);
+    var gl2=new THREE.Mesh(new THREE.ConeGeometry(0.22,0.6,6),new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.6}));gl2.rotation.x=-Math.PI/2;gl2.position.set(0.4,-0.15,-2.4);g.add(gl2);
+    // Red stripes
+    var stripe=new THREE.Mesh(new THREE.BoxGeometry(0.82,0.06,0.4),r);stripe.position.set(0,0.28,0.5);g.add(stripe);
+    g.scale.set(0.7,0.7,0.7);
+    return {group:g};
+}
+function _buildSDF1(){
+    var g=new THREE.Group();
+    var w=toon(0xCCCCDD),dk=toon(0x555566),r=toon(0xCC2222);
+    // Main body (long hull)
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(3,3,18),w));
+    // Bridge tower
+    var bridge=new THREE.Mesh(new THREE.BoxGeometry(1.5,2.5,2),dk);bridge.position.set(0,2.5,4);g.add(bridge);
+    // Arm booms (Daedalus/Prometheus)
+    var armL=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,8),w);armL.position.set(-3.5,0,2);g.add(armL);
+    var armR=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,8),w);armR.position.set(3.5,0,2);g.add(armR);
+    // Carrier decks at arm ends
+    var deckL=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.5,4),dk);deckL.position.set(-3.5,0.5,6.5);g.add(deckL);
+    var deckR=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.5,4),dk);deckR.position.set(3.5,0.5,6.5);g.add(deckR);
+    // Main cannon (bow)
+    var cannon=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.8,6,8),r);cannon.rotation.x=Math.PI/2;cannon.position.set(0,0,12);g.add(cannon);
+    // Engine block
+    var eng=new THREE.Mesh(new THREE.BoxGeometry(4,3,3),dk);eng.position.set(0,0,-9);g.add(eng);
+    // Engine glow
+    for(var ei=0;ei<4;ei++){var egl=new THREE.Mesh(new THREE.ConeGeometry(0.6,2,6),new THREE.MeshBasicMaterial({color:0x44CCFF,transparent:true,opacity:0.5}));egl.rotation.x=-Math.PI/2;egl.position.set(-1.2+ei*0.8,0,-11);g.add(egl);}
+    // Antenna
+    var ant=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,4,4),w);ant.position.set(0,4.5,4);g.add(ant);
+    g.scale.set(0.8,0.8,0.8);
+    return {group:g};
+}
+function _buildZenPod(){
+    var g=new THREE.Group();
+    var grn=toon(0x446644),dk=toon(0x334433);
+    // Body (egg-shaped)
+    g.add(new THREE.Mesh(new THREE.SphereGeometry(0.8,8,6),grn));
+    // Legs
+    var leg1=new THREE.Mesh(new THREE.BoxGeometry(0.2,1.5,0.2),dk);leg1.position.set(-0.5,-1.3,0);leg1.rotation.z=0.2;g.add(leg1);
+    var leg2=new THREE.Mesh(new THREE.BoxGeometry(0.2,1.5,0.2),dk);leg2.position.set(0.5,-1.3,0);leg2.rotation.z=-0.2;g.add(leg2);
+    // Eye
+    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFF4444}));eye.position.set(0,0.2,0.75);g.add(eye);
+    // Gun arm
+    var gun=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,1.2,6),dk);gun.rotation.x=Math.PI/2;gun.position.set(0.7,0,0.5);g.add(gun);
+    g.scale.set(0.5,0.5,0.5);
+    return {group:g};
+}
+function _buildZenCruiser(){
+    var g=new THREE.Group();
+    var grn=toon(0x335533),dk=toon(0x223322),r=toon(0x884422);
+    // Hull (elongated)
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(2,1.5,10),grn));
+    // Bow
+    var bow=new THREE.Mesh(new THREE.ConeGeometry(1.0,3,6),grn);bow.rotation.x=Math.PI/2;bow.position.z=6.5;g.add(bow);
+    // Engine section
+    var eng=new THREE.Mesh(new THREE.BoxGeometry(2.5,2,3),dk);eng.position.z=-5.5;g.add(eng);
+    // Turrets
+    for(var ti=0;ti<3;ti++){var turret=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.5,6),r);turret.position.set(0,1,ti*3-2);g.add(turret);}
+    // Engine glow
+    var egl=new THREE.Mesh(new THREE.ConeGeometry(0.8,2,6),new THREE.MeshBasicMaterial({color:0x44FF44,transparent:true,opacity:0.4}));egl.rotation.x=-Math.PI/2;egl.position.z=-7.5;g.add(egl);
+    g.scale.set(0.3,0.3,0.3);
+    return {group:g};
 }
 
 // ============================================================
@@ -4835,26 +4990,47 @@ function updateCity(){
         var gt=Date.now()*0.001;
         for(var ggi=0;ggi<window._moonGundams.length;ggi++){
             var gm=window._moonGundams[ggi];
-            gm.angle+=gm.speed;
             gm.phase+=0.03;
-            // Wobble elevation
-            var eWob=gm.elev+Math.sin(gt*0.7+ggi)*0.08;
-            var gx=Math.cos(gm.angle)*Math.cos(eWob)*gm.orbitR;
-            var gy=MOON_CY+Math.sin(eWob)*gm.orbitR;
-            var gz=Math.sin(gm.angle)*Math.cos(eWob)*gm.orbitR;
-            gm.group.position.set(gx,gy,gz);
+            // Waypoint AI: move toward random waypoint, pick new one when close or timer expires
+            gm.wpTimer--;
+            if(gm.wpTimer<=0){
+                gm.wpTimer=40+Math.floor(Math.random()*80);
+                gm.wpAngle=Math.random()*Math.PI*2;
+                gm.wpElev=(Math.random()-0.5)*Math.PI*0.6;
+                gm.wpR=MOON_R+2+Math.random()*15;
+                if(gm.ms==='sdf1')gm.wpR=MOON_R+18+Math.random()*8;
+                if(gm.ms==='zenCruiser')gm.wpR=MOON_R+14+Math.random()*10;
+            }
+            // Random dodge maneuver
+            if(gm.dodgeTimer>0){gm.dodgeTimer--;}
+            else if(Math.random()<0.02){gm.dodgeTimer=10+Math.floor(Math.random()*15);gm.dodgeDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();}
+            // Compute waypoint world position
+            var wpx=Math.cos(gm.wpAngle)*Math.cos(gm.wpElev)*gm.wpR;
+            var wpy=MOON_CY+Math.sin(gm.wpElev)*gm.wpR;
+            var wpz=Math.sin(gm.wpAngle)*Math.cos(gm.wpElev)*gm.wpR;
+            // Steer toward waypoint
+            var dx3=wpx-gm.group.position.x,dy3=wpy-gm.group.position.y,dz3=wpz-gm.group.position.z;
+            var dd3=Math.sqrt(dx3*dx3+dy3*dy3+dz3*dz3)||1;
+            var spd=gm.speed;
+            gm.group.position.x+=dx3/dd3*spd;
+            gm.group.position.y+=dy3/dd3*spd;
+            gm.group.position.z+=dz3/dd3*spd;
+            // Dodge offset
+            if(gm.dodgeTimer>0&&gm.dodgeDir){
+                gm.group.position.x+=gm.dodgeDir.x*spd*0.5;
+                gm.group.position.y+=gm.dodgeDir.y*spd*0.5;
+                gm.group.position.z+=gm.dodgeDir.z*spd*0.5;
+            }
             // Face direction of travel
-            var tx2=-Math.sin(gm.angle)*Math.cos(eWob);
-            var ty2=0;
-            var tz2=Math.cos(gm.angle)*Math.cos(eWob);
-            if(gm.speed<0){tx2=-tx2;tz2=-tz2;}
-            gm.group.lookAt(gx+tx2*10,gy+ty2*10,gz+tz2*10);
+            var gx=gm.group.position.x,gy=gm.group.position.y,gz=gm.group.position.z;
+            gm.group.lookAt(wpx,wpy,wpz);
+            if(dd3<3)gm.wpTimer=0; // arrived, pick new waypoint
             // Saber duel: fast swing
             if(gm.type==='saber'&&gm.saberMesh){
                 gm.saberMesh.rotation.x=-0.3+Math.sin(gt*8+ggi*2)*0.9;
                 gm.saberMesh.rotation.z=Math.sin(gt*7+ggi*3)*0.5;
                 // Saber clash sparks
-                if(gm.duelPartner&&Math.random()<0.04&&window._moonBeams.length<200){
+                if(gm.duelPartner&&Math.random()<0.04&&window._moonBeams.length<300){
                     var sp=new THREE.Mesh(new THREE.SphereGeometry(0.3,4,3),new THREE.MeshBasicMaterial({color:0xFFFF44,transparent:true,opacity:1.0}));
                     sp.position.set(gx+(Math.random()-0.5)*2,gy+(Math.random()-0.5)*2,gz+(Math.random()-0.5)*2);
                     scene.add(sp);
@@ -4868,7 +5044,7 @@ function updateCity(){
                     ff.angle+=0.06;
                     var fd=ff.dist+Math.sin(gt*3+ffi)*0.5;
                     ff.mesh.position.set(Math.cos(ff.angle)*fd,Math.sin(ff.angle*0.7+ffi)*fd*0.5,Math.sin(ff.angle)*fd);
-                    if(Math.random()<0.03&&window._moonBeams.length<200){
+                    if(Math.random()<0.03&&window._moonBeams.length<300){
                         var bDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
                         var fWorld=new THREE.Vector3();ff.mesh.getWorldPosition(fWorld);
                         var fb=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,8,4),new THREE.MeshBasicMaterial({color:0xFF44FF,transparent:true,opacity:0.9}));
@@ -4882,20 +5058,20 @@ function updateCity(){
             gm.actionTimer--;
             if(gm.type==='rifle'&&gm.actionTimer<=0){
                 gm.actionTimer=12+Math.floor(Math.random()*25);
-                if(window._moonBeams.length<200){
-                    var beamColor=gm.faction==='efsf'?0xFF8844:0x44FF44;
-                    var bm=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,12,4),new THREE.MeshBasicMaterial({color:beamColor,transparent:true,opacity:0.9}));
-                    var fwd=new THREE.Vector3(tx2,ty2,tz2).normalize();
-                    bm.position.set(gx+fwd.x*3,gy+fwd.y*3,gz+fwd.z*3);
-                    bm.lookAt(gx+fwd.x*20,gy+fwd.y*20,gz+fwd.z*20);bm.rotateX(Math.PI/2);
+                if(window._moonBeams.length<300){
+                    var beamColor=gm.faction==='efsf'?0xFF8844:gm.faction==='unSpacy'?0x44CCFF:gm.faction==='zentradi'?0x88FF44:0x44FF44;
+                    var bm=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,4,4),new THREE.MeshBasicMaterial({color:beamColor,transparent:true,opacity:0.9}));
+                    var fwd3=new THREE.Vector3(0,0,1).applyQuaternion(gm.group.quaternion);
+                    bm.position.set(gx+fwd3.x*2,gy+fwd3.y*2,gz+fwd3.z*2);
+                    bm.lookAt(gx+fwd3.x*20,gy+fwd3.y*20,gz+fwd3.z*20);bm.rotateX(Math.PI/2);
                     scene.add(bm);
-                    window._moonBeams.push({mesh:bm,life:35,vx:fwd.x*4,vy:fwd.y*4,vz:fwd.z*4});
+                    window._moonBeams.push({mesh:bm,life:35,vx:fwd3.x*4,vy:fwd3.y*4,vz:fwd3.z*4});
                 }
             }
             // Missile: frequent launch
             if(gm.type==='missile'&&gm.actionTimer<=0){
                 gm.actionTimer=20+Math.floor(Math.random()*35);
-                if(window._moonMissiles.length<100){
+                if(window._moonMissiles.length<150){
                     var mg=new THREE.Group();
                     var mbody=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.06,1.0,6),new THREE.MeshStandardMaterial({color:0x888888}));
                     mbody.rotation.x=Math.PI/2;mg.add(mbody);
@@ -4903,18 +5079,19 @@ function updateCity(){
                     mnose.rotation.x=-Math.PI/2;mnose.position.z=0.65;mg.add(mnose);
                     var mflame=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.5,4),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.7}));
                     mflame.rotation.x=Math.PI/2;mflame.position.z=-0.7;mg.add(mflame);
-                    var mfwd=new THREE.Vector3(tx2+(Math.random()-0.5)*0.4,ty2+(Math.random()-0.5)*0.4,tz2+(Math.random()-0.5)*0.4).normalize();
+                    var mfwd3=new THREE.Vector3(0,0,1).applyQuaternion(gm.group.quaternion);
+                    mfwd3.x+=(Math.random()-0.5)*0.4;mfwd3.y+=(Math.random()-0.5)*0.4;mfwd3.z+=(Math.random()-0.5)*0.4;mfwd3.normalize();
                     mg.position.set(gx,gy,gz);
-                    mg.lookAt(gx+mfwd.x,gy+mfwd.y,gz+mfwd.z);
+                    mg.lookAt(gx+mfwd3.x,gy+mfwd3.y,gz+mfwd3.z);
                     scene.add(mg);
-                    window._moonMissiles.push({group:mg,life:80,vx:mfwd.x*2.5,vy:mfwd.y*2.5,vz:mfwd.z*2.5,trail:[]});
+                    window._moonMissiles.push({group:mg,life:80,vx:mfwd3.x*2.5,vy:mfwd3.y*2.5,vz:mfwd3.z*2.5,trail:[]});
                 }
             }
             // Random explosions near MS (battle damage effects)
-            if(Math.random()<0.008&&window._moonBeams.length<200){
-                var exOff=3+Math.random()*5;
+            if(Math.random()<0.012&&window._moonBeams.length<300){
+                var exOff=2+Math.random()*4;
                 var exDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
-                var exSize=1.0+Math.random()*2.0;
+                var exSize=1.5+Math.random()*3.0;
                 var exColors=[0xFF4400,0xFF8800,0xFFCC00,0xFF6600];
                 var exColor=exColors[Math.floor(Math.random()*exColors.length)];
                 var exMesh=new THREE.Mesh(new THREE.SphereGeometry(exSize,6,4),new THREE.MeshBasicMaterial({color:exColor,transparent:true,opacity:0.9}));
@@ -4938,7 +5115,7 @@ function updateCity(){
             bb.life--;
             if(bb._isExplosion){
                 bb.mesh.material.opacity=bb.life/15*0.9;
-                bb.mesh.scale.multiplyScalar(1.06);
+                bb.mesh.scale.multiplyScalar(1.1);
             } else {
                 bb.mesh.material.opacity=Math.max(0,bb.life/35);
             }
@@ -4967,9 +5144,9 @@ function updateCity(){
             if(mm.life<=0){
                 // Multi-layer explosion
                 var exColors2=[0xFF4400,0xFF8800,0xFFCC00];
-                for(var exi=0;exi<3;exi++){
-                    var exR=1.0+exi*0.8;
-                    var flash=new THREE.Mesh(new THREE.SphereGeometry(exR,6,4),new THREE.MeshBasicMaterial({color:exColors2[exi],transparent:true,opacity:0.9-exi*0.2}));
+                for(var exi=0;exi<4;exi++){
+                    var exR=1.5+exi*1.2;
+                    var flash=new THREE.Mesh(new THREE.SphereGeometry(exR,6,4),new THREE.MeshBasicMaterial({color:exColors2[exi%3],transparent:true,opacity:0.9-exi*0.15}));
                     flash.position.copy(mm.group.position);
                     flash.position.x+=(Math.random()-0.5)*0.5;flash.position.y+=(Math.random()-0.5)*0.5;flash.position.z+=(Math.random()-0.5)*0.5;
                     scene.add(flash);
