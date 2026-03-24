@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.64';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.65';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1413,7 +1413,7 @@ function _updateSprintBar(holdingF){
         playerEgg._wasSprintHolding=true;
     } else {
         // Trigger spin dash on release if charge was high enough
-        if(playerEgg._wasSprintHolding&&_sprintCharge>=_sprintChargeMax*0.3&&!_spinDashing){
+        if(playerEgg._wasSprintHolding&&_sprintCharge>=_sprintChargeMax&&!_spinDashing){
             var sdPct=_sprintCharge/_sprintChargeMax;
             _spinDashing=true;
             _spinDashTimer=Math.floor(80+sdPct*160);
@@ -1574,6 +1574,11 @@ if(grabBtn){
     grabBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyF']=true;},{passive:false});
     grabBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyF']=false;},{passive:false});
     grabBtn.addEventListener('touchcancel',function(e){keys['KeyF']=false;},{passive:false});
+}
+// Chat button (mobile)
+var chatBtn=document.getElementById('chat-btn');
+if(chatBtn){
+    chatBtn.addEventListener('touchstart',function(e){e.preventDefault();_openChatInput();},{passive:false});
 }
 
 // ---- Pinch-to-zoom (mobile) ----
@@ -3931,9 +3936,9 @@ function _buildBabylonTower(){
     var towerX, towerZ;
     if(window._stairPositions&&window._stairPositions.length>0){
         var sp=window._stairPositions[0];
-        // Place tower right next to the staircase base (within 10 units)
-        towerX=sp.x+((Math.random()<0.5?1:-1)*(8+Math.random()*2));
-        towerZ=sp.z+((Math.random()<0.5?1:-1)*(8+Math.random()*2));
+        // Place tower directly adjacent to the staircase (fixed 8 units offset)
+        towerX=sp.x+8;
+        towerZ=sp.z;
     } else {
         towerX=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
         towerZ=15+Math.floor(Math.random()*30)*(Math.random()<0.5?1:-1);
@@ -4443,14 +4448,11 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                     if(!_atDoor){
                         // Push egg out of shield
                         if(_sdist<_sh.r){
-                            // Inside shield trying to exit — allow (push inward is wrong), push outward
-                            // Actually: block entry. If egg is inside and moving outward, let them.
-                            // If egg is outside and moving inward, block.
-                            // Simplify: if egg crossed into shield from outside, push out
-                            var _moveDir=egg.vx*_sdx+egg.vz*_sdz; // dot product: negative = moving inward
-                            if(_moveDir<0){
-                                // Moving inward — push back out
-                                var _pushR=_sh.r+0.5;
+                            // Inside shield near boundary (not at door) — block exit
+                            var _moveDir=egg.vx*_sdx+egg.vz*_sdz; // positive = moving outward
+                            if(_moveDir>0){
+                                // Moving outward through wall — push back in
+                                var _pushR=_sh.r-1;
                                 egg.mesh.position.x=_sh.x+(_sdx/_sdist)*_pushR;
                                 egg.mesh.position.z=_sh.z+(_sdz/_sdist)*_pushR;
                                 // Reflect velocity along shield normal
@@ -4549,12 +4551,16 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 else if(egg.vy>0.05){
                     // Allow vertical movement, no horizontal push
                 }
-                // Below roof — push out horizontally
+                // Below roof — push out horizontally (but not for Babel tower when falling from above)
                 else if(egg.mesh.position.y<roofY-0.3){
+                    if(c._babel&&egg.mesh.position.y>2&&egg.vy<0){
+                        // Falling alongside Babel tower — don't push out, let gravity work
+                    } else {
                     const overlapX=c.hw+egg.radius-Math.abs(dx);
                     const overlapZ=c.hd+egg.radius-Math.abs(dz);
                     if(overlapX<overlapZ){egg.mesh.position.x+=Math.sign(dx)*overlapX;egg.vx*=-0.2;}
                     else{egg.mesh.position.z+=Math.sign(dz)*overlapZ;egg.vz*=-0.2;}
+                    }
                 }
             }
         }
@@ -4622,7 +4628,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
                 var mdy=egg.mesh.position.y-mp.y;
                 var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
-                if(mdist<4&&egg.mesh.position.y>=35&&egg.mesh.position.y<=54&&!_moonPipeDismissed){
+                if(mdist<4&&egg.mesh.position.y>=mp.y-3&&egg.mesh.position.y<=mp.y+8&&!_moonPipeDismissed){
                     _showMoonPipePrompt();
                 }
                 if(mdist>6){_moonPipeDismissed=false;}
@@ -6320,7 +6326,7 @@ function updateCity(){
             if(Math.random()<0.012&&window._moonBeams.length<300){
                 var exOff=2+Math.random()*4;
                 var exDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
-                var exSize=1.5+Math.random()*3.0;
+                var exSize=0.5+Math.random()*1.0;
                 var exColors=[0xFF4400,0xFF8800,0xFFCC00,0xFF6600];
                 var exColor=exColors[Math.floor(Math.random()*exColors.length)];
                 var exMesh=new THREE.Mesh(new THREE.SphereGeometry(exSize,6,4),new THREE.MeshBasicMaterial({color:exColor,transparent:true,opacity:0.9}));
@@ -6368,8 +6374,8 @@ function updateCity(){
             if(_dm.hp<=0&&!_dm._dead){
                 // Destroy: big explosion + scatter debris
                 var _dpos=_dm.group.position;
-                var _dScale=_dm.ms==='sdf1'?80:_dm.ms==='zenCruiser'?60:30;
-                for(var _ei=0;_ei<6;_ei++){
+                var _dScale=_dm.ms==='sdf1'?8:_dm.ms==='zenCruiser'?6:3;
+                for(var _ei=0;_ei<4;_ei++){
                     var _eDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
                     var _eR=_dScale*(1+_ei*0.5);
                     var _eC=[0xFF4400,0xFF8800,0xFFCC00,0xFFFFFF][_ei%4];
@@ -6379,9 +6385,9 @@ function updateCity(){
                     window._moonBeams.push({mesh:_eM,life:12+_ei*3,vx:_eDir.x*0.4,vy:_eDir.y*0.4,vz:_eDir.z*0.4,_isExplosion:true});
                 }
                 // Scatter debris pieces
-                for(var _dbi=0;_dbi<8;_dbi++){
+                for(var _dbi=0;_dbi<4;_dbi++){
                     var _dbD=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();
-                    var _dbM=new THREE.Mesh(new THREE.BoxGeometry(0.3*_dScale,0.2*_dScale,0.15*_dScale),new THREE.MeshBasicMaterial({color:0x555566,transparent:true,opacity:0.8}));
+                    var _dbM=new THREE.Mesh(new THREE.BoxGeometry(0.15*_dScale,0.1*_dScale,0.08*_dScale),new THREE.MeshBasicMaterial({color:0x555566,transparent:true,opacity:0.8}));
                     _dbM.position.copy(_dpos);scene.add(_dbM);
                     window._moonBeams.push({mesh:_dbM,life:30,vx:_dbD.x*2.5,vy:_dbD.y*2.5,vz:_dbD.z*2.5});
                 }
@@ -6490,8 +6496,8 @@ function updateCity(){
             if(mm.life<=0){
                 // Multi-layer explosion
                 var exColors2=[0xFF4400,0xFF8800,0xFFCC00];
-                for(var exi=0;exi<4;exi++){
-                    var exR=1.5+exi*1.2;
+                for(var exi=0;exi<3;exi++){
+                    var exR=0.5+exi*0.4;
                     var flash=new THREE.Mesh(new THREE.SphereGeometry(exR,6,4),new THREE.MeshBasicMaterial({color:exColors2[exi%3],transparent:true,opacity:0.9-exi*0.15}));
                     flash.position.copy(mm.group.position);
                     flash.position.x+=(Math.random()-0.5)*0.5;flash.position.y+=(Math.random()-0.5)*0.5;flash.position.z+=(Math.random()-0.5)*0.5;
