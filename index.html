@@ -23,16 +23,26 @@
   </div>
 
   <!-- Character select — SF2 style -->
+  <!-- Character select — SF2 World Warrior style -->
   <div id="select-screen" class="screen">
-    <div class="select-title">— SELECT CHARACTER —</div>
-    <div class="select-layout">
-      <div class="portrait-box">
+    <div class="sf2-select-top">
+      <div class="sf2-char-name" id="sf2-char-name">SELECT YOUR FIGHTER</div>
+    </div>
+    <div class="sf2-select-main">
+      <div class="sf2-portrait-area">
         <canvas id="portrait-canvas" width="220" height="260"></canvas>
-        <div class="portrait-name" id="portrait-name">Classic Egg</div>
+        <div class="sf2-country-flag" id="sf2-country-flag"></div>
       </div>
+      <div class="sf2-map-area">
+        <canvas id="sf2-map-canvas" width="400" height="220"></canvas>
+      </div>
+    </div>
+    <div class="sf2-grid-area">
       <div class="char-grid" id="char-grid"></div>
     </div>
     <button id="confirm-btn" class="btn btn-primary">⚔️ Confirm</button>
+    <!-- Airplane animation overlay -->
+    <canvas id="sf2-plane-canvas" width="400" height="300" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:none;z-index:15;"></canvas>
   </div>
 
   <!-- Portal prompt -->

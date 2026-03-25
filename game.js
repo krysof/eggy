@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.75';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.77';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -253,7 +253,7 @@ function _applyLang(){
     var pb=document.getElementById('punch-btn');if(pb)pb.textContent=L('punch');
     var kb=document.getElementById('kick-btn');if(kb)kb.textContent=L('kick');
     var cn=document.getElementById('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
-    var pn2=document.getElementById('portrait-name');if(pn2&&CHARACTERS[selectedChar])pn2.textContent=CHARACTERS[selectedChar].name;
+    var pn2=document.getElementById('sf2-char-name');if(pn2&&CHARACTERS[selectedChar])pn2.textContent=CHARACTERS[selectedChar].name+' ('+CHARACTERS[selectedChar].sf2+')';
     if(langBtn)langBtn.textContent=_getLangBtnText();
     // Update struggle bar text
     var stText=document.getElementById('struggle-text');if(stText)stText.textContent=L('struggle');
@@ -968,14 +968,14 @@ scene.add(_sunGlow);
 // ---- Characters ----
 const CHARACTERS = [
     // SF2 select screen layout: top row L→R, bottom row L→R
-    {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xFFDD44,accent:0xFFAA00,icon:'\uD83E\uDD5A',portrait:'#FFDD44',sf2:'Ryu'},
-    {name:'\u5C0F\u732A',type:'pig',color:0xFFAAAA,accent:0xFF7788,icon:'\uD83D\uDC37',portrait:'#FFAAAA',sf2:'E.Honda'},
-    {name:'\u5C0F\u732B',type:'cat',color:0xDDDDDD,accent:0xAAAAAA,icon:'\uD83D\uDC31',portrait:'#DDDDDD',sf2:'Blanka'},
-    {name:'\u516C\u9E21',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC',sf2:'Guile'},
-    {name:'\u5C0F\u72D7',type:'dog',color:0xC8915A,accent:0xA0704A,icon:'\uD83D\uDC36',portrait:'#C8915A',sf2:'Ken'},
-    {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866',sf2:'Chun-Li'},
-    {name:'\u9752\u86D9',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55',sf2:'Zangief'},
-    {name:'\u87F3\u8782',type:'cockroach',color:0x8B4513,accent:0x5C2E0A,icon:'\uD83E\uDEB3',portrait:'#8B4513',sf2:'Dhalsim'},
+    {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xFFDD44,accent:0xFFAA00,icon:'\uD83E\uDD5A',portrait:'#FFDD44',sf2:'Ryu',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:350,mapY:95},
+    {name:'\u5C0F\u732A',type:'pig',color:0xFFAAAA,accent:0xFF7788,icon:'\uD83D\uDC37',portrait:'#FFAAAA',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:350,mapY:95},
+    {name:'\u5C0F\u732B',type:'cat',color:0xDDDDDD,accent:0xAAAAAA,icon:'\uD83D\uDC31',portrait:'#DDDDDD',sf2:'Blanka',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:130,mapY:165},
+    {name:'\u516C\u9E21',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC',sf2:'Guile',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:80,mapY:80},
+    {name:'\u5C0F\u72D7',type:'dog',color:0xC8915A,accent:0xA0704A,icon:'\uD83D\uDC36',portrait:'#C8915A',sf2:'Ken',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:80,mapY:80},
+    {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866',sf2:'Chun-Li',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:90},
+    {name:'\u9752\u86D9',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:260,mapY:50},
+    {name:'\u87F3\u8782',type:'cockroach',color:0x8B4513,accent:0x5C2E0A,icon:'\uD83E\uDEB3',portrait:'#8B4513',sf2:'Dhalsim',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:290,mapY:110},
 ];
 let selectedChar = 0;
 // Apply localized character names
@@ -1128,20 +1128,107 @@ function drawPortrait(ch) {
     if (portraitName) portraitName.textContent = ch.name;
 }
 
+// ---- SF2 World Map ----
+function _drawSF2Map(highlightX,highlightY){
+    var mc=document.getElementById('sf2-map-canvas');if(!mc)return;
+    var ctx=mc.getContext('2d');var W=mc.width,H=mc.height;
+    ctx.clearRect(0,0,W,H);
+    // Ocean
+    ctx.fillStyle='#0a1a3a';ctx.fillRect(0,0,W,H);
+    // Simplified continents (pixel-art style)
+    ctx.fillStyle='#1a4a2a';
+    // North America
+    ctx.fillRect(30,30,80,60);ctx.fillRect(40,20,50,15);ctx.fillRect(60,90,30,20);
+    // South America
+    ctx.fillRect(100,120,40,70);ctx.fillRect(110,110,25,15);
+    // Europe
+    ctx.fillRect(180,25,50,40);ctx.fillRect(170,35,15,20);
+    // Africa
+    ctx.fillRect(185,80,45,70);ctx.fillRect(195,70,30,15);
+    // Asia
+    ctx.fillRect(240,20,120,60);ctx.fillRect(280,75,60,40);ctx.fillRect(340,60,30,50);
+    // India
+    ctx.fillRect(275,90,30,35);
+    // Australia
+    ctx.fillRect(330,150,40,25);
+    // Grid lines
+    ctx.strokeStyle='rgba(100,150,255,0.1)';ctx.lineWidth=0.5;
+    for(var gi=0;gi<W;gi+=40){ctx.beginPath();ctx.moveTo(gi,0);ctx.lineTo(gi,H);ctx.stroke();}
+    for(var gj=0;gj<H;gj+=40){ctx.beginPath();ctx.moveTo(0,gj);ctx.lineTo(W,gj);ctx.stroke();}
+    // Highlight marker
+    if(highlightX!==undefined){
+        ctx.fillStyle='#FF4444';
+        ctx.beginPath();ctx.arc(highlightX,highlightY,6,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle='#FFD700';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(highlightX,highlightY,10,0,Math.PI*2);ctx.stroke();
+        // Pulsing ring
+        var pulse=Math.sin(Date.now()*0.005)*3;
+        ctx.strokeStyle='rgba(255,215,0,0.4)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(highlightX,highlightY,14+pulse,0,Math.PI*2);ctx.stroke();
+    }
+}
+
+// ---- SF2 Airplane Animation ----
+var _planeAnim=null;
+function _startPlaneAnim(fromX,fromY,toX,toY,callback){
+    var pc=document.getElementById('sf2-plane-canvas');if(!pc)return callback();
+    pc.style.display='block';
+    var pctx=pc.getContext('2d');
+    pc.width=pc.parentElement.offsetWidth;pc.height=pc.parentElement.offsetHeight;
+    var sx=fromX/400*pc.width,sy=fromY/220*pc.height*0.6+pc.height*0.15;
+    var ex=toX/400*pc.width,ey=toY/220*pc.height*0.6+pc.height*0.15;
+    var t=0;
+    _planeAnim=setInterval(function(){
+        t+=0.02;
+        pctx.clearRect(0,0,pc.width,pc.height);
+        var cx=sx+(ex-sx)*t;var cy=sy+(ey-sy)*t-Math.sin(t*Math.PI)*40;
+        // Trail
+        pctx.strokeStyle='rgba(255,255,255,0.3)';pctx.lineWidth=2;
+        pctx.beginPath();pctx.moveTo(sx,sy);
+        pctx.quadraticCurveTo((sx+cx)/2,Math.min(sy,cy)-30,cx,cy);
+        pctx.stroke();
+        // Plane
+        pctx.fillStyle='#FFFFFF';
+        pctx.beginPath();
+        var angle=Math.atan2(ey-sy,ex-sx);
+        pctx.save();pctx.translate(cx,cy);pctx.rotate(angle);
+        pctx.moveTo(10,0);pctx.lineTo(-8,-6);pctx.lineTo(-5,0);pctx.lineTo(-8,6);
+        pctx.closePath();pctx.fill();pctx.restore();
+        if(t>=1){
+            clearInterval(_planeAnim);_planeAnim=null;
+            pc.style.display='none';
+            callback();
+        }
+    },30);
+}
+
+function _updateSF2Select(idx){
+    var ch=CHARACTERS[idx];
+    drawPortrait(ch);
+    // Update name
+    var nameEl=document.getElementById('sf2-char-name');
+    if(nameEl)nameEl.textContent=ch.name+' ('+ch.sf2+')';
+    // Update flag
+    var flagEl=document.getElementById('sf2-country-flag');
+    if(flagEl)flagEl.textContent=ch.flag;
+    // Update map
+    _drawSF2Map(ch.mapX,ch.mapY);
+}
+
 CHARACTERS.forEach((ch,i) => {
     const cell = document.createElement('div');
     cell.className = 'char-cell' + (i===0?' selected':'');
-    cell.innerHTML = '<span class="char-icon">'+ch.icon+'</span><span class="char-label">'+ch.name+'</span>';
+    cell.innerHTML = '<span class="char-icon">'+ch.icon+'</span><span class="char-label">'+ch.sf2+'</span>';
     cell.addEventListener('click', () => {
         document.querySelectorAll('.char-cell').forEach(c=>c.classList.remove('selected'));
         cell.classList.add('selected');
         selectedChar = i;
-        drawPortrait(ch);
+        _updateSF2Select(i);
         playMenuMove();
     });
     if (charGrid) charGrid.appendChild(cell);
 });
-if (portraitCtx) drawPortrait(CHARACTERS[0]);
+if (portraitCtx) _updateSF2Select(0);
 
 // ---- State ----
 let gameState = 'menu'; // menu, city, raceIntro, racing, raceResult
@@ -8894,9 +8981,13 @@ _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStar
 document.getElementById('confirm-btn').addEventListener('click',()=>{
     playMenuConfirm();
     stopSelectBGM();
-    showScreen(null);
-    spawnCityNPCs();
-    enterCity();
+    // Airplane animation: fly from center to character's country
+    var _selCh=CHARACTERS[selectedChar];
+    _startPlaneAnim(200,110,_selCh.mapX,_selCh.mapY,function(){
+        showScreen(null);
+        spawnCityNPCs();
+        enterCity();
+    });
 });
 
 // Keyboard navigation for menus
@@ -8905,7 +8996,8 @@ function selectCharByIndex(idx){
     if(idx>=CHARACTERS.length)idx=0;
     selectedChar=idx;
     document.querySelectorAll('.char-cell').forEach((c,i)=>{c.classList.toggle('selected',i===idx);});
-    drawPortrait(CHARACTERS[idx]);
+    _updateSF2Select(idx);
+    playMenuMove();
 }
 addEventListener('keydown',function(e){
     if(gameState==='menu'){

@@ -36,12 +36,16 @@ h1{font-size:clamp(32px,8vw,56px);color:#fff;text-shadow:3px 3px 0 #FF8800,6px 6
 .sound-toggle.muted{opacity:.5}
 
 /* SF2 Character Select */
-#select-screen{background:linear-gradient(180deg,#0a0a2e 0%,#1a1040 40%,#0d0d30 100%);gap:12px;padding:12px}
-.select-title{font-size:clamp(18px,4.5vw,30px);color:#FFD700;text-shadow:2px 2px 0 #000,0 0 10px rgba(255,215,0,.3);letter-spacing:8px;font-weight:900}
-.select-layout{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center}
-.portrait-box{background:linear-gradient(135deg,#1a1a4a,#2d1a5a);border:3px solid #FFD700;border-radius:10px;padding:6px;text-align:center;box-shadow:0 0 24px rgba(255,215,0,.25),inset 0 0 30px rgba(0,0,0,.5)}
-#portrait-canvas{display:block;border-radius:6px;background:#0a0a2e;image-rendering:pixelated}
-.portrait-name{color:#FFD700;font-size:16px;font-weight:700;margin-top:4px;letter-spacing:3px;text-shadow:1px 1px 0 #000}
+#select-screen{background:linear-gradient(180deg,#0a0a2e 0%,#1a1040 40%,#0d0d30 100%);gap:8px;padding:8px}
+.sf2-select-top{text-align:center;padding:4px 0}
+.sf2-char-name{font-size:clamp(20px,5vw,32px);color:#FFD700;text-shadow:2px 2px 0 #000,0 0 10px rgba(255,215,0,.3);letter-spacing:6px;font-weight:900}
+.sf2-select-main{display:flex;align-items:flex-start;justify-content:center;gap:12px;flex-wrap:wrap}
+.sf2-portrait-area{background:linear-gradient(135deg,#1a1a4a,#2d1a5a);border:3px solid #FFD700;border-radius:8px;padding:4px;text-align:center;box-shadow:0 0 20px rgba(255,215,0,.2);position:relative}
+#portrait-canvas{display:block;border-radius:4px;background:#0a0a2e;image-rendering:pixelated}
+.sf2-country-flag{position:absolute;bottom:6px;right:6px;font-size:28px}
+.sf2-map-area{background:rgba(0,20,60,.6);border:2px solid rgba(100,150,255,.3);border-radius:8px;overflow:hidden}
+#sf2-map-canvas{display:block}
+.sf2-grid-area{display:flex;justify-content:center}
 .char-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:320px}
 .char-cell{width:68px;height:68px;border-radius:8px;border:3px solid rgba(100,100,200,.25);background:rgba(20,20,60,.6);cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
 .char-cell:hover{border-color:rgba(255,215,0,.5);transform:scale(1.06);background:rgba(40,30,80,.7)}
