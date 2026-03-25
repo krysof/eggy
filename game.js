@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.72';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.73';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5881,6 +5881,11 @@ function handlePlayerInput(){
         playerEgg._tatsuActive=0;playerEgg._tatsuDir=0;
         playerEgg._shoryuReady=false;playerEgg._shoryuSeq=0;playerEgg._shoryuActive=0;
         playerEgg._comboCount=0;playerEgg._comboTimer=0;
+        // Cancel dash attacks
+        if(playerEgg._hondaDash>0){playerEgg._hondaDash=0;playerEgg.mesh.scale.set(1,1,1);playerEgg.mesh.rotation.x=0;
+            var _cdB=playerEgg.mesh.userData.body;if(_cdB)_cdB.rotation.x=0;
+            playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;playerEgg._blankaRoll=false;}
+        playerEgg._blankaShock=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
         if(_iud.rightArm)_iud.rightArm.visible=false;
@@ -5896,9 +5901,24 @@ function handlePlayerInput(){
         playerEgg._tatsuActive=0;playerEgg._comboCount=0;
         return;
     }
-    if(playerEgg._stunTimer>0){playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;
+    if(playerEgg._stunTimer>0){
+        // Mash directions to escape stun faster
+        if(keys['KeyA']||keys['KeyD']||keys['KeyW']||keys['KeyS']||keys['ArrowLeft']||keys['ArrowRight']||keys['ArrowUp']||keys['ArrowDown']||joyActive){
+            playerEgg._stunTimer-=2; // mashing doubles escape speed
+        }
+        playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;
+        // Show stun progress bar
+        if(!playerEgg._stunMax)playerEgg._stunMax=playerEgg._stunTimer+1;
+        var _stunPct=Math.max(0,playerEgg._stunTimer/playerEgg._stunMax);
+        ensureStruggleBar();
+        struggleBarDiv.style.display='block';
+        var _sfill=document.getElementById('struggle-fill');
+        if(_sfill)_sfill.style.width=(_stunPct*100)+'%';
+        var _stext=document.getElementById('struggle-text');
+        if(_stext)_stext.textContent=L('struggle');
         // Cancel spin dash on stun
         if(_spinDashing){_spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
+        if(playerEgg._stunTimer<=0){playerEgg._stunMax=0;struggleBarDiv.style.display='none';}
         return;}
     let mx=0,mz=0;
     if(keys['KeyA']||keys['ArrowLeft'])mx-=1;
@@ -6402,6 +6422,7 @@ function handlePlayerInput(){
             var _shDir=playerEgg.mesh.rotation.y;
             playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*2;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*2;
             playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
+            playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
             playerEgg._hondaDash=60;playerEgg._atkAnim=62;playerEgg.squash=0.55;
             // Head tilt forward
             var _hBody=playerEgg.mesh.userData.body;
@@ -6740,7 +6761,10 @@ function handlePlayerInput(){
                 playHitSound();break;
             }
         }
-        if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;
+        if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;
+            // Restore original facing direction after bounce
+            if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
+            playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;
             playerEgg.mesh.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1); // reset torpedo shape
             var _hdBody=playerEgg.mesh.userData.body;if(_hdBody)_hdBody.rotation.x=0;
