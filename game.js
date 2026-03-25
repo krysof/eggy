@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.18';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.19';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2419,12 +2419,12 @@ function buildCity() {
             cityGroup.add(fishG);
             var fish={group:fishG,angle:Math.atan2(_fs.z,_fs.x),radius:_fs.r,speed:0.008+Math.random()*0.015,
                 jumpTimer:120+Math.floor(Math.random()*300),jumping:false,jumpVy:0,baseY:0.4,
-                grabbed:false,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:0.3,
+                grabbed:false,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:1.5,
                 _canal:_fs._canal||false,_canalDir:_fs._canalDir||0};
             window._cityFish.push(fish);
             cityProps.push({group:fishG,x:fishG.position.x,z:fishG.position.z,radius:0.5,
                 type:'fish',grabbed:false,origY:0.4,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,
-                weight:0.3,_fishRef:fish});
+                weight:1.5,_fishRef:fish});
         }
     }
 
@@ -5775,17 +5775,34 @@ function handlePlayerInput(){
     if(playerEgg.heldBy)return;
     // Cannot control while thrown or stunned (except struggle when held)
     if(playerEgg.throwTimer>0||playerEgg._stunTimer>0){
-        // Interrupt: drop held items and cancel charges when hit
+        // Interrupt: drop held items and cancel ALL special moves
         if(playerEgg.holding){var _ih=playerEgg.holding;_ih.heldBy=null;playerEgg.holding=null;if(_ih.struggleBar){_ih.mesh.remove(_ih.struggleBar);_ih.struggleBar=null;}playerEgg.grabCD=20;}
         if(playerEgg.holdingProp){playerEgg.holdingProp.grabbed=false;playerEgg.holdingProp=null;playerEgg.grabCD=20;}
         if(playerEgg.holdingObs){playerEgg.holdingObs._grabbed=false;playerEgg.holdingObs=null;playerEgg.grabCD=20;}
         _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
         playerEgg._throwCharging=false;playerEgg._throwCharge=0;
         _sprintCharge=0;
+        // Cancel all special moves
+        if(playerEgg._piledriverTarget){var _ipt=playerEgg._piledriverTarget;_ipt.heldBy=null;if(_ipt.struggleBar){_ipt.mesh.remove(_ipt.struggleBar);_ipt.struggleBar=null;}playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;}
+        playerEgg._bodySlam=false;playerEgg._bodySlamTarget=null;
+        playerEgg._tatsuActive=0;playerEgg._tatsuDir=0;
+        playerEgg._shoryuReady=false;playerEgg._shoryuSeq=0;
+        playerEgg._comboCount=0;playerEgg._comboTimer=0;
+        // Hide attack limbs
+        var _iud=playerEgg.mesh.userData;
+        if(_iud.rightArm)_iud.rightArm.visible=false;
+        if(_iud.leftArm)_iud.leftArm.visible=false;
+        if(_iud.rightLeg)_iud.rightLeg.visible=false;
+        if(_iud.leftLeg)_iud.leftLeg.visible=false;
+        playerEgg._atkAnim=0;
         if(playerEgg.throwTimer>0)return;
     }
-    // Hitstun flinch — can't act but no stun stars
-    if(playerEgg._hitStun>0){playerEgg._hitStun--;playerEgg.vx*=0.85;playerEgg.vz*=0.85;return;}
+    // Hitstun flinch — can't act but no stun stars; also cancel special moves
+    if(playerEgg._hitStun>0){
+        playerEgg._hitStun--;playerEgg.vx*=0.85;playerEgg.vz*=0.85;
+        playerEgg._tatsuActive=0;playerEgg._comboCount=0;
+        return;
+    }
     if(playerEgg._stunTimer>0){playerEgg._stunTimer--;playerEgg.vx*=0.9;playerEgg.vz*=0.9;
         // Cancel spin dash on stun
         if(_spinDashing){_spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
