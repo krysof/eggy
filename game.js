@@ -18,13 +18,13 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.10';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.11';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
     portalYes:{zhs:'\u2705 \u8FDB\u5165 (Y/\u56DE\u8F66)',zht:'\u2705 \u9032\u5165 (Y/Enter)',ja:'\u2705 \u5165\u308B (Y/Enter)',en:'\u2705 Enter (Y/Enter)'},
     portalNo:{zhs:'\u274C \u53D6\u6D88 (N/ESC)',zht:'\u274C \u53D6\u6D88 (N/ESC)',ja:'\u274C \u30AD\u30E3\u30F3\u30BB\u30EB (N/ESC)',en:'\u274C Cancel (N/ESC)'},
-    grabThrow:{zhs:'F \u6293/\u6254 | \u957F\u6309\u84C4\u529B',zht:'F \u6293/\u64F2 | \u9577\u6309\u84C4\u529B',ja:'F \u3064\u304B\u3080/\u6295\u3052\u308B | \u9577\u62BC\u3057\u30C1\u30E3\u30FC\u30B8',en:'F Grab/Throw | Hold to Charge'},
+    grabThrow:{zhs:'F\u6293/\u6254 R\u62F3 T\u811A | \u957F\u6309\u84C4\u529B',zht:'F\u6293/\u64F2 R\u62F3 T\u811A | \u9577\u6309\u84C4\u529B',ja:'F\u3064\u304B\u3080/\u6295\u3052 R\u30D1\u30F3\u30C1 T\u30AD\u30C3\u30AF',en:'F Grab/Throw R Punch T Kick'},
     zoomHint:{zhs:'\u6EDA\u8F6E \u7F29\u653E',zht:'\u6EFE\u8F2A \u7E2E\u653E',ja:'\u30DB\u30A4\u30FC\u30EB \u30BA\u30FC\u30E0',en:'Scroll Zoom'},
     moonCamHint:{zhs:'\u53F3\u952E\u62D6\u52A8 \u65CB\u8F6C\u89C6\u89D2',zht:'\u53F3\u9375\u62D6\u52D5 \u65CB\u8F49\u8996\u89D2',ja:'\u53F3\u30AF\u30EA\u30C3\u30AF\u30C9\u30E9\u30C3\u30B0 \u8996\u70B9\u56DE\u8EE2',en:'Right-drag to orbit camera'},
     raceBack:{zhs:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',zht:'\uD83C\uDFD9\uFE0F \u8FD4\u56DE',ja:'\uD83C\uDFD9\uFE0F \u623B\u308B',en:'\uD83C\uDFD9\uFE0F Back'},
@@ -39,6 +39,8 @@ var I18N={
     tryAgain:{zhs:'\u518D\u63A5\u518D\u53B1\uFF01',zht:'\u518D\u63A5\u518D\u53B2\uFF01',ja:'\u3082\u3046\u4E00\u5EA6\uFF01',en:'Try again!'},
     grab:{zhs:'\u6293',zht:'\u6293',ja:'\u3064\u304B\u3080',en:'Grab'},
     throwT:{zhs:'\u6254',zht:'\u64F2',ja:'\u6295\u3052\u308B',en:'Throw'},
+    punch:{zhs:'\u62F3',zht:'\u62F3',ja:'\u30D1\u30F3\u30C1',en:'Punch'},
+    kick:{zhs:'\u811A',zht:'\u811A',ja:'\u30AD\u30C3\u30AF',en:'Kick'},
     jump:{zhs:'\u8DF3',zht:'\u8DF3',ja:'\u30B8\u30E3\u30F3\u30D7',en:'Jump'},
     walkIn:{zhs:'\u8D70\u8FD1\u8FDB\u5165',zht:'\u8D70\u8FD1\u9032\u5165',ja:'\u8FD1\u3065\u3044\u3066\u5165\u308B',en:'Walk in to enter'},
     earthReturn:{zhs:'\u8FD4\u56DE\u5730\u7403',zht:'\u8FD4\u56DE\u5730\u7403',ja:'\u5730\u7403\u3078\u5E30\u9084',en:'Return to Earth'},
@@ -248,6 +250,8 @@ function _applyLang(){
     var rt=document.getElementById('result-title');if(rt)rt.textContent=L('resultDone');
     var gb=document.getElementById('grab-btn');if(gb)gb.textContent=L('grab');
     var jb=document.getElementById('jump-btn');if(jb)jb.textContent=L('jump');
+    var pb=document.getElementById('punch-btn');if(pb)pb.textContent=L('punch');
+    var kb=document.getElementById('kick-btn');if(kb)kb.textContent=L('kick');
     var cn=document.getElementById('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
     var pn2=document.getElementById('portrait-name');if(pn2&&CHARACTERS[selectedChar])pn2.textContent=CHARACTERS[selectedChar].name;
     if(langBtn)langBtn.textContent=_getLangBtnText();
@@ -1579,6 +1583,19 @@ if(grabBtn){
 var chatBtn=document.getElementById('chat-btn');
 if(chatBtn){
     chatBtn.addEventListener('touchstart',function(e){e.preventDefault();_openChatInput();},{passive:false});
+}
+// Punch/Kick buttons (mobile)
+var punchBtn=document.getElementById('punch-btn');
+if(punchBtn){
+    punchBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyR']=true;},{passive:false});
+    punchBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyR']=false;},{passive:false});
+    punchBtn.addEventListener('touchcancel',function(e){keys['KeyR']=false;},{passive:false});
+}
+var kickBtn=document.getElementById('kick-btn');
+if(kickBtn){
+    kickBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyT']=true;},{passive:false});
+    kickBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyT']=false;},{passive:false});
+    kickBtn.addEventListener('touchcancel',function(e){keys['KeyT']=false;},{passive:false});
 }
 
 // ---- Pinch-to-zoom (mobile) ----
@@ -4759,6 +4776,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
             for(var tei=0;tei<allEggs.length;tei++){
                 var te=allEggs[tei];
                 if(te===egg||!te.alive||te.heldBy)continue;
+                if(te._slamImmune&&te._slamImmune>0)continue; // immune after body slam
                 var htdx=egg.mesh.position.x-te.mesh.position.x;
                 var htdz=egg.mesh.position.z-te.mesh.position.z;
                 var htdy=egg.mesh.position.y-te.mesh.position.y;
@@ -4959,6 +4977,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
 
     var sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     egg.mesh.scale.set(1+(1-sq)*0.3,sq,1+(1-sq)*0.3);
+    if(egg._slamImmune>0)egg._slamImmune--;
 
     // Egg randomly wobbles (not always — random trigger)
     if(egg._wobbleTimer===undefined){egg._wobbleTimer=0;egg._wobbleAmt=0;egg._wobbleDir=1;}
@@ -5404,6 +5423,17 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(Math.random()<0.003){egg._aiSprint=40+Math.random()*60;}
             if(egg._aiSprint>0)egg._aiSprint--;
             if(cd2<3&&egg.onGround&&Math.random()<0.01){egg.vy=JUMP_FORCE*(0.7+Math.random()*1.5);egg.squash=0.55;}
+            // NPC punch/kick: when close, moderate chance
+            if(cd2<2.5&&Math.random()<0.015&&!egg.holding&&(!egg._npcAtkCD||egg._npcAtkCD<=0)){
+                egg._npcAtkCD=15;
+                var _nAtkF=0.2+Math.random()*0.15;
+                closest.vx+=(cdx2/cd2)*_nAtkF;closest.vz+=(cdz2/cd2)*_nAtkF;
+                closest.vy+=0.1;closest.squash=0.6;closest._stunTimer=Math.floor(15+Math.random()*20);
+                closest.throwTimer=6;closest._bounces=0;
+                _dropNpcStolenCoins(closest);
+                if(closest.isPlayer)playHitSound();
+            }
+            if(egg._npcAtkCD>0)egg._npcAtkCD--;
             // NPC piledriver: when very close, rare chance
             if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.003&&!closest.heldBy){
                 egg._npcPiledriver=closest;egg._npcPdPhase=0;
@@ -6112,6 +6142,76 @@ function handlePlayerInput(){
     } else {
         if(playerEgg._throwChargeBar){playerEgg._throwChargeBar.visible=false;}
     }
+    // ---- Punch (R) / Kick (T) combat system ----
+    if(!playerEgg._comboCount)playerEgg._comboCount=0;
+    if(!playerEgg._comboTimer)playerEgg._comboTimer=0;
+    if(!playerEgg._attackCD)playerEgg._attackCD=0;
+    if(playerEgg._attackCD>0)playerEgg._attackCD--;
+    if(playerEgg._comboTimer>0)playerEgg._comboTimer--;
+    if(playerEgg._comboTimer<=0)playerEgg._comboCount=0;
+    // Punch (R)
+    if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
+        playerEgg._comboCount++;playerEgg._comboTimer=20;playerEgg._attackCD=10;
+        var _atkDir=playerEgg.mesh.rotation.y;
+        var _atkRange=2.5;var _atkForce=0.2+playerEgg._comboCount*0.08;
+        var _atkStun=15+playerEgg._comboCount*10;
+        var _isAerial=!playerEgg.onGround;
+        if(_isAerial){_atkForce*=1.5;_atkStun*=1.5;}
+        // Hit nearby eggs
+        for(var _ai=0;_ai<allEggs.length;_ai++){
+            var _ae=allEggs[_ai];if(_ae===playerEgg||!_ae.alive||_ae.heldBy)continue;
+            var _adx=_ae.mesh.position.x-playerEgg.mesh.position.x;
+            var _adz=_ae.mesh.position.z-playerEgg.mesh.position.z;
+            var _ad=Math.sqrt(_adx*_adx+_adz*_adz);
+            if(_ad<_atkRange&&_ad>0.01){
+                // Check facing direction (120 degree cone)
+                var _aAngle=Math.atan2(_adx,_adz);
+                var _aDiff=Math.abs(_aAngle-_atkDir);if(_aDiff>Math.PI)_aDiff=Math.PI*2-_aDiff;
+                if(_aDiff<Math.PI/3){
+                    _ae.vx+=_adx/_ad*_atkForce;_ae.vz+=_adz/_ad*_atkForce;
+                    _ae.vy+=_isAerial?0.2:0.08;
+                    _ae.squash=0.6;_ae._stunTimer=Math.floor(_atkStun);
+                    _ae.throwTimer=8;_ae._bounces=0;
+                    _dropNpcStolenCoins(_ae);
+                    playHitSound();
+                }
+            }
+        }
+        // Visual: quick arm extend
+        playerEgg.squash=0.85;
+        if(playerEgg._comboCount>=3){playerEgg._comboCount=0;playerEgg._attackCD=20;} // combo finisher has longer cooldown
+    }
+    // Kick (T)
+    if(keys['KeyT']&&!playerEgg._tWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
+        playerEgg._comboCount++;playerEgg._comboTimer=20;playerEgg._attackCD=12;
+        var _kDir=playerEgg.mesh.rotation.y;
+        var _kRange=3.0;var _kForce=0.25+playerEgg._comboCount*0.1;
+        var _kStun=20+playerEgg._comboCount*12;
+        var _kAerial=!playerEgg.onGround;
+        if(_kAerial){_kForce*=1.5;_kStun*=1.5;}
+        for(var _ki=0;_ki<allEggs.length;_ki++){
+            var _ke=allEggs[_ki];if(_ke===playerEgg||!_ke.alive||_ke.heldBy)continue;
+            var _kdx=_ke.mesh.position.x-playerEgg.mesh.position.x;
+            var _kdz=_ke.mesh.position.z-playerEgg.mesh.position.z;
+            var _kd=Math.sqrt(_kdx*_kdx+_kdz*_kdz);
+            if(_kd<_kRange&&_kd>0.01){
+                var _kAngle=Math.atan2(_kdx,_kdz);
+                var _kDiff=Math.abs(_kAngle-_kDir);if(_kDiff>Math.PI)_kDiff=Math.PI*2-_kDiff;
+                if(_kDiff<Math.PI/3){
+                    _ke.vx+=_kdx/_kd*_kForce;_ke.vz+=_kdz/_kd*_kForce;
+                    _ke.vy+=_kAerial?0.25:0.15;
+                    _ke.squash=0.5;_ke._stunTimer=Math.floor(_kStun);
+                    _ke.throwTimer=10;_ke._bounces=1;
+                    _dropNpcStolenCoins(_ke);
+                    playHitSound();
+                }
+            }
+        }
+        playerEgg.squash=0.8;
+        if(playerEgg._comboCount>=3){playerEgg._comboCount=0;playerEgg._attackCD=25;}
+    }
+    playerEgg._rWasDown=!!keys['KeyR'];
+    playerEgg._tWasDown=!!keys['KeyT'];
     // ---- Piledriver input sequence tracker (left-right-left) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
     if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
@@ -6149,8 +6249,11 @@ function handlePlayerInput(){
                     _spawnGroundDust(playerEgg.mesh.position.x+Math.cos(_dra)*2,0,playerEgg.mesh.position.z+Math.sin(_dra)*2,0.5+_slamPower*0.3);
                 }
             }
-            // Player bounces up — higher from bigger slam
+            // Player bounces up — higher from bigger slam + brief immunity
             playerEgg.vy=0.2+_slamPower*0.1;playerEgg.squash=0.4;
+            playerEgg.throwTimer=0;playerEgg._stunTimer=0; // clear any stun
+            playerEgg.grabCD=Math.max(playerEgg.grabCD,20);
+            playerEgg._slamImmune=30; // 0.5s immunity from thrown NPC bounce-back
             _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,0.6+_slamPower*0.4);
         }
         playerEgg._bodySlamTarget=null;playerEgg._bodySlamStartY=0;

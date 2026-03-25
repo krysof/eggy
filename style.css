@@ -92,6 +92,8 @@ h1{font-size:clamp(32px,8vw,56px);color:#fff;text-shadow:3px 3px 0 #FF8800,6px 6
 .touch-sprint.active{background:rgba(100,255,100,.4);border-color:rgba(100,255,100,.6)}
 .touch-grab.holding{background:rgba(100,200,255,.4);border-color:rgba(100,200,255,.6)}
 .touch-chat{position:absolute;right:20px;bottom:calc(var(--nav-offset) + 76px);width:48px;height:48px;border-radius:50%;background:rgba(100,200,255,.3);border:2px solid rgba(100,200,255,.45);color:#fff;font-size:20px;pointer-events:auto;cursor:pointer}
+.touch-punch{position:absolute;right:180px;bottom:var(--nav-offset);width:56px;height:56px;border-radius:50%;background:rgba(255,150,50,.3);border:2px solid rgba(255,150,50,.45);color:#fff;font-size:16px;font-weight:700;pointer-events:auto;cursor:pointer}
+.touch-kick{position:absolute;right:180px;bottom:calc(var(--nav-offset) + 66px);width:56px;height:56px;border-radius:50%;background:rgba(50,200,150,.3);border:2px solid rgba(50,200,150,.45);color:#fff;font-size:16px;font-weight:700;pointer-events:auto;cursor:pointer}
 
 /* SOTN area name reveal */
 .area-name-overlay{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;pointer-events:none}
