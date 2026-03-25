@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.22';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.23';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1930,12 +1930,13 @@ function createEggMesh(color, accent, charType) {
     [-1,1].forEach(function(s){ var ft=new THREE.Mesh(ftG,ftM); ft.position.set(s*0.2,0.05,0.06); ft.castShadow=true; g.add(ft); feet.push(ft); });
     // Attack limbs (hidden by default, shown during punch/kick)
     var armMat=toon(accent||0xFFCC00);
-    // Fists — near eye level, round
-    var rightArm=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),armMat);
-    rightArm.scale.set(1.2,1,1.5);rightArm.position.set(0.5,0.85,0.4);rightArm.visible=false;g.add(rightArm);
-    var leftArm=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),armMat);
-    leftArm.scale.set(1.2,1,1.5);leftArm.position.set(-0.5,0.85,0.4);leftArm.visible=false;g.add(leftArm);
-    // Legs — longer cylinders
+    var fistMat=toon(0xFFFFFF); // white fists for visibility
+    // Fists — big spheres, added to body so they move with it
+    var rightArm=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),fistMat);
+    rightArm.position.set(0.45,0.15,0.45);rightArm.visible=false;body.add(rightArm);
+    var leftArm=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),fistMat);
+    leftArm.position.set(-0.45,0.15,0.45);leftArm.visible=false;body.add(leftArm);
+    // Legs — cylinders on the group
     var rightLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,0.7,6),armMat);
     rightLeg.position.set(0.22,0.1,0.5);rightLeg.rotation.x=-Math.PI/3;rightLeg.visible=false;g.add(rightLeg);
     var leftLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,0.7,6),armMat);
@@ -6201,8 +6202,8 @@ function handlePlayerInput(){
         playerEgg._atkAnim--;
         if(playerEgg._atkAnim<=0){
             var _ud=playerEgg.mesh.userData;
-            if(_ud.rightArm){_ud.rightArm.visible=false;_ud.rightArm.scale.set(1.2,1,1.5);_ud.rightArm.position.set(0.5,0.85,0.4);}
-            if(_ud.leftArm){_ud.leftArm.visible=false;_ud.leftArm.scale.set(1.2,1,1.5);_ud.leftArm.position.set(-0.5,0.85,0.4);}
+            if(_ud.rightArm){_ud.rightArm.visible=false;_ud.rightArm.scale.set(1,1,1);_ud.rightArm.position.set(0.45,0.15,0.45);}
+            if(_ud.leftArm){_ud.leftArm.visible=false;_ud.leftArm.scale.set(1,1,1);_ud.leftArm.position.set(-0.45,0.15,0.45);}
             if(_ud.rightLeg){_ud.rightLeg.visible=false;_ud.rightLeg.position.set(0.22,0.1,0.5);_ud.rightLeg.rotation.x=-Math.PI/3;}
             if(_ud.leftLeg){_ud.leftLeg.visible=false;_ud.leftLeg.position.set(-0.22,0.1,0.5);_ud.leftLeg.rotation.x=-Math.PI/3;}
             if(_ud.body)_ud.body.rotation.x=0; // reset headbutt
@@ -6217,17 +6218,17 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=true; // keep arm up while rising
-            // Uppercut fist — big and visible, right in front of face then rising above head
+            // Uppercut fist — big white fist punching up from face (body-local coords)
             var _ud2=playerEgg.mesh.userData;
             if(_ud2.rightArm){
                 _ud2.rightArm.visible=true;
-                _ud2.rightArm.position.set(0.2,1.5,0.5); // in front of face, then rises
-                _ud2.rightArm.scale.set(4,4,4); // very big fist (eye-sized)
+                _ud2.rightArm.position.set(0.15,0.6,0.5); // in front of eyes
+                _ud2.rightArm.scale.set(1.8,1.8,1.8);
             }
             if(_ud2.leftArm){
                 _ud2.leftArm.visible=true;
-                _ud2.leftArm.position.set(-0.3,0.6,-0.2);
-                _ud2.leftArm.scale.set(1.5,1.2,1.5);
+                _ud2.leftArm.position.set(-0.25,-0.1,-0.3); // tucked back
+                _ud2.leftArm.scale.set(1,1,1);
             }
             playerEgg._atkAnim=999; // don't auto-hide, managed by shoryuActive
             // Shoryuken sound — rising whistle + impact
@@ -6258,7 +6259,7 @@ function handlePlayerInput(){
         } else {
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
         var _punchArm=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
-        if(_punchArm){_punchArm.visible=true;_punchArm.position.z=0.8;}
+        if(_punchArm){_punchArm.visible=true;_punchArm.position.z=0.7;_punchArm.scale.set(1.3,1.3,1.3);}
         playerEgg._atkAnim=8;
         var _atkDir=playerEgg.mesh.rotation.y;
         var _isFinisher=(playerEgg._comboCount>=3);
@@ -6374,11 +6375,10 @@ function handlePlayerInput(){
     // ---- Shoryuken arm management — fist rises from face to above head ----
     if(playerEgg._shoryuActive){
         var _sUd=playerEgg.mesh.userData;
-        // Fist rises upward during ascent
-        var _shoryuT=Math.max(0,playerEgg.vy/0.42); // 0-1 based on upward velocity
-        var _fistY=1.2+_shoryuT*0.8; // from face level to above head
-        if(_sUd.rightArm){_sUd.rightArm.visible=true;_sUd.rightArm.position.set(0.2,_fistY,0.4);_sUd.rightArm.scale.set(4,4,4);}
-        if(_sUd.leftArm){_sUd.leftArm.visible=true;_sUd.leftArm.position.set(-0.3,0.6,-0.2);}
+        var _shoryuT=Math.max(0,playerEgg.vy/0.42);
+        var _fistY=0.5+_shoryuT*0.6; // body-local: from eye level to above head
+        if(_sUd.rightArm){_sUd.rightArm.visible=true;_sUd.rightArm.position.set(0.15,_fistY,0.4);_sUd.rightArm.scale.set(1.8,1.8,1.8);}
+        if(_sUd.leftArm){_sUd.leftArm.visible=true;_sUd.leftArm.position.set(-0.25,-0.1,-0.3);}
         playerEgg.mesh.rotation.y+=0.12;
         if(playerEgg.vy<=0||playerEgg.onGround){
             playerEgg._shoryuActive=false;
