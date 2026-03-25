@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.54';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.55';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -6376,12 +6376,15 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_sbBall,ring:_sbRing,vx:Math.sin(_sbDir)*(_ct==='cat'?0.45:0.5),vz:Math.cos(_sbDir)*(_ct==='cat'?0.45:0.5),life:100,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_ct==='pig'){
-            // SUMO HEADBUTT (E.Honda) — ←→+R, dash 12 body-lengths
+            // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
             _shoutMove(playerEgg,'Dosukoi!');
-            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._bfReady=false;playerEgg._bfSeq=0;
+            playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _shDir=playerEgg.mesh.rotation.y;
-            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*8;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*8;
-            playerEgg._hondaDash=50;playerEgg._atkAnim=52;playerEgg.squash=0.6;
+            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*4;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*4;
+            playerEgg._hondaDash=100;playerEgg._atkAnim=102;playerEgg.squash=0.55;
+            // Head tilt forward
+            var _hBody=playerEgg.mesh.userData.body;
+            if(_hBody)_hBody.rotation.x=-0.6;
         } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken)
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
@@ -6685,7 +6688,9 @@ function handlePlayerInput(){
                 if(playerEgg._blankaRoll){playerEgg.vx*=-0.5;playerEgg.vz*=-0.5;playerEgg._hondaDash=0;}
             }
         }
-        if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;}
+        if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;
+            var _hdBody=playerEgg.mesh.userData.body;if(_hdBody)_hdBody.rotation.x=0;
+        }
     }
     // ---- Special move input trackers ----
     // Detect horizontal direction presses (keyboard + joystick)
@@ -6751,15 +6756,15 @@ function handlePlayerInput(){
     if(!playerEgg._rapidT)playerEgg._rapidT=0;
     if(!playerEgg._rapidRTimer)playerEgg._rapidRTimer=0;
     if(!playerEgg._rapidTTimer)playerEgg._rapidTTimer=0;
-    if(keys['KeyR']&&!playerEgg._rWasDown){playerEgg._rapidR++;playerEgg._rapidRTimer=30;}
-    if(keys['KeyT']&&!playerEgg._tWasDown){playerEgg._rapidT++;playerEgg._rapidTTimer=30;}
+    if(keys['KeyR']&&!playerEgg._rWasDown){playerEgg._rapidR++;playerEgg._rapidRTimer=60;}
+    if(keys['KeyT']&&!playerEgg._tWasDown){playerEgg._rapidT++;playerEgg._rapidTTimer=60;}
     playerEgg._rapidRTimer--;playerEgg._rapidTTimer--;
     if(playerEgg._rapidRTimer<=0)playerEgg._rapidR=0;
     if(playerEgg._rapidTTimer<=0)playerEgg._rapidT=0;
-    // Rapid R ready (4+ presses in 30 frames) — Honda 百裂張手 / Blanka Electric
-    playerEgg._rapidRReady=(playerEgg._rapidR>=4);
-    // Rapid T ready (4+ presses in 30 frames) — Chun-Li 百裂脚
-    playerEgg._rapidTReady=(playerEgg._rapidT>=4);
+    // Rapid R ready (3+ presses in 60 frames) — Honda 百裂張手 / Blanka Electric
+    playerEgg._rapidRReady=(playerEgg._rapidR>=3);
+    // Rapid T ready (3+ presses in 60 frames) — Chun-Li 百裂脚
+    playerEgg._rapidTReady=(playerEgg._rapidT>=3);
     // ---- Dhalsim passive: extended attack range ----
     playerEgg._extendedRange=(_ct==='cockroach')?1.5:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
