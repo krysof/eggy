@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.5';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.6';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5388,6 +5388,20 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(Math.random()<0.003){egg._aiSprint=40+Math.random()*60;}
             if(egg._aiSprint>0)egg._aiSprint--;
             if(cd2<3&&egg.onGround&&Math.random()<0.01){egg.vy=JUMP_FORCE*(0.7+Math.random()*1.5);egg.squash=0.55;}
+            // NPC piledriver: when very close, rare chance
+            if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.003&&!closest.heldBy){
+                egg._npcPiledriver=closest;egg._npcPdPhase=0;
+                closest.heldBy=egg;egg.holding=closest;egg.grabCD=40;
+            }
+            // NPC body slam: if holding someone and in air
+            if(egg.holding&&!egg.onGround&&egg.vy<0&&Math.random()<0.02){
+                var _nbst=egg.holding;
+                _nbst.heldBy=null;egg.holding=null;
+                if(_nbst.struggleBar){_nbst.mesh.remove(_nbst.struggleBar);_nbst.struggleBar=null;}
+                egg.vy=-0.4;egg._npcBodySlam=_nbst;
+                _nbst.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y-1.5,egg.mesh.position.z);
+                _nbst.vy=-0.4;
+            }
         }
     } else if(st==='flee'){
         // Run away from nearest egg
@@ -5494,6 +5508,45 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     var npcSpd=(egg._aiSprint>0)?1.2:1;
     var maxSpd=st==='flee'?MAX_SPEED*0.7*npcSpd:st==='chase'?MAX_SPEED*0.6*npcSpd:MAX_SPEED*0.45*npcSpd;
     if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
+    // ---- NPC Piledriver animation ----
+    if(egg._npcPiledriver){
+        var _npdt=egg._npcPiledriver;
+        egg._npcPdPhase++;
+        if(egg._npcPdPhase<40){
+            egg.vy=0.1;egg.vx=0;egg.vz=0;
+            egg.mesh.rotation.y+=0.4;
+            _npdt.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1.5,egg.mesh.position.z);
+            _npdt.vx=0;_npdt.vy=0;_npdt.vz=0;
+        } else if(egg._npcPdPhase<55){
+            egg.vy=-0.35;egg.mesh.rotation.y+=0.5;
+            _npdt.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1.5,egg.mesh.position.z);
+        } else {
+            _npdt.heldBy=null;egg.holding=null;
+            if(_npdt.struggleBar){_npdt.mesh.remove(_npdt.struggleBar);_npdt.struggleBar=null;}
+            _npdt.squash=0.15;
+            var _npdDir=Math.random()*Math.PI*2;
+            _npdt.vx=Math.sin(_npdDir)*0.5;_npdt.vy=0.35;_npdt.vz=Math.cos(_npdDir)*0.5;
+            _npdt.throwTimer=50;_npdt._bounces=2;_npdt._stunTimer=100;
+            _dropNpcStolenCoins(_npdt);
+            if(_npdt.isPlayer)playHitSound();
+            egg.vy=0.1;egg.grabCD=40;egg._npcPiledriver=null;egg._npcPdPhase=0;
+        }
+    }
+    // ---- NPC Body Slam landing ----
+    if(egg._npcBodySlam&&egg.onGround){
+        var _nbst2=egg._npcBodySlam;
+        if(_nbst2&&_nbst2.alive){
+            _nbst2.mesh.position.set(egg.mesh.position.x,0.2,egg.mesh.position.z);
+            _nbst2.squash=0.2;
+            var _nbDir=Math.random()*Math.PI*2;
+            _nbst2.vx=Math.sin(_nbDir)*0.4;_nbst2.vy=0.3;_nbst2.vz=Math.cos(_nbDir)*0.4;
+            _nbst2.throwTimer=40;_nbst2._bounces=2;_nbst2._stunTimer=80;
+            _dropNpcStolenCoins(_nbst2);
+            if(_nbst2.isPlayer)playHitSound();
+            egg.vy=0.2;egg.squash=0.5;
+        }
+        egg._npcBodySlam=null;
+    }
 }
 
 // ---- Drop stolen coins from NPC ----
@@ -5843,11 +5896,53 @@ function handlePlayerInput(){
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Track F press
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0){
+        // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
+        if(playerEgg.holding&&!playerEgg.onGround&&(keys['KeyS']||keys['ArrowDown'])){
+            var _bsHeld=playerEgg.holding;
+            _bsHeld.heldBy=null;playerEgg.holding=null;
+            if(_bsHeld.struggleBar){_bsHeld.mesh.remove(_bsHeld.struggleBar);_bsHeld.struggleBar=null;}
+            // Slam down fast
+            playerEgg.vy=-0.5;playerEgg.vx*=0.2;playerEgg.vz*=0.2;
+            playerEgg._bodySlam=true;playerEgg._bodySlamTarget=_bsHeld;
+            // Place held NPC below player
+            _bsHeld.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y-1.5,playerEgg.mesh.position.z);
+            _bsHeld.vy=-0.5;_bsHeld.vx=0;_bsHeld.vz=0;
+            playerEgg.grabCD=30;
+            playThrowSound();
+            playerEgg._fPressStart=false;playerEgg._fHoldFrames=0;playerEgg._fWasDown=true;
+        }
+        // ---- Piledriver (Zangief): left-right-left-F near NPC ----
+        else if(!_holdingSomething&&playerEgg._piledriverReady&&playerEgg.onGround){
+            // Find nearest NPC
+            var _pdNearest=null,_pdDist=2.5;
+            for(var _pdi=0;_pdi<allEggs.length;_pdi++){
+                var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy)continue;
+                var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
+                var _pddz=_pde.mesh.position.z-playerEgg.mesh.position.z;
+                var _pdd=Math.sqrt(_pddx*_pddx+_pddz*_pddz);
+                if(_pdd<_pdDist){_pdDist=_pdd;_pdNearest=_pde;}
+            }
+            if(_pdNearest){
+                // Start piledriver animation
+                playerEgg._piledriverTarget=_pdNearest;
+                playerEgg._piledriverPhase=0;
+                _pdNearest.heldBy=playerEgg;playerEgg.holding=_pdNearest;
+                playerEgg.grabCD=40;
+                playGrabSound();
+                playerEgg._fPressStart=false;playerEgg._fHoldFrames=0;playerEgg._fWasDown=true;
+                playerEgg._piledriverReady=false;
+            } else {
+                playerEgg._fPressStart=true;playerEgg._fHoldFrames=0;
+                playerEgg._throwCharging=false;playerEgg._throwCharge=0;playerEgg._justGrabbed=false;
+            }
+        }
+        else {
         playerEgg._fPressStart=true;
         playerEgg._fHoldFrames=0;
         playerEgg._throwCharging=false;
         playerEgg._throwCharge=0;
         playerEgg._justGrabbed=false;
+        }
     }
     // Count hold frames while F is down
     if(keys['KeyF']){
@@ -5999,6 +6094,70 @@ function handlePlayerInput(){
         }
     } else {
         if(playerEgg._throwChargeBar){playerEgg._throwChargeBar.visible=false;}
+    }
+    // ---- Piledriver input sequence tracker (left-right-left) ----
+    if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
+    if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
+    playerEgg._pdTimer--;
+    var _leftPress=(keys['KeyA']||keys['ArrowLeft'])&&!(playerEgg._pdPrevLeft);
+    var _rightPress=(keys['KeyD']||keys['ArrowRight'])&&!(playerEgg._pdPrevRight);
+    if(_leftPress&&playerEgg._pdSeq===0){playerEgg._pdSeq=1;playerEgg._pdTimer=30;}
+    else if(_rightPress&&playerEgg._pdSeq===1){playerEgg._pdSeq=2;playerEgg._pdTimer=30;}
+    else if(_leftPress&&playerEgg._pdSeq===2){playerEgg._pdSeq=3;playerEgg._pdTimer=30;playerEgg._piledriverReady=true;}
+    if(playerEgg._pdTimer<=0){playerEgg._pdSeq=0;playerEgg._piledriverReady=false;}
+    playerEgg._pdPrevLeft=!!(keys['KeyA']||keys['ArrowLeft']);
+    playerEgg._pdPrevRight=!!(keys['KeyD']||keys['ArrowRight']);
+    // ---- Body Slam landing impact ----
+    if(playerEgg._bodySlam&&playerEgg.onGround){
+        playerEgg._bodySlam=false;
+        var _bst=playerEgg._bodySlamTarget;
+        if(_bst&&_bst.alive){
+            // Crush NPC: flatten + bounce away
+            _bst.mesh.position.set(playerEgg.mesh.position.x,0.2,playerEgg.mesh.position.z);
+            _bst.squash=0.2;
+            var _bsDir=playerEgg.mesh.rotation.y+Math.PI*(Math.random()-0.5);
+            _bst.vx=Math.sin(_bsDir)*0.5;_bst.vy=0.35;_bst.vz=Math.cos(_bsDir)*0.5;
+            _bst.throwTimer=40;_bst._bounces=2;_bst._stunTimer=90;
+            _dropNpcStolenCoins(_bst);
+            playHitSound();
+            // Player bounces up from slam
+            playerEgg.vy=0.25;playerEgg.squash=0.5;
+            _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,0.8);
+        }
+        playerEgg._bodySlamTarget=null;
+    }
+    // ---- Piledriver animation ----
+    if(playerEgg._piledriverTarget){
+        var _pdt=playerEgg._piledriverTarget;
+        playerEgg._piledriverPhase++;
+        if(playerEgg._piledriverPhase<40){
+            // Phase 1: spin upward (Zangief rising)
+            playerEgg.vy=0.12;playerEgg.vx=0;playerEgg.vz=0;
+            playerEgg.mesh.rotation.y+=0.4;
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+            _pdt.mesh.rotation.y+=0.4;_pdt.mesh.rotation.z=Math.PI;
+            _pdt.vx=0;_pdt.vy=0;_pdt.vz=0;
+        } else if(playerEgg._piledriverPhase<55){
+            // Phase 2: slam down
+            playerEgg.vy=-0.4;playerEgg.vx=0;playerEgg.vz=0;
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+            playerEgg.mesh.rotation.y+=0.5;
+        } else {
+            // Phase 3: impact
+            _pdt.heldBy=null;playerEgg.holding=null;
+            if(_pdt.struggleBar){_pdt.mesh.remove(_pdt.struggleBar);_pdt.struggleBar=null;}
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,0.2,playerEgg.mesh.position.z);
+            _pdt.mesh.rotation.z=0;
+            _pdt.squash=0.15;
+            var _pdBounceDir=Math.random()*Math.PI*2;
+            _pdt.vx=Math.sin(_pdBounceDir)*0.6;_pdt.vy=0.4;_pdt.vz=Math.cos(_pdBounceDir)*0.6;
+            _pdt.throwTimer=60;_pdt._bounces=2;_pdt._stunTimer=120;
+            _dropNpcStolenCoins(_pdt);
+            playHitSound();
+            _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,1.0);
+            playerEgg.vy=0.15;playerEgg.squash=0.6;playerEgg.grabCD=40;
+            playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;
+        }
     }
     playerEgg._fWasDown=!!keys['KeyF'];
 }
