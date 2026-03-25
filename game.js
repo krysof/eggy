@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.45';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.46';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2863,40 +2863,36 @@ function buildCity() {
         earthGroup.add(atmo);
         var atmo2=new THREE.Mesh(new THREE.SphereGeometry(1.17,32,24),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.08,side:THREE.BackSide,fog:false}));
         earthGroup.add(atmo2);
-        // Earth-Moon distance: skybox positioning (far away)
-        var _earthDist=400000;
-        earthGroup.position.set(_earthDist*0.6,_earthDist*0.7,-_earthDist*0.3);
-        earthGroup.scale.set(_earthR,_earthR,_earthR);
+        // Earth-Moon distance: visible in sky (close enough to see clearly)
+        var _earthDist=800;
+        earthGroup.position.set(_earthDist*0.5,_earthDist*0.8,-_earthDist*0.3);
+        earthGroup.scale.set(60,60,60);
         scene.add(earthGroup);
         window._moonEarth=earthGroup;
 
         // ---- Solar System — Sun and planets at compressed but proportional distances ----
-        // Sun: radius 696,000km → 80,000 units (compressed), distance 150M km → 1,200,000 units
-        var _sunSolar=new THREE.Mesh(new THREE.SphereGeometry(80000,24,16),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
-        _sunSolar.position.set(-800000,600000,400000);
+        // Sun and planets (compressed for visibility in moon sky)
+        var _sunSolar=new THREE.Mesh(new THREE.SphereGeometry(30,24,16),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
+        _sunSolar.position.set(-600,500,300);
         scene.add(_sunSolar);
         window._sunSolar=_sunSolar;
-        var _sunSolarGlow=new THREE.Mesh(new THREE.SphereGeometry(100000,16,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.15,fog:false}));
+        var _sunSolarGlow=new THREE.Mesh(new THREE.SphereGeometry(45,16,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.15,fog:false}));
         _sunSolarGlow.position.copy(_sunSolar.position);
         scene.add(_sunSolarGlow);
         window._sunSolarGlow=_sunSolarGlow;
-        // Point light from sun direction for moon lighting
         var _solarLight=new THREE.DirectionalLight(0xFFEECC,1.0);
         _solarLight.position.copy(_sunSolar.position).normalize().multiplyScalar(100);
         scene.add(_solarLight);
         window._solarLight=_solarLight;
-
-        // Planets (compressed distances, exaggerated sizes for visibility)
         var _planets=[
-            {name:'Mercury',color:0xAA9988,r:200,dist:300000,angle:0.8},
-            {name:'Venus',color:0xFFCC88,r:500,dist:450000,angle:2.1},
-            // Earth is already placed above
-            {name:'Mars',color:0xCC6644,r:350,dist:600000,angle:3.5},
-            {name:'Jupiter',color:0xDDAA66,r:5800,dist:900000,angle:1.2},
-            {name:'Saturn',color:0xDDCC88,r:4800,dist:1100000,angle:4.0},
-            {name:'Uranus',color:0x88CCDD,r:2000,dist:1300000,angle:5.5},
-            {name:'Neptune',color:0x4466CC,r:1900,dist:1500000,angle:0.3},
-            {name:'Pluto',color:0xBBAA99,r:100,dist:1700000,angle:2.8}
+            {name:'Mercury',color:0xAA9988,r:1,dist:200,angle:0.8},
+            {name:'Venus',color:0xFFCC88,r:2,dist:300,angle:2.1},
+            {name:'Mars',color:0xCC6644,r:1.5,dist:400,angle:3.5},
+            {name:'Jupiter',color:0xDDAA66,r:8,dist:550,angle:1.2},
+            {name:'Saturn',color:0xDDCC88,r:7,dist:700,angle:4.0},
+            {name:'Uranus',color:0x88CCDD,r:4,dist:850,angle:5.5},
+            {name:'Neptune',color:0x4466CC,r:3.5,dist:950,angle:0.3},
+            {name:'Pluto',color:0xBBAA99,r:0.5,dist:1100,angle:2.8}
         ];
         window._solarPlanets=[];
         for(var _pi=0;_pi<_planets.length;_pi++){
@@ -2926,7 +2922,7 @@ function buildCity() {
         for(var ni=0;ni<20;ni++){
             var na=Math.random()*Math.PI*2;
             var ne2=(Math.random()-0.5)*Math.PI;
-            var nd=200000+Math.random()*800000;
+            var nd=500+Math.random()*800;
             var nnx=Math.cos(na)*Math.cos(ne2)*nd;
             var nny=Math.sin(ne2)*nd;
             var nnz=Math.sin(na)*Math.cos(ne2)*nd;
