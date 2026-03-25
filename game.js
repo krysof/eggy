@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.4';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.5';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2075,12 +2075,25 @@ function buildCity() {
     if(currentCityStyle!==5){
     const bColors = st.bColors;
     const buildings = [
-        {x:-30,z:-30,w:8,d:8,h:10},{x:-30,z:10,w:10,d:8,h:14},{x:30,z:-30,w:8,d:10,h:12},
-        {x:30,z:25,w:10,d:8,h:16},{x:-15,z:-50,w:12,d:8,h:8},{x:20,z:-50,w:8,d:8,h:11},
-        {x:-50,z:-15,w:8,d:12,h:13},{x:50,z:0,w:8,d:10,h:10},{x:-50,z:30,w:10,d:8,h:9},
-        {x:50,z:35,w:8,d:8,h:15},{x:0,z:-55,w:14,d:6,h:7},{x:0,z:55,w:12,d:8,h:11},
-        {x:-45,z:-45,w:7,d:7,h:8},{x:45,z:-45,w:9,d:7,h:12},{x:-20,z:40,w:8,d:10,h:10},
-        {x:15,z:45,w:10,d:6,h:8},
+        // Inner ring (original, scaled up positions)
+        {x:-30,z:-30,w:10,d:10,h:12},{x:-30,z:10,w:12,d:10,h:16},{x:30,z:-30,w:10,d:12,h:14},
+        {x:30,z:25,w:12,d:10,h:18},{x:-15,z:-50,w:14,d:8,h:10},{x:20,z:-50,w:10,d:10,h:13},
+        {x:-50,z:-15,w:10,d:14,h:15},{x:50,z:0,w:10,d:12,h:12},{x:-50,z:30,w:12,d:10,h:11},
+        {x:50,z:35,w:10,d:10,h:17},{x:0,z:-55,w:16,d:8,h:9},{x:0,z:55,w:14,d:10,h:13},
+        {x:-45,z:-45,w:9,d:9,h:10},{x:45,z:-45,w:11,d:9,h:14},{x:-20,z:40,w:10,d:12,h:12},
+        {x:15,z:45,w:12,d:8,h:10},
+        // Outer ring (new buildings for doubled city)
+        {x:-90,z:-60,w:10,d:10,h:11},{x:-90,z:20,w:12,d:8,h:14},{x:90,z:-40,w:10,d:10,h:12},
+        {x:90,z:30,w:8,d:12,h:16},{x:-60,z:-90,w:10,d:10,h:10},{x:60,z:-90,w:12,d:8,h:13},
+        {x:-100,z:60,w:10,d:10,h:9},{x:100,z:-10,w:8,d:14,h:15},{x:-70,z:80,w:12,d:10,h:11},
+        {x:70,z:80,w:10,d:10,h:14},{x:0,z:-100,w:14,d:8,h:8},{x:0,z:100,w:12,d:10,h:12},
+        // Far corners
+        {x:-110,z:-100,w:10,d:10,h:10},{x:110,z:-100,w:10,d:8,h:13},{x:-110,z:100,w:8,d:10,h:11},
+        {x:110,z:100,w:10,d:10,h:15},{x:-130,z:0,w:10,d:12,h:12},{x:130,z:0,w:12,d:10,h:10},
+        {x:0,z:-130,w:10,d:10,h:9},{x:0,z:130,w:10,d:8,h:11},
+        // Mid-distance fill
+        {x:-70,z:-20,w:8,d:8,h:13},{x:70,z:-60,w:10,d:8,h:11},{x:-40,z:70,w:8,d:10,h:10},
+        {x:40,z:-80,w:10,d:8,h:12},{x:-80,z:-80,w:8,d:8,h:9},{x:80,z:60,w:10,d:10,h:14},
     ];
     buildings.forEach((b,i)=>{
         const col = bColors[i%bColors.length];
@@ -2111,7 +2124,7 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    for(let i=0;i<40;i++){
+    for(let i=0;i<80;i++){
         const tx=-CITY_SIZE+Math.random()*CITY_SIZE*2, tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
         let skip=false;
         for(const c of cityColliders) if(Math.abs(tx-c.x)<c.hw+2&&Math.abs(tz-c.z)<c.hd+2) skip=true;
@@ -3453,7 +3466,7 @@ function buildPortals() {
 
 // ---- Collectible coins in city ----
 function buildCityCoins() {
-    var coinCount=currentCityStyle===5?200:90;
+    var coinCount=currentCityStyle===5?200:180;
     for(let i=0;i<coinCount;i++){
         var coinSpread=currentCityStyle===5?MOON_CITY_SIZE*0.9:CITY_SIZE*0.9;
         const cx=(Math.random()-0.5)*coinSpread*2, cz=(Math.random()-0.5)*coinSpread*2;
@@ -3842,7 +3855,7 @@ function switchCity(targetStyle){
 
 // ---- NPC eggs wandering city ----
 function spawnCityNPCs() {
-    var npcCount=currentCityStyle===5?24:12;
+    var npcCount=currentCityStyle===5?24:24;
     for(let i=0;i<npcCount;i++){
         var nx2,nz2,spawnY=0;
         if(currentCityStyle===5){
@@ -4634,16 +4647,33 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
     egg.conveyorVx=0; egg.conveyorVz=0;
 
     if(isCity){
-        // City ground
-        if(egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
+        // City ground — only within city bounds
+        var _inBounds=Math.abs(egg.mesh.position.x)<(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE)&&Math.abs(egg.mesh.position.z)<(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
+        if(_inBounds&&egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
-        }else{egg.onGround=false;}
-        // City bounds — air wall bounce
-        const bound=(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE)-1;
-        if(egg.mesh.position.x>bound){egg.mesh.position.x=bound;egg.vx=-Math.abs(egg.vx)*0.5;}
-        if(egg.mesh.position.x<-bound){egg.mesh.position.x=-bound;egg.vx=Math.abs(egg.vx)*0.5;}
-        if(egg.mesh.position.z>bound){egg.mesh.position.z=bound;egg.vz=-Math.abs(egg.vz)*0.5;}
-        if(egg.mesh.position.z<-bound){egg.mesh.position.z=-bound;egg.vz=Math.abs(egg.vz)*0.5;}
+        }else if(!_inBounds){egg.onGround=false;}
+        else{egg.onGround=false;}
+        // City bounds — no wall, can fall off edge
+        const bound=(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
+        // Fall respawn: if egg falls below -30, respawn at center (fountain/pool splash)
+        if(egg.mesh.position.y<-30){
+            if(currentCityStyle===5){
+                // Moon: respawn inside Von Braun
+                egg.mesh.position.set(-200,5,0);
+            } else {
+                // Ground city: splash into fountain pool
+                egg.mesh.position.set((Math.random()-0.5)*4,8,(Math.random()-0.5)*4);
+            }
+            egg.vx=0;egg.vy=0;egg.vz=0;egg.onGround=false;egg.squash=0.5;
+            if(egg.isPlayer){playHitSound();playSplashSound();}
+            // Drop coins on fall
+            _dropNpcStolenCoins(egg);
+        }
+        // Remove ground collision beyond city edge — let eggs fall
+        if(Math.abs(egg.mesh.position.x)>bound||Math.abs(egg.mesh.position.z)>bound){
+            // Past city edge: no ground, just gravity
+            egg.onGround=false;
+        }
         // AT Field shield collision — block player/NPC except at door openings
         if(currentCityStyle===5&&window._moonShields){
             for(var _si=0;_si<window._moonShields.length;_si++){
@@ -5301,8 +5331,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 egg.aiTargetX=(Math.random()-0.5)*MOON_CITY_SIZE*1.5;
                 egg.aiTargetZ=(Math.random()-0.5)*MOON_CITY_SIZE*1.5;
             } else {
-                egg.aiTargetX=(Math.random()-0.5)*55;
-                egg.aiTargetZ=(Math.random()-0.5)*55;
+                egg.aiTargetX=(Math.random()-0.5)*CITY_SIZE*0.7;
+                egg.aiTargetZ=(Math.random()-0.5)*CITY_SIZE*0.7;
             }
         }
         // Clamp wander target inside city bounds
