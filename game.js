@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.49';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.50';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -46,10 +46,10 @@ var I18N={
     earthReturn:{zhs:'\u8FD4\u56DE\u5730\u7403',zht:'\u8FD4\u56DE\u5730\u7403',ja:'\u5730\u7403\u3078\u5E30\u9084',en:'Return to Earth'},
     earthReturnDesc:{zhs:'\u4F20\u9001\u56DE\u5730\u7403\u57CE\u5E02',zht:'\u50B3\u9001\u56DE\u5730\u7403\u57CE\u5E02',ja:'\u5730\u7403\u306E\u8857\u3078\u30C6\u30EC\u30DD\u30FC\u30C8',en:'Teleport back to Earth city'},
     charNames:{
-        zhs:['\u86CB\u5B9D','\u5C0F\u72D7','\u9A6C\u9A9D','\u516C\u9E21','\u87F3\u8782','\u5C0F\u732B','\u5C0F\u732A','\u9752\u86D9'],
-        zht:['\u86CB\u5B9D','\u5C0F\u72D7','\u99AC\u9A1D','\u516C\u96DE','\u8708\u87C2','\u5C0F\u8C93','\u5C0F\u8C6C','\u9752\u86D9'],
-        ja:['\u30C0\u30F3\u30DC','\u30A4\u30CC','\u30B5\u30EB','\u30CB\u30EF\u30C8\u30EA','\u30B4\u30AD\u30D6\u30EA','\u30CD\u30B3','\u30D6\u30BF','\u30AB\u30A8\u30EB'],
-        en:['Danbo','Puppy','Monkey','Rooster','Cockroach','Kitty','Piggy','Frog']
+        zhs:['\u86CB\u5B9D','\u5C0F\u732A','\u5C0F\u732B','\u516C\u9E21','\u5C0F\u72D7','\u9A6C\u9A9D','\u9752\u86D9','\u87F3\u8782'],
+        zht:['\u86CB\u5B9D','\u5C0F\u8C6C','\u5C0F\u8C93','\u516C\u96DE','\u5C0F\u72D7','\u99AC\u9A1D','\u9752\u86D9','\u8708\u87C2'],
+        ja:['\u30C0\u30F3\u30DC','\u30D6\u30BF','\u30CD\u30B3','\u30CB\u30EF\u30C8\u30EA','\u30A4\u30CC','\u30B5\u30EB','\u30AB\u30A8\u30EB','\u30B4\u30AD\u30D6\u30EA'],
+        en:['Danbo','Piggy','Kitty','Rooster','Puppy','Monkey','Frog','Cockroach']
     },
     cityNames:{
         zhs:['\uD83C\uDFD9\uFE0F \u5E0C\u671B\u4E4B\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
@@ -967,14 +967,15 @@ scene.add(_sunGlow);
 // ---- Skins ----
 // ---- Characters ----
 const CHARACTERS = [
-    {name:'\u86CB\u5B9D',type:'egg',color:0xFFDD44,accent:0xFFAA00,icon:'\uD83E\uDD5A',portrait:'#FFDD44'},
-    {name:'\u5C0F\u72D7',type:'dog',color:0xC8915A,accent:0xA0704A,icon:'\uD83D\uDC36',portrait:'#C8915A'},
-    {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866'},
-    {name:'\u516C\u9E21',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC'},
-    {name:'\u87F3\u8782',type:'cockroach',color:0x8B4513,accent:0x5C2E0A,icon:'\uD83E\uDEB3',portrait:'#8B4513'},
-    {name:'\u5C0F\u732B',type:'cat',color:0xDDDDDD,accent:0xAAAAAA,icon:'\uD83D\uDC31',portrait:'#DDDDDD'},
-    {name:'\u5C0F\u732A',type:'pig',color:0xFFAAAA,accent:0xFF7788,icon:'\uD83D\uDC37',portrait:'#FFAAAA'},
-    {name:'\u9752\u86D9',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55'},
+    // SF2 select screen layout: top row L→R, bottom row L→R
+    {name:'\u86CB\u5B9D',type:'egg',color:0xFFDD44,accent:0xFFAA00,icon:'\uD83E\uDD5A',portrait:'#FFDD44',sf2:'Ryu'},
+    {name:'\u5C0F\u732A',type:'pig',color:0xFFAAAA,accent:0xFF7788,icon:'\uD83D\uDC37',portrait:'#FFAAAA',sf2:'E.Honda'},
+    {name:'\u5C0F\u732B',type:'cat',color:0xDDDDDD,accent:0xAAAAAA,icon:'\uD83D\uDC31',portrait:'#DDDDDD',sf2:'Blanka'},
+    {name:'\u516C\u9E21',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC',sf2:'Guile'},
+    {name:'\u5C0F\u72D7',type:'dog',color:0xC8915A,accent:0xA0704A,icon:'\uD83D\uDC36',portrait:'#C8915A',sf2:'Ken'},
+    {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866',sf2:'Chun-Li'},
+    {name:'\u9752\u86D9',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55',sf2:'Zangief'},
+    {name:'\u87F3\u8782',type:'cockroach',color:0x8B4513,accent:0x5C2E0A,icon:'\uD83E\uDEB3',portrait:'#8B4513',sf2:'Dhalsim'},
 ];
 let selectedChar = 0;
 // Apply localized character names
@@ -6285,6 +6286,7 @@ function handlePlayerInput(){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
         playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
+        _showChatBubble(playerEgg,'Double Lariat!');
     }
     // Punch (R) — character-specific special moves on command input
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
@@ -6300,6 +6302,7 @@ function handlePlayerInput(){
         // Zangief (frog): Double Lariat (R+T together)
         if(_isHadou&&(_ct==='egg'||_ct==='dog')){
             // HADOUKEN (Ryu blue, Ken red)
+            _showChatBubble(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;
             var _hDir=playerEgg.mesh.rotation.y;
             var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
@@ -6315,6 +6318,7 @@ function handlePlayerInput(){
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ct==='cockroach'){
             // YOGA FIRE (Dhalsim) — slow fireball
+            _showChatBubble(playerEgg,'Yoga Fire!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;
             var _yfDir=playerEgg.mesh.rotation.y;
             var _yfBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.9}));
@@ -6336,12 +6340,14 @@ function handlePlayerInput(){
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(_isHadou&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — dash forward with head
+            _showChatBubble(playerEgg,'Dosukoi!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;
             var _shDir=playerEgg.mesh.rotation.y;
             playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*4;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*4;
             playerEgg._hondaDash=20;playerEgg._atkAnim=22;playerEgg.squash=0.7;
         } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken)
+            _showChatBubble(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=60;
@@ -6355,6 +6361,7 @@ function handlePlayerInput(){
             playJumpSound();
         } else if(_isShoryu&&_ct==='cat'){
             // ELECTRIC THUNDER (Blanka) — shock nearby enemies
+            _showChatBubble(playerEgg,'ELECTRIC!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._shoryuReady=false;
             playerEgg._blankaShock=30;playerEgg.squash=0.6;
             if(sfxEnabled){var _bsCtx2=ensureAudio();if(_bsCtx2){var _bst3=_bsCtx2.currentTime;var _bso2=_bsCtx2.createOscillator();var _bsg2=_bsCtx2.createGain();_bso2.type='square';_bso2.frequency.setValueAtTime(800,_bst3);_bso2.frequency.linearRampToValueAtTime(2000,_bst3+0.1);_bso2.frequency.linearRampToValueAtTime(400,_bst3+0.3);_bsg2.gain.setValueAtTime(0.08,_bst3);_bsg2.gain.exponentialRampToValueAtTime(0.001,_bst3+0.35);_bso2.connect(_bsg2);_bsg2.connect(_bsCtx2.destination);_bso2.start(_bst3);_bso2.stop(_bst3+0.35);}}
@@ -6386,8 +6393,9 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=8;playerEgg._rapidR=0;
             playerEgg._blankaShock=25;playerEgg.squash=0.6;
             if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
-        } else if(playerEgg._chargeForwardReady&&(_ct==='rooster'||_ct==='monkey')&&!window._playerHadouken){
-            // SONIC BOOM (Guile) / 気功拳 (Chun-Li) — charge back→forward+R
+        } else if(_isHadou&&(_ct==='rooster'||_ct==='monkey')&&!window._playerHadouken){
+            // SONIC BOOM (Guile) / 気功拳 (Chun-Li) — ↓→+R
+            _showChatBubble(playerEgg,_ct==='monkey'?'Kikouken!':'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
             var _sbDir2=playerEgg.mesh.rotation.y;
             var _sbColor2=_ct==='monkey'?0x88BBFF:0x44FF44;
@@ -6397,8 +6405,9 @@ function handlePlayerInput(){
             _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
             window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*0.5,vz:Math.cos(_sbDir2)*0.5,life:100,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
-        } else if(playerEgg._chargeForwardReady&&(_ct==='cat')&&!window._playerHadouken){
-            // ROLLING ATTACK (Blanka) — charge back→forward+R, ball dash
+        } else if(_isHadou&&(_ct==='cat')&&!window._playerHadouken){
+            // ROLLING ATTACK (Blanka) — ↓→+R, ball dash
+            _showChatBubble(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._chargeBack=0;
             var _raDir=playerEgg.mesh.rotation.y;
             playerEgg.vx=Math.sin(_raDir)*MAX_SPEED*5;playerEgg.vz=Math.cos(_raDir)*MAX_SPEED*5;
@@ -6468,6 +6477,7 @@ function handlePlayerInput(){
         // Character-specific kick specials
         if(_isTatsu&&(_ct==='egg'||_ct==='dog')){
             // TATSUMAKI (Ryu/Ken)
+            _showChatBubble(playerEgg,'Tatsumaki Senpukyaku!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
             playerEgg.vy=0.1; // slight hop
             playerEgg._tatsuActive=94; // 12 full rotations at 0.8 rad/frame
@@ -6484,18 +6494,20 @@ function handlePlayerInput(){
                 _tg2.gain.setValueAtTime(0.08,_tt);_tg2.gain.linearRampToValueAtTime(0.12,_tt+0.3);_tg2.gain.exponentialRampToValueAtTime(0.001,_tt+1.5);
                 _to.connect(_tg2);_tg2.connect(_tCtx.destination);_to.start(_tt);_to.stop(_tt+1.5);
             }}
-        } else if(playerEgg._chargeUpReady&&_ct==='monkey'&&(keys['KeyW']||keys['ArrowUp'])){
-            // SPINNING BIRD KICK (Chun-Li) — charge down→up+T
-            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._chargeDown=0;
+        } else if(_isTatsu&&_ct==='monkey'){
+            // SPINNING BIRD KICK (Chun-Li) — ↓←+T
+            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*1.2;
             playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
             playerEgg._atkAnim=62;
-        } else if(playerEgg._chargeUpReady&&(_ct==='rooster')&&(keys['KeyW']||keys['ArrowUp'])){
-            // SOMERSAULT KICK (Guile) — charge down then up+T
-            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._chargeDown=0;
+            _showChatBubble(playerEgg,'Spinning Bird Kick!');
+        } else if(_isTatsu&&(_ct==='rooster')){
+            // SOMERSAULT KICK (Guile) — ↓←+T
+            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*2.0;playerEgg.squash=0.5;
             playerEgg._shoryuActive=50;
             playJumpSound();
+            _showChatBubble(playerEgg,'Somersault Kick!');
         } else if(playerEgg._rapidTReady&&_ct==='monkey'){
             // 百裂脚 (Chun-Li) — rapid kicks
             playerEgg._comboCount=0;playerEgg._attackCD=5;playerEgg._rapidT=0;
@@ -6689,15 +6701,11 @@ function handlePlayerInput(){
     }
     if(playerEgg._hadouTimer<=0){playerEgg._hadouSeq=0;playerEgg._hadouReady=false;}
     playerEgg._prevHLeft=_hLeft;playerEgg._prevHRight=_hRight;playerEgg._prevHDown=_hDown;
-    // ---- Charge system (Guile/Blanka): hold back or down for 60 frames ----
-    if(!playerEgg._chargeBack)playerEgg._chargeBack=0;
-    if(!playerEgg._chargeDown)playerEgg._chargeDown=0;
-    if(_hLeft||_hRight)playerEgg._chargeBack++; else playerEgg._chargeBack=0;
-    if(_hDown)playerEgg._chargeDown++; else playerEgg._chargeDown=0;
-    // Charge-forward+R = Sonic Boom / Rolling Attack (need 60 frames of back charge)
-    playerEgg._chargeForwardReady=(playerEgg._chargeBack>=60);
-    // Charge-up+T = Somersault Kick (need 60 frames of down charge)
-    playerEgg._chargeUpReady=(playerEgg._chargeDown>=60);
+    // ---- Simple command inputs for charge characters (no actual charging needed) ----
+    // Sonic Boom / 気功拳 / Rolling Attack: use ↓→+R (same as hadouken)
+    playerEgg._chargeForwardReady=playerEgg._hadouReady;
+    // Somersault / Spinning Bird: use ↓→+T (reuse hadou input for kick)
+    playerEgg._chargeUpReady=playerEgg._hadouReady;
     // ---- Rapid press detection (Chun-Li/Honda/Blanka) ----
     if(!playerEgg._rapidR)playerEgg._rapidR=0;
     if(!playerEgg._rapidT)playerEgg._rapidT=0;
