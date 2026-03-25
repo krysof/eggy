@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.69';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.70';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -819,7 +819,7 @@ function _battleSoundVol(){
     for(var si=0;si<window._moonShields.length;si++){
         var s=window._moonShields[si];
         var dx=px-s.x,dz=pz-s.z;
-        if(dx*dx+dz*dz<s.r*s.r)return 0.08; // inside city — muffle to 8%
+        if(dx*dx+dz*dz<s.r*s.r)return 0.01; // inside city — nearly silent
     }
     return 1.0;
 }
@@ -854,27 +854,27 @@ function playMissileSound(){
 }
 // AT Field effect — hexagonal flash at shield impact point
 function _spawnATField(x,y,z,nx,ny,nz){
-    // Hexagonal ring flash
+    // Large hexagonal ring flash — Evangelion AT Field style
     var atMat=new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.9,side:THREE.DoubleSide});
-    for(var ai=0;ai<3;ai++){
-        var r=2+ai*1.5;
-        var hex=new THREE.Mesh(new THREE.RingGeometry(r-0.3,r+0.3,6),atMat.clone());
+    for(var ai=0;ai<5;ai++){
+        var r=4+ai*3;
+        var hex=new THREE.Mesh(new THREE.RingGeometry(r-0.5,r+0.5,6),atMat.clone());
         hex.position.set(x,y,z);
         hex.lookAt(x+nx,y+ny,z+nz);
-        hex.material.opacity=0.8-ai*0.2;
+        hex.material.opacity=0.85-ai*0.12;
         scene.add(hex);
-        window._moonBeams.push({mesh:hex,life:12+ai*3,vx:nx*0.05,vy:ny*0.05,vz:nz*0.05,_isExplosion:true});
+        window._moonBeams.push({mesh:hex,life:35+ai*8,vx:nx*0.02,vy:ny*0.02,vz:nz*0.02,_isExplosion:true,_atField:true});
     }
-    // Central flash
-    var flash=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,4),new THREE.MeshBasicMaterial({color:0xFFCC44,transparent:true,opacity:0.95}));
+    // Central flash — bigger
+    var flash=new THREE.Mesh(new THREE.SphereGeometry(3,6,4),new THREE.MeshBasicMaterial({color:0xFFCC44,transparent:true,opacity:0.9}));
     flash.position.set(x,y,z);scene.add(flash);
-    window._moonBeams.push({mesh:flash,life:10,vx:0,vy:0,vz:0,_isExplosion:true});
+    window._moonBeams.push({mesh:flash,life:25,vx:0,vy:0,vz:0,_isExplosion:true,_atField:true});
     // AT Field sound
     if(sfxEnabled){
-        var ctx=ensureAudio();if(ctx){var t=ctx.currentTime;
+        var ctx=ensureAudio();if(ctx){var t=ctx.currentTime;var _atVol=_battleSoundVol();
         var o=ctx.createOscillator();var g=ctx.createGain();
         o.type='sine';o.frequency.setValueAtTime(1200,t);o.frequency.exponentialRampToValueAtTime(200,t+0.2);
-        g.gain.setValueAtTime(0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+        g.gain.setValueAtTime(0.06*_atVol,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
         o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+0.25);}
     }
 }
@@ -6447,8 +6447,14 @@ function updateCity(){
             bb.life--;
             bb.mesh.visible=!_playerInShield;
             if(bb._isExplosion){
-                bb.mesh.material.opacity=bb.life/15*0.9;
-                bb.mesh.scale.multiplyScalar(1.1);
+                if(bb._atField){
+                    // AT Field: slow fade, gentle scale
+                    bb.mesh.material.opacity=Math.min(0.85,bb.life/40*0.85);
+                    bb.mesh.scale.multiplyScalar(1.02);
+                } else {
+                    bb.mesh.material.opacity=bb.life/15*0.9;
+                    bb.mesh.scale.multiplyScalar(1.1);
+                }
             } else {
                 bb.mesh.material.opacity=Math.max(0,bb.life/35);
                 // Shield collision — AT Field effect
