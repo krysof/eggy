@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.14';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.15';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1930,14 +1930,16 @@ function createEggMesh(color, accent, charType) {
     [-1,1].forEach(function(s){ var ft=new THREE.Mesh(ftG,ftM); ft.position.set(s*0.2,0.05,0.06); ft.castShadow=true; g.add(ft); feet.push(ft); });
     // Attack limbs (hidden by default, shown during punch/kick)
     var armMat=toon(accent||0xFFCC00);
-    var rightArm=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),armMat);
-    rightArm.scale.set(1,1,2);rightArm.position.set(0.5,0.6,0.4);rightArm.visible=false;g.add(rightArm);
-    var leftArm=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),armMat);
-    leftArm.scale.set(1,1,2);leftArm.position.set(-0.5,0.6,0.4);leftArm.visible=false;g.add(leftArm);
-    var rightLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.5,6),armMat);
-    rightLeg.position.set(0.25,0.1,0.5);rightLeg.rotation.x=-Math.PI/3;rightLeg.visible=false;g.add(rightLeg);
-    var leftLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.5,6),armMat);
-    leftLeg.position.set(-0.25,0.1,0.5);leftLeg.rotation.x=-Math.PI/3;leftLeg.visible=false;g.add(leftLeg);
+    // Fists — near eye level, round
+    var rightArm=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),armMat);
+    rightArm.scale.set(1.2,1,1.5);rightArm.position.set(0.5,0.85,0.4);rightArm.visible=false;g.add(rightArm);
+    var leftArm=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),armMat);
+    leftArm.scale.set(1.2,1,1.5);leftArm.position.set(-0.5,0.85,0.4);leftArm.visible=false;g.add(leftArm);
+    // Legs — longer cylinders
+    var rightLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,0.7,6),armMat);
+    rightLeg.position.set(0.22,0.1,0.5);rightLeg.rotation.x=-Math.PI/3;rightLeg.visible=false;g.add(rightLeg);
+    var leftLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,0.7,6),armMat);
+    leftLeg.position.set(-0.22,0.1,0.5);leftLeg.rotation.x=-Math.PI/3;leftLeg.visible=false;g.add(leftLeg);
     g.userData.body=body; g.userData.feet=feet; g.userData._charType=charType;
     g.userData.rightArm=rightArm;g.userData.leftArm=leftArm;
     g.userData.rightLeg=rightLeg;g.userData.leftLeg=leftLeg;
@@ -6181,24 +6183,67 @@ function handlePlayerInput(){
     if(playerEgg._atkAnim>0){
         playerEgg._atkAnim--;
         if(playerEgg._atkAnim<=0){
-            // Hide all limbs
             var _ud=playerEgg.mesh.userData;
-            if(_ud.rightArm)_ud.rightArm.visible=false;
-            if(_ud.leftArm)_ud.leftArm.visible=false;
-            if(_ud.rightLeg)_ud.rightLeg.visible=false;
-            if(_ud.leftLeg)_ud.leftLeg.visible=false;
+            if(_ud.rightArm){_ud.rightArm.visible=false;_ud.rightArm.scale.set(1.2,1,1.5);_ud.rightArm.position.set(0.5,0.85,0.4);}
+            if(_ud.leftArm){_ud.leftArm.visible=false;_ud.leftArm.scale.set(1.2,1,1.5);_ud.leftArm.position.set(-0.5,0.85,0.4);}
+            if(_ud.rightLeg){_ud.rightLeg.visible=false;_ud.rightLeg.position.set(0.22,0.1,0.5);_ud.rightLeg.rotation.x=-Math.PI/3;}
+            if(_ud.leftLeg){_ud.leftLeg.visible=false;_ud.leftLeg.position.set(-0.22,0.1,0.5);_ud.leftLeg.rotation.x=-Math.PI/3;}
+            if(_ud.body)_ud.body.rotation.x=0; // reset headbutt
         }
     }
-    // Punch (R) — fast jab with arm extension
+    // Punch (R) — fast jab with arm extension; 3rd hit = finisher (headbutt/big punch/tail whip)
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
+        // Check for Shoryuken: 前下前+R (forward-down-forward+punch)
+        var _isShoryu=playerEgg._shoryuReady;
+        if(_isShoryu){
+            // SHORYUKEN — rising uppercut
+            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
+            playerEgg.vy=JUMP_FORCE*3.0;playerEgg.squash=0.5;
+            // Show both arms up
+            var _ud2=playerEgg.mesh.userData;
+            if(_ud2.rightArm){_ud2.rightArm.visible=true;_ud2.rightArm.position.set(0.3,1.1,0.3);}
+            playerEgg._atkAnim=20;
+            var _sDir=playerEgg.mesh.rotation.y;
+            for(var _si2=0;_si2<allEggs.length;_si2++){
+                var _se=allEggs[_si2];if(_se===playerEgg||!_se.alive||_se.heldBy)continue;
+                var _sdx2=_se.mesh.position.x-playerEgg.mesh.position.x;
+                var _sdz2=_se.mesh.position.z-playerEgg.mesh.position.z;
+                var _sd2=Math.sqrt(_sdx2*_sdx2+_sdz2*_sdz2);
+                if(_sd2<3&&_sd2>0.01){
+                    var _sAng=Math.atan2(_sdx2,_sdz2);
+                    var _sDf=Math.abs(_sAng-_sDir);if(_sDf>Math.PI)_sDf=Math.PI*2-_sDf;
+                    if(_sDf<Math.PI/2.5){
+                        _se.vx+=_sdx2/_sd2*0.3;_se.vz+=_sdz2/_sd2*0.3;
+                        _se.vy=0.4;_se.squash=0.3;_se.throwTimer=50;_se._bounces=2;
+                        _se._stunTimer=80;
+                        _dropNpcStolenCoins(_se);playHitSound();
+                    }
+                }
+            }
+            playJumpSound();
+        } else {
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
-        // Show punch arm (alternate left/right)
         var _punchArm=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
-        if(_punchArm){_punchArm.visible=true;_punchArm.position.z=0.7;} // extend forward
+        if(_punchArm){_punchArm.visible=true;_punchArm.position.z=0.8;}
         playerEgg._atkAnim=8;
         var _atkDir=playerEgg.mesh.rotation.y;
         var _isFinisher=(playerEgg._comboCount>=3);
         var _isAerial=!playerEgg.onGround;
+        // Finisher visual: show both arms or headbutt
+        if(_isFinisher){
+            var _finType=Math.floor(Math.random()*3); // 0=big punch, 1=headbutt, 2=tail whip
+            var _fud=playerEgg.mesh.userData;
+            if(_finType===0){
+                // Big punch — both arms forward
+                if(_fud.rightArm){_fud.rightArm.visible=true;_fud.rightArm.position.set(0.2,0.85,0.9);_fud.rightArm.scale.set(1.5,1.2,2);}
+                if(_fud.leftArm){_fud.leftArm.visible=true;_fud.leftArm.position.set(-0.2,0.85,0.9);_fud.leftArm.scale.set(1.5,1.2,2);}
+            } else if(_finType===1){
+                // Headbutt — body lunge forward
+                if(_fud.body)_fud.body.rotation.x=-0.5;
+            }
+            // Tail whip: just extra squash
+            playerEgg._atkAnim=14;
+        }
         for(var _ai=0;_ai<allEggs.length;_ai++){
             var _ae=allEggs[_ai];if(_ae===playerEgg||!_ae.alive||_ae.heldBy)continue;
             if(_ae._slamImmune>0)continue;
@@ -6210,36 +6255,39 @@ function handlePlayerInput(){
                 var _aDiff=Math.abs(_aAngle-_atkDir);if(_aDiff>Math.PI)_aDiff=Math.PI*2-_aDiff;
                 if(_aDiff<Math.PI/3){
                     if(_isFinisher||_isAerial){
-                        // KNOCKDOWN: fly away (combo finisher uppercut)
-                        var _kf=0.35+(_isAerial?0.2:0);
+                        var _kf=0.4+(_isAerial?0.2:0);
                         _ae.vx+=_adx/_ad*_kf;_ae.vz+=_adz/_ad*_kf;
                         _ae.vy=_isAerial?0.25:0.2;
                         _ae.squash=0.4;_ae.throwTimer=30;_ae._bounces=1;
                         _ae._stunTimer=Math.floor(40+(_isAerial?30:0));
                     } else {
-                        // HITSTUN: flinch in place — NO stun stars, just can't move briefly
                         _ae.vx+=_adx/_ad*0.08;_ae.vz+=_adz/_ad*0.08;
-                        _ae.squash=0.78;
-                        _ae._hitStun=12; // separate from _stunTimer (no stars)
+                        _ae.squash=0.78;_ae._hitStun=12;
                     }
-                    _dropNpcStolenCoins(_ae);
-                    playHitSound();
+                    _dropNpcStolenCoins(_ae);playHitSound();
                 }
             }
         }
-        playerEgg.squash=0.88;
+        playerEgg.squash=_isFinisher?0.75:0.88;
         if(_isFinisher){playerEgg._comboCount=0;playerEgg._attackCD=18;}
+        }
     }
-    // Kick (T) — slower, stronger, with leg extension
+    // Kick (T) — slower, stronger, with leg extension; 3rd = big knockdown
     if(keys['KeyT']&&!playerEgg._tWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
-        // Show kick leg (alternate)
         var _kickLeg=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
-        if(_kickLeg){_kickLeg.visible=true;_kickLeg.position.z=0.6;}
+        if(_kickLeg){_kickLeg.visible=true;_kickLeg.position.z=0.7;_kickLeg.rotation.x=-Math.PI/2.5;}
         playerEgg._atkAnim=10;
         var _kDir=playerEgg.mesh.rotation.y;
         var _kFinisher=(playerEgg._comboCount>=3);
         var _kAerial=!playerEgg.onGround;
+        if(_kFinisher){
+            // Finisher kick: show both legs
+            var _kud=playerEgg.mesh.userData;
+            if(_kud.rightLeg){_kud.rightLeg.visible=true;_kud.rightLeg.position.z=0.8;_kud.rightLeg.rotation.x=-Math.PI/2;}
+            if(_kud.leftLeg){_kud.leftLeg.visible=true;_kud.leftLeg.position.z=0.8;_kud.leftLeg.rotation.x=-Math.PI/2;}
+            playerEgg._atkAnim=14;
+        }
         for(var _ki=0;_ki<allEggs.length;_ki++){
             var _ke=allEggs[_ki];if(_ke===playerEgg||!_ke.alive||_ke.heldBy)continue;
             if(_ke._slamImmune>0)continue;
@@ -6251,28 +6299,36 @@ function handlePlayerInput(){
                 var _kDiff=Math.abs(_kAngle-_kDir);if(_kDiff>Math.PI)_kDiff=Math.PI*2-_kDiff;
                 if(_kDiff<Math.PI/3){
                     if(_kFinisher||_kAerial){
-                        // BIG KNOCKDOWN: roundhouse sends them flying
                         var _kkf=0.5+(_kAerial?0.25:0);
                         _ke.vx+=_kdx/_kd*_kkf;_ke.vz+=_kdz/_kd*_kkf;
                         _ke.vy=_kAerial?0.3:0.25;
                         _ke.squash=0.3;_ke.throwTimer=45;_ke._bounces=2;
                         _ke._stunTimer=Math.floor(60+(_kAerial?40:0));
                     } else {
-                        // HITSTUN: stagger back — NO stun stars
                         _ke.vx+=_kdx/_kd*0.12;_ke.vz+=_kdz/_kd*0.12;
-                        _ke.squash=0.72;
-                        _ke._hitStun=15;
+                        _ke.squash=0.72;_ke._hitStun=15;
                     }
-                    _dropNpcStolenCoins(_ke);
-                    playHitSound();
+                    _dropNpcStolenCoins(_ke);playHitSound();
                 }
             }
         }
-        playerEgg.squash=0.82;
+        playerEgg.squash=_kFinisher?0.7:0.82;
         if(_kFinisher){playerEgg._comboCount=0;playerEgg._attackCD=22;}
     }
     playerEgg._rWasDown=!!keys['KeyR'];
     playerEgg._tWasDown=!!keys['KeyT'];
+    // ---- Shoryuken input tracker (前下前 = forward-down-forward) ----
+    if(!playerEgg._shoryuSeq)playerEgg._shoryuSeq=0;
+    if(!playerEgg._shoryuTimer)playerEgg._shoryuTimer=0;
+    playerEgg._shoryuTimer--;
+    var _fwdPress=(keys['KeyW']||keys['ArrowUp'])&&!playerEgg._shoryuPrevFwd;
+    var _downPress=(keys['KeyS']||keys['ArrowDown'])&&!playerEgg._shoryuPrevDown;
+    if(_fwdPress&&playerEgg._shoryuSeq===0){playerEgg._shoryuSeq=1;playerEgg._shoryuTimer=20;}
+    else if(_downPress&&playerEgg._shoryuSeq===1){playerEgg._shoryuSeq=2;playerEgg._shoryuTimer=20;}
+    else if(_fwdPress&&playerEgg._shoryuSeq===2){playerEgg._shoryuSeq=3;playerEgg._shoryuTimer=20;playerEgg._shoryuReady=true;}
+    if(playerEgg._shoryuTimer<=0){playerEgg._shoryuSeq=0;playerEgg._shoryuReady=false;}
+    playerEgg._shoryuPrevFwd=!!(keys['KeyW']||keys['ArrowUp']);
+    playerEgg._shoryuPrevDown=!!(keys['KeyS']||keys['ArrowDown']);
     // ---- Piledriver input sequence tracker (left-right-left) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
     if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
@@ -6323,27 +6379,27 @@ function handlePlayerInput(){
     if(playerEgg._piledriverTarget){
         var _pdt=playerEgg._piledriverTarget;
         playerEgg._piledriverPhase++;
-        if(playerEgg._piledriverPhase<60){
-            // Phase 1: spin upward to ~10 floors high (y≈30)
-            playerEgg.vy=0.22;playerEgg.vx=0;playerEgg.vz=0;
+        // Keep target locked to player during entire animation
+        _pdt.vx=0;_pdt.vy=0;_pdt.vz=0;
+        _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+        _pdt.mesh.rotation.z=Math.PI; // upside down
+        _pdt.mesh.rotation.y=playerEgg.mesh.rotation.y;
+        playerEgg.vx=0;playerEgg.vz=0;
+        if(playerEgg._piledriverPhase<=60){
+            // Phase 1: spin upward
+            playerEgg.vy=0.22;
             playerEgg.mesh.rotation.y+=0.5;
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
-            _pdt.mesh.rotation.y+=0.5;_pdt.mesh.rotation.z=Math.PI;
-            _pdt.vx=0;_pdt.vy=0;_pdt.vz=0;
-            // Dust trail while rising
             if(playerEgg._piledriverPhase%4===0)_spawnButtSmoke(playerEgg,0.6);
-        } else if(playerEgg._piledriverPhase<65){
+        } else if(playerEgg._piledriverPhase<=65){
             // Phase 2: pause at apex
-            playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+            playerEgg.vy=0;
             playerEgg.mesh.rotation.y+=0.6;
-        } else if(playerEgg._piledriverPhase<85){
-            // Phase 3: slam down fast
-            playerEgg.vy=-0.6;playerEgg.vx=0;playerEgg.vz=0;
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+        } else if(playerEgg.mesh.position.y>0.5){
+            // Phase 3: slam down until ground
+            playerEgg.vy=-0.6;
             playerEgg.mesh.rotation.y+=0.7;
-        } else if(playerEgg.onGround||playerEgg.mesh.position.y<0.5){
-            // Phase 4: devastating impact
+        } else {
+            // Phase 4: impact
             _pdt.heldBy=null;playerEgg.holding=null;
             if(_pdt.struggleBar){_pdt.mesh.remove(_pdt.struggleBar);_pdt.struggleBar=null;}
             _pdt.mesh.position.set(playerEgg.mesh.position.x,0.1,playerEgg.mesh.position.z);
@@ -6354,12 +6410,13 @@ function handlePlayerInput(){
             _pdt.throwTimer=80;_pdt._bounces=3;_pdt._stunTimer=180;
             _dropNpcStolenCoins(_pdt);
             playHitSound();
-            // Massive ground dust ring
             for(var _pddi=0;_pddi<12;_pddi++){
                 var _pdda=_pddi/12*Math.PI*2;
                 _spawnGroundDust(playerEgg.mesh.position.x+Math.cos(_pdda)*2.5,0,playerEgg.mesh.position.z+Math.sin(_pdda)*2.5,0.8);
             }
+            playerEgg.mesh.position.y=0.5;
             playerEgg.vy=0.2;playerEgg.squash=0.5;playerEgg.grabCD=40;
+            playerEgg._slamImmune=30;
             playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;
         }
     }
@@ -7392,6 +7449,8 @@ function updateHeldEggs(){
             continue;
         }
         var holder=egg.heldBy;
+        // Skip normal held positioning during piledriver (piledriver handles its own positioning)
+        if(holder._piledriverTarget===egg||holder._npcPiledriver===egg)continue;
         // Position on holder head
         egg.mesh.position.x=holder.mesh.position.x;
         egg.mesh.position.y=holder.mesh.position.y+1.7;
