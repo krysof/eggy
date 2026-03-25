@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.50';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.51';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -6286,7 +6286,7 @@ function handlePlayerInput(){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
         playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
-        _showChatBubble(playerEgg,'Double Lariat!');
+        _shoutMove(playerEgg,'Double Lariat!');
     }
     // Punch (R) — character-specific special moves on command input
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
@@ -6302,7 +6302,7 @@ function handlePlayerInput(){
         // Zangief (frog): Double Lariat (R+T together)
         if(_isHadou&&(_ct==='egg'||_ct==='dog')){
             // HADOUKEN (Ryu blue, Ken red)
-            _showChatBubble(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
+            _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;
             var _hDir=playerEgg.mesh.rotation.y;
             var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
@@ -6318,7 +6318,7 @@ function handlePlayerInput(){
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ct==='cockroach'){
             // YOGA FIRE (Dhalsim) — slow fireball
-            _showChatBubble(playerEgg,'Yoga Fire!');
+            _shoutMove(playerEgg,'Yoga Fire!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;
             var _yfDir=playerEgg.mesh.rotation.y;
             var _yfBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.9}));
@@ -6340,14 +6340,14 @@ function handlePlayerInput(){
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(_isHadou&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — dash forward with head
-            _showChatBubble(playerEgg,'Dosukoi!');
+            _shoutMove(playerEgg,'Dosukoi!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;
             var _shDir=playerEgg.mesh.rotation.y;
             playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*4;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*4;
             playerEgg._hondaDash=20;playerEgg._atkAnim=22;playerEgg.squash=0.7;
         } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken)
-            _showChatBubble(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
+            _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=60;
@@ -6361,7 +6361,7 @@ function handlePlayerInput(){
             playJumpSound();
         } else if(_isShoryu&&_ct==='cat'){
             // ELECTRIC THUNDER (Blanka) — shock nearby enemies
-            _showChatBubble(playerEgg,'ELECTRIC!');
+            _shoutMove(playerEgg,'ELECTRIC!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._shoryuReady=false;
             playerEgg._blankaShock=30;playerEgg.squash=0.6;
             if(sfxEnabled){var _bsCtx2=ensureAudio();if(_bsCtx2){var _bst3=_bsCtx2.currentTime;var _bso2=_bsCtx2.createOscillator();var _bsg2=_bsCtx2.createGain();_bso2.type='square';_bso2.frequency.setValueAtTime(800,_bst3);_bso2.frequency.linearRampToValueAtTime(2000,_bst3+0.1);_bso2.frequency.linearRampToValueAtTime(400,_bst3+0.3);_bsg2.gain.setValueAtTime(0.08,_bst3);_bsg2.gain.exponentialRampToValueAtTime(0.001,_bst3+0.35);_bso2.connect(_bsg2);_bsg2.connect(_bsCtx2.destination);_bso2.start(_bst3);_bso2.stop(_bst3+0.35);}}
@@ -6395,7 +6395,7 @@ function handlePlayerInput(){
             if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
         } else if(_isHadou&&(_ct==='rooster'||_ct==='monkey')&&!window._playerHadouken){
             // SONIC BOOM (Guile) / 気功拳 (Chun-Li) — ↓→+R
-            _showChatBubble(playerEgg,_ct==='monkey'?'Kikouken!':'Sonic Boom!');
+            _shoutMove(playerEgg,_ct==='monkey'?'Kikouken!':'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
             var _sbDir2=playerEgg.mesh.rotation.y;
             var _sbColor2=_ct==='monkey'?0x88BBFF:0x44FF44;
@@ -6407,7 +6407,7 @@ function handlePlayerInput(){
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(_isHadou&&(_ct==='cat')&&!window._playerHadouken){
             // ROLLING ATTACK (Blanka) — ↓→+R, ball dash
-            _showChatBubble(playerEgg,'GRAAAH!');
+            _shoutMove(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._chargeBack=0;
             var _raDir=playerEgg.mesh.rotation.y;
             playerEgg.vx=Math.sin(_raDir)*MAX_SPEED*5;playerEgg.vz=Math.cos(_raDir)*MAX_SPEED*5;
@@ -6477,7 +6477,7 @@ function handlePlayerInput(){
         // Character-specific kick specials
         if(_isTatsu&&(_ct==='egg'||_ct==='dog')){
             // TATSUMAKI (Ryu/Ken)
-            _showChatBubble(playerEgg,'Tatsumaki Senpukyaku!');
+            _shoutMove(playerEgg,'Tatsumaki Senpukyaku!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
             playerEgg.vy=0.1; // slight hop
             playerEgg._tatsuActive=94; // 12 full rotations at 0.8 rad/frame
@@ -6500,14 +6500,14 @@ function handlePlayerInput(){
             playerEgg.vy=JUMP_FORCE*1.2;
             playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
             playerEgg._atkAnim=62;
-            _showChatBubble(playerEgg,'Spinning Bird Kick!');
+            _shoutMove(playerEgg,'Spinning Bird Kick!');
         } else if(_isTatsu&&(_ct==='rooster')){
             // SOMERSAULT KICK (Guile) — ↓←+T
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*2.0;playerEgg.squash=0.5;
             playerEgg._shoryuActive=50;
             playJumpSound();
-            _showChatBubble(playerEgg,'Somersault Kick!');
+            _shoutMove(playerEgg,'Somersault Kick!');
         } else if(playerEgg._rapidTReady&&_ct==='monkey'){
             // 百裂脚 (Chun-Li) — rapid kicks
             playerEgg._comboCount=0;playerEgg._attackCD=5;playerEgg._rapidT=0;
@@ -7883,8 +7883,31 @@ function _processChatCommand(msg){
     if(msg.charAt(0)==='/') return true;
     return false;
 }
-function _showChatBubble(egg,msg){
+// Move name translations
+var _moveNames={
+    'HADOUKEN!':{zhs:'\u6CE2\u52A8\u62F3\uFF01',zht:'\u6CE2\u52D5\u62F3\uFF01',ja:'\u6CE2\u52D5\u62F3\uFF01',en:'HADOUKEN!'},
+    'Hadouken!':{zhs:'\u6CE2\u52A8\u62F3\uFF01',zht:'\u6CE2\u52D5\u62F3\uFF01',ja:'\u6CE2\u52D5\u62F3\uFF01',en:'Hadouken!'},
+    'SHORYUKEN!':{zhs:'\u5347\u9F99\u62F3\uFF01',zht:'\u6607\u9F8D\u62F3\uFF01',ja:'\u6607\u9F8D\u62F3\uFF01',en:'SHORYUKEN!'},
+    'Shoryuken!':{zhs:'\u5347\u9F99\u62F3\uFF01',zht:'\u6607\u9F8D\u62F3\uFF01',ja:'\u6607\u9F8D\u62F3\uFF01',en:'Shoryuken!'},
+    'Tatsumaki Senpukyaku!':{zhs:'\u7AC7\u5377\u65CB\u98CE\u811A\uFF01',zht:'\u7AC7\u5377\u65CB\u98A8\u8173\uFF01',ja:'\u7AC7\u5DFB\u65CB\u98A8\u811A\uFF01',en:'Tatsumaki!'},
+    'Sonic Boom!':{zhs:'\u97F3\u901F\u624B\u5200\uFF01',zht:'\u97F3\u901F\u624B\u5200\uFF01',ja:'\u30BD\u30CB\u30C3\u30AF\u30D6\u30FC\u30E0\uFF01',en:'Sonic Boom!'},
+    'Somersault Kick!':{zhs:'\u5012\u8F6C\u8E22\uFF01',zht:'\u5012\u8F49\u8E22\uFF01',ja:'\u30B5\u30DE\u30FC\u30BD\u30EB\u30C8\uFF01',en:'Somersault!'},
+    'Kikouken!':{zhs:'\u6C14\u529F\u62F3\uFF01',zht:'\u6C23\u529F\u62F3\uFF01',ja:'\u6C17\u529F\u62F3\uFF01',en:'Kikouken!'},
+    'Spinning Bird Kick!':{zhs:'\u56DE\u65CB\u9E1F\u8E22\uFF01',zht:'\u56DE\u65CB\u9CE5\u8E22\uFF01',ja:'\u30B9\u30D4\u30CB\u30F3\u30B0\u30D0\u30FC\u30C9\uFF01',en:'Spinning Bird!'},
+    'Yoga Fire!':{zhs:'\u7477\u4F3D\u706B\u7130\uFF01',zht:'\u7477\u4F3D\u706B\u7130\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
+    'ELECTRIC!':{zhs:'\u7535\u51FB\uFF01',zht:'\u96FB\u64CA\uFF01',ja:'\u96FB\u6483\uFF01',en:'ELECTRIC!'},
+    'GRAAAH!':{zhs:'\u554A\u554A\u554A\uFF01',zht:'\u554A\u554A\u554A\uFF01',ja:'\u30B0\u30E9\u30A2\u30A2\uFF01',en:'GRAAAH!'},
+    'Dosukoi!':{zhs:'\u7C97\u53E3\u4F53\uFF01',zht:'\u7C97\u53E3\u9AD4\uFF01',ja:'\u3069\u3059\u3053\u3044\uFF01',en:'Dosukoi!'},
+    'Double Lariat!':{zhs:'\u53CC\u56DE\u65CB\uFF01',zht:'\u96D9\u56DE\u65CB\uFF01',ja:'\u30C0\u30D6\u30EB\u30E9\u30EA\u30A2\u30C3\u30C8\uFF01',en:'Double Lariat!'}
+};
+function _shoutMove(egg,key){
+    var t=_moveNames[key];
+    var txt=t?t[_langCode]||t.en||key:key;
+    _showChatBubble(egg,txt,60); // 1 second
+}
+function _showChatBubble(egg,msg,duration){
     if(!egg||!egg.mesh)return;
+    var _bubbleTime=duration||300;
     // Remove old bubble for this egg
     for(var i=_chatBubbles.length-1;i>=0;i--){
         if(_chatBubbles[i].egg===egg){
@@ -7917,7 +7940,7 @@ function _showChatBubble(egg,msg){
     sprite.scale.set(4,1,1);
     sprite.position.y=3.2;
     egg.mesh.add(sprite);
-    _chatBubbles.push({egg:egg,sprite:sprite,timer:300}); // 5 seconds
+    _chatBubbles.push({egg:egg,sprite:sprite,timer:_bubbleTime});
 }
 function _drawBubblePath(ctx,x,y,w,h,r){
     ctx.beginPath();
