@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.19';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.20';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5786,7 +5786,7 @@ function handlePlayerInput(){
         if(playerEgg._piledriverTarget){var _ipt=playerEgg._piledriverTarget;_ipt.heldBy=null;if(_ipt.struggleBar){_ipt.mesh.remove(_ipt.struggleBar);_ipt.struggleBar=null;}playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;}
         playerEgg._bodySlam=false;playerEgg._bodySlamTarget=null;
         playerEgg._tatsuActive=0;playerEgg._tatsuDir=0;
-        playerEgg._shoryuReady=false;playerEgg._shoryuSeq=0;
+        playerEgg._shoryuReady=false;playerEgg._shoryuSeq=0;playerEgg._shoryuActive=false;
         playerEgg._comboCount=0;playerEgg._comboTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -6213,13 +6213,21 @@ function handlePlayerInput(){
         // Check for Shoryuken: 前下前+R (forward-down-forward+punch)
         var _isShoryu=playerEgg._shoryuReady;
         if(_isShoryu){
-            // SHORYUKEN — rising uppercut (half height)
+            // SHORYUKEN — rising uppercut with sound
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
+            playerEgg._shoryuActive=true; // keep arm up while rising
             // Uppercut arm — right fist raised high
             var _ud2=playerEgg.mesh.userData;
             if(_ud2.rightArm){_ud2.rightArm.visible=true;_ud2.rightArm.position.set(0.15,1.3,0.3);_ud2.rightArm.scale.set(1.4,1.2,1.8);}
-            playerEgg._atkAnim=25;
+            playerEgg._atkAnim=999; // don't auto-hide, managed by shoryuActive
+            // Shoryuken sound — rising whistle + impact
+            if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;
+                var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();
+                _so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);
+                _sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);
+                _so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);
+            }}
             var _sDir=playerEgg.mesh.rotation.y;
             for(var _si2=0;_si2<allEggs.length;_si2++){
                 var _se=allEggs[_si2];if(_se===playerEgg||!_se.alive||_se.heldBy)continue;
@@ -6297,13 +6305,20 @@ function handlePlayerInput(){
             // TATSUMAKI SENPUUKYAKU — spinning hurricane kick (long duration)
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
             playerEgg.vy=0.1; // slight hop
-            playerEgg._tatsuActive=600; // 10 seconds of spinning kick (20x original)
+            playerEgg._tatsuActive=94; // 12 full rotations at 0.8 rad/frame
             playerEgg._tatsuDir=playerEgg.mesh.rotation.y; // store facing direction
             // Show both legs extended
             var _tud=playerEgg.mesh.userData;
             if(_tud.rightLeg){_tud.rightLeg.visible=true;_tud.rightLeg.position.set(0.3,0.15,0.6);_tud.rightLeg.rotation.x=-Math.PI/2;}
             if(_tud.leftLeg){_tud.leftLeg.visible=true;_tud.leftLeg.position.set(-0.3,0.15,0.6);_tud.leftLeg.rotation.x=-Math.PI/2;}
-            playerEgg._atkAnim=602;
+            playerEgg._atkAnim=96;
+            // Tatsumaki sound — spinning whoosh
+            if(sfxEnabled){var _tCtx=ensureAudio();if(_tCtx){var _tt=_tCtx.currentTime;
+                var _to=_tCtx.createOscillator();var _tg2=_tCtx.createGain();
+                _to.type='sawtooth';_to.frequency.setValueAtTime(150,_tt);_to.frequency.linearRampToValueAtTime(400,_tt+0.3);_to.frequency.linearRampToValueAtTime(150,_tt+0.6);
+                _tg2.gain.setValueAtTime(0.08,_tt);_tg2.gain.linearRampToValueAtTime(0.12,_tt+0.3);_tg2.gain.exponentialRampToValueAtTime(0.001,_tt+1.5);
+                _to.connect(_tg2);_tg2.connect(_tCtx.destination);_to.start(_tt);_to.stop(_tt+1.5);
+            }}
         } else {
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
         var _kickLeg=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
@@ -6346,6 +6361,18 @@ function handlePlayerInput(){
         playerEgg.squash=_kFinisher?0.7:0.82;
         if(_kFinisher){playerEgg._comboCount=0;playerEgg._attackCD=22;}
         } // end normal kick (else from tatsu)
+    }
+    // ---- Shoryuken arm management — keep fist up while rising ----
+    if(playerEgg._shoryuActive){
+        var _sUd=playerEgg.mesh.userData;
+        if(_sUd.rightArm)_sUd.rightArm.visible=true;
+        // Spin slightly during rise
+        playerEgg.mesh.rotation.y+=0.08;
+        if(playerEgg.vy<=0||playerEgg.onGround){
+            // Falling or landed — end shoryuken
+            playerEgg._shoryuActive=false;
+            playerEgg._atkAnim=1; // will hide limbs next frame
+        }
     }
     // ---- Tatsumaki active animation (spinning hurricane kick — Ryu style) ----
     if(playerEgg._tatsuActive>0){
