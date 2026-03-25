@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.74';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.75';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -8786,15 +8786,29 @@ function checkThrownEggImpact(eggList){
 // ============================================================
 const clock = new THREE.Clock();
 var _lastFrameTime=0;
-var _targetFrameInterval=1000/62; // ~60fps with small tolerance
+var _targetFrameInterval=1000/60; // target 60fps
+var _accumulator=0;
+var _fixedStep=1000/60; // fixed timestep
 
 function animate(now){
     requestAnimationFrame(animate);
-    // Frame rate limiter — skip frames on high refresh rate displays (120Hz etc.)
     if(!now)now=performance.now();
-    if(now-_lastFrameTime<_targetFrameInterval)return;
-    _lastFrameTime=now-(now-_lastFrameTime)%_targetFrameInterval;
-    const dt=Math.min(clock.getDelta(),0.05);
+    var _elapsed=now-_lastFrameTime;
+    if(_elapsed<8)return; // skip if too fast (>120fps)
+    _lastFrameTime=now;
+    // Accumulate time and run fixed timestep updates (catch up if behind)
+    _accumulator+=Math.min(_elapsed,100); // cap at 100ms to prevent spiral
+    var _ticks=0;
+    while(_accumulator>=_fixedStep&&_ticks<3){
+        _gameUpdate();
+        _accumulator-=_fixedStep;
+        _ticks++;
+    }
+    R.render(scene,camera);
+}
+
+function _gameUpdate(){
+    const dt=1/60;
 
     if(gameState==='city'){
         if(_pipeTraveling){
@@ -8845,7 +8859,6 @@ function animate(now){
     }
 
     _updateDropShadow();
-    R.render(scene,camera);
     _updateChargeParticles();
     // Update grab button text
     if(grabBtn&&playerEgg){if(playerEgg.holding){grabBtn.textContent=L('throwT');grabBtn.classList.add('holding');}else{grabBtn.textContent=L('grab');grabBtn.classList.remove('holding');}}
