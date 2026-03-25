@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.1';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.2';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2403,26 +2403,63 @@ function buildCity() {
                 nsGlow.position.set(Math.cos(nsa)*nsr,nsh-0.5,Math.sin(nsa)*nsr);lunarCity.add(nsGlow);
             }
         }
-        // Ring of tall buildings (commercial district)
-        for(var lbi=0;lbi<12;lbi++){
-            var lba=lbi/12*Math.PI*2;var lbr=8+Math.random()*3;
-            var lbh=3+Math.random()*6;var lbw=1.2+Math.random()*1.5;
-            var lb=new THREE.Mesh(new THREE.BoxGeometry(lbw,lbh,lbw),lbi%3===0?lcDark:lcWall);
-            lb.position.set(Math.cos(lba)*lbr,lbh/2-1,Math.sin(lba)*lbr);lunarCity.add(lb);
-            // Window rows
-            for(var wri=0;wri<Math.floor(lbh/1.2);wri++){
-                var wm=new THREE.Mesh(new THREE.BoxGeometry(lbw*0.7,0.15,lbw+0.05),lcWarm);
-                wm.position.set(Math.cos(lba)*lbr,wri*1.2+0.5,Math.sin(lba)*lbr);lunarCity.add(wm);
+        // Ring of tall buildings (commercial district) — skyscrapers with lights
+        var _vbBldgMeshes=[]; // collect for occlusion
+        for(var lbi=0;lbi<18;lbi++){
+            var lba=lbi/18*Math.PI*2;var lbr=7+Math.random()*4;
+            var lbh=4+Math.random()*8;var lbw=0.8+Math.random()*1.2;var lbd=0.8+Math.random()*1.0;
+            var lbColor=[lcWall,lcDark,toon(0x556688),toon(0x667799),toon(0x5577AA)][lbi%5];
+            var lb=new THREE.Mesh(new THREE.BoxGeometry(lbw,lbh,lbd),lbColor);
+            lb.position.set(Math.cos(lba)*lbr,lbh/2-1,Math.sin(lba)*lbr);lunarCity.add(lb);_vbBldgMeshes.push(lb);
+            // Window grid (warm yellow lights)
+            var wRows=Math.floor(lbh/0.8);
+            for(var wri=0;wri<wRows;wri++){
+                for(var wci=0;wci<2;wci++){
+                    if(Math.random()<0.3)continue; // some windows dark
+                    var wc=Math.random()<0.7?0xFFCC66:0x88CCFF;
+                    var wm=new THREE.Mesh(new THREE.BoxGeometry(lbw*0.3,0.2,0.05),new THREE.MeshBasicMaterial({color:wc,transparent:true,opacity:0.5+Math.random()*0.3}));
+                    wm.position.set(Math.cos(lba)*lbr+(wci-0.5)*lbw*0.35,wri*0.8+0.3,Math.sin(lba)*lbr+lbd/2+0.03);
+                    lunarCity.add(wm);_vbBldgMeshes.push(wm);
+                }
+            }
+            // Rooftop antenna/light
+            if(Math.random()<0.6){
+                var rl=new THREE.Mesh(new THREE.SphereGeometry(0.12,4,3),new THREE.MeshBasicMaterial({color:Math.random()<0.5?0xFF4444:0x44FF44,transparent:true,opacity:0.8}));
+                rl.position.set(Math.cos(lba)*lbr,lbh-0.5,Math.sin(lba)*lbr);lunarCity.add(rl);_vbBldgMeshes.push(rl);
             }
         }
-        // Inner ring — residential towers
-        for(var lri=0;lri<8;lri++){
-            var lra=lri/8*Math.PI*2+0.4;var lrr=4+Math.random()*2;
-            var lrh=2+Math.random()*4;
-            var lr=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.8,lrh,6),lcWall);
-            lr.position.set(Math.cos(lra)*lrr,lrh/2-1,Math.sin(lra)*lrr);lunarCity.add(lr);
-            var lrw=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.1,1.3),lcWarm);
-            lrw.position.set(Math.cos(lra)*lrr,lrh*0.6,Math.sin(lra)*lrr);lunarCity.add(lrw);
+        // Inner ring — tall residential towers with balcony lights
+        for(var lri=0;lri<10;lri++){
+            var lra=lri/10*Math.PI*2+0.3;var lrr=3.5+Math.random()*2.5;
+            var lrh=3+Math.random()*5;
+            var lr=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.7,lrh,6),lcWall);
+            lr.position.set(Math.cos(lra)*lrr,lrh/2-1,Math.sin(lra)*lrr);lunarCity.add(lr);_vbBldgMeshes.push(lr);
+            // Balcony ring lights
+            for(var bli=0;bli<Math.floor(lrh/1.5);bli++){
+                var blr=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.04,4,8),new THREE.MeshBasicMaterial({color:0xFFCC66,transparent:true,opacity:0.4}));
+                blr.position.set(Math.cos(lra)*lrr,bli*1.5+1,Math.sin(lra)*lrr);
+                blr.rotation.x=Math.PI/2;lunarCity.add(blr);_vbBldgMeshes.push(blr);
+            }
+        }
+        // Outer ring — shorter commercial blocks with neon signs
+        for(var ori=0;ori<14;ori++){
+            var ora=ori/14*Math.PI*2+0.15;var orr=13+Math.random()*3;
+            var orh=2+Math.random()*3;var orw=1+Math.random()*1.5;
+            var ob2=new THREE.Mesh(new THREE.BoxGeometry(orw,orh,orw*0.8),toon(0x556677));
+            ob2.position.set(Math.cos(ora)*orr,orh/2-1,Math.sin(ora)*orr);lunarCity.add(ob2);_vbBldgMeshes.push(ob2);
+            // Neon sign on front
+            var neonC=[0xFF4488,0x44FFAA,0xFFAA22,0x44AAFF,0xFF66FF][ori%5];
+            var neon=new THREE.Mesh(new THREE.BoxGeometry(orw*0.6,0.3,0.05),new THREE.MeshBasicMaterial({color:neonC,transparent:true,opacity:0.7}));
+            neon.position.set(Math.cos(ora)*orr,orh*0.7,Math.sin(ora)*orr+orw*0.4+0.03);
+            lunarCity.add(neon);_vbBldgMeshes.push(neon);
+        }
+        // Street lights along radial roads
+        for(var sli=0;sli<16;sli++){
+            var sla=sli/4*Math.PI/2;var slr=3+sli%4*4;
+            var slPole=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2,4),toon(0x888888));
+            slPole.position.set(Math.cos(sla)*slr,1,Math.sin(sla)*slr);lunarCity.add(slPole);
+            var slLight=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,3),new THREE.MeshBasicMaterial({color:0xFFEECC,transparent:true,opacity:0.7}));
+            slLight.position.set(Math.cos(sla)*slr,2.1,Math.sin(sla)*slr);lunarCity.add(slLight);_vbBldgMeshes.push(slLight);
         }
         // Spaceport — 4 large landing pads on crater rim
         for(var spi2=0;spi2<4;spi2++){
@@ -2520,21 +2557,44 @@ function buildCity() {
             var grRing=new THREE.Mesh(new THREE.TorusGeometry(3+gri*2.5,0.08,6,24),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.3}));
             grRing.rotation.x=Math.PI/2;grRing.position.y=-2.4;granada.add(grRing);
         }
-        // Military hangars (inside crater)
+        // Military hangars + barracks (inside crater)
         for(var ghi=0;ghi<6;ghi++){
             var gha=ghi/6*Math.PI*2;var ghr=5+Math.random()*2;
             var gh=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),toon(0x445544));
-            gh.position.set(Math.cos(gha)*ghr,0.5,Math.sin(gha)*ghr);gh.rotation.y=gha;granada.add(gh);
+            gh.position.set(Math.cos(gha)*ghr,-2,Math.sin(gha)*ghr);gh.rotation.y=gha;granada.add(gh);
             var ghd=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.2,0.1),new THREE.MeshBasicMaterial({color:0x44AA44,transparent:true,opacity:0.3}));
-            ghd.position.set(Math.cos(gha)*(ghr+1.5),0.6,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
+            ghd.position.set(Math.cos(gha)*(ghr+1.5),-1.9,Math.sin(gha)*(ghr+1.5));ghd.rotation.y=gha;granada.add(ghd);
+            // Hangar interior light
+            var ghL=new THREE.Mesh(new THREE.SphereGeometry(0.2,4,3),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
+            ghL.position.set(Math.cos(gha)*(ghr+1.5),-1.2,Math.sin(gha)*(ghr+1.5));granada.add(ghL);
         }
-        var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.6,1.0,10,8),toon(0x556655));grTower.position.y=5;granada.add(grTower);
+        // Inner buildings — military command structures
+        for(var gbi=0;gbi<8;gbi++){
+            var gba=gbi/8*Math.PI*2+0.4;var gbr=2.5+Math.random()*2;
+            var gbh=2+Math.random()*3;
+            var gb2=new THREE.Mesh(new THREE.BoxGeometry(1,gbh,1),toon(0x556666));
+            gb2.position.set(Math.cos(gba)*gbr,gbh/2-2.5,Math.sin(gba)*gbr);granada.add(gb2);
+            // Blue window strips
+            for(var gwi=0;gwi<Math.floor(gbh/0.8);gwi++){
+                var gw=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.12,0.05),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.5}));
+                gw.position.set(Math.cos(gba)*gbr,gwi*0.8-2,Math.sin(gba)*gbr+0.53);granada.add(gw);
+            }
+        }
+        var grTower=new THREE.Mesh(new THREE.CylinderGeometry(0.6,1.0,12,8),toon(0x556655));grTower.position.y=3;granada.add(grTower);
+        // Tower top beacon
+        var grBeacon=new THREE.Mesh(new THREE.SphereGeometry(0.4,6,4),new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.7}));
+        grBeacon.position.y=9.5;granada.add(grBeacon);
         // Granada spires (military comm towers)
-        for(var gsi=0;gsi<8;gsi++){
-            var gsa=gsi/8*Math.PI*2+0.2;var gsr=3+Math.random()*5;
-            var gsh=5+Math.random()*10;
-            var gs=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.2,gsh,4),toon(0x667766));
-            gs.position.set(Math.cos(gsa)*gsr,gsh/2-2,Math.sin(gsa)*gsr);granada.add(gs);
+        for(var gsi=0;gsi<10;gsi++){
+            var gsa=gsi/10*Math.PI*2+0.2;var gsr=3+Math.random()*6;
+            var gsh=5+Math.random()*12;
+            var gs=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.18,gsh,4),toon(0x667766));
+            gs.position.set(Math.cos(gsa)*gsr,gsh/2-2.5,Math.sin(gsa)*gsr);granada.add(gs);
+            // Spire tip light
+            if(Math.random()<0.5){
+                var gsL=new THREE.Mesh(new THREE.SphereGeometry(0.12,4,3),new THREE.MeshBasicMaterial({color:0xFF4444,transparent:true,opacity:0.7}));
+                gsL.position.set(Math.cos(gsa)*gsr,gsh-2,Math.sin(gsa)*gsr);granada.add(gsL);
+            }
         }
         // Place Granada on flat ground (left side, behind Von Braun)
         granada.position.set(-200,0,-200);
@@ -2591,14 +2651,22 @@ function buildCity() {
         }
         // Granada central tower
         cityColliders.push({x:-200,z:-200,hw:8,hd:8,h:70});
-        // Add moon city meshes to building occlusion array
-        // Collect all meshes from each city group for occlusion
+        // Add moon city meshes to building occlusion array — per collider zone
         var _vbAllMeshes=[];lunarCity.traverse(function(c){if(c.isMesh)_vbAllMeshes.push(c);});
         var _grAllMeshes=[];granada.traverse(function(c){if(c.isMesh)_grAllMeshes.push(c);});
-        // Von Braun: central tower area (narrow box so it only fades when directly behind)
-        cityBuildingMeshes.push({meshes:_vbAllMeshes,x:-200,z:0,hw:15,hd:15,h:100});
-        // Granada: central area
-        cityBuildingMeshes.push({meshes:_grAllMeshes,x:-200,z:-200,hw:10,hd:10,h:70});
+        // Von Braun central tower
+        cityBuildingMeshes.push({meshes:_vbAllMeshes,x:-200,z:0,hw:12,hd:12,h:100});
+        // Von Braun ring buildings — each ring building gets an occlusion entry
+        for(var _obi=0;_obi<12;_obi++){
+            var _oba2=_obi/12*Math.PI*2;var _obr2=70;
+            cityBuildingMeshes.push({meshes:_vbAllMeshes,x:-200+Math.cos(_oba2)*_obr2,z:Math.sin(_oba2)*_obr2,hw:10,hd:10,h:50});
+        }
+        // Granada
+        cityBuildingMeshes.push({meshes:_grAllMeshes,x:-200,z:-200,hw:8,hd:8,h:70});
+        for(var _ogci=0;_ogci<6;_ogci++){
+            var _ogca=_ogci/6*Math.PI*2;var _ogcr=45;
+            cityBuildingMeshes.push({meshes:_grAllMeshes,x:-200+Math.cos(_ogca)*_ogcr,z:-200+Math.sin(_ogca)*_ogcr,hw:10,hd:14,h:15});
+        }
         // Earth in sky — semi-realistic scale (Earth radius ~3.67x Moon)
         var earthGroup=new THREE.Group();
         var _earthR=29340; // Earth radius in game units (real ratio to moon)
