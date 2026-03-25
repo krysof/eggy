@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.2';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.3';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -50,10 +50,10 @@ var I18N={
         en:['Danbo','Puppy','Monkey','Rooster','Cockroach','Kitty','Piggy','Frog']
     },
     cityNames:{
-        zhs:['\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
-        zht:['\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
-        ja:['\uD83C\uDFD9\uFE0F \u30C0\u30F3\u30DC\u30B7\u30C6\u30A3','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3','\uD83C\uDF19 \u30EB\u30CA\u30FC\u30BE\u30FC\u30F3'],
-        en:['\uD83C\uDFD9\uFE0F DANBO City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City','\uD83C\uDF19 Lunar Zone']
+        zhs:['\uD83C\uDFD9\uFE0F \u6C34\u4E4B\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
+        zht:['\uD83C\uDFD9\uFE0F \u6C34\u4E4B\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],
+        ja:['\uD83C\uDFD9\uFE0F \u6C34\u306E\u90FD','\uD83C\uDFDC\uFE0F \u7802\u6F20\u30B7\u30C6\u30A3','\u2744\uFE0F \u6C37\u96EA\u30B7\u30C6\u30A3','\uD83D\uDD25 \u6EB6\u5CA9\u30B7\u30C6\u30A3','\uD83C\uDF6C \u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3','\uD83C\uDF19 \u30EB\u30CA\u30FC\u30BE\u30FC\u30F3'],
+        en:['\uD83C\uDFD9\uFE0F Aqua City','\uD83C\uDFDC\uFE0F Desert City','\u2744\uFE0F Ice City','\uD83D\uDD25 Lava City','\uD83C\uDF6C Candy City','\uD83C\uDF19 Lunar Zone']
     },
     raceNames:{
         zhs:['\uD83C\uDF00 \u7591\u72C2\u8D5B\u9053','\uD83D\uDD28 \u9524\u5B50\u98CE\u66B4','\u26A1 \u6781\u9650\u6311\u6218','\uD83D\uDC51 \u51A0\u519B\u4E4B\u8DEF','\uD83D\uDC8E \u7EFF\u5B9D\u77F3\u5C71\u4E18','\uD83D\uDD25 \u706B\u7130\u5C71\u8C37','\u2744\uFE0F \u51B0\u971C\u6ED1\u9053','\uD83C\uDF08 \u5F69\u8679\u5929\u7A7A','\uD83C\uDF44 \u8611\u83C7\u738B\u56FD','\uD83D\uDD25 \u5CA9\u6D46\u57CE\u5821','\u2601\uFE0F \u4E91\u7AEF\u5929\u5802','\uD83C\uDFF0 \u5E93\u5DF4\u57CE\u5821'],
@@ -2017,7 +2017,7 @@ const CITY_SIZE = 80; // half-size of city ground
 var currentCityStyle=0;
 var _prevCityStyle=0; // track previous city for earth return
 var CITY_STYLES=[
-    {name:'\uD83C\uDFD9\uFE0F \u86CB\u5B9D\u57CE',ground:0x6EC850,path:0xDDCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
+    {name:'\uD83C\uDFD9\uFE0F \u6C34\u4E4B\u57CE',ground:0x55AA88,path:0xBBCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
     {name:'🏜️ 沙漠城',ground:0xDDCC88,path:0xCCBB77,sky:0xFFCC66,bColors:[0xDDAA66,0xCC9955,0xEEBB77,0xBB8844,0xDDCC88,0xCCAA55,0xEECC99,0xBB9966],roof:0xAA6633,tree:0x88AA44,fog:0xFFEECC},
     {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
@@ -2252,6 +2252,76 @@ function buildCity() {
         fsp.visible=false;
         cityGroup.add(fsp);
         window._fountainSplashParticles.push({mesh:fsp,life:0,maxLife:0,vx:0,vy:0,vz:0});
+    }
+
+    // ---- Streams & Canals (water city style 0) ----
+    if(currentCityStyle===0){
+        var streamMat=toon(0x44AACC,{transparent:true,opacity:0.5});
+        var bankMat=toon(0x88AA77);
+        // 4 canals radiating from central fountain to city edges
+        var canalDirs=[{dx:1,dz:0},{dx:-1,dz:0},{dx:0,dz:1},{dx:0,dz:-1}];
+        for(var cdi=0;cdi<4;cdi++){
+            var cd=canalDirs[cdi];
+            var cLen=CITY_SIZE*0.9;
+            // Water surface
+            var cw=cd.dx!==0?cLen:3;var ch=cd.dz!==0?cLen:3;
+            var canal=new THREE.Mesh(new THREE.BoxGeometry(cw,0.15,ch),streamMat);
+            canal.position.set(cd.dx*cLen/2+cd.dx*8,0.35,cd.dz*cLen/2+cd.dz*8);
+            cityGroup.add(canal);
+            // Stone banks on both sides
+            var bOff=cd.dx!==0?0:1.8;var bOff2=cd.dz!==0?0:1.8;
+            var bank1=new THREE.Mesh(new THREE.BoxGeometry(cd.dx!==0?cLen:0.5,0.4,cd.dz!==0?cLen:0.5),bankMat);
+            bank1.position.set(cd.dx*cLen/2+cd.dx*8+bOff2,0.2,cd.dz*cLen/2+cd.dz*8+bOff);
+            cityGroup.add(bank1);
+            var bank2=new THREE.Mesh(new THREE.BoxGeometry(cd.dx!==0?cLen:0.5,0.4,cd.dz!==0?cLen:0.5),bankMat);
+            bank2.position.set(cd.dx*cLen/2+cd.dx*8-bOff2,0.2,cd.dz*cLen/2+cd.dz*8-bOff);
+            cityGroup.add(bank2);
+        }
+        // Ring canal around the fountain
+        var ringCanal=new THREE.Mesh(new THREE.TorusGeometry(20,2,6,24),streamMat);
+        ringCanal.rotation.x=Math.PI/2;ringCanal.position.y=0.3;cityGroup.add(ringCanal);
+        var ringBank=new THREE.Mesh(new THREE.TorusGeometry(20,0.3,6,24),bankMat);
+        ringBank.rotation.x=Math.PI/2;ringBank.position.y=0.35;cityGroup.add(ringBank);
+        // Small bridges over canals
+        var bridgeMat=toon(0xCCBBAA);
+        for(var bri=0;bri<8;bri++){
+            var bra=bri/8*Math.PI*2;var brr=20;
+            var brx=Math.cos(bra)*brr,brz=Math.sin(bra)*brr;
+            var bridge=new THREE.Mesh(new THREE.BoxGeometry(4,0.3,5),bridgeMat);
+            bridge.position.set(brx,0.5,brz);bridge.rotation.y=bra;
+            cityGroup.add(bridge);
+        }
+    }
+    // ---- Fish in fountain pool (grabbable) ----
+    if(currentCityStyle===0){
+        window._cityFish=[];
+        var fishColors=[0xFF6644,0xFFAA22,0xFFFFFF,0xFF4488,0x44AAFF];
+        for(var fii=0;fii<8;fii++){
+            var fishG=new THREE.Group();
+            var fc=fishColors[fii%fishColors.length];
+            // Body
+            var fishBody=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),toon(fc));
+            fishBody.scale.set(1,0.5,1.8);fishG.add(fishBody);
+            // Tail
+            var fishTail=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.4,4),toon(fc));
+            fishTail.rotation.x=Math.PI/2;fishTail.position.z=-0.5;fishG.add(fishTail);
+            // Eye
+            var fishEye=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),toon(0x111111));
+            fishEye.position.set(0.12,0.08,0.2);fishG.add(fishEye);
+            // Random position in fountain pool
+            var fa=Math.random()*Math.PI*2;var fr=1+Math.random()*4;
+            fishG.position.set(Math.cos(fa)*fr,0.4,Math.sin(fa)*fr);
+            fishG.rotation.y=fa;
+            cityGroup.add(fishG);
+            var fish={group:fishG,angle:fa,radius:fr,speed:0.01+Math.random()*0.02,
+                jumpTimer:120+Math.floor(Math.random()*300),jumping:false,jumpVy:0,baseY:0.4,
+                grabbed:false,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:0.3};
+            window._cityFish.push(fish);
+            // Add as grabbable prop
+            cityProps.push({group:fishG,x:fishG.position.x,z:fishG.position.z,radius:0.5,
+                type:'fish',grabbed:false,origY:0.4,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,
+                weight:0.3,_fishRef:fish});
+        }
     }
 
     // ---- Lamp posts ----
@@ -3428,6 +3498,7 @@ function clearCity(){
     window._fountainSplashParticles=null;
     window._fountainPoolWater=null;
     window._fountainInnerWater=null;
+    window._cityFish=null;
     // Remove city NPCs
     for(var i=0;i<cityNPCs.length;i++){_removeStunStars(cityNPCs[i]);scene.remove(cityNPCs[i].mesh);}
     cityNPCs.length=0;
@@ -5985,6 +6056,44 @@ function updateCity(){
         var wt2=Date.now()*0.003;
         window._fountainInnerWater.position.y=1.35+Math.sin(wt2+1)*0.02;
     }
+    // ---- Fish animation (swim + jump) ----
+    if(window._cityFish){
+        for(var _fi2=0;_fi2<window._cityFish.length;_fi2++){
+            var fish=window._cityFish[_fi2];
+            if(fish.grabbed)continue;
+            // Swim in circles
+            fish.angle+=fish.speed;
+            fish.group.position.x=Math.cos(fish.angle)*fish.radius;
+            fish.group.position.z=Math.sin(fish.angle)*fish.radius;
+            fish.group.rotation.y=fish.angle+Math.PI/2;
+            // Jump timer
+            fish.jumpTimer--;
+            if(fish.jumpTimer<=0&&!fish.jumping){
+                fish.jumping=true;
+                fish.jumpVy=0.08+Math.random()*0.06;
+                fish.jumpTimer=180+Math.floor(Math.random()*300);
+                // Splash sound
+                if(sfxEnabled&&playerEgg){
+                    var fdx2=fish.group.position.x-playerEgg.mesh.position.x;
+                    var fdz2=fish.group.position.z-playerEgg.mesh.position.z;
+                    if(fdx2*fdx2+fdz2*fdz2<400)playSplashSound();
+                }
+            }
+            if(fish.jumping){
+                fish.group.position.y+=fish.jumpVy;
+                fish.jumpVy-=0.005;
+                // Rotate during jump
+                fish.group.rotation.x=Math.sin(Date.now()*0.01)*0.5;
+                if(fish.group.position.y<=fish.baseY){
+                    fish.group.position.y=fish.baseY;
+                    fish.jumping=false;
+                    fish.group.rotation.x=0;
+                }
+            } else {
+                fish.group.position.y=fish.baseY+Math.sin(Date.now()*0.003+_fi2)*0.05;
+            }
+        }
+    }
     if(window._fountainParticles){
         for(var ffi=0;ffi<window._fountainParticles.length;ffi++){
             var fp=window._fountainParticles[ffi];
@@ -7228,10 +7337,10 @@ addEventListener('keydown',function(e){
 // ============================================================
 var _areaNameTimer=null;
 var _areaNames={
-    zhs:['\u86CB\u5B9D\u57CE \u2014 \u5E0C\u671B\u4E4B\u8857','\u6C99\u6F20\u57CE \u2014 \u9EC4\u91D1\u4E4B\u7802','\u51B0\u96EA\u57CE \u2014 \u6C38\u51BB\u4E4B\u5730','\u7194\u5CA9\u57CE \u2014 \u706B\u7130\u4E4B\u5FC3','\u7CD6\u679C\u57CE \u2014 \u68A6\u5E7B\u4E50\u56ED','\u6708\u9762\u90FD\u5E02 \u2014 \u5BD2\u5BC2\u4E4B\u6D77'],
-    zht:['\u86CB\u5B9D\u57CE \u2014 \u5E0C\u671B\u4E4B\u8857','\u6C99\u6F20\u57CE \u2014 \u9EC3\u91D1\u4E4B\u7802','\u51B0\u96EA\u57CE \u2014 \u6C38\u51CD\u4E4B\u5730','\u7194\u5CA9\u57CE \u2014 \u706B\u7130\u4E4B\u5FC3','\u7CD6\u679C\u57CE \u2014 \u5922\u5E7B\u6A02\u5712','\u6708\u9762\u90FD\u5E02 \u2014 \u5BD2\u5BC2\u4E4B\u6D77'],
-    ja:['\u30C0\u30F3\u30DC\u30B7\u30C6\u30A3 \u2014 \u5E0C\u671B\u306E\u8857','\u7802\u6F20\u30B7\u30C6\u30A3 \u2014 \u9EC4\u91D1\u306E\u7802','\u6C37\u96EA\u30B7\u30C6\u30A3 \u2014 \u6C38\u51CD\u306E\u5730','\u6EB6\u5CA9\u30B7\u30C6\u30A3 \u2014 \u708E\u306E\u5FC3\u81D3','\u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3 \u2014 \u5922\u306E\u697D\u5712','\u30EB\u30CA\u30FC\u30BE\u30FC\u30F3 \u2014 \u9759\u5BC2\u306E\u6D77'],
-    en:['DANBO City \u2014 Street of Hope','Desert City \u2014 Golden Sands','Ice City \u2014 Frozen Lands','Lava City \u2014 Heart of Flame','Candy City \u2014 Dreamland','Lunar Zone \u2014 Sea of Silence']
+    zhs:['\u6C34\u4E4B\u57CE \u2014 \u6E56\u5149\u6C34\u8272','\u6C99\u6F20\u57CE \u2014 \u9EC4\u91D1\u4E4B\u7802','\u51B0\u96EA\u57CE \u2014 \u6C38\u51BB\u4E4B\u5730','\u7194\u5CA9\u57CE \u2014 \u706B\u7130\u4E4B\u5FC3','\u7CD6\u679C\u57CE \u2014 \u68A6\u5E7B\u4E50\u56ED','\u6708\u9762\u90FD\u5E02 \u2014 \u5BD2\u5BC2\u4E4B\u6D77'],
+    zht:['\u6C34\u4E4B\u57CE \u2014 \u6E56\u5149\u6C34\u8272','\u6C99\u6F20\u57CE \u2014 \u9EC3\u91D1\u4E4B\u7802','\u51B0\u96EA\u57CE \u2014 \u6C38\u51CD\u4E4B\u5730','\u7194\u5CA9\u57CE \u2014 \u706B\u7130\u4E4B\u5FC3','\u7CD6\u679C\u57CE \u2014 \u5922\u5E7B\u6A02\u5712','\u6708\u9762\u90FD\u5E02 \u2014 \u5BD2\u5BC2\u4E4B\u6D77'],
+    ja:['\u6C34\u306E\u90FD \u2014 \u6E56\u5149\u6C34\u8272','\u7802\u6F20\u30B7\u30C6\u30A3 \u2014 \u9EC4\u91D1\u306E\u7802','\u6C37\u96EA\u30B7\u30C6\u30A3 \u2014 \u6C38\u51CD\u306E\u5730','\u6EB6\u5CA9\u30B7\u30C6\u30A3 \u2014 \u708E\u306E\u5FC3\u81D3','\u30AD\u30E3\u30F3\u30C7\u30A3\u30B7\u30C6\u30A3 \u2014 \u5922\u306E\u697D\u5712','\u30EB\u30CA\u30FC\u30BE\u30FC\u30F3 \u2014 \u9759\u5BC2\u306E\u6D77'],
+    en:['Aqua City \u2014 Shimmering Waters','Desert City \u2014 Golden Sands','Ice City \u2014 Frozen Lands','Lava City \u2014 Heart of Flame','Candy City \u2014 Dreamland','Lunar Zone \u2014 Sea of Silence']
 };
 var _areaNameCloud={zhs:'\u4E91\u4E2D\u754C \u2014 \u5929\u7A7A\u4E4B\u57CE',zht:'\u96F2\u4E2D\u754C \u2014 \u5929\u7A7A\u4E4B\u57CE',ja:'\u96F2\u4E2D\u754C \u2014 \u5929\u7A7A\u306E\u57CE',en:'Cloud Realm \u2014 City in the Sky'};
 function _showAreaName(name){
