@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.11';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.12';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5423,17 +5423,28 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(Math.random()<0.003){egg._aiSprint=40+Math.random()*60;}
             if(egg._aiSprint>0)egg._aiSprint--;
             if(cd2<3&&egg.onGround&&Math.random()<0.01){egg.vy=JUMP_FORCE*(0.7+Math.random()*1.5);egg.squash=0.55;}
-            // NPC punch/kick: when close, moderate chance
-            if(cd2<2.5&&Math.random()<0.015&&!egg.holding&&(!egg._npcAtkCD||egg._npcAtkCD<=0)){
-                egg._npcAtkCD=15;
-                var _nAtkF=0.2+Math.random()*0.15;
-                closest.vx+=(cdx2/cd2)*_nAtkF;closest.vz+=(cdz2/cd2)*_nAtkF;
-                closest.vy+=0.1;closest.squash=0.6;closest._stunTimer=Math.floor(15+Math.random()*20);
-                closest.throwTimer=6;closest._bounces=0;
+            // NPC punch/kick: Kunio-kun style — light hitstun or knockdown
+            if(cd2<2.5&&Math.random()<0.018&&!egg.holding&&(!egg._npcAtkCD||egg._npcAtkCD<=0)){
+                if(!egg._npcCombo)egg._npcCombo=0;
+                egg._npcCombo++;egg._npcAtkCD=10;
+                var _nIsHeavy=(egg._npcCombo>=3)||(!egg.onGround);
+                if(_nIsHeavy){
+                    // Knockdown
+                    var _nkf=0.35;
+                    closest.vx+=(cdx2/cd2)*_nkf;closest.vz+=(cdz2/cd2)*_nkf;
+                    closest.vy=0.2;closest.squash=0.4;
+                    closest.throwTimer=30;closest._bounces=1;closest._stunTimer=40;
+                    egg._npcCombo=0;egg._npcAtkCD=20;
+                } else {
+                    // Hitstun — flinch
+                    closest.vx+=(cdx2/cd2)*0.08;closest.vz+=(cdz2/cd2)*0.08;
+                    closest.squash=0.75;closest._stunTimer=12;
+                }
                 _dropNpcStolenCoins(closest);
                 if(closest.isPlayer)playHitSound();
             }
             if(egg._npcAtkCD>0)egg._npcAtkCD--;
+            if(egg._npcCombo>0&&Math.random()<0.02)egg._npcCombo=0; // combo timeout
             // NPC piledriver: when very close, rare chance
             if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.003&&!closest.heldBy){
                 egg._npcPiledriver=closest;egg._npcPdPhase=0;
@@ -6142,73 +6153,87 @@ function handlePlayerInput(){
     } else {
         if(playerEgg._throwChargeBar){playerEgg._throwChargeBar.visible=false;}
     }
-    // ---- Punch (R) / Kick (T) combat system ----
+    // ---- Punch (R) / Kick (T) — Kunio-kun style combat ----
+    // Light hits = hitstun (flinch in place), combo finisher/aerial = knockdown (fly away)
     if(!playerEgg._comboCount)playerEgg._comboCount=0;
     if(!playerEgg._comboTimer)playerEgg._comboTimer=0;
     if(!playerEgg._attackCD)playerEgg._attackCD=0;
     if(playerEgg._attackCD>0)playerEgg._attackCD--;
     if(playerEgg._comboTimer>0)playerEgg._comboTimer--;
     if(playerEgg._comboTimer<=0)playerEgg._comboCount=0;
-    // Punch (R)
+    // Punch (R) — fast jab, light hitstun; 3rd hit = knockdown
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
-        playerEgg._comboCount++;playerEgg._comboTimer=20;playerEgg._attackCD=10;
+        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
         var _atkDir=playerEgg.mesh.rotation.y;
-        var _atkRange=2.5;var _atkForce=0.2+playerEgg._comboCount*0.08;
-        var _atkStun=15+playerEgg._comboCount*10;
+        var _isFinisher=(playerEgg._comboCount>=3);
         var _isAerial=!playerEgg.onGround;
-        if(_isAerial){_atkForce*=1.5;_atkStun*=1.5;}
-        // Hit nearby eggs
         for(var _ai=0;_ai<allEggs.length;_ai++){
             var _ae=allEggs[_ai];if(_ae===playerEgg||!_ae.alive||_ae.heldBy)continue;
+            if(_ae._slamImmune>0)continue;
             var _adx=_ae.mesh.position.x-playerEgg.mesh.position.x;
             var _adz=_ae.mesh.position.z-playerEgg.mesh.position.z;
             var _ad=Math.sqrt(_adx*_adx+_adz*_adz);
-            if(_ad<_atkRange&&_ad>0.01){
-                // Check facing direction (120 degree cone)
+            if(_ad<2.5&&_ad>0.01){
                 var _aAngle=Math.atan2(_adx,_adz);
                 var _aDiff=Math.abs(_aAngle-_atkDir);if(_aDiff>Math.PI)_aDiff=Math.PI*2-_aDiff;
                 if(_aDiff<Math.PI/3){
-                    _ae.vx+=_adx/_ad*_atkForce;_ae.vz+=_adz/_ad*_atkForce;
-                    _ae.vy+=_isAerial?0.2:0.08;
-                    _ae.squash=0.6;_ae._stunTimer=Math.floor(_atkStun);
-                    _ae.throwTimer=8;_ae._bounces=0;
+                    if(_isFinisher||_isAerial){
+                        // KNOCKDOWN: fly away + bounce (Kunio heavy hit)
+                        var _kf=0.35+(_isAerial?0.2:0);
+                        _ae.vx+=_adx/_ad*_kf;_ae.vz+=_adz/_ad*_kf;
+                        _ae.vy=_isAerial?0.25:0.2;
+                        _ae.squash=0.4;_ae.throwTimer=30;_ae._bounces=1;
+                        _ae._stunTimer=Math.floor(40+(_isAerial?30:0));
+                    } else {
+                        // HITSTUN: flinch in place, small pushback (Kunio light jab)
+                        _ae.vx+=_adx/_ad*0.08;_ae.vz+=_adz/_ad*0.08;
+                        _ae.squash=0.75;
+                        _ae._stunTimer=12; // brief flinch — can't act but stays standing
+                    }
                     _dropNpcStolenCoins(_ae);
                     playHitSound();
                 }
             }
         }
-        // Visual: quick arm extend
-        playerEgg.squash=0.85;
-        if(playerEgg._comboCount>=3){playerEgg._comboCount=0;playerEgg._attackCD=20;} // combo finisher has longer cooldown
+        playerEgg.squash=0.88;
+        if(_isFinisher){playerEgg._comboCount=0;playerEgg._attackCD=18;}
     }
-    // Kick (T)
+    // Kick (T) — slower, stronger; 1st-2nd = hitstun, 3rd = big knockdown
     if(keys['KeyT']&&!playerEgg._tWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
-        playerEgg._comboCount++;playerEgg._comboTimer=20;playerEgg._attackCD=12;
+        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
         var _kDir=playerEgg.mesh.rotation.y;
-        var _kRange=3.0;var _kForce=0.25+playerEgg._comboCount*0.1;
-        var _kStun=20+playerEgg._comboCount*12;
+        var _kFinisher=(playerEgg._comboCount>=3);
         var _kAerial=!playerEgg.onGround;
-        if(_kAerial){_kForce*=1.5;_kStun*=1.5;}
         for(var _ki=0;_ki<allEggs.length;_ki++){
             var _ke=allEggs[_ki];if(_ke===playerEgg||!_ke.alive||_ke.heldBy)continue;
+            if(_ke._slamImmune>0)continue;
             var _kdx=_ke.mesh.position.x-playerEgg.mesh.position.x;
             var _kdz=_ke.mesh.position.z-playerEgg.mesh.position.z;
             var _kd=Math.sqrt(_kdx*_kdx+_kdz*_kdz);
-            if(_kd<_kRange&&_kd>0.01){
+            if(_kd<3.0&&_kd>0.01){
                 var _kAngle=Math.atan2(_kdx,_kdz);
                 var _kDiff=Math.abs(_kAngle-_kDir);if(_kDiff>Math.PI)_kDiff=Math.PI*2-_kDiff;
                 if(_kDiff<Math.PI/3){
-                    _ke.vx+=_kdx/_kd*_kForce;_ke.vz+=_kdz/_kd*_kForce;
-                    _ke.vy+=_kAerial?0.25:0.15;
-                    _ke.squash=0.5;_ke._stunTimer=Math.floor(_kStun);
-                    _ke.throwTimer=10;_ke._bounces=1;
+                    if(_kFinisher||_kAerial){
+                        // BIG KNOCKDOWN: powerful kick sends them flying
+                        var _kkf=0.5+(_kAerial?0.25:0);
+                        _ke.vx+=_kdx/_kd*_kkf;_ke.vz+=_kdz/_kd*_kkf;
+                        _ke.vy=_kAerial?0.3:0.25;
+                        _ke.squash=0.3;_ke.throwTimer=45;_ke._bounces=2;
+                        _ke._stunTimer=Math.floor(60+(_kAerial?40:0));
+                    } else {
+                        // HITSTUN: stagger back, brief freeze
+                        _ke.vx+=_kdx/_kd*0.12;_ke.vz+=_kdz/_kd*0.12;
+                        _ke.squash=0.7;
+                        _ke._stunTimer=15;
+                    }
                     _dropNpcStolenCoins(_ke);
                     playHitSound();
                 }
             }
         }
-        playerEgg.squash=0.8;
-        if(playerEgg._comboCount>=3){playerEgg._comboCount=0;playerEgg._attackCD=25;}
+        playerEgg.squash=0.82;
+        if(_kFinisher){playerEgg._comboCount=0;playerEgg._attackCD=22;}
     }
     playerEgg._rWasDown=!!keys['KeyR'];
     playerEgg._tWasDown=!!keys['KeyT'];
