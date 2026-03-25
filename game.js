@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.7';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.8';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5528,24 +5528,27 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     if(egg._npcPiledriver){
         var _npdt=egg._npcPiledriver;
         egg._npcPdPhase++;
-        if(egg._npcPdPhase<40){
-            egg.vy=0.1;egg.vx=0;egg.vz=0;
-            egg.mesh.rotation.y+=0.4;
+        if(egg._npcPdPhase<60){
+            egg.vy=0.2;egg.vx=0;egg.vz=0;
+            egg.mesh.rotation.y+=0.5;
             _npdt.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1.5,egg.mesh.position.z);
             _npdt.vx=0;_npdt.vy=0;_npdt.vz=0;
-        } else if(egg._npcPdPhase<55){
-            egg.vy=-0.35;egg.mesh.rotation.y+=0.5;
+        } else if(egg._npcPdPhase<65){
+            egg.vy=0;egg.mesh.rotation.y+=0.6;
             _npdt.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1.5,egg.mesh.position.z);
-        } else {
+        } else if(egg._npcPdPhase<85){
+            egg.vy=-0.5;egg.mesh.rotation.y+=0.7;
+            _npdt.mesh.position.set(egg.mesh.position.x,egg.mesh.position.y+1.5,egg.mesh.position.z);
+        } else if(egg.onGround||egg.mesh.position.y<0.5){
             _npdt.heldBy=null;egg.holding=null;
             if(_npdt.struggleBar){_npdt.mesh.remove(_npdt.struggleBar);_npdt.struggleBar=null;}
-            _npdt.squash=0.15;
+            _npdt.squash=0.1;
             var _npdDir=Math.random()*Math.PI*2;
-            _npdt.vx=Math.sin(_npdDir)*0.5;_npdt.vy=0.35;_npdt.vz=Math.cos(_npdDir)*0.5;
-            _npdt.throwTimer=50;_npdt._bounces=2;_npdt._stunTimer=100;
+            _npdt.vx=Math.sin(_npdDir)*0.7;_npdt.vy=0.45;_npdt.vz=Math.cos(_npdDir)*0.7;
+            _npdt.throwTimer=70;_npdt._bounces=3;_npdt._stunTimer=150;
             _dropNpcStolenCoins(_npdt);
             if(_npdt.isPlayer)playHitSound();
-            egg.vy=0.1;egg.grabCD=40;egg._npcPiledriver=null;egg._npcPdPhase=0;
+            egg.vy=0.15;egg.grabCD=40;egg._npcPiledriver=null;egg._npcPdPhase=0;
         }
     }
     // ---- NPC Body Slam landing ----
@@ -5836,15 +5839,7 @@ function handlePlayerInput(){
     if(!playerEgg._spaceHoldFrames)playerEgg._spaceHoldFrames=0;
     var _chargeDelay=18; // 0.3s at 60fps
     if(keys['Space']&&_onGroundOrGrace){
-        // Cannot charge jump while holding something
-        if(playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs){
-            if(playerEgg._spaceHoldFrames===0){
-                playerEgg.vy=JUMP_FORCE*1.2;
-                playerEgg.squash=0.7;playJumpSound();
-            }
-            playerEgg._spaceHoldFrames++;
-            _jumpCharging=false;_jumpCharge=0;_chargeHoldTimer=0;
-        } else {
+        // Charge jump works while holding (needed for body slam combo)
         playerEgg._spaceHoldFrames++;
         // After 0.3s hold, enter charge mode (no instant jump)
         if(playerEgg._spaceHoldFrames>=_chargeDelay&&!_jumpCharging){
@@ -5868,7 +5863,6 @@ function handlePlayerInput(){
                 }
             }
         }
-        } // end else (not holding something)
     }
     if(!keys['Space']||!_onGroundOrGrace){
         if(_onGroundOrGrace){
@@ -5918,11 +5912,12 @@ function handlePlayerInput(){
             _bsHeld.heldBy=null;playerEgg.holding=null;
             if(_bsHeld.struggleBar){_bsHeld.mesh.remove(_bsHeld.struggleBar);_bsHeld.struggleBar=null;}
             // Slam down fast
-            playerEgg.vy=-0.5;playerEgg.vx*=0.2;playerEgg.vz*=0.2;
+            playerEgg.vy=-0.6;playerEgg.vx*=0.1;playerEgg.vz*=0.1;
             playerEgg._bodySlam=true;playerEgg._bodySlamTarget=_bsHeld;
+            playerEgg._bodySlamStartY=playerEgg.mesh.position.y; // track height for damage
             // Place held NPC below player
             _bsHeld.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y-1.5,playerEgg.mesh.position.z);
-            _bsHeld.vy=-0.5;_bsHeld.vx=0;_bsHeld.vz=0;
+            _bsHeld.vy=-0.6;_bsHeld.vx=0;_bsHeld.vz=0;
             playerEgg.grabCD=30;
             playThrowSound();
             playerEgg._fPressStart=false;playerEgg._fHoldFrames=0;playerEgg._fWasDown=true;
@@ -6123,55 +6118,78 @@ function handlePlayerInput(){
     if(playerEgg._pdTimer<=0){playerEgg._pdSeq=0;playerEgg._piledriverReady=false;}
     playerEgg._pdPrevLeft=!!(keys['KeyA']||keys['ArrowLeft']);
     playerEgg._pdPrevRight=!!(keys['KeyD']||keys['ArrowRight']);
-    // ---- Body Slam landing impact ----
+    // ---- Body Slam landing impact (height-based damage) ----
     if(playerEgg._bodySlam&&playerEgg.onGround){
         playerEgg._bodySlam=false;
         var _bst=playerEgg._bodySlamTarget;
+        var _slamH=Math.max(1,(playerEgg._bodySlamStartY||3));
+        var _slamPower=Math.min(_slamH/20,3); // 0-3 power scale based on height
         if(_bst&&_bst.alive){
-            // Crush NPC: flatten + bounce away
-            _bst.mesh.position.set(playerEgg.mesh.position.x,0.2,playerEgg.mesh.position.z);
-            _bst.squash=0.2;
+            // Crush NPC: flatten + bounce away — stronger from higher
+            _bst.mesh.position.set(playerEgg.mesh.position.x,0.1,playerEgg.mesh.position.z);
+            _bst.squash=0.1+0.1/(1+_slamPower);
             var _bsDir=playerEgg.mesh.rotation.y+Math.PI*(Math.random()-0.5);
-            _bst.vx=Math.sin(_bsDir)*0.5;_bst.vy=0.35;_bst.vz=Math.cos(_bsDir)*0.5;
-            _bst.throwTimer=40;_bst._bounces=2;_bst._stunTimer=90;
+            var _bsForce=0.4+_slamPower*0.3;
+            _bst.vx=Math.sin(_bsDir)*_bsForce;_bst.vy=0.3+_slamPower*0.2;_bst.vz=Math.cos(_bsDir)*_bsForce;
+            _bst.throwTimer=40+Math.floor(_slamPower*20);_bst._bounces=2;
+            _bst._stunTimer=Math.floor(60+_slamPower*80);
             _dropNpcStolenCoins(_bst);
             playHitSound();
-            // Player bounces up from slam
-            playerEgg.vy=0.25;playerEgg.squash=0.5;
-            _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,0.8);
+            // Screen shake effect (camera wobble)
+            if(playerEgg._bodySlamStartY>5){
+                // Big impact: ground dust ring
+                for(var _dri=0;_dri<8;_dri++){
+                    var _dra=_dri/8*Math.PI*2;
+                    _spawnGroundDust(playerEgg.mesh.position.x+Math.cos(_dra)*2,0,playerEgg.mesh.position.z+Math.sin(_dra)*2,0.5+_slamPower*0.3);
+                }
+            }
+            // Player bounces up — higher from bigger slam
+            playerEgg.vy=0.2+_slamPower*0.1;playerEgg.squash=0.4;
+            _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,0.6+_slamPower*0.4);
         }
-        playerEgg._bodySlamTarget=null;
+        playerEgg._bodySlamTarget=null;playerEgg._bodySlamStartY=0;
     }
     // ---- Piledriver animation ----
     if(playerEgg._piledriverTarget){
         var _pdt=playerEgg._piledriverTarget;
         playerEgg._piledriverPhase++;
-        if(playerEgg._piledriverPhase<40){
-            // Phase 1: spin upward (Zangief rising)
-            playerEgg.vy=0.12;playerEgg.vx=0;playerEgg.vz=0;
-            playerEgg.mesh.rotation.y+=0.4;
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
-            _pdt.mesh.rotation.y+=0.4;_pdt.mesh.rotation.z=Math.PI;
-            _pdt.vx=0;_pdt.vy=0;_pdt.vz=0;
-        } else if(playerEgg._piledriverPhase<55){
-            // Phase 2: slam down
-            playerEgg.vy=-0.4;playerEgg.vx=0;playerEgg.vz=0;
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+        if(playerEgg._piledriverPhase<60){
+            // Phase 1: spin upward to ~10 floors high (y≈30)
+            playerEgg.vy=0.22;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.mesh.rotation.y+=0.5;
-        } else {
-            // Phase 3: impact
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+            _pdt.mesh.rotation.y+=0.5;_pdt.mesh.rotation.z=Math.PI;
+            _pdt.vx=0;_pdt.vy=0;_pdt.vz=0;
+            // Dust trail while rising
+            if(playerEgg._piledriverPhase%4===0)_spawnButtSmoke(playerEgg,0.6);
+        } else if(playerEgg._piledriverPhase<65){
+            // Phase 2: pause at apex
+            playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+            playerEgg.mesh.rotation.y+=0.6;
+        } else if(playerEgg._piledriverPhase<85){
+            // Phase 3: slam down fast
+            playerEgg.vy=-0.6;playerEgg.vx=0;playerEgg.vz=0;
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+            playerEgg.mesh.rotation.y+=0.7;
+        } else if(playerEgg.onGround||playerEgg.mesh.position.y<0.5){
+            // Phase 4: devastating impact
             _pdt.heldBy=null;playerEgg.holding=null;
             if(_pdt.struggleBar){_pdt.mesh.remove(_pdt.struggleBar);_pdt.struggleBar=null;}
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,0.2,playerEgg.mesh.position.z);
+            _pdt.mesh.position.set(playerEgg.mesh.position.x,0.1,playerEgg.mesh.position.z);
             _pdt.mesh.rotation.z=0;
-            _pdt.squash=0.15;
+            _pdt.squash=0.1;
             var _pdBounceDir=Math.random()*Math.PI*2;
-            _pdt.vx=Math.sin(_pdBounceDir)*0.6;_pdt.vy=0.4;_pdt.vz=Math.cos(_pdBounceDir)*0.6;
-            _pdt.throwTimer=60;_pdt._bounces=2;_pdt._stunTimer=120;
+            _pdt.vx=Math.sin(_pdBounceDir)*0.8;_pdt.vy=0.5;_pdt.vz=Math.cos(_pdBounceDir)*0.8;
+            _pdt.throwTimer=80;_pdt._bounces=3;_pdt._stunTimer=180;
             _dropNpcStolenCoins(_pdt);
             playHitSound();
-            _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,1.0);
-            playerEgg.vy=0.15;playerEgg.squash=0.6;playerEgg.grabCD=40;
+            // Massive ground dust ring
+            for(var _pddi=0;_pddi<12;_pddi++){
+                var _pdda=_pddi/12*Math.PI*2;
+                _spawnGroundDust(playerEgg.mesh.position.x+Math.cos(_pdda)*2.5,0,playerEgg.mesh.position.z+Math.sin(_pdda)*2.5,0.8);
+            }
+            playerEgg.vy=0.2;playerEgg.squash=0.5;playerEgg.grabCD=40;
             playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;
         }
     }
