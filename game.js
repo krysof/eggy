@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.27';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.28';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -4663,7 +4663,7 @@ var MOON_CITY_SIZE=400; // half-size of flat moon city ground
 // (spherical _moonProject removed — moon is now flat city)
 // (spherical _moonOrient removed — moon is now flat city)
 
-function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
+function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)return;
     if(!egg.alive) return;
     // ---- Normal flat physics (used for all cities including moon) ----
     var grav=GRAVITY;
@@ -5024,10 +5024,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
 function resolveEggCollisions(eggList){
     for(let i=0;i<eggList.length;i++){
         const a=eggList[i];
-        if(!a.alive||a.heldBy)continue;
+        if(!a.alive||a.heldBy||a._piledriverLocked)continue;
         for(let j=i+1;j<eggList.length;j++){
             const b=eggList[j];
-            if(!b.alive||b.heldBy)continue;
+            if(!b.alive||b.heldBy||b._piledriverLocked)continue;
             const dx=b.mesh.position.x-a.mesh.position.x;
             const dz=b.mesh.position.z-a.mesh.position.z;
             const dy=b.mesh.position.y-a.mesh.position.y;
@@ -5784,7 +5784,7 @@ function handlePlayerInput(){
         playerEgg._throwCharging=false;playerEgg._throwCharge=0;
         _sprintCharge=0;
         // Cancel all special moves
-        if(playerEgg._piledriverTarget){var _ipt=playerEgg._piledriverTarget;_ipt.heldBy=null;if(_ipt.struggleBar){_ipt.mesh.remove(_ipt.struggleBar);_ipt.struggleBar=null;}playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;}
+        if(playerEgg._piledriverTarget){var _ipt=playerEgg._piledriverTarget;_ipt._piledriverLocked=false;playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;}
         playerEgg._bodySlam=false;playerEgg._bodySlamTarget=null;
         playerEgg._tatsuActive=0;playerEgg._tatsuDir=0;
         playerEgg._shoryuReady=false;playerEgg._shoryuSeq=0;playerEgg._shoryuActive=0;
@@ -5986,8 +5986,8 @@ function handlePlayerInput(){
     var _throwChargeDelay=18; // 0.3s at 60fps
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
-    // Track F press
-    if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0){
+    // Track F press (blocked during tatsumaki)
+    if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!playerEgg._tatsuActive){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
         if(playerEgg.holding&&!playerEgg.onGround&&(keys['KeyS']||keys['ArrowDown'])){
             var _bsHeld=playerEgg.holding;
@@ -6016,10 +6016,10 @@ function handlePlayerInput(){
                 if(_pdd<_pdDist){_pdDist=_pdd;_pdNearest=_pde;}
             }
             if(_pdNearest){
-                // Start piledriver animation
+                // Start piledriver animation — don't use holding/heldBy to avoid conflicts
                 playerEgg._piledriverTarget=_pdNearest;
                 playerEgg._piledriverPhase=0;
-                _pdNearest.heldBy=playerEgg;playerEgg.holding=_pdNearest;
+                _pdNearest._piledriverLocked=true; // custom lock flag instead of heldBy
                 playerEgg.grabCD=40;
                 playGrabSound();
                 playerEgg._fPressStart=false;playerEgg._fHoldFrames=0;playerEgg._fWasDown=true;
@@ -6189,6 +6189,12 @@ function handlePlayerInput(){
         if(playerEgg._throwChargeBar){playerEgg._throwChargeBar.visible=false;}
     }
     // ---- Punch (R) / Kick (T) — Kunio-kun style with visible limbs ----
+    // Block all combat input during Tatsumaki (must finish spinning first)
+    if(playerEgg._tatsuActive>0){
+        // Only tatsumaki animation runs — skip all punch/kick/grab input
+        playerEgg._rWasDown=!!keys['KeyR'];
+        playerEgg._tWasDown=!!keys['KeyT'];
+    } else {
     // Light hits = hitstun flinch (NO stun stars), combo finisher/aerial = knockdown fly
     if(!playerEgg._comboCount)playerEgg._comboCount=0;
     if(!playerEgg._comboTimer)playerEgg._comboTimer=0;
@@ -6410,6 +6416,7 @@ function handlePlayerInput(){
     }
     playerEgg._rWasDown=!!keys['KeyR'];
     playerEgg._tWasDown=!!keys['KeyT'];
+    } // end tatsu block (else)
     // ---- Special move input trackers ----
     // Detect horizontal direction presses
     var _hLeft=(keys['KeyA']||keys['ArrowLeft']);
@@ -6515,8 +6522,7 @@ function handlePlayerInput(){
             playerEgg.mesh.rotation.y+=0.7;
         } else {
             // Phase 4: impact
-            _pdt.heldBy=null;playerEgg.holding=null;
-            if(_pdt.struggleBar){_pdt.mesh.remove(_pdt.struggleBar);_pdt.struggleBar=null;}
+            _pdt._piledriverLocked=false;
             _pdt.mesh.position.set(playerEgg.mesh.position.x,0.1,playerEgg.mesh.position.z);
             _pdt.mesh.rotation.z=0;
             _pdt.squash=0.1;
@@ -7588,7 +7594,7 @@ function updateHeldEggs(){
         }
         var holder=egg.heldBy;
         // Skip normal held positioning during piledriver (piledriver handles its own positioning)
-        if(holder._piledriverTarget===egg||holder._npcPiledriver===egg)continue;
+        if(holder._piledriverTarget===egg||holder._npcPiledriver===egg||egg._piledriverLocked)continue;
         // Position on holder head
         egg.mesh.position.x=holder.mesh.position.x;
         egg.mesh.position.y=holder.mesh.position.y+1.7;
