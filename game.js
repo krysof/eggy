@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.52';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.53';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3985,7 +3985,7 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
     for(var ci2=0;ci2<g.children.length;ci2++){g.children[ci2].position.x-=halfW;}
     g.position.set(cx,cy,cz);
     scene.add(g);
-    var cl={group:g,x:cx,z:cz,y:cy,hw:halfW+maxSc,hd:Math.max(maxD,maxSc*0.7),top:maxTop};
+    var cl={group:g,x:cx,z:cz,y:cy,hw:halfW+maxSc,hd:Math.max(maxD,maxSc*0.7,halfW*0.6),top:maxTop};
     cityCloudPlatforms.push(cl);
     return cl;
 }
@@ -6316,15 +6316,28 @@ function handlePlayerInput(){
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         var _isShoryu=playerEgg._shoryuReady;
-        // ---- CHARACTER-SPECIFIC PUNCH SPECIALS ----
-        // Ryu/Ken (egg/dog): Hadouken + Shoryuken
-        // Chun-Li (monkey): 百裂脚 (rapid kicks on R mash)
-        // Guile (rooster): Sonic Boom (charge back-forward+R)
-        // Dhalsim (cockroach): Yoga Fire (down-forward+R, slow fireball)
-        // Blanka (cat): Rolling Attack (charge back-forward+R)
-        // E.Honda (pig): 百裂張り手 (rapid punches on R mash)
-        // Zangief (frog): Double Lariat (R+T together)
-        if(_isHadou&&(_ct==='egg'||_ct==='dog')){
+        // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
+        if(playerEgg._rapidRReady&&_ct==='pig'){
+            // 百裂張手 (E.Honda) — rapid slaps + move forward
+            playerEgg._comboCount=0;playerEgg._attackCD=3;playerEgg._rapidR=0;
+            var _hsDir=playerEgg.mesh.rotation.y;
+            playerEgg.vx+=Math.sin(_hsDir)*0.05;playerEgg.vz+=Math.cos(_hsDir)*0.05;
+            for(var _hsi=0;_hsi<allEggs.length;_hsi++){
+                var _hse=allEggs[_hsi];if(_hse===playerEgg||!_hse.alive||_hse.heldBy)continue;
+                var _hsdx=_hse.mesh.position.x-playerEgg.mesh.position.x;
+                var _hsdz=_hse.mesh.position.z-playerEgg.mesh.position.z;
+                if(Math.sqrt(_hsdx*_hsdx+_hsdz*_hsdz)<2.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
+            }
+            playerEgg.squash=0.88;playerEgg._atkAnim=5;
+        } else if(playerEgg._rapidRReady&&_ct==='cat'){
+            // ELECTRIC THUNDER (Blanka) — shock AOE
+            _shoutMove(playerEgg,'ELECTRIC!');
+            playerEgg._comboCount=0;playerEgg._attackCD=8;playerEgg._rapidR=0;
+            playerEgg._blankaShock=25;playerEgg.squash=0.6;
+            if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
+        }
+        // ---- COMMAND INPUT SPECIALS ----
+        else if(_isHadou&&(_ct==='egg'||_ct==='dog')){
             // HADOUKEN (Ryu blue, Ken red)
             _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;
@@ -6401,24 +6414,6 @@ function handlePlayerInput(){
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=60;
             playJumpSound();
-        } else if(playerEgg._rapidRReady&&_ct==='pig'){
-            // 百裂張手 (E.Honda) — rapid slaps + move forward
-            playerEgg._comboCount=0;playerEgg._attackCD=3;playerEgg._rapidR=0;
-            var _hsDir=playerEgg.mesh.rotation.y;
-            // Move forward while slapping
-            playerEgg.vx+=Math.sin(_hsDir)*0.05;playerEgg.vz+=Math.cos(_hsDir)*0.05;
-            for(var _hsi=0;_hsi<allEggs.length;_hsi++){
-                var _hse=allEggs[_hsi];if(_hse===playerEgg||!_hse.alive||_hse.heldBy)continue;
-                var _hsdx=_hse.mesh.position.x-playerEgg.mesh.position.x;
-                var _hsdz=_hse.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_hsdx*_hsdx+_hsdz*_hsdz)<2.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
-            }
-            playerEgg.squash=0.88;playerEgg._atkAnim=5;
-        } else if(playerEgg._rapidRReady&&_ct==='cat'){
-            // ELECTRIC THUNDER (Blanka) — shock AOE
-            playerEgg._comboCount=0;playerEgg._attackCD=8;playerEgg._rapidR=0;
-            playerEgg._blankaShock=25;playerEgg.squash=0.6;
-            if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
         } else if(_isHadou&&(_ct==='rooster'||_ct==='monkey')&&!window._playerHadouken){
             // SONIC BOOM (Guile) / 気功拳 (Chun-Li) — ↓→+R
             _shoutMove(playerEgg,_ct==='monkey'?'Kikouken!':'Sonic Boom!');
@@ -6501,8 +6496,22 @@ function handlePlayerInput(){
     // Kick (T) — character-specific kick specials
     if(keys['KeyT']&&!playerEgg._tWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isTatsu=playerEgg._tatsuReady;
+        // RAPID-PRESS KICK SPECIALS FIRST
+        if(playerEgg._rapidTReady&&_ct==='monkey'){
+            // 百裂脚 (Chun-Li) — rapid kicks
+            playerEgg._comboCount=0;playerEgg._attackCD=3;playerEgg._rapidT=0;
+            var _rlDir=playerEgg.mesh.rotation.y;
+            for(var _rli=0;_rli<allEggs.length;_rli++){
+                var _rle=allEggs[_rli];if(_rle===playerEgg||!_rle.alive||_rle.heldBy)continue;
+                var _rldx=_rle.mesh.position.x-playerEgg.mesh.position.x;
+                var _rldz=_rle.mesh.position.z-playerEgg.mesh.position.z;
+                var _rld=Math.sqrt(_rldx*_rldx+_rldz*_rldz);
+                if(_rld<3){_rle.vx+=_rldx/_rld*0.15;_rle.vz+=_rldz/_rld*0.15;_rle._hitStun=8;_dropNpcStolenCoins(_rle);playHitSound();}
+            }
+            playerEgg.squash=0.85;playerEgg._atkAnim=6;
+        }
         // Character-specific kick specials
-        if(_isTatsu&&(_ct==='egg'||_ct==='dog')){
+        else if(_isTatsu&&(_ct==='egg'||_ct==='dog')){
             // TATSUMAKI (Ryu/Ken)
             _shoutMove(playerEgg,'Tatsumaki Senpukyaku!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
@@ -6535,18 +6544,6 @@ function handlePlayerInput(){
             playerEgg._shoryuActive=50;
             playJumpSound();
             _shoutMove(playerEgg,'Somersault Kick!');
-        } else if(playerEgg._rapidTReady&&_ct==='monkey'){
-            // 百裂脚 (Chun-Li) — rapid kicks
-            playerEgg._comboCount=0;playerEgg._attackCD=5;playerEgg._rapidT=0;
-            var _rlDir=playerEgg.mesh.rotation.y;
-            for(var _rli=0;_rli<allEggs.length;_rli++){
-                var _rle=allEggs[_rli];if(_rle===playerEgg||!_rle.alive||_rle.heldBy)continue;
-                var _rldx=_rle.mesh.position.x-playerEgg.mesh.position.x;
-                var _rldz=_rle.mesh.position.z-playerEgg.mesh.position.z;
-                var _rld=Math.sqrt(_rldx*_rldx+_rldz*_rldz);
-                if(_rld<3){_rle.vx+=_rldx/_rld*0.15;_rle.vz+=_rldz/_rld*0.15;_rle._hitStun=8;_dropNpcStolenCoins(_rle);playHitSound();}
-            }
-            playerEgg.squash=0.85;playerEgg._atkAnim=6;
         } else {
         // Normal kick
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
