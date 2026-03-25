@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.43';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.44';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3217,6 +3217,12 @@ function buildCity() {
             else if(mu.ms==='valkyrie'||mu.ms==='sdf1')faction='unSpacy';
             else if(mu.ms==='zenPod'||mu.ms==='zenCruiser')faction='zentradi';
             else faction='zeon';
+            // Faction-based spawn zones (formations)
+            // Zeon: near cities (defenders), EFSF: north, UN Spacy: east, Zentradi: south
+            var _fZone={efsf:{cx:200,cz:-200},unSpacy:{cx:200,cz:200},zentradi:{cx:-100,cz:250},zeon:{cx:-200,cz:-50}};
+            var _fz=_fZone[faction];
+            gFlatX=_fz.cx+(Math.random()-0.5)*150;
+            gFlatZ=_fz.cz+(Math.random()-0.5)*150;
             // Random waypoint AI state
             var wpAngle=Math.random()*Math.PI*2;
             var wpElev=(Math.random()-0.5)*Math.PI*0.6;
@@ -3237,13 +3243,17 @@ function buildCity() {
                 _dead:false,_respawnTimer:0,_msType:mu.ms,_weaponType:mu.weapon,_color:mu.color
             });
         }
-        // Pair up saber units for duels (EFSF vs Zeon)
-        var efsfSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&(g2.faction==='efsf');});
-        var zeonSabers=window._moonGundams.filter(function(g2){return g2.type==='saber'&&g2.faction==='zeon';});
-        var pairCount=Math.min(efsfSabers.length,zeonSabers.length);
-        for(var sp=0;sp<pairCount;sp++){
-            efsfSabers[sp].duelPartner=zeonSabers[sp];
-            zeonSabers[sp].duelPartner=efsfSabers[sp];
+        // Pair up saber units for cross-faction duels
+        var _allSabers=window._moonGundams.filter(function(g2){return g2.type==='saber';});
+        for(var sp=0;sp<_allSabers.length;sp++){
+            if(_allSabers[sp].duelPartner)continue;
+            for(var sp2=sp+1;sp2<_allSabers.length;sp2++){
+                if(_allSabers[sp2].duelPartner)continue;
+                if(_allSabers[sp].faction!==_allSabers[sp2].faction){
+                    _allSabers[sp].duelPartner=_allSabers[sp2];
+                    _allSabers[sp2].duelPartner=_allSabers[sp];break;
+                }
+            }
         }
     }
 }
@@ -7327,10 +7337,16 @@ function updateCity(){
             // Random dodge maneuver
             if(gm.dodgeTimer>0){gm.dodgeTimer--;}
             else if(Math.random()<0.02){gm.dodgeTimer=10+Math.floor(Math.random()*15);gm.dodgeDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();}
-            // Compute waypoint world position (spread across battlefield)
-            var wpx=Math.cos(gm.wpAngle)*200;
+            // Compute waypoint — faction-based targeting
+            // EFSF & Zentradi attack cities, Zeon defends cities, UN Spacy attacks from east
+            var _fTargets={efsf:{x:-200,z:0},zentradi:{x:-200,z:-200},unSpacy:{x:-200,z:-100},zeon:{x:-200,z:-50}};
+            var _ft=_fTargets[gm.faction]||{x:0,z:0};
+            // Waypoint biased toward faction target with some randomness
+            var wpx=_ft.x+(Math.random()-0.5)*200+Math.cos(gm.wpAngle)*80;
             var wpy=gm.wpR;
-            var wpz=Math.sin(gm.wpAngle)*200;
+            var wpz=_ft.z+(Math.random()-0.5)*200+Math.sin(gm.wpAngle)*80;
+            // Zeon stays closer to cities (defenders)
+            if(gm.faction==='zeon'){wpx=-200+(Math.random()-0.5)*120;wpz=-100+(Math.random()-0.5)*250;}
             // Steer toward waypoint
             var dx3=wpx-gm.group.position.x,dy3=wpy-gm.group.position.y,dz3=wpz-gm.group.position.z;
             var dd3=Math.sqrt(dx3*dx3+dy3*dy3+dz3*dz3)||1;
@@ -7458,13 +7474,13 @@ function updateCity(){
                 if(_dm._respawnTimer<=0){
                     // Respawn: rebuild MS and fly in above battlefield
                     var _newGd=_buildMobileSuit(_dm._msType,_dm._weaponType,_dm._color);
-                    // Spawn above battlefield (spread across map)
+                    // Respawn in faction zone
                     var _isLargeShip=(_dm._msType==='sdf1'||_dm._msType==='zenCruiser');
-                    var _rsAngle=Math.random()*Math.PI*2;
-                    var _rsDist=100+Math.random()*250;
-                    var _sx=Math.cos(_rsAngle)*_rsDist;
+                    var _rsFz={efsf:{cx:200,cz:-200},unSpacy:{cx:200,cz:200},zentradi:{cx:-100,cz:250},zeon:{cx:-200,cz:-50}};
+                    var _rsZ=_rsFz[_dm.faction]||{cx:0,cz:0};
+                    var _sx=_rsZ.cx+(Math.random()-0.5)*120;
                     var _sy=_isLargeShip?200+Math.random()*100:30+Math.random()*60;
-                    var _sz=Math.sin(_rsAngle)*_rsDist;
+                    var _sz=_rsZ.cz+(Math.random()-0.5)*120;
                     _newGd.group.position.set(_sx,_sy,_sz);
                     _newGd.group.scale.set(2,2,2);
                     scene.add(_newGd.group);
