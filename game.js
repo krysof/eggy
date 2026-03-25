@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.35';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.36';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -4699,8 +4699,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         else{egg.onGround=false;}
         // City bounds — no wall, can fall off edge
         const bound=(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
-        // Fall respawn: if egg falls below -30, respawn at center (fountain/pool splash)
-        if(egg.mesh.position.y<-30){
+        // Fall respawn: if egg falls below -10, respawn at center
+        if(egg.mesh.position.y<-10){
             if(currentCityStyle===5){
                 // Moon: respawn inside Von Braun
                 egg.mesh.position.set(-200,5,0);
@@ -6392,6 +6392,13 @@ function handlePlayerInput(){
             }
         }
         playerEgg.squash=_isFinisher?0.75:0.88;
+        // Punch swing sound
+        if(sfxEnabled){var _pCtx=ensureAudio();if(_pCtx){var _pt2=_pCtx.currentTime;
+            var _po=_pCtx.createOscillator();var _pg=_pCtx.createGain();
+            _po.type='sawtooth';_po.frequency.setValueAtTime(_isFinisher?400:600,_pt2);_po.frequency.exponentialRampToValueAtTime(200,_pt2+0.08);
+            _pg.gain.setValueAtTime(0.06,_pt2);_pg.gain.exponentialRampToValueAtTime(0.001,_pt2+0.1);
+            _po.connect(_pg);_pg.connect(_pCtx.destination);_po.start(_pt2);_po.stop(_pt2+0.1);
+        }}
         if(_isFinisher){playerEgg._comboCount=0;playerEgg._attackCD=18;}
         }
     }
@@ -6457,6 +6464,13 @@ function handlePlayerInput(){
             }
         }
         playerEgg.squash=_kFinisher?0.7:0.82;
+        // Kick swing sound
+        if(sfxEnabled){var _kCtx=ensureAudio();if(_kCtx){var _kt2=_kCtx.currentTime;
+            var _ko=_kCtx.createOscillator();var _kg2=_kCtx.createGain();
+            _ko.type='sawtooth';_ko.frequency.setValueAtTime(_kFinisher?300:500,_kt2);_ko.frequency.exponentialRampToValueAtTime(150,_kt2+0.1);
+            _kg2.gain.setValueAtTime(0.07,_kt2);_kg2.gain.exponentialRampToValueAtTime(0.001,_kt2+0.12);
+            _ko.connect(_kg2);_kg2.connect(_kCtx.destination);_ko.start(_kt2);_ko.stop(_kt2+0.12);
+        }}
         if(_kFinisher){playerEgg._comboCount=0;playerEgg._attackCD=22;}
         } // end normal kick (else from tatsu)
     }
@@ -6590,6 +6604,13 @@ function handlePlayerInput(){
             playerEgg.grabCD=Math.max(playerEgg.grabCD,20);
             playerEgg._slamImmune=30; // 0.5s immunity from thrown NPC bounce-back
             _spawnGroundDust(playerEgg.mesh.position.x,0,playerEgg.mesh.position.z,0.6+_slamPower*0.4);
+            // Body slam impact sound — heavy thud
+            if(sfxEnabled){var _bsCtx=ensureAudio();if(_bsCtx){var _bst2=_bsCtx.currentTime;
+                var _bso=_bsCtx.createOscillator();var _bsg=_bsCtx.createGain();
+                _bso.type='sine';_bso.frequency.setValueAtTime(80+_slamPower*20,_bst2);_bso.frequency.exponentialRampToValueAtTime(30,_bst2+0.3);
+                _bsg.gain.setValueAtTime(0.15,_bst2);_bsg.gain.exponentialRampToValueAtTime(0.001,_bst2+0.35);
+                _bso.connect(_bsg);_bsg.connect(_bsCtx.destination);_bso.start(_bst2);_bso.stop(_bst2+0.35);
+            }}
         }
         playerEgg._bodySlamTarget=null;playerEgg._bodySlamStartY=0;
     }
@@ -6632,6 +6653,13 @@ function handlePlayerInput(){
             _pdt.throwTimer=80;_pdt._bounces=3;_pdt._stunTimer=180;
             _dropNpcStolenCoins(_pdt);
             playHitSound();
+            // Piledriver impact sound — devastating crash
+            if(sfxEnabled){var _pdCtx=ensureAudio();if(_pdCtx){var _pdt2=_pdCtx.currentTime;
+                var _pdo=_pdCtx.createOscillator();var _pdg=_pdCtx.createGain();
+                _pdo.type='square';_pdo.frequency.setValueAtTime(120,_pdt2);_pdo.frequency.exponentialRampToValueAtTime(25,_pdt2+0.4);
+                _pdg.gain.setValueAtTime(0.18,_pdt2);_pdg.gain.exponentialRampToValueAtTime(0.001,_pdt2+0.5);
+                _pdo.connect(_pdg);_pdg.connect(_pdCtx.destination);_pdo.start(_pdt2);_pdo.stop(_pdt2+0.5);
+            }}
             for(var _pddi=0;_pddi<12;_pddi++){
                 var _pdda=_pddi/12*Math.PI*2;
                 _spawnGroundDust(playerEgg.mesh.position.x+Math.cos(_pdda)*2.5,0,playerEgg.mesh.position.z+Math.sin(_pdda)*2.5,0.8);
