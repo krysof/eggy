@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.17';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.18';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -6196,13 +6196,13 @@ function handlePlayerInput(){
         // Check for Shoryuken: 前下前+R (forward-down-forward+punch)
         var _isShoryu=playerEgg._shoryuReady;
         if(_isShoryu){
-            // SHORYUKEN — rising uppercut
+            // SHORYUKEN — rising uppercut (half height)
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
-            playerEgg.vy=JUMP_FORCE*3.0;playerEgg.squash=0.5;
-            // Show both arms up
+            playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
+            // Uppercut arm — right fist raised high
             var _ud2=playerEgg.mesh.userData;
-            if(_ud2.rightArm){_ud2.rightArm.visible=true;_ud2.rightArm.position.set(0.3,1.1,0.3);}
-            playerEgg._atkAnim=20;
+            if(_ud2.rightArm){_ud2.rightArm.visible=true;_ud2.rightArm.position.set(0.15,1.3,0.3);_ud2.rightArm.scale.set(1.4,1.2,1.8);}
+            playerEgg._atkAnim=25;
             var _sDir=playerEgg.mesh.rotation.y;
             for(var _si2=0;_si2<allEggs.length;_si2++){
                 var _se=allEggs[_si2];if(_se===playerEgg||!_se.alive||_se.heldBy)continue;
@@ -6277,15 +6277,16 @@ function handlePlayerInput(){
         // Check for Tatsumaki: 下+後+T (down-back-kick)
         var _isTatsu=playerEgg._tatsuReady;
         if(_isTatsu){
-            // TATSUMAKI SENPUUKYAKU — spinning hurricane kick
-            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
-            playerEgg.vy=0.15; // slight hop
-            playerEgg._tatsuActive=30; // 30 frames of spinning kick
-            // Show both legs
+            // TATSUMAKI SENPUUKYAKU — spinning hurricane kick (long duration)
+            playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
+            playerEgg.vy=0.1; // slight hop
+            playerEgg._tatsuActive=600; // 10 seconds of spinning kick (20x original)
+            playerEgg._tatsuDir=playerEgg.mesh.rotation.y; // store facing direction
+            // Show both legs extended
             var _tud=playerEgg.mesh.userData;
-            if(_tud.rightLeg){_tud.rightLeg.visible=true;_tud.rightLeg.position.set(0.3,0.2,0.5);_tud.rightLeg.rotation.x=-Math.PI/2;}
-            if(_tud.leftLeg){_tud.leftLeg.visible=true;_tud.leftLeg.position.set(-0.3,0.2,0.5);_tud.leftLeg.rotation.x=-Math.PI/2;}
-            playerEgg._atkAnim=32;
+            if(_tud.rightLeg){_tud.rightLeg.visible=true;_tud.rightLeg.position.set(0.3,0.15,0.6);_tud.rightLeg.rotation.x=-Math.PI/2;}
+            if(_tud.leftLeg){_tud.leftLeg.visible=true;_tud.leftLeg.position.set(-0.3,0.15,0.6);_tud.leftLeg.rotation.x=-Math.PI/2;}
+            playerEgg._atkAnim=602;
         } else {
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
         var _kickLeg=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
@@ -6329,30 +6330,43 @@ function handlePlayerInput(){
         if(_kFinisher){playerEgg._comboCount=0;playerEgg._attackCD=22;}
         } // end normal kick (else from tatsu)
     }
-    // ---- Tatsumaki active animation (spinning hurricane kick) ----
+    // ---- Tatsumaki active animation (spinning hurricane kick — Ryu style) ----
     if(playerEgg._tatsuActive>0){
         playerEgg._tatsuActive--;
-        playerEgg.mesh.rotation.y+=0.5; // rapid spin
-        // Move forward while spinning
-        var _tDir=playerEgg.mesh.rotation.y;
-        playerEgg.vx=Math.sin(_tDir)*MAX_SPEED*1.5;
-        playerEgg.vz=Math.cos(_tDir)*MAX_SPEED*1.5;
-        // Hit enemies each frame during spin
+        playerEgg.mesh.rotation.y+=0.8; // very fast spin (20x more rotations over duration)
+        // Store initial facing direction on first frame
+        if(!playerEgg._tatsuDir)playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+        // Move forward in facing direction + slight up/down control (no backward)
+        var _tFwd=1.5; // forward speed multiplier
+        var _tVert=0;
+        if(keys['KeyW']||keys['ArrowUp'])_tVert=0.04; // slight up
+        if(keys['KeyS']||keys['ArrowDown'])_tVert=-0.03; // slight down
+        // Allow slight left/right steering but always move forward
+        var _tSteer=0;
+        if(keys['KeyA']||keys['ArrowLeft'])_tSteer=0.03;
+        if(keys['KeyD']||keys['ArrowRight'])_tSteer=-0.03;
+        playerEgg._tatsuDir+=_tSteer;
+        playerEgg.vx=Math.sin(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
+        playerEgg.vz=Math.cos(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
+        playerEgg.vy=_tVert; // slight vertical control
+        if(playerEgg.mesh.position.y<0.5)playerEgg.mesh.position.y=0.5; // don't sink into ground
+        // Hit enemies — can hit same enemy multiple times (every 8 frames)
         for(var _ti=0;_ti<allEggs.length;_ti++){
             var _te=allEggs[_ti];if(_te===playerEgg||!_te.alive||_te.heldBy)continue;
             if(_te._slamImmune>0)continue;
+            if(!_te._tatsuHitCD)_te._tatsuHitCD=0;
+            if(_te._tatsuHitCD>0){_te._tatsuHitCD--;continue;}
             var _tdx=_te.mesh.position.x-playerEgg.mesh.position.x;
             var _tdz=_te.mesh.position.z-playerEgg.mesh.position.z;
             var _td=Math.sqrt(_tdx*_tdx+_tdz*_tdz);
-            if(_td<3&&_td>0.01&&!_te._tatsuHitCD){
-                _te.vx+=_tdx/_td*0.3;_te.vz+=_tdz/_td*0.3;_te.vy=0.15;
-                _te.squash=0.5;_te._hitStun=10;
-                _te._tatsuHitCD=15; // can't be hit again for 15 frames
+            if(_td<3&&_td>0.01){
+                _te.vx+=_tdx/_td*0.25;_te.vz+=_tdz/_td*0.25;_te.vy=0.12;
+                _te.squash=0.55;_te._hitStun=8;
+                _te._tatsuHitCD=8; // can be hit again after 8 frames
                 _dropNpcStolenCoins(_te);playHitSound();
             }
-            if(_te._tatsuHitCD>0)_te._tatsuHitCD--;
         }
-        if(playerEgg._tatsuActive<=0){playerEgg.vx*=0.3;playerEgg.vz*=0.3;}
+        if(playerEgg._tatsuActive<=0){playerEgg.vx*=0.3;playerEgg.vz*=0.3;playerEgg._tatsuDir=0;}
     }
     playerEgg._rWasDown=!!keys['KeyR'];
     playerEgg._tWasDown=!!keys['KeyT'];
@@ -7365,7 +7379,8 @@ function updateCity(){
 // ---- Struggle bar (HTML overlay) ----
 var struggleBarDiv=null;
 function ensureStruggleBar(){
-    if(struggleBarDiv)return;
+    if(struggleBarDiv&&struggleBarDiv.parentNode)return;
+    if(struggleBarDiv&&!struggleBarDiv.parentNode)struggleBarDiv=null; // was detached
     struggleBarDiv=document.createElement('div');
     struggleBarDiv.id='struggle-bar-container';
     struggleBarDiv.style.cssText='position:absolute;top:18%;left:50%;transform:translateX(-50%);z-index:15;pointer-events:none;display:none;text-align:center;';
