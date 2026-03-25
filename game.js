@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.30';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.31';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -5477,6 +5477,20 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 window._npcHadoukens.push({ball:_nhBall,ring:_nhRing,vx:Math.sin(_nhDir)*0.3,vz:Math.cos(_nhDir)*0.3,life:120,owner:egg});
             }
             if(egg._npcHadouCD>0)egg._npcHadouCD--;
+            // NPC Shoryuken: when very close, rare chance
+            if(cd2<2.5&&egg.onGround&&Math.random()<0.002&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=90;egg._npcShoryuActive=true;
+                egg.vy=JUMP_FORCE*1.5;egg.squash=0.5;
+                // Hit nearby
+                if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;closest._stunTimer=60;_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();}
+            }
+            // NPC Tatsumaki: at medium range, rare chance
+            if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.002&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=90;egg._npcTatsuActive=60;
+                egg._npcTatsuDir=Math.atan2(cdx2,cdz2);
+                egg.vy=0.08;
+            }
+            if(egg._npcSpecialCD>0)egg._npcSpecialCD--;
             // NPC piledriver: when very close, rare chance
             if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.003&&!closest.heldBy){
                 egg._npcPiledriver=closest;egg._npcPdPhase=0;
@@ -5642,6 +5656,33 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg.vy=0.2;egg.squash=0.5;
         }
         egg._npcBodySlam=null;
+    }
+    // ---- NPC Shoryuken animation ----
+    if(egg._npcShoryuActive){
+        egg.mesh.rotation.y+=0.15;
+        if(egg.vy<=0){egg._npcShoryuActive=false;}
+    }
+    // ---- NPC Tatsumaki animation ----
+    if(egg._npcTatsuActive>0){
+        egg._npcTatsuActive--;
+        egg.mesh.rotation.y+=0.8;
+        egg.vx=Math.sin(egg._npcTatsuDir)*MAX_SPEED*1.2;
+        egg.vz=Math.cos(egg._npcTatsuDir)*MAX_SPEED*1.2;
+        if(egg.mesh.position.y<0.5)egg.mesh.position.y=0.5;
+        // Hit nearby eggs
+        for(var _nti=0;_nti<allEggs.length;_nti++){
+            var _nte=allEggs[_nti];if(_nte===egg||!_nte.alive||_nte.heldBy)continue;
+            if(!_nte._npcTatsuHitCD)_nte._npcTatsuHitCD=0;
+            if(_nte._npcTatsuHitCD>0){_nte._npcTatsuHitCD--;continue;}
+            var _ntdx=_nte.mesh.position.x-egg.mesh.position.x;
+            var _ntdz=_nte.mesh.position.z-egg.mesh.position.z;
+            if(Math.sqrt(_ntdx*_ntdx+_ntdz*_ntdz)<2.5){
+                _nte.vx+=_ntdx*0.15;_nte.vz+=_ntdz*0.15;_nte.vy=0.1;
+                _nte.squash=0.6;_nte._hitStun=8;_nte._npcTatsuHitCD=10;
+                _dropNpcStolenCoins(_nte);if(_nte.isPlayer)playHitSound();
+            }
+        }
+        if(egg._npcTatsuActive<=0){egg.vx*=0.3;egg.vz*=0.3;}
     }
 }
 
@@ -6422,9 +6463,10 @@ function handlePlayerInput(){
         var _sUd=playerEgg.mesh.userData;
         if(_sUd.rightArm){_sUd.rightArm.visible=true;_sUd.rightArm.position.set(0.2,0.5,0.8);_sUd.rightArm.scale.set(1.5,1.5,1.5);}
         playerEgg.mesh.rotation.y+=0.12;
-        playerEgg._shoryuActive--;
-        if(playerEgg._shoryuActive<=0){
-            playerEgg._atkAnim=1; // hide limbs next frame
+        // End at peak (when vy reaches 0) — natural fall after
+        if(playerEgg.vy<=0){
+            playerEgg._shoryuActive=0;
+            playerEgg._atkAnim=1;
         }
     }
     // ---- Tatsumaki active animation (spinning hurricane kick — Ryu style) ----
