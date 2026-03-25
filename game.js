@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.6';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.7';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -2355,32 +2355,42 @@ function buildCity() {
             window._waterWheels.push(wwG);
         }
     }
-    // ---- Fish in fountain pool (grabbable) ----
+    // ---- Fish in all water areas (grabbable) ----
     if(currentCityStyle===0){
         window._cityFish=[];
-        var fishColors=[0xFF6644,0xFFAA22,0xFFFFFF,0xFF4488,0x44AAFF];
-        for(var fii=0;fii<8;fii++){
+        var fishColors=[0xFF6644,0xFFAA22,0xFFFFFF,0xFF4488,0x44AAFF,0x44DD88,0xFFDD44,0xDD66FF];
+        // Spawn fish across fountain pool, inner canal, outer canal
+        var _fishSpawns=[];
+        // Fountain pool (8 fish)
+        for(var _fsi=0;_fsi<8;_fsi++){var _fsa=_fsi/8*Math.PI*2;_fishSpawns.push({x:Math.cos(_fsa)*(1+Math.random()*4),z:Math.sin(_fsa)*(1+Math.random()*4),r:1+Math.random()*4});}
+        // Inner ring canal (10 fish)
+        for(var _fsi2=0;_fsi2<10;_fsi2++){var _fsa2=_fsi2/10*Math.PI*2;_fishSpawns.push({x:Math.cos(_fsa2)*25,z:Math.sin(_fsa2)*25,r:25});}
+        // Outer ring canal (8 fish)
+        for(var _fsi3=0;_fsi3<8;_fsi3++){var _fsa3=_fsi3/8*Math.PI*2;_fishSpawns.push({x:Math.cos(_fsa3)*55,z:Math.sin(_fsa3)*55,r:55});}
+        // Radial canals (4 fish each direction)
+        for(var _fsi4=0;_fsi4<4;_fsi4++){
+            var _fcd=[{dx:1,dz:0},{dx:-1,dz:0},{dx:0,dz:1},{dx:0,dz:-1}][_fsi4];
+            var _fcDist=15+Math.random()*50;
+            _fishSpawns.push({x:_fcd.dx*_fcDist,z:_fcd.dz*_fcDist,r:_fcDist,_canal:true,_canalDir:_fsi4});
+        }
+        for(var fii=0;fii<_fishSpawns.length;fii++){
+            var _fs=_fishSpawns[fii];
             var fishG=new THREE.Group();
             var fc=fishColors[fii%fishColors.length];
-            // Body
             var fishBody=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),toon(fc));
             fishBody.scale.set(1,0.5,1.8);fishG.add(fishBody);
-            // Tail
             var fishTail=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.4,4),toon(fc));
             fishTail.rotation.x=Math.PI/2;fishTail.position.z=-0.5;fishG.add(fishTail);
-            // Eye
             var fishEye=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),toon(0x111111));
             fishEye.position.set(0.12,0.08,0.2);fishG.add(fishEye);
-            // Random position in fountain pool
-            var fa=Math.random()*Math.PI*2;var fr=1+Math.random()*4;
-            fishG.position.set(Math.cos(fa)*fr,0.4,Math.sin(fa)*fr);
-            fishG.rotation.y=fa;
+            fishG.position.set(_fs.x,0.4,_fs.z);
+            fishG.rotation.y=Math.random()*Math.PI*2;
             cityGroup.add(fishG);
-            var fish={group:fishG,angle:fa,radius:fr,speed:0.01+Math.random()*0.02,
+            var fish={group:fishG,angle:Math.atan2(_fs.z,_fs.x),radius:_fs.r,speed:0.008+Math.random()*0.015,
                 jumpTimer:120+Math.floor(Math.random()*300),jumping:false,jumpVy:0,baseY:0.4,
-                grabbed:false,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:0.3};
+                grabbed:false,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:0.3,
+                _canal:_fs._canal||false,_canalDir:_fs._canalDir||0};
             window._cityFish.push(fish);
-            // Add as grabbable prop
             cityProps.push({group:fishG,x:fishG.position.x,z:fishG.position.z,radius:0.5,
                 type:'fish',grabbed:false,origY:0.4,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,
                 weight:0.3,_fishRef:fish});
@@ -3855,7 +3865,7 @@ function switchCity(targetStyle){
 
 // ---- NPC eggs wandering city ----
 function spawnCityNPCs() {
-    var npcCount=currentCityStyle===5?24:24;
+    var npcCount=currentCityStyle===5?24:36;
     for(let i=0;i<npcCount;i++){
         var nx2,nz2,spawnY=0;
         if(currentCityStyle===5){
@@ -4939,7 +4949,13 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy)return;
         feet[0].position.y=0.05+Math.max(0,Math.sin(egg.walkPhase))*0.07;
         feet[1].position.y=0.05+Math.max(0,-Math.sin(egg.walkPhase))*0.07;
     }
-    if(body){var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;body.rotation.x+=(tx-body.rotation.x)*0.1;}
+    if(body){
+        // Skip walk body tilt during spin dash — let the whole mesh spin freely
+        var _isSpinning=(egg.isPlayer&&_spinDashing)||(egg._npcSpinTimer&&egg._npcSpinTimer>=30&&egg._npcSpinTimer<90);
+        if(!_isSpinning){
+            var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;body.rotation.x+=(tx-body.rotation.x)*0.1;
+        }
+    }
 
     var sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     egg.mesh.scale.set(1+(1-sq)*0.3,sq,1+(1-sq)*0.3);
