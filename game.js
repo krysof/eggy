@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.48';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.49';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -6279,8 +6279,14 @@ function handlePlayerInput(){
             if(_ud.body)_ud.body.rotation.x=0; // reset headbutt
         }
     }
-    // Punch (R) — character-specific special moves on command input
+    // Zangief Double Lariat — R+T held together (checked before normal R press)
     var _ct=playerEgg.mesh.userData._charType||'egg';
+    if(playerEgg._lariatReady&&playerEgg._attackCD<=0&&!playerEgg.holding&&!playerEgg._tatsuActive){
+        playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
+        playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+        playerEgg._atkAnim=62;playerEgg.squash=0.9;
+    }
+    // Punch (R) — character-specific special moves on command input
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         var _isShoryu=playerEgg._shoryuReady;
@@ -6353,11 +6359,11 @@ function handlePlayerInput(){
             playerEgg._blankaShock=30;playerEgg.squash=0.6;
             if(sfxEnabled){var _bsCtx2=ensureAudio();if(_bsCtx2){var _bst3=_bsCtx2.currentTime;var _bso2=_bsCtx2.createOscillator();var _bsg2=_bsCtx2.createGain();_bso2.type='square';_bso2.frequency.setValueAtTime(800,_bst3);_bso2.frequency.linearRampToValueAtTime(2000,_bst3+0.1);_bso2.frequency.linearRampToValueAtTime(400,_bst3+0.3);_bsg2.gain.setValueAtTime(0.08,_bst3);_bsg2.gain.exponentialRampToValueAtTime(0.001,_bst3+0.35);_bso2.connect(_bsg2);_bsg2.connect(_bsCtx2.destination);_bso2.start(_bst3);_bso2.stop(_bst3+0.35);}}
         } else if(_isShoryu&&_ct==='monkey'){
-            // SPINNING BIRD KICK (Chun-Li) — upside-down helicopter kick
+            // Chun-Li has no shoryuken — fall through to default
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
-            playerEgg.vy=JUMP_FORCE*1.2;
-            playerEgg._tatsuActive=50;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
-            playerEgg._atkAnim=52;
+            playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
+            playerEgg._shoryuActive=60;
+            playJumpSound();
         } else if(_isShoryu){
             // Default: Shoryuken for any character
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
@@ -6380,16 +6386,12 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=8;playerEgg._rapidR=0;
             playerEgg._blankaShock=25;playerEgg.squash=0.6;
             if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
-        } else if(playerEgg._lariatReady&&_ct==='frog'){
-            // DOUBLE LARIAT (Zangief) — spinning arms
-            playerEgg._comboCount=0;playerEgg._attackCD=40;
-            playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
-            playerEgg._atkAnim=62;playerEgg.squash=0.9;
-        } else if(playerEgg._chargeForwardReady&&(_ct==='rooster')&&!window._playerHadouken){
-            // SONIC BOOM (Guile) — charge back→forward+R
+        } else if(playerEgg._chargeForwardReady&&(_ct==='rooster'||_ct==='monkey')&&!window._playerHadouken){
+            // SONIC BOOM (Guile) / 気功拳 (Chun-Li) — charge back→forward+R
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
             var _sbDir2=playerEgg.mesh.rotation.y;
-            var _sbBall2=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),new THREE.MeshBasicMaterial({color:0x44FF44,transparent:true,opacity:0.85}));
+            var _sbColor2=_ct==='monkey'?0x88BBFF:0x44FF44;
+            var _sbBall2=new THREE.Mesh(new THREE.SphereGeometry(_ct==='monkey'?0.5:0.3,8,6),new THREE.MeshBasicMaterial({color:_sbColor2,transparent:true,opacity:0.85}));
             _sbBall2.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir2)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir2)*1.5);scene.add(_sbBall2);
             var _sbRing2=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
             _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
@@ -6482,9 +6484,9 @@ function handlePlayerInput(){
                 _tg2.gain.setValueAtTime(0.08,_tt);_tg2.gain.linearRampToValueAtTime(0.12,_tt+0.3);_tg2.gain.exponentialRampToValueAtTime(0.001,_tt+1.5);
                 _to.connect(_tg2);_tg2.connect(_tCtx.destination);_to.start(_tt);_to.stop(_tt+1.5);
             }}
-        } else if(_isTatsu&&_ct==='monkey'){
-            // SPINNING BIRD KICK (Chun-Li) — upside-down helicopter
-            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
+        } else if(playerEgg._chargeUpReady&&_ct==='monkey'&&(keys['KeyW']||keys['ArrowUp'])){
+            // SPINNING BIRD KICK (Chun-Li) — charge down→up+T
+            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._chargeDown=0;
             playerEgg.vy=JUMP_FORCE*1.2;
             playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
             playerEgg._atkAnim=62;
@@ -6712,8 +6714,8 @@ function handlePlayerInput(){
     playerEgg._rapidTReady=(playerEgg._rapidT>=4);
     // ---- Dhalsim passive: extended attack range ----
     playerEgg._extendedRange=(_ct==='cockroach')?1.5:1.0;
-    // ---- Zangief Double Lariat: R+T simultaneously ----
-    playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&!playerEgg._rWasDown&&!playerEgg._tWasDown);
+    // ---- Zangief Double Lariat: R+T held together ----
+    playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='frog');
     // ---- Piledriver input sequence tracker (left-right-left) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
     if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
