@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.42';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.43';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -6470,23 +6470,27 @@ function handlePlayerInput(){
     playerEgg._rWasDown=!!keys['KeyR'];
     playerEgg._tWasDown=!!keys['KeyT'];
     } // end combat block (else from _inSpecialMove)
-    // ---- Shoryuken arm management (runs always, outside combat block) ----
+    // ---- Shoryuken fist (world-space, not child of egg) ----
     if(playerEgg._shoryuActive>0){
-        // Force fist visible every frame during rise
-        var _sUd=playerEgg.mesh.userData;
-        if(_sUd.rightArm){
-            _sUd.rightArm.visible=true;
-            _sUd.rightArm.position.set(0.2,0.5,0.8);
-            _sUd.rightArm.scale.set(1.5,1.5,1.5);
+        if(!window._shoryuFist){
+            window._shoryuFist=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),toon(0xFFFFFF));
+            scene.add(window._shoryuFist);
         }
+        window._shoryuFist.visible=true;
+        // Position fist above and in front of player in world space
+        var _sfDir=playerEgg.mesh.rotation.y;
+        window._shoryuFist.position.set(
+            playerEgg.mesh.position.x+Math.sin(_sfDir)*0.5,
+            playerEgg.mesh.position.y+1.8,
+            playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
+        );
         playerEgg.mesh.rotation.y+=0.12;
-        // End at peak — hide fist and free fall
         if(playerEgg.vy<=0||playerEgg.onGround){
             playerEgg._shoryuActive=0;
-            // Directly hide fist
-            if(_sUd.rightArm){_sUd.rightArm.visible=false;_sUd.rightArm.scale.set(1,1,1);_sUd.rightArm.position.set(0.4,0.2,0.7);}
-            if(_sUd.leftArm){_sUd.leftArm.visible=false;}
+            window._shoryuFist.visible=false;
         }
+    } else if(window._shoryuFist){
+        window._shoryuFist.visible=false;
     }
     // ---- Tatsumaki animation (runs even during special move) ----
     if(playerEgg._tatsuActive>0){
@@ -6615,46 +6619,44 @@ function handlePlayerInput(){
         }
         playerEgg._bodySlamTarget=null;playerEgg._bodySlamStartY=0;
     }
-    // ---- Piledriver animation ----
+    // ---- Piledriver animation (direct position control) ----
     if(playerEgg._piledriverTarget){
         var _pdt=playerEgg._piledriverTarget;
         playerEgg._piledriverPhase++;
-        // Safety timeout — force end after 120 frames
-        if(playerEgg._piledriverPhase>120){
-            _pdt._piledriverLocked=false;_pdt.mesh.rotation.z=0;
-            playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;playerEgg.grabCD=20;
-        } else {
-        // Keep target locked to player during entire animation
+        var _pdStartX=playerEgg._pdStartX||(playerEgg._pdStartX=playerEgg.mesh.position.x);
+        var _pdStartZ=playerEgg._pdStartZ||(playerEgg._pdStartZ=playerEgg.mesh.position.z);
+        var _pdMaxY=15; // max height
+        // Lock player horizontal position
+        playerEgg.mesh.position.x=_pdStartX;playerEgg.mesh.position.z=_pdStartZ;
+        playerEgg.vx=0;playerEgg.vz=0;playerEgg.vy=0;
+        // Lock target to player
         _pdt.vx=0;_pdt.vy=0;_pdt.vz=0;
-        _pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
-        _pdt.mesh.rotation.z=Math.PI; // upside down
-        _pdt.mesh.rotation.y=playerEgg.mesh.rotation.y;
-        playerEgg.vx=0;playerEgg.vz=0;
-        if(playerEgg._piledriverPhase<=60){
-            // Phase 1: spin upward
-            playerEgg.vy=0.22;
+        _pdt.mesh.rotation.z=Math.PI;_pdt.mesh.rotation.y=playerEgg.mesh.rotation.y;
+        if(playerEgg._piledriverPhase<=40){
+            // Rise: linear interpolation to max height
+            var _riseT=playerEgg._piledriverPhase/40;
+            playerEgg.mesh.position.y=0.5+_riseT*_pdMaxY;
             playerEgg.mesh.rotation.y+=0.5;
             if(playerEgg._piledriverPhase%4===0)_spawnButtSmoke(playerEgg,0.6);
-        } else if(playerEgg._piledriverPhase<=65){
-            // Phase 2: pause at apex
-            playerEgg.vy=0;
+        } else if(playerEgg._piledriverPhase<=48){
+            // Pause at top
+            playerEgg.mesh.position.y=0.5+_pdMaxY;
             playerEgg.mesh.rotation.y+=0.6;
-        } else if(playerEgg.mesh.position.y>0.5){
-            // Phase 3: slam down until ground
-            playerEgg.vy=-0.6;
+        } else if(playerEgg._piledriverPhase<=60){
+            // Slam down: fast linear to ground
+            var _slamT=(playerEgg._piledriverPhase-48)/12;
+            playerEgg.mesh.position.y=0.5+_pdMaxY*(1-_slamT);
             playerEgg.mesh.rotation.y+=0.7;
         } else {
-            // Phase 4: impact
+            // Impact
+            playerEgg.mesh.position.y=0.5;
             _pdt._piledriverLocked=false;
-            _pdt.mesh.position.set(playerEgg.mesh.position.x,0.1,playerEgg.mesh.position.z);
-            _pdt.mesh.rotation.z=0;
-            _pdt.squash=0.1;
+            _pdt.mesh.position.set(_pdStartX,0.1,_pdStartZ);
+            _pdt.mesh.rotation.z=0;_pdt.squash=0.1;
             var _pdBounceDir=Math.random()*Math.PI*2;
             _pdt.vx=Math.sin(_pdBounceDir)*0.8;_pdt.vy=0.5;_pdt.vz=Math.cos(_pdBounceDir)*0.8;
             _pdt.throwTimer=80;_pdt._bounces=3;_pdt._stunTimer=180;
-            _dropNpcStolenCoins(_pdt);
-            playHitSound();
-            // Piledriver impact sound — devastating crash
+            _dropNpcStolenCoins(_pdt);playHitSound();
             if(sfxEnabled){var _pdCtx=ensureAudio();if(_pdCtx){var _pdt2=_pdCtx.currentTime;
                 var _pdo=_pdCtx.createOscillator();var _pdg=_pdCtx.createGain();
                 _pdo.type='square';_pdo.frequency.setValueAtTime(120,_pdt2);_pdo.frequency.exponentialRampToValueAtTime(25,_pdt2+0.4);
@@ -6663,14 +6665,13 @@ function handlePlayerInput(){
             }}
             for(var _pddi=0;_pddi<12;_pddi++){
                 var _pdda=_pddi/12*Math.PI*2;
-                _spawnGroundDust(playerEgg.mesh.position.x+Math.cos(_pdda)*2.5,0,playerEgg.mesh.position.z+Math.sin(_pdda)*2.5,0.8);
+                _spawnGroundDust(_pdStartX+Math.cos(_pdda)*2.5,0,_pdStartZ+Math.sin(_pdda)*2.5,0.8);
             }
-            playerEgg.mesh.position.y=0.5;
-            playerEgg.vy=0.2;playerEgg.squash=0.5;playerEgg.grabCD=40;
-            playerEgg._slamImmune=30;
-            playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;
+            playerEgg.vy=0.2;playerEgg.squash=0.5;playerEgg.grabCD=40;playerEgg._slamImmune=30;
+            playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;playerEgg._pdStartX=0;playerEgg._pdStartZ=0;
         }
-        } // end safety timeout else
+        // Position target on player head
+        if(playerEgg._piledriverTarget)_pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
     }
     playerEgg._fWasDown=!!keys['KeyF'];
 }
