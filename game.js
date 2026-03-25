@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.29';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.30';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -3605,6 +3605,8 @@ function clearCity(){
     window._fountainInnerWater=null;
     window._cityFish=null;
     window._waterWheels=null;
+    if(window._playerHadouken){scene.remove(window._playerHadouken.ball);scene.remove(window._playerHadouken.ring);window._playerHadouken=null;}
+    if(window._npcHadoukens){for(var _nhi2=0;_nhi2<window._npcHadoukens.length;_nhi2++){scene.remove(window._npcHadoukens[_nhi2].ball);scene.remove(window._npcHadoukens[_nhi2].ring);}window._npcHadoukens=null;}
     // Remove city NPCs
     for(var i=0;i<cityNPCs.length;i++){_removeStunStars(cityNPCs[i]);scene.remove(cityNPCs[i].mesh);}
     cityNPCs.length=0;
@@ -5461,6 +5463,20 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             }
             if(egg._npcAtkCD>0)egg._npcAtkCD--;
             if(egg._npcCombo>0&&Math.random()<0.02)egg._npcCombo=0; // combo timeout
+            // NPC Hadouken: at medium range, rare chance
+            if(cd2>5&&cd2<20&&Math.random()<0.002&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
+                egg._npcHadouCD=120;
+                var _nhDir=Math.atan2(cdx2,cdz2);
+                var _nhx=egg.mesh.position.x+Math.sin(_nhDir)*1.5;
+                var _nhz=egg.mesh.position.z+Math.cos(_nhDir)*1.5;
+                var _nhBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF6644,transparent:true,opacity:0.85}));
+                _nhBall.position.set(_nhx,egg.mesh.position.y+0.7,_nhz);scene.add(_nhBall);
+                var _nhRing=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.07,6,12),new THREE.MeshBasicMaterial({color:0xFFAA66,transparent:true,opacity:0.6}));
+                _nhRing.position.copy(_nhBall.position);scene.add(_nhRing);
+                if(!window._npcHadoukens)window._npcHadoukens=[];
+                window._npcHadoukens.push({ball:_nhBall,ring:_nhRing,vx:Math.sin(_nhDir)*0.3,vz:Math.cos(_nhDir)*0.3,life:120,owner:egg});
+            }
+            if(egg._npcHadouCD>0)egg._npcHadouCD--;
             // NPC piledriver: when very close, rare chance
             if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.003&&!closest.heldBy){
                 egg._npcPiledriver=closest;egg._npcPdPhase=0;
@@ -6006,22 +6022,29 @@ function handlePlayerInput(){
             playThrowSound();
             playerEgg._fPressStart=false;playerEgg._fHoldFrames=0;playerEgg._fWasDown=true;
         }
-        // ---- Piledriver (Zangief): left-right-left-F near NPC ----
-        else if(!_holdingSomething&&playerEgg._piledriverReady&&playerEgg.onGround){
-            // Find nearest NPC
-            var _pdNearest=null,_pdDist=2.5;
-            for(var _pdi=0;_pdi<allEggs.length;_pdi++){
-                var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy)continue;
-                var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
-                var _pddz=_pde.mesh.position.z-playerEgg.mesh.position.z;
-                var _pdd=Math.sqrt(_pddx*_pddx+_pddz*_pddz);
-                if(_pdd<_pdDist){_pdDist=_pdd;_pdNearest=_pde;}
+        // ---- Piledriver (Zangief): left-right-left-F — works with or without holding ----
+        else if(playerEgg._piledriverReady&&playerEgg.onGround){
+            var _pdTarget=null;
+            if(playerEgg.holding){
+                // Already holding — use held NPC as target
+                _pdTarget=playerEgg.holding;
+                _pdTarget.heldBy=null;playerEgg.holding=null;
+                if(_pdTarget.struggleBar){_pdTarget.mesh.remove(_pdTarget.struggleBar);_pdTarget.struggleBar=null;}
+            } else {
+                // Find nearest NPC
+                var _pdDist=2.5;
+                for(var _pdi=0;_pdi<allEggs.length;_pdi++){
+                    var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy||_pde._piledriverLocked)continue;
+                    var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
+                    var _pddz=_pde.mesh.position.z-playerEgg.mesh.position.z;
+                    var _pdd=Math.sqrt(_pddx*_pddx+_pddz*_pddz);
+                    if(_pdd<_pdDist){_pdDist=_pdd;_pdTarget=_pde;}
+                }
             }
-            if(_pdNearest){
-                // Start piledriver animation — don't use holding/heldBy to avoid conflicts
-                playerEgg._piledriverTarget=_pdNearest;
+            if(_pdTarget){
+                playerEgg._piledriverTarget=_pdTarget;
                 playerEgg._piledriverPhase=0;
-                _pdNearest._piledriverLocked=true; // custom lock flag instead of heldBy
+                _pdTarget._piledriverLocked=true;
                 playerEgg.grabCD=40;
                 playGrabSound();
                 playerEgg._fPressStart=false;playerEgg._fHoldFrames=0;playerEgg._fWasDown=true;
@@ -6218,9 +6241,36 @@ function handlePlayerInput(){
     }
     // Punch (R) — fast jab with arm extension; 3rd hit = finisher (headbutt/big punch/tail whip)
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
+        // Check for Hadouken: 下前+R (down-forward+punch) — one at a time
+        var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         // Check for Shoryuken: 前下前+R (forward-down-forward+punch)
         var _isShoryu=playerEgg._shoryuReady;
-        if(_isShoryu){
+        if(_isHadou){
+            // HADOUKEN — fireball projectile
+            playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;
+            var _hDir=playerEgg.mesh.rotation.y;
+            var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
+            var _hz=playerEgg.mesh.position.z+Math.cos(_hDir)*1.5;
+            var _hy=playerEgg.mesh.position.y+0.7;
+            var _hBall=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),new THREE.MeshBasicMaterial({color:0x44AAFF,transparent:true,opacity:0.85}));
+            _hBall.position.set(_hx,_hy,_hz);scene.add(_hBall);
+            // Glow ring
+            var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:0x88DDFF,transparent:true,opacity:0.6}));
+            _hRing.position.set(_hx,_hy,_hz);_hRing.lookAt(_hx+Math.sin(_hDir),_hy,_hz+Math.cos(_hDir));scene.add(_hRing);
+            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*0.35,vz:Math.cos(_hDir)*0.35,life:120,owner:playerEgg};
+            // Show both arms forward
+            var _hud=playerEgg.mesh.userData;
+            if(_hud.rightArm){_hud.rightArm.visible=true;_hud.rightArm.position.set(0.15,0.1,0.9);_hud.rightArm.scale.set(1.3,1.3,1.3);}
+            if(_hud.leftArm){_hud.leftArm.visible=true;_hud.leftArm.position.set(-0.15,0.1,0.9);_hud.leftArm.scale.set(1.3,1.3,1.3);}
+            playerEgg._atkAnim=15;playerEgg.squash=0.8;
+            // Hadouken sound
+            if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;
+                var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();
+                _ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);
+                _hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);
+                _ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);
+            }}
+        } else if(_isShoryu){
             // SHORYUKEN — rising uppercut with sound
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
@@ -6451,6 +6501,16 @@ function handlePlayerInput(){
         playerEgg._tatsuSeq=2;playerEgg._tatsuTimer=20;playerEgg._tatsuReady=true;
     }
     if(playerEgg._tatsuTimer<=0){playerEgg._tatsuSeq=0;playerEgg._tatsuReady=false;}
+    // ---- Hadouken (波動拳): 下+前+R (down-forward-punch) ----
+    if(!playerEgg._hadouSeq)playerEgg._hadouSeq=0;
+    if(!playerEgg._hadouTimer)playerEgg._hadouTimer=0;
+    playerEgg._hadouTimer--;
+    if(_hDownPress&&playerEgg._hadouSeq===0){
+        playerEgg._hadouSeq=1;playerEgg._hadouTimer=20;
+    } else if(playerEgg._hadouSeq===1&&(_hLeftPress||_hRightPress)){
+        playerEgg._hadouSeq=2;playerEgg._hadouTimer=20;playerEgg._hadouReady=true;
+    }
+    if(playerEgg._hadouTimer<=0){playerEgg._hadouSeq=0;playerEgg._hadouReady=false;}
     playerEgg._prevHLeft=_hLeft;playerEgg._prevHRight=_hRight;playerEgg._prevHDown=_hDown;
     // ---- Piledriver input sequence tracker (left-right-left) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
@@ -6671,6 +6731,53 @@ function updateCity(){
         });
     }
 
+    // ---- Hadouken projectile update ----
+    if(window._playerHadouken){
+        var _hk=window._playerHadouken;
+        _hk.ball.position.x+=_hk.vx;_hk.ball.position.z+=_hk.vz;
+        _hk.ring.position.copy(_hk.ball.position);
+        _hk.ring.rotation.z+=0.2;
+        _hk.life--;
+        _hk.ball.material.opacity=Math.min(0.85,_hk.life/30);
+        _hk.ring.material.opacity=Math.min(0.6,_hk.life/30);
+        // Hit eggs
+        for(var _hei=0;_hei<allEggs.length;_hei++){
+            var _he2=allEggs[_hei];if(_he2===_hk.owner||!_he2.alive||_he2.heldBy||_he2._piledriverLocked)continue;
+            var _hdx=_he2.mesh.position.x-_hk.ball.position.x;
+            var _hdz=_he2.mesh.position.z-_hk.ball.position.z;
+            var _hd2=Math.sqrt(_hdx*_hdx+_hdz*_hdz);
+            if(_hd2<1.5){
+                _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
+                _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_he2._stunTimer=50;
+                _dropNpcStolenCoins(_he2);playHitSound();
+                _hk.life=0;break;
+            }
+        }
+        if(_hk.life<=0){scene.remove(_hk.ball);scene.remove(_hk.ring);window._playerHadouken=null;}
+    }
+    // NPC Hadouken projectiles
+    if(!window._npcHadoukens)window._npcHadoukens=[];
+    for(var _nhi=window._npcHadoukens.length-1;_nhi>=0;_nhi--){
+        var _nh=window._npcHadoukens[_nhi];
+        _nh.ball.position.x+=_nh.vx;_nh.ball.position.z+=_nh.vz;
+        _nh.ring.position.copy(_nh.ball.position);_nh.ring.rotation.z+=0.2;
+        _nh.life--;
+        _nh.ball.material.opacity=Math.min(0.85,_nh.life/30);
+        _nh.ring.material.opacity=Math.min(0.6,_nh.life/30);
+        for(var _nhei=0;_nhei<allEggs.length;_nhei++){
+            var _nhe=allEggs[_nhei];if(_nhe===_nh.owner||!_nhe.alive||_nhe.heldBy)continue;
+            var _nhdx=_nhe.mesh.position.x-_nh.ball.position.x;
+            var _nhdz=_nhe.mesh.position.z-_nh.ball.position.z;
+            if(Math.sqrt(_nhdx*_nhdx+_nhdz*_nhdz)<1.5){
+                _nhe.vx+=_nh.vx*0.8;_nhe.vz+=_nh.vz*0.8;_nhe.vy=0.15;
+                _nhe.squash=0.5;_nhe.throwTimer=25;_nhe._bounces=1;_nhe._stunTimer=50;
+                _dropNpcStolenCoins(_nhe);if(_nhe.isPlayer)playHitSound();
+                _nh.life=0;break;
+            }
+        }
+        if(_nh.life<=0){scene.remove(_nh.ball);scene.remove(_nh.ring);window._npcHadoukens.splice(_nhi,1);}
+    }
+
     // ---- Fountain water animation ----
     if(window._fountainPoolWater){
         var wt=Date.now()*0.002;
@@ -6698,8 +6805,29 @@ function updateCity(){
                 if(cityProps[_fpi]._fishRef===fish){_fishProp=cityProps[_fpi];break;}
             }
             // Skip animation while being thrown — let prop physics handle it
-            if(_fishProp&&_fishProp.throwTimer>0)continue;
-            if(_fishProp&&_fishProp.grabbed)continue;
+            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=300;continue;} // 5 sec recovery after landing
+            if(_fishProp&&_fishProp.grabbed){fish._thrownRecovery=300;continue;}
+            // Post-throw recovery: wait then crawl back
+            if(fish._thrownRecovery>0){
+                fish._thrownRecovery--;
+                if(fish._thrownRecovery>180){
+                    // First 2 sec: lie still (stunned)
+                    fish.group.rotation.z=Math.PI/2*(Math.random()<0.5?1:-1)*0.8;
+                    continue;
+                }
+                // Then flop back to water
+                var _ftpx=-fish.group.position.x;var _ftpz=-fish.group.position.z;
+                var _ftpd=Math.sqrt(_ftpx*_ftpx+_ftpz*_ftpz)||1;
+                fish.group.position.x+=_ftpx/_ftpd*0.04;
+                fish.group.position.z+=_ftpz/_ftpd*0.04;
+                fish.group.position.y=0.15+Math.abs(Math.sin(Date.now()*0.015))*0.15;
+                fish.group.rotation.y=Math.atan2(_ftpx,_ftpz);
+                fish.group.rotation.z=Math.sin(Date.now()*0.02)*0.5;
+                // Once back in water, reset
+                var _ftDist=Math.sqrt(fish.group.position.x*fish.group.position.x+fish.group.position.z*fish.group.position.z);
+                if(_ftDist<7){fish._thrownRecovery=0;fish.angle=Math.atan2(fish.group.position.z,fish.group.position.x);fish.radius=_ftDist||3;}
+                continue;
+            }
             // Check if fish was thrown and landed outside water — crawl back
             var fDistFromPool=Math.sqrt(fish.group.position.x*fish.group.position.x+fish.group.position.z*fish.group.position.z);
             var _inWater=(fDistFromPool<7)||(Math.abs(fDistFromPool-25)<3)||(Math.abs(fDistFromPool-55)<3);
