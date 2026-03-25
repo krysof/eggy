@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260325.71';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260325.72';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -854,21 +854,21 @@ function playMissileSound(){
 }
 // AT Field effect — hexagonal flash at shield impact point
 function _spawnATField(x,y,z,nx,ny,nz){
-    // Large hexagonal ring flash — Evangelion AT Field style
-    var atMat=new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.9,side:THREE.DoubleSide});
-    for(var ai=0;ai<5;ai++){
-        var r=4+ai*3;
-        var hex=new THREE.Mesh(new THREE.RingGeometry(r-0.5,r+0.5,6),atMat.clone());
+    // Evangelion AT Field — ripple rings expanding outward one by one
+    for(var ai=0;ai<6;ai++){
+        // Each ring starts tiny and expands; delayed by ai*6 frames
+        var hex=new THREE.Mesh(new THREE.RingGeometry(0.3,0.8,6),
+            new THREE.MeshBasicMaterial({color:ai<3?0xFF8800:0xFFAA33,transparent:true,opacity:0,side:THREE.DoubleSide}));
         hex.position.set(x,y,z);
         hex.lookAt(x+nx,y+ny,z+nz);
-        hex.material.opacity=0.85-ai*0.12;
         scene.add(hex);
-        window._moonBeams.push({mesh:hex,life:35+ai*8,vx:nx*0.02,vy:ny*0.02,vz:nz*0.02,_isExplosion:true,_atField:true});
+        window._moonBeams.push({mesh:hex,life:50,vx:nx*0.01,vy:ny*0.01,vz:nz*0.01,
+            _isExplosion:true,_atField:true,_atDelay:ai*6,_atAge:0,_atMaxR:5+ai*3.5});
     }
-    // Central flash — bigger
-    var flash=new THREE.Mesh(new THREE.SphereGeometry(3,6,4),new THREE.MeshBasicMaterial({color:0xFFCC44,transparent:true,opacity:0.9}));
+    // Central impact flash
+    var flash=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,4),new THREE.MeshBasicMaterial({color:0xFFCC44,transparent:true,opacity:0.9}));
     flash.position.set(x,y,z);scene.add(flash);
-    window._moonBeams.push({mesh:flash,life:25,vx:0,vy:0,vz:0,_isExplosion:true,_atField:true});
+    window._moonBeams.push({mesh:flash,life:20,vx:0,vy:0,vz:0,_isExplosion:true,_atField:true,_atDelay:0,_atAge:0});
     // AT Field sound
     if(sfxEnabled){
         var ctx=ensureAudio();if(ctx){var t=ctx.currentTime;var _atVol=_battleSoundVol();
@@ -6452,9 +6452,28 @@ function updateCity(){
             bb.mesh.visible=!_playerInShield;
             if(bb._isExplosion){
                 if(bb._atField){
-                    // AT Field: slow fade, gentle scale
-                    bb.mesh.material.opacity=Math.min(0.85,bb.life/40*0.85);
-                    bb.mesh.scale.multiplyScalar(1.02);
+                    // AT Field ripple: delayed appearance, expand outward, then fade
+                    if(bb._atDelay>0){
+                        bb._atDelay--;
+                        bb.mesh.visible=false;
+                        bb.life++; // don't count down while waiting
+                    } else {
+                        bb.mesh.visible=!_playerInShield;
+                        bb._atAge++;
+                        if(bb._atMaxR){
+                            // Ring: expand from small to max radius
+                            var expandT=Math.min(bb._atAge/20,1);
+                            var curR=1+expandT*(bb._atMaxR-1);
+                            bb.mesh.scale.set(curR,curR,1);
+                            // Fade in then out
+                            if(bb._atAge<8) bb.mesh.material.opacity=bb._atAge/8*0.8;
+                            else bb.mesh.material.opacity=Math.max(0,(bb.life/40)*0.8);
+                        } else {
+                            // Central flash: just fade
+                            bb.mesh.material.opacity=Math.max(0,bb.life/20*0.9);
+                            bb.mesh.scale.multiplyScalar(1.03);
+                        }
+                    }
                 } else {
                     bb.mesh.material.opacity=bb.life/15*0.9;
                     bb.mesh.scale.multiplyScalar(1.1);
