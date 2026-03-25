@@ -18,7 +18,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260326.51';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260326.52';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -1764,6 +1764,7 @@ function createEggMesh(color, accent, charType) {
         dtail.position.set(0,0.75,-0.55); dtail.scale.set(0.8,1.2,0.8);
         body.add(dtail);
     } else if (charType==='cat') {
+        // Blanka — wild beast traits
         var cearG=new THREE.ConeGeometry(0.14,0.35,4);
         [-1,1].forEach(function(s){
             var ear=new THREE.Mesh(cearG,toon(color));
@@ -1772,6 +1773,20 @@ function createEggMesh(color, accent, charType) {
             var inner=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.2,4),toon(0xFFBBAA));
             inner.position.set(s*0.32,1.18,0.14);inner.rotation.z=s*0.2;
             body.add(inner);
+        });
+        // Wild mane (spiky hair tufts)
+        for(var _bmi=0;_bmi<8;_bmi++){
+            var _bma=_bmi/8*Math.PI*2;
+            var spike=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.25,4),toon(0xFF6600));
+            spike.position.set(Math.cos(_bma)*0.35,1.1+Math.random()*0.15,Math.sin(_bma)*0.2);
+            spike.rotation.z=Math.cos(_bma)*0.4;spike.rotation.x=-Math.sin(_bma)*0.3;
+            body.add(spike);
+        }
+        // Fangs
+        [-1,1].forEach(function(s){
+            var fang=new THREE.Mesh(new THREE.ConeGeometry(0.03,0.1,4),toon(0xFFFFFF));
+            fang.position.set(s*0.12,0.5,0.55);fang.rotation.x=Math.PI;
+            body.add(fang);
         });
         var whG=new THREE.CylinderGeometry(0.008,0.008,0.4,3);
         [-1,1].forEach(function(s){
@@ -1876,6 +1891,7 @@ function createEggMesh(color, accent, charType) {
             }
         });
     } else if (charType==='pig') {
+        // E.Honda — sumo wrestler traits
         // Prominent snout
         var snout=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.12,8),toon(0xFF8899));
         snout.position.set(0,0.68,0.52); snout.rotation.x=Math.PI/2;
@@ -1884,6 +1900,14 @@ function createEggMesh(color, accent, charType) {
             var nos=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0xDD6677));
             nos.position.set(s*0.06,0.68,0.6); body.add(nos);
         });
+        // Sumo topknot (mage)
+        var topknot=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0x222222));
+        topknot.position.set(0,1.2,0);body.add(topknot);
+        // Face paint (kabuki lines)
+        var paint1=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.3,0.02),toon(0xFF0000));
+        paint1.position.set(-0.2,0.75,0.55);body.add(paint1);
+        var paint2=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.3,0.02),toon(0xFF0000));
+        paint2.position.set(0.2,0.75,0.55);body.add(paint2);
         // Small floppy ears
         var pearG=new THREE.SphereGeometry(0.14,6,4); pearG.scale(1,1.2,0.5);
         [-1,1].forEach(function(s){
@@ -6339,12 +6363,12 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_sbBall,ring:_sbRing,vx:Math.sin(_sbDir)*(_ct==='cat'?0.45:0.5),vz:Math.cos(_sbDir)*(_ct==='cat'?0.45:0.5),life:100,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(_isHadou&&_ct==='pig'){
-            // SUMO HEADBUTT (E.Honda) — dash forward with head
+            // SUMO HEADBUTT (E.Honda) — ↓→+R, dash 12 body-lengths
             _shoutMove(playerEgg,'Dosukoi!');
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._hadouReady=false;
             var _shDir=playerEgg.mesh.rotation.y;
-            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*4;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*4;
-            playerEgg._hondaDash=20;playerEgg._atkAnim=22;playerEgg.squash=0.7;
+            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*5;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*5;
+            playerEgg._hondaDash=35;playerEgg._atkAnim=37;playerEgg.squash=0.6;
         } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken)
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
@@ -6378,9 +6402,11 @@ function handlePlayerInput(){
             playerEgg._shoryuActive=60;
             playJumpSound();
         } else if(playerEgg._rapidRReady&&_ct==='pig'){
-            // 百裂張手 (E.Honda) — rapid slaps
-            playerEgg._comboCount=0;playerEgg._attackCD=5;playerEgg._rapidR=0;
+            // 百裂張手 (E.Honda) — rapid slaps + move forward
+            playerEgg._comboCount=0;playerEgg._attackCD=3;playerEgg._rapidR=0;
             var _hsDir=playerEgg.mesh.rotation.y;
+            // Move forward while slapping
+            playerEgg.vx+=Math.sin(_hsDir)*0.05;playerEgg.vz+=Math.cos(_hsDir)*0.05;
             for(var _hsi=0;_hsi<allEggs.length;_hsi++){
                 var _hse=allEggs[_hsi];if(_hse===playerEgg||!_hse.alive||_hse.heldBy)continue;
                 var _hsdx=_hse.mesh.position.x-playerEgg.mesh.position.x;
@@ -6405,13 +6431,14 @@ function handlePlayerInput(){
             _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
             window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*0.5,vz:Math.cos(_sbDir2)*0.5,life:100,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
-        } else if(_isHadou&&(_ct==='cat')&&!window._playerHadouken){
-            // ROLLING ATTACK (Blanka) — ↓→+R, ball dash
+        } else if(_isHadou&&(_ct==='cat')){
+            // ROLLING ATTACK (Blanka) — ↓→+R, ball roll 12 body-lengths, bounce on hit
             _shoutMove(playerEgg,'GRAAAH!');
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._chargeBack=0;
+            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._hadouReady=false;
             var _raDir=playerEgg.mesh.rotation.y;
             playerEgg.vx=Math.sin(_raDir)*MAX_SPEED*5;playerEgg.vz=Math.cos(_raDir)*MAX_SPEED*5;
-            playerEgg._hondaDash=25;playerEgg._atkAnim=27;playerEgg.squash=0.6;
+            playerEgg._hondaDash=35;playerEgg._atkAnim=37;playerEgg.squash=0.5;
+            playerEgg._blankaRoll=true; // flag for bounce-back on hit
         } else {
         // Normal punch combo
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
@@ -6644,9 +6671,11 @@ function handlePlayerInput(){
         }
         if(playerEgg._blankaShock<=0)playerEgg.mesh.rotation.z=0;
     }
-    // ---- Honda Sumo Headbutt Dash ----
+    // ---- Honda/Blanka Dash Attack ----
     if(playerEgg._hondaDash>0){
         playerEgg._hondaDash--;
+        // Blanka rolls visually
+        if(playerEgg._blankaRoll)playerEgg.mesh.rotation.x+=0.6;
         for(var _hdi=0;_hdi<allEggs.length;_hdi++){
             var _hde=allEggs[_hdi];if(_hde===playerEgg||!_hde.alive||_hde.heldBy)continue;
             var _hddx=_hde.mesh.position.x-playerEgg.mesh.position.x;
@@ -6655,15 +6684,20 @@ function handlePlayerInput(){
                 _hde.vx+=playerEgg.vx*0.5;_hde.vz+=playerEgg.vz*0.5;_hde.vy=0.2;
                 _hde.squash=0.4;_hde.throwTimer=30;_hde._bounces=1;_hde._stunTimer=50;
                 _dropNpcStolenCoins(_hde);playHitSound();
+                // Blanka bounces back on hit
+                if(playerEgg._blankaRoll){playerEgg.vx*=-0.5;playerEgg.vz*=-0.5;playerEgg._hondaDash=0;}
             }
         }
-        if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;}
+        if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;}
     }
     // ---- Special move input trackers ----
-    // Detect horizontal direction presses
-    var _hLeft=(keys['KeyA']||keys['ArrowLeft']);
-    var _hRight=(keys['KeyD']||keys['ArrowRight']);
-    var _hDown=(keys['KeyS']||keys['ArrowDown']);
+    // Detect horizontal direction presses (keyboard + joystick)
+    var _joyL=joyActive&&joyVec.x<-0.4;
+    var _joyR=joyActive&&joyVec.x>0.4;
+    var _joyD=joyActive&&joyVec.y>0.4;
+    var _hLeft=(keys['KeyA']||keys['ArrowLeft']||_joyL);
+    var _hRight=(keys['KeyD']||keys['ArrowRight']||_joyR);
+    var _hDown=(keys['KeyS']||keys['ArrowDown']||_joyD);
     var _hLeftPress=_hLeft&&!playerEgg._prevHLeft;
     var _hRightPress=_hRight&&!playerEgg._prevHRight;
     var _hDownPress=_hDown&&!playerEgg._prevHDown;
