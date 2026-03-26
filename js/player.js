@@ -601,13 +601,25 @@ function handlePlayerInput(){
             var _sbTex=new THREE.CanvasTexture(_sbCvs);
             var _sbPlane=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:_sbTex,transparent:true,side:THREE.DoubleSide}));
             _sbPlane.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
+            // Flat like a disc — rotate to be parallel to ground, then face travel direction
+            _sbPlane.rotation.x=-Math.PI/2; // lay flat
+            _sbPlane.rotation.order='YXZ';
             _sbPlane.rotation.y=_sbDir;
-            _sbPlane.rotation.x=Math.PI/2; // horizontal orientation
             scene.add(_sbPlane);
             // Small glow sphere
             var _sbGlow=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.3}));
             _sbGlow.position.copy(_sbPlane.position);scene.add(_sbGlow);
             window._playerHadouken={ball:_sbPlane,ring:_sbGlow,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
+            playerEgg._atkAnim=12;playerEgg.squash=0.85;
+            // Sonic boom sound
+            if(sfxEnabled){var _sbSCtx=ensureAudio();if(_sbSCtx){var _sbt=_sbSCtx.currentTime;
+                var _sbb=_sbSCtx.createBuffer(1,Math.floor(_sbSCtx.sampleRate*0.2),_sbSCtx.sampleRate);
+                var _sbd=_sbb.getChannelData(0);
+                for(var _sbsi=0;_sbsi<_sbd.length;_sbsi++){var _sbp=_sbsi/_sbd.length;_sbd[_sbsi]=(Math.random()-0.5)*0.4*Math.exp(-_sbp*5)*Math.sin(_sbp*Math.PI*30);}
+                var _sbs=_sbSCtx.createBufferSource();_sbs.buffer=_sbb;
+                var _sbg2=_sbSCtx.createGain();_sbg2.gain.value=0.12;
+                _sbs.connect(_sbg2);_sbg2.connect(_sbSCtx.destination);_sbs.start(_sbt);_sbs.stop(_sbt+0.2);
+            }}
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
@@ -1126,7 +1138,7 @@ function handlePlayerInput(){
                     // Knock back away from Blanka
                     var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
                     if(_elDist<0.1)_elDist=0.1;
-                    _bse.vx=_bsdx/_elDist*4.0;_bse.vz=_bsdz/_elDist*4.0;_bse.vy=1.0;
+                    _bse.vx=_bsdx/_elDist*4.0;_bse.vz=_bsdz/_elDist*4.0;_bse.vy=0.25;
                     _bse.throwTimer=40;_bse._bounces=1;_bse.squash=0.4;
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
