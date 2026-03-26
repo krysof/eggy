@@ -180,24 +180,24 @@ function _renderIntro(now){
             // Hands
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY-eggSize*0.1,eggSize*0.18,'#FFDD44');
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY+eggSize*0.05,eggSize*0.18,'#FFDD44');
-            // Energy beam — light pillar shooting forward
-            var _ebX=armEndX+eggSize*0.2;
-            var _beamLen=punch*W*0.6; // beam grows across screen
-            // Outer glow
+            // Energy beam — half circle at hand, rectangular beam forward
+            var _ebX=armEndX+eggSize*0.1;
+            var _beamLen=punch*W*0.7;
+            var _beamH=eggSize*0.5+punch*eggSize*1.0;
+            // Outer glow rectangle
             var _beamGrad=ctx.createLinearGradient(_ebX,bodyY,_ebX+_beamLen,bodyY);
-            _beamGrad.addColorStop(0,'rgba(255,100,50,'+punch*0.9+')');
-            _beamGrad.addColorStop(0.3,'rgba(255,200,100,'+punch*0.7+')');
+            _beamGrad.addColorStop(0,'rgba(255,140,50,'+punch*0.9+')');
+            _beamGrad.addColorStop(0.5,'rgba(255,220,120,'+punch*0.7+')');
             _beamGrad.addColorStop(1,'rgba(255,240,200,0)');
             ctx.fillStyle=_beamGrad;
-            var _beamH=eggSize*0.4+punch*eggSize*0.8;
-            ctx.beginPath();
-            ctx.ellipse(_ebX+_beamLen*0.5,bodyY,_beamLen*0.5+eggSize*0.2,_beamH*0.6,0,0,Math.PI*2);
-            ctx.fill();
-            // Core beam
-            ctx.fillStyle='rgba(255,240,200,'+punch*0.8+')';
-            ctx.beginPath();
-            ctx.ellipse(_ebX+_beamLen*0.5,bodyY,_beamLen*0.5,_beamH*0.3,0,0,Math.PI*2);
-            ctx.fill();
+            ctx.fillRect(_ebX,bodyY-_beamH*0.5,_beamLen,_beamH);
+            // Half circle at hand end
+            ctx.fillStyle='rgba(255,140,50,'+punch*0.9+')';
+            ctx.beginPath();ctx.arc(_ebX,bodyY,_beamH*0.55,Math.PI*0.5,Math.PI*1.5);ctx.fill();
+            // Core beam (brighter)
+            ctx.fillStyle='rgba(255,240,200,'+punch*0.7+')';
+            ctx.fillRect(_ebX,bodyY-_beamH*0.25,_beamLen*0.8,_beamH*0.5);
+            ctx.beginPath();ctx.arc(_ebX,bodyY,_beamH*0.3,Math.PI*0.5,Math.PI*1.5);ctx.fill();
             _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else {
             // Impact + cockroach flies back

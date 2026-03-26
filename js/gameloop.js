@@ -1427,6 +1427,13 @@ function updateHeldEggs(){
 
 // ---- Portal confirm dialog ----
 var _portalConfirmOpen=false, _portalConfirmRace=-1, _portalConfirmTarget=-1, _portalDismissed=null, _portalConfirmHidden=null;
+var _portalSel=0;
+function _updatePortalSel(){
+    var yb=document.getElementById('portal-yes');
+    var nb=document.getElementById('portal-no');
+    if(yb)yb.style.outline=_portalSel===0?'3px solid #FFD700':'none';
+    if(nb)nb.style.outline=_portalSel===1?'3px solid #FFD700':'none';
+}
 function showPortalConfirm(portal){
     _portalConfirmOpen=true;
     _babylonPromptOpen=false;_moonPipePromptOpen=false; // safety reset
@@ -1437,7 +1444,7 @@ function showPortalConfirm(portal){
     var box=document.getElementById('portal-confirm');
     document.getElementById('portal-confirm-name').textContent=portal.name;
     document.getElementById('portal-confirm-desc').textContent=portal.desc;
-    box.style.display='flex';
+    box.style.display='flex';_portalSel=0;_updatePortalSel();
 }
 function hidePortalConfirm(){
     _portalDismissed=(_portalConfirmRace>=0)?_portalConfirmRace:('h'+_portalConfirmTarget);
@@ -1544,8 +1551,10 @@ addEventListener('keydown',function(e){
         if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();_hideMoonPipePrompt();}
         return;
     }
-    if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();confirmPortalEnter();}
-    if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();hidePortalConfirm();}
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();_portalSel=1;_updatePortalSel();}
+    if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();_portalSel=0;_updatePortalSel();}
+    if(e.code==='Enter'||e.code==='Space'||e.code==='KeyY'||e.code==='KeyR'||e.code==='KeyT'||e.code==='KeyF'){e.preventDefault();if(_portalSel===0)confirmPortalEnter();else hidePortalConfirm();}
+    if(e.code==='Escape'||e.code==='KeyN'){e.preventDefault();hidePortalConfirm();}
 });
 // Result screen — Enter/Space to go back to city
 addEventListener('keydown',function(e){
