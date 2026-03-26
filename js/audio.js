@@ -114,6 +114,7 @@ function _openLangMenu(){
                 _langMode=code;
                 if(_langMode==='auto'){_langCode=_autoLangCode;}
                 else{_langCode=_langMode;}
+                try{localStorage.setItem('danbo_lang',_langMode);}catch(e2){}
                 _applyLang();
                 _closeLangMenu();
             });
@@ -169,6 +170,13 @@ function _applyLang(){
     var chatF=document.getElementById('chat-field');if(chatF)chatF.placeholder=L('chatPlaceholder');
     // Rebuild warp pipe signs with new city names
     if(typeof buildWarpPipes==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildWarpPipes();}
+    // Rebuild portal signs
+    if(typeof buildPortals==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildPortals();}
+    // Update select grid cell labels
+    var _cells=document.querySelectorAll('.char-cell .char-label');
+    for(var ci2=0;ci2<_cells.length&&ci2<CHARACTERS.length;ci2++){_cells[ci2].textContent=CHARACTERS[ci2].name;}
+    // Update SF2 select if visible
+    if(typeof _updateSF2Select==='function'&&typeof selectedChar!=='undefined'){_updateSF2Select(selectedChar);}
 }
 if(langBtn){
     langBtn.textContent=_getLangBtnText();
