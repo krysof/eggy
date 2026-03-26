@@ -575,19 +575,22 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;
             var _sbDir=playerEgg.mesh.rotation.y;
-            // Crescent blade shape — yellow glowing arc
+            // Crescent moon shape — yellow, spins around center horizontally
+            var _sbGroup=new THREE.Group();
             var _sbShape=new THREE.Shape();
-            _sbShape.absarc(0,0,0.5,0.3,Math.PI-0.3,false);
-            _sbShape.absarc(0,0,0.25,Math.PI-0.3,0.3,true);
-            var _sbGeo=new THREE.ExtrudeGeometry(_sbShape,{depth:0.08,bevelEnabled:false});
-            var _sbBall=new THREE.Mesh(_sbGeo,new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9,side:THREE.DoubleSide}));
-            _sbBall.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
-            _sbBall.rotation.y=_sbDir;
-            scene.add(_sbBall);
+            _sbShape.absarc(0,0,0.5,0.4,Math.PI*2-0.4,false);
+            _sbShape.absarc(0,0,0.28,Math.PI*2-0.4,0.4,true);
+            var _sbGeo=new THREE.ExtrudeGeometry(_sbShape,{depth:0.06,bevelEnabled:false});
+            var _sbMesh=new THREE.Mesh(_sbGeo,new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9,side:THREE.DoubleSide}));
+            _sbMesh.position.z=-0.03; // center the extrude
+            _sbGroup.add(_sbMesh);
+            _sbGroup.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
+            _sbGroup.rotation.y=_sbDir; // face travel direction
+            scene.add(_sbGroup);
             // Glow ring
             var _sbRing=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.04,6,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.4}));
-            _sbRing.position.copy(_sbBall.position);scene.add(_sbRing);
-            window._playerHadouken={ball:_sbBall,ring:_sbRing,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true,spinDir:_sbDir};
+            _sbRing.position.copy(_sbGroup.position);scene.add(_sbRing);
+            window._playerHadouken={ball:_sbGroup,ring:_sbRing,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
@@ -1086,7 +1089,7 @@ function handlePlayerInput(){
             _epp.visible=true;
             // Each bolt shoots outward from center in a random direction
             var _epAngle=_epj*Math.PI*2/playerEgg._elecParticles.length+Math.random()*0.8;
-            var _epLen=0.4+Math.random()*0.7; // bolt length
+            var _epLen=0.8+Math.random()*1.4; // bolt length (doubled)
             var _epYOff=(Math.random()-0.5)*0.6;
             var _epMidX=_epCx+Math.sin(_epAngle)*_epLen;
             var _epMidZ=_epCz+Math.cos(_epAngle)*_epLen;
@@ -1100,9 +1103,13 @@ function handlePlayerInput(){
             var _bse=allEggs[_bsi];if(_bse===playerEgg||!_bse.alive||_bse.heldBy)continue;
             var _bsdx=_bse.mesh.position.x-playerEgg.mesh.position.x;
             var _bsdz=_bse.mesh.position.z-playerEgg.mesh.position.z;
-            if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<2){
-                _bse.vx+=_bsdx*0.1;_bse.vz+=_bsdz*0.1;_bse.vy=0.1;
-                _bse.squash=0.6;_bse._hitStun=6;
+            if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<4){
+                if(!_bse._electrocuted){
+                    // First hit — start electrocution (skeleton flash effect)
+                    _bse._electrocuted=40; // flash for 40 frames
+                    _bse._slamImmune=45; // immune during electrocution
+                    _bse.vx=0;_bse.vz=0; // freeze in place
+                }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
         }

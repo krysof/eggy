@@ -26,10 +26,9 @@ function updateCity(){
         _hk.ball.position.x+=_hk.vx;_hk.ball.position.z+=_hk.vz;
         _hk.ring.position.copy(_hk.ball.position);
         _hk.ring.rotation.z+=0.2;
-        // Sonic Boom: spin the crescent around its bottom tip
+        // Sonic Boom: spin crescent horizontally around its center
         if(_hk.isSonicBoom){
-            _hk.ball.rotation.z+=0.4; // spin around bottom point
-            _hk.ball.rotation.y=_hk.spinDir; // keep facing travel direction
+            if(_hk.ball.children&&_hk.ball.children[0])_hk.ball.children[0].rotation.x+=0.5;
         }
         _hk.life--;
         _hk.ball.material.opacity=Math.min(0.9,_hk.life/30);
@@ -394,6 +393,28 @@ function updateCity(){
                 _fpp.scale.setScalar(0.5+Math.random()*0.8);
             }
             if(npc._onFire<=0){for(var _fpk=0;_fpk<npc._fireParticles.length;_fpk++)npc._fireParticles[_fpk].visible=false;}
+        }
+        // Electrocution effect (Blanka electric) — flash skeleton
+        if(npc._electrocuted>0){
+            npc._electrocuted--;
+            npc.vx*=0.1;npc.vz*=0.1; // frozen
+            // Flash between normal and dark skeleton every 3 frames
+            var _elecBody=npc.mesh.userData.body;
+            if(_elecBody){
+                if(Math.floor(npc._electrocuted/3)%2===0){
+                    // Skeleton flash — dark with white bone lines
+                    _elecBody.material=new THREE.MeshBasicMaterial({color:0x111111,transparent:true,opacity:0.9});
+                } else {
+                    // Normal — bright flash
+                    _elecBody.material=new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.9});
+                }
+            }
+            // When done — knockdown and restore material
+            if(npc._electrocuted<=0){
+                if(_elecBody)_elecBody.material=toon(npc._origColor||0xFFDD44);
+                npc.vy=0.15;npc.squash=0.5;npc.throwTimer=25;npc._bounces=1;npc._stunTimer=40;
+                npc._slamImmune=0;
+            }
         }
     }
 
