@@ -853,12 +853,13 @@ function handlePlayerInput(){
                 _sdPz+Math.cos(_sdAngle)*_sdR
             );
         }
-        if(playerEgg.vy<=0||playerEgg.onGround){
+        if(playerEgg._shoryuActive<55&&(playerEgg.vy<=0||playerEgg.onGround)){
             playerEgg._shoryuActive=0;
             playerEgg._shoryuStartSet=false;
             window._shoryuFist.visible=false;
             if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
         }
+        playerEgg._shoryuActive--;
     } else {
         if(window._shoryuFist)window._shoryuFist.visible=false;
         if(window._shoryuDragon)for(var _sdl=0;_sdl<window._shoryuDragon.length;_sdl++)window._shoryuDragon[_sdl].visible=false;
