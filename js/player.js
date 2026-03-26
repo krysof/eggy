@@ -46,7 +46,7 @@ function handlePlayerInput(){
         playerEgg._blankaShock=0;
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
         playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
-        playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
+        playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;playerEgg._guileArcLaunched=false;
         playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -1062,30 +1062,43 @@ function handlePlayerInput(){
     // ---- Guile Somersault Kick (standalone, no shoryuken effect) ----
     if(playerEgg._guileSomersault>0){
         playerEgg._guileSomersault--;
-        // Constant forward push (same as Ryu shoryuken trajectory)
+        // Constant forward push
         if(playerEgg._guileSomFwdX!==undefined){
             playerEgg.vx=playerEgg._guileSomFwdX;
             playerEgg.vz=playerEgg._guileSomFwdZ;
         }
-        // Full 360 backflip on body
-        var _gsBody2=playerEgg.mesh.userData.body;
-        if(_gsBody2)_gsBody2.rotation.x-=Math.PI*2/65;
-        playerEgg._dashBounceTimer=5; // prevent physics from changing facing
-        // Blade arc — rotates with the backflip (360 degree sweep)
+        // Full 360 backflip — rotate the WHOLE mesh (not just body)
+        playerEgg.mesh.rotation.x-=Math.PI*2/65;
+        playerEgg._dashBounceTimer=5;
+        // Blade arc — shoot forward from character on first frame
         if(window._guileArc){
-            window._guileArc.visible=true;
-            var _gaFace=playerEgg.mesh.rotation.y;
-            // Arc orbits around the character following the backflip angle
-            var _gaFlipAngle=_gsBody2?_gsBody2.rotation.x:0;
-            var _gaR=1.0;
-            window._guileArc.position.set(
-                playerEgg.mesh.position.x+Math.sin(_gaFace)*Math.cos(_gaFlipAngle)*_gaR,
-                playerEgg.mesh.position.y+0.7-Math.sin(_gaFlipAngle)*_gaR,
-                playerEgg.mesh.position.z+Math.cos(_gaFace)*Math.cos(_gaFlipAngle)*_gaR
-            );
-            window._guileArc.rotation.y=_gaFace;
-            window._guileArc.rotation.x=_gaFlipAngle;
-            window._guileArc.material.opacity=Math.min(0.9,playerEgg._guileSomersault/10);
+            if(!playerEgg._guileArcLaunched){
+                playerEgg._guileArcLaunched=true;
+                var _gaFace2=playerEgg.mesh.rotation.y;
+                window._guileArc.visible=true;
+                window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.8,playerEgg.mesh.position.z);
+                window._guileArc.rotation.y=_gaFace2;
+                window._guileArc.rotation.x=0;
+                window._guileArc.userData._vx=Math.sin(_gaFace2)*0.3;
+                window._guileArc.userData._vz=Math.cos(_gaFace2)*0.3;
+                window._guileArc.userData._life=30;
+                // Cutting sound
+                if(sfxEnabled){var _gcCtx=ensureAudio();if(_gcCtx){var _gct=_gcCtx.currentTime;
+                    var _gco=_gcCtx.createOscillator();var _gcg=_gcCtx.createGain();
+                    _gco.type='sawtooth';_gco.frequency.setValueAtTime(1500,_gct);_gco.frequency.exponentialRampToValueAtTime(400,_gct+0.15);
+                    _gcg.gain.setValueAtTime(0.1,_gct);_gcg.gain.exponentialRampToValueAtTime(0.001,_gct+0.2);
+                    _gco.connect(_gcg);_gcg.connect(_gcCtx.destination);_gco.start(_gct);_gco.stop(_gct+0.2);
+                }}
+            }
+            // Move arc forward
+            if(window._guileArc.userData._life>0){
+                window._guileArc.userData._life--;
+                window._guileArc.position.x+=window._guileArc.userData._vx;
+                window._guileArc.position.z+=window._guileArc.userData._vz;
+                window._guileArc.rotation.z+=0.2;
+                window._guileArc.material.opacity=Math.min(0.9,window._guileArc.userData._life/10);
+                if(window._guileArc.userData._life<=0)window._guileArc.visible=false;
+            }
         }
         // Hit detection
         if(playerEgg._guileSomersault%4===0){
@@ -1111,12 +1124,13 @@ function handlePlayerInput(){
             playerEgg._guileSomersault=0;
         }
         if(playerEgg._guileSomersault<=0){
-            if(_gsBody2)_gsBody2.rotation.x=0;
+            playerEgg.mesh.rotation.x=0;
             if(window._guileArc)window._guileArc.visible=false;
             playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
+            playerEgg._guileArcLaunched=false;
         }
     } else {
-        if(window._guileArc)window._guileArc.visible=false;
+        if(window._guileArc&&(!window._guileArc.userData._life||window._guileArc.userData._life<=0))window._guileArc.visible=false;
     }
     // ---- Honda Hyakuretsu continuous animation ----
     if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;

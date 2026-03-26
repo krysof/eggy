@@ -416,6 +416,8 @@ function updateCity(){
                     npc._elecFlying=60;
                     npc._elecFlyDir={x:npc._elecKnockDir.x,z:npc._elecKnockDir.z};
                     npc._elecKnockDir=null;
+                    npc.vy=0.35; // bounce up
+                    npc.throwTimer=60;
                 } else {
                     if(_elecBody)_elecBody.material=toon(npc._origColor||0xFFDD44);
                     npc._stunTimer=40;npc._slamImmune=0;
@@ -426,9 +428,8 @@ function updateCity(){
         if(npc._elecFlying>0){
             npc._elecFlying--;
             if(npc._elecFlyDir){
-                npc.mesh.position.x+=npc._elecFlyDir.x*0.15;
-                npc.mesh.position.z+=npc._elecFlyDir.z*0.15;
-                npc.vx=0;npc.vz=0;npc.vy=0; // no physics
+                npc.vx=npc._elecFlyDir.x*0.4;
+                npc.vz=npc._elecFlyDir.z*0.4;
             }
             var _efBody=npc.mesh.userData.body;
             if(_efBody){
@@ -1835,6 +1836,8 @@ function _gameUpdate(){
                 playerEgg._elecFlying=60;
                 playerEgg._elecFlyDir={x:playerEgg._elecKnockDir.x,z:playerEgg._elecKnockDir.z};
                 playerEgg._elecKnockDir=null;
+                playerEgg.vy=0.35;
+                playerEgg.throwTimer=60;
             } else if(playerEgg._electrocuted<=0){
                 if(_peBody)_peBody.material=toon(playerEgg._origColor||0xFFDD44);
                 playerEgg._stunTimer=40;playerEgg._slamImmune=0;
@@ -1843,9 +1846,8 @@ function _gameUpdate(){
         if(playerEgg&&playerEgg._elecFlying>0){
             playerEgg._elecFlying--;
             if(playerEgg._elecFlyDir){
-                playerEgg.mesh.position.x+=playerEgg._elecFlyDir.x*0.15;
-                playerEgg.mesh.position.z+=playerEgg._elecFlyDir.z*0.15;
-                playerEgg.vx=0;playerEgg.vz=0;playerEgg.vy=0;
+                playerEgg.vx=playerEgg._elecFlyDir.x*0.4;
+                playerEgg.vz=playerEgg._elecFlyDir.z*0.4;
             }
             var _peBody2=playerEgg.mesh.userData.body;
             if(_peBody2)_peBody2.material=new THREE.MeshBasicMaterial({color:Math.floor(playerEgg._elecFlying/3)%2===0?0x111111:0xFFFFFF,transparent:true,opacity:0.9});
