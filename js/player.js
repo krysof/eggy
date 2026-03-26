@@ -831,14 +831,15 @@ function handlePlayerInput(){
             playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
             // Create blade arc effect
             if(!window._guileArc){
-                var _gaCvs=document.createElement('canvas');_gaCvs.width=64;_gaCvs.height=64;
+                var _gaCvs=document.createElement('canvas');_gaCvs.width=128;_gaCvs.height=128;
                 var _gaCtx=_gaCvs.getContext('2d');
-                _gaCtx.strokeStyle='#88FFFF';_gaCtx.lineWidth=4;
-                _gaCtx.beginPath();_gaCtx.arc(32,32,26,0.2,Math.PI-0.2);_gaCtx.stroke();
-                _gaCtx.strokeStyle='#FFFFFF';_gaCtx.lineWidth=2;
-                _gaCtx.beginPath();_gaCtx.arc(32,32,24,0.3,Math.PI-0.3);_gaCtx.stroke();
+                // Thick bright arc — like a kick trail
+                _gaCtx.strokeStyle='#88FFFF';_gaCtx.lineWidth=12;_gaCtx.lineCap='round';
+                _gaCtx.beginPath();_gaCtx.arc(64,64,50,0.3,Math.PI-0.3);_gaCtx.stroke();
+                _gaCtx.strokeStyle='#FFFFFF';_gaCtx.lineWidth=6;
+                _gaCtx.beginPath();_gaCtx.arc(64,64,50,0.4,Math.PI-0.4);_gaCtx.stroke();
                 var _gaTex=new THREE.CanvasTexture(_gaCvs);
-                window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.5),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
+                window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
                 scene.add(window._guileArc);
             }
             window._guileArc.visible=true;
@@ -1070,34 +1071,29 @@ function handlePlayerInput(){
         // Full 360 backflip — rotate the WHOLE mesh (not just body)
         playerEgg.mesh.rotation.x-=Math.PI*2/65;
         playerEgg._dashBounceTimer=5;
-        // Blade arc — shoot forward from character on first frame
+        // Blade arc — follows the character's flip, stays attached
         if(window._guileArc){
+            window._guileArc.visible=true;
+            var _gaFace3=playerEgg.mesh.rotation.y;
+            var _gaFlip=playerEgg.mesh.rotation.x; // follows the backflip
+            var _gaR2=1.3; // radius of the arc trail
+            window._guileArc.position.set(
+                playerEgg.mesh.position.x+Math.sin(_gaFace3)*Math.cos(_gaFlip)*_gaR2,
+                playerEgg.mesh.position.y+0.7-Math.sin(_gaFlip)*_gaR2,
+                playerEgg.mesh.position.z+Math.cos(_gaFace3)*Math.cos(_gaFlip)*_gaR2
+            );
+            window._guileArc.rotation.y=_gaFace3;
+            window._guileArc.rotation.x=_gaFlip;
+            window._guileArc.material.opacity=0.85;
+            // Cutting sound on first frame
             if(!playerEgg._guileArcLaunched){
                 playerEgg._guileArcLaunched=true;
-                var _gaFace2=playerEgg.mesh.rotation.y;
-                window._guileArc.visible=true;
-                window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.8,playerEgg.mesh.position.z);
-                window._guileArc.rotation.y=_gaFace2;
-                window._guileArc.rotation.x=0;
-                window._guileArc.userData._vx=Math.sin(_gaFace2)*0.3;
-                window._guileArc.userData._vz=Math.cos(_gaFace2)*0.3;
-                window._guileArc.userData._life=30;
-                // Cutting sound
                 if(sfxEnabled){var _gcCtx=ensureAudio();if(_gcCtx){var _gct=_gcCtx.currentTime;
                     var _gco=_gcCtx.createOscillator();var _gcg=_gcCtx.createGain();
                     _gco.type='sawtooth';_gco.frequency.setValueAtTime(1500,_gct);_gco.frequency.exponentialRampToValueAtTime(400,_gct+0.15);
-                    _gcg.gain.setValueAtTime(0.1,_gct);_gcg.gain.exponentialRampToValueAtTime(0.001,_gct+0.2);
-                    _gco.connect(_gcg);_gcg.connect(_gcCtx.destination);_gco.start(_gct);_gco.stop(_gct+0.2);
+                    _gcg.gain.setValueAtTime(0.12,_gct);_gcg.gain.exponentialRampToValueAtTime(0.001,_gct+0.25);
+                    _gco.connect(_gcg);_gcg.connect(_gcCtx.destination);_gco.start(_gct);_gco.stop(_gct+0.25);
                 }}
-            }
-            // Move arc forward
-            if(window._guileArc.userData._life>0){
-                window._guileArc.userData._life--;
-                window._guileArc.position.x+=window._guileArc.userData._vx;
-                window._guileArc.position.z+=window._guileArc.userData._vz;
-                window._guileArc.rotation.z+=0.2;
-                window._guileArc.material.opacity=Math.min(0.9,window._guileArc.userData._life/10);
-                if(window._guileArc.userData._life<=0)window._guileArc.visible=false;
             }
         }
         // Hit detection

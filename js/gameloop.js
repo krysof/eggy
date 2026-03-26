@@ -416,8 +416,8 @@ function updateCity(){
                     npc._elecFlying=60;
                     npc._elecFlyDir={x:npc._elecKnockDir.x,z:npc._elecKnockDir.z};
                     npc._elecKnockDir=null;
-                    npc.vy=0.35; // bounce up
-                    npc.throwTimer=60;
+                    npc.vy=0.5; // bounce up high
+                    npc.throwTimer=80;
                 } else {
                     if(_elecBody)_elecBody.material=toon(npc._origColor||0xFFDD44);
                     npc._stunTimer=40;npc._slamImmune=0;
@@ -1125,6 +1125,8 @@ function updateHeldEggs(){
         if(!egg.heldBy){
             // Remove 3D bar if it had one
             if(egg.struggleBar){egg.mesh.remove(egg.struggleBar);egg.struggleBar=null;}
+            // Reset upside-down rotation if was held
+            if(egg.mesh.rotation.x===Math.PI)egg.mesh.rotation.x=0;
             continue;
         }
         var holder=egg.heldBy;
@@ -1135,7 +1137,8 @@ function updateHeldEggs(){
         egg.mesh.position.y=holder.mesh.position.y+1.7;
         egg.mesh.position.z=holder.mesh.position.z;
         egg.vx=0;egg.vy=0;egg.vz=0;
-        egg.mesh.rotation.y=holder.mesh.rotation.y;
+        egg.mesh.rotation.y=holder.mesh.rotation.y+Math.PI; // face toward holder
+        egg.mesh.rotation.x=Math.PI; // upside down (held by head)
         // Struggle timer countdown
         egg.struggleTimer--;
         // Player mashing directions speeds up escape

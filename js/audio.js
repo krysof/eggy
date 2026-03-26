@@ -3,6 +3,14 @@
 let audioCtx=null, soundEnabled=true, sfxEnabled=true, _audioUnlocked=false;
 // iOS 17+ audio session hint
 try{if(navigator.audioSession)navigator.audioSession.type='transient';}catch(e){}
+// Pause/resume audio when tab loses/gains focus
+document.addEventListener('visibilitychange',function(){
+    if(document.hidden){
+        if(audioCtx&&audioCtx.state==='running')audioCtx.suspend();
+    } else {
+        if(audioCtx&&audioCtx.state==='suspended'&&soundEnabled)audioCtx.resume();
+    }
+});
 function ensureAudio(){
     if(!audioCtx){
         var AC=window.AudioContext||window.webkitAudioContext;
