@@ -278,13 +278,29 @@ function _skipIntro(){
     _introStart=performance.now()-5500; // jump to end
     var btn=document.getElementById('start-btn');
     if(btn)btn.style.opacity='1';
+    // After skip, let clicks pass through to the start button
+    if(_introCanvas)_introCanvas.style.pointerEvents='none';
 }
 
 if(_introCanvas){
-    _introCanvas.addEventListener('click',_skipIntro);
+    _introCanvas.addEventListener('click',function(){
+        if(!_introSkipped){
+            _skipIntro();
+        } else {
+            // Intro already done — trigger start
+            var btn=document.getElementById('start-btn');
+            if(btn)btn.click();
+        }
+    });
     _introCanvas.addEventListener('touchstart',function(e){
-        // Don't skip on first touch — let it unlock audio
-        if(_introStart&&(performance.now()-_introStart)>500) _skipIntro();
+        if(_introStart&&(performance.now()-_introStart)>500){
+            if(!_introSkipped){
+                _skipIntro();
+            } else {
+                var btn=document.getElementById('start-btn');
+                if(btn)btn.click();
+            }
+        }
     },{passive:true});
 }
 
