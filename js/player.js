@@ -657,8 +657,8 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _brDir=playerEgg.mesh.rotation.y;
             playerEgg._blankaSpinTimer=60;
-            playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*2;
-            playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*2;
+            playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*3;
+            playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*3;
             playerEgg._dashFaceY=_brDir; // remember facing for landing
             playerEgg._blankaSpinFalling=false;
             playerEgg.squash=0.8;
@@ -1107,17 +1107,15 @@ function handlePlayerInput(){
     if(!playerEgg._blankaSpinTimer)playerEgg._blankaSpinTimer=0;
     if(playerEgg._blankaSpinTimer>0){
         playerEgg._blankaSpinTimer--;
-        // Move forward at Honda speed
         if(playerEgg._blankaSpinDirX!==undefined){
             playerEgg.vx=playerEgg._blankaSpinDirX;
             playerEgg.vz=playerEgg._blankaSpinDirZ;
         }
-        playerEgg.vy=0; // cancel gravity while timer active
+        playerEgg.vy=0;
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         var _bsBody=playerEgg.mesh.userData.body;
-        if(_bsBody)_bsBody.rotation.x+=8.0; // very fast spin
+        if(_bsBody)_bsBody.rotation.x+=16.0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
-        // Hit nearby enemies
         if(playerEgg._blankaSpinTimer%4===0){
             for(var _bri=0;_bri<allEggs.length;_bri++){
                 var _bre=allEggs[_bri];if(_bre===playerEgg||!_bre.alive||_bre.heldBy)continue;
@@ -1128,28 +1126,45 @@ function handlePlayerInput(){
                     _bre.vx+=_brdx/_brd*0.3;_bre.vz+=_brdz/_brd*0.3;_bre.vy=0.2;
                     _bre.squash=0.5;_bre._hitStun=10;
                     _dropNpcStolenCoins(_bre);playHitSound();
-                    if(playerEgg._blankaSpinDirX!==undefined){
-                        playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
-                        playerEgg._blankaSpinTimer=Math.min(playerEgg._blankaSpinTimer,20);
-                        playerEgg._dashBounceTimer=30;
-                    }
+                    // Bounce back — reverse direction, enter falling phase (still spinning)
+                    playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
+                    playerEgg.vx=playerEgg._blankaSpinDirX;playerEgg.vz=playerEgg._blankaSpinDirZ;
+                    playerEgg._blankaSpinTimer=0;
+                    playerEgg._blankaSpinFalling=true;
+                    playerEgg._dashBounceTimer=30;
+                    playerEgg.vy=0.1;
+                    break;
                 }
             }
         }
-        // When timer ends, start falling but keep spinning
-        if(playerEgg._blankaSpinTimer<=0){
+        // Building collision bounce
+        for(var _bci2=0;_bci2<cityColliders.length;_bci2++){
+            var _bc2=cityColliders[_bci2];
+            var _bcdx=playerEgg.mesh.position.x-_bc2.x,_bcdz=playerEgg.mesh.position.z-_bc2.z;
+            if(Math.abs(_bcdx)<_bc2.hw+1&&Math.abs(_bcdz)<_bc2.hd+1&&playerEgg.mesh.position.y<(_bc2.h||6)){
+                playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
+                playerEgg.vx=playerEgg._blankaSpinDirX;playerEgg.vz=playerEgg._blankaSpinDirZ;
+                playerEgg._blankaSpinTimer=0;
+                playerEgg._blankaSpinFalling=true;
+                playerEgg._dashBounceTimer=30;
+                playerEgg.vy=0.1;
+                playHitSound();break;
+            }
+        }
+        if(playerEgg._blankaSpinTimer<=0&&!playerEgg._blankaSpinFalling){
             playerEgg._blankaSpinFalling=true;
             playerEgg.vx*=0.2;playerEgg.vz*=0.2;
+        }
+        if(playerEgg._blankaSpinTimer<=0){
             playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;
         }
     }
-    // Blanka spin falling phase — keep spinning until landing
+    // Blanka spin falling — keep spinning at same speed until landing
     if(playerEgg._blankaSpinFalling){
         var _bsFBody=playerEgg.mesh.userData.body;
-        if(_bsFBody)_bsFBody.rotation.x+=8.0;
+        if(_bsFBody)_bsFBody.rotation.x+=16.0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg.onGround){
-            // Landed — stop spin, face forward
             playerEgg._blankaSpinFalling=false;
             if(_bsFBody)_bsFBody.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1);
