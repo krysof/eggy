@@ -858,8 +858,10 @@ function handlePlayerInput(){
             playerEgg._shoryuStartSet=false;
             window._shoryuFist.visible=false;
             if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
+        } else {
+            playerEgg._shoryuActive--;
+            if(playerEgg._shoryuActive<=0)playerEgg._shoryuActive=0;
         }
-        playerEgg._shoryuActive--;
     } else {
         if(window._shoryuFist)window._shoryuFist.visible=false;
         if(window._shoryuDragon)for(var _sdl=0;_sdl<window._shoryuDragon.length;_sdl++)window._shoryuDragon[_sdl].visible=false;
