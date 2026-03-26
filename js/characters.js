@@ -1,14 +1,14 @@
 // characters.js — DANBO World
 const CHARACTERS = [
     // SF2 select screen layout: top row L→R, bottom row L→R
-    {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xFFDD44,accent:0xFFAA00,icon:'\uD83E\uDD5A',portrait:'#FFDD44',sf2:'Ryu',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:350,mapY:95},
-    {name:'\u732A\u4ED4',type:'pig',color:0xFFAAAA,accent:0xFF7788,icon:'\uD83D\uDC37',portrait:'#FFAAAA',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:350,mapY:95},
-    {name:'\u732B\u4ED4',type:'cat',color:0xDDDDDD,accent:0xAAAAAA,icon:'\uD83D\uDC31',portrait:'#DDDDDD',sf2:'Blanka',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:130,mapY:165},
-    {name:'\u9E21\u516C',type:'rooster',color:0xFFEEDD,accent:0xFF4444,icon:'\uD83D\uDC13',portrait:'#FFEECC',sf2:'Guile',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:80,mapY:80},
-    {name:'\u72D7\u4ED4',type:'dog',color:0xC8915A,accent:0xA0704A,icon:'\uD83D\uDC36',portrait:'#C8915A',sf2:'Ken',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:80,mapY:80},
-    {name:'\u9A6C\u9A9D',type:'monkey',color:0xFF8866,accent:0xCC5533,icon:'\uD83D\uDC35',portrait:'#FF8866',sf2:'Chun-Li',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:90},
-    {name:'\u7530\u9E21',type:'frog',color:0x55BB55,accent:0x338833,icon:'\uD83D\uDC38',portrait:'#55BB55',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:260,mapY:50},
-    {name:'\u66F1\u7534',type:'cockroach',color:0x8B4513,accent:0x5C2E0A,icon:'\uD83E\uDEB3',portrait:'#8B4513',sf2:'Dhalsim',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:290,mapY:110},
+    {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xF5F5F0,accent:0xCC2222,icon:'\uD83E\uDD5A',portrait:'#F5F5F0',sf2:'Ryu',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:350,mapY:95},
+    {name:'\u732A\u4ED4',type:'pig',color:0xFFCCAA,accent:0x2244AA,icon:'\uD83D\uDC37',portrait:'#FFCCAA',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:350,mapY:95},
+    {name:'\u732B\u4ED4',type:'cat',color:0x33AA33,accent:0xFF8800,icon:'\uD83D\uDC31',portrait:'#33AA33',sf2:'Blanka',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:130,mapY:165},
+    {name:'\u9E21\u516C',type:'rooster',color:0x556B2F,accent:0xFFDD44,icon:'\uD83D\uDC13',portrait:'#556B2F',sf2:'Guile',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:80,mapY:80},
+    {name:'\u72D7\u4ED4',type:'dog',color:0xCC2222,accent:0xFFDD44,icon:'\uD83D\uDC36',portrait:'#CC2222',sf2:'Ken',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:80,mapY:80},
+    {name:'\u9A6C\u9A9D',type:'monkey',color:0x2255CC,accent:0xFFFFFF,icon:'\uD83D\uDC35',portrait:'#2255CC',sf2:'Chun-Li',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:90},
+    {name:'\u7530\u9E21',type:'frog',color:0xCC3333,accent:0x8B4513,icon:'\uD83D\uDC38',portrait:'#CC3333',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:260,mapY:50},
+    {name:'\u66F1\u7534',type:'cockroach',color:0x8B6914,accent:0xFFFFFF,icon:'\uD83E\uDEB3',portrait:'#8B6914',sf2:'Dhalsim',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:290,mapY:110},
 ];
 let selectedChar = 0;
 // Apply localized character names

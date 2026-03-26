@@ -78,6 +78,19 @@ function createEggMesh(color, accent, charType) {
         var rim=new THREE.Mesh(rimGeo,shellMat);
         rim.position.y=1.12;rim.rotation.x=Math.PI/2;
         body.add(rim);
+        // Ryu headband — red band around top of head with trailing ends
+        var hbMat=toon(0xCC2222);
+        var hbGeo=new THREE.TorusGeometry(0.32,0.035,6,20);
+        var headband=new THREE.Mesh(hbGeo,hbMat);
+        headband.position.y=1.05;headband.rotation.x=Math.PI/2;
+        body.add(headband);
+        // Trailing ends at back
+        [-1,1].forEach(function(s){
+            var trail=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.22,0.025),hbMat);
+            trail.position.set(s*0.12,0.92,-0.32);
+            trail.rotation.z=s*0.25;trail.rotation.x=0.3;
+            body.add(trail);
+        });
     }
 
     // Big cute eyes
@@ -138,6 +151,19 @@ function createEggMesh(color, accent, charType) {
         var dtail=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0xA0704A));
         dtail.position.set(0,0.75,-0.55); dtail.scale.set(0.8,1.2,0.8);
         body.add(dtail);
+        // Ken blonde hair tuft — spiky yellow on top
+        var kenHairMat=toon(0xFFDD44);
+        for(var khi=0;khi<6;khi++){
+            var kha=khi/6*Math.PI*2;
+            var spike=new THREE.Mesh(new THREE.ConeGeometry(0.05,0.2,4),kenHairMat);
+            spike.position.set(Math.cos(kha)*0.12,1.2+Math.random()*0.08,Math.sin(kha)*0.1);
+            spike.rotation.z=Math.cos(kha)*0.4;spike.rotation.x=-Math.sin(kha)*0.3;
+            body.add(spike);
+        }
+        // Center tall spike
+        var centerSpike=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.25,4),kenHairMat);
+        centerSpike.position.set(0,1.3,0);
+        body.add(centerSpike);
     } else if (charType==='cat') {
         // Blanka — wild beast traits
         var cearG=new THREE.ConeGeometry(0.14,0.35,4);
@@ -149,13 +175,20 @@ function createEggMesh(color, accent, charType) {
             inner.position.set(s*0.32,1.18,0.14);inner.rotation.z=s*0.2;
             body.add(inner);
         });
-        // Wild mane (spiky hair tufts)
-        for(var _bmi=0;_bmi<8;_bmi++){
-            var _bma=_bmi/8*Math.PI*2;
-            var spike=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.25,4),toon(0xFF6600));
-            spike.position.set(Math.cos(_bma)*0.35,1.1+Math.random()*0.15,Math.sin(_bma)*0.2);
-            spike.rotation.z=Math.cos(_bma)*0.4;spike.rotation.x=-Math.sin(_bma)*0.3;
+        // Wild mane — orange, more prominent
+        for(var _bmi=0;_bmi<12;_bmi++){
+            var _bma=_bmi/12*Math.PI*2;
+            var spike=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.35,4),toon(0xFF8800));
+            spike.position.set(Math.cos(_bma)*0.38,1.1+Math.random()*0.2,Math.sin(_bma)*0.25);
+            spike.rotation.z=Math.cos(_bma)*0.5;spike.rotation.x=-Math.sin(_bma)*0.4;
             body.add(spike);
+        }
+        // Extra top mane tufts
+        for(var _bti=0;_bti<4;_bti++){
+            var _bta=_bti/4*Math.PI*2+0.4;
+            var topSpike=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.28,4),toon(0xFF8800));
+            topSpike.position.set(Math.cos(_bta)*0.15,1.35,Math.sin(_bta)*0.12);
+            body.add(topSpike);
         }
         // Fangs
         [-1,1].forEach(function(s){
@@ -194,6 +227,21 @@ function createEggMesh(color, accent, charType) {
         var muz=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),toon(0xFFCC88));
         muz.position.set(0,0.65,0.45); muz.scale.set(1.2,0.8,0.6);
         body.add(muz);
+        // Chun-Li hair buns — two spheres on sides with ribbons
+        var bunMat=toon(0x222222);
+        [-1,1].forEach(function(s){
+            var bun=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),bunMat);
+            bun.position.set(s*0.48,1.15,0);
+            body.add(bun);
+            // Bun cover/wrap
+            var wrap=new THREE.Mesh(new THREE.TorusGeometry(0.12,0.03,6,12),toon(0xFFFFFF));
+            wrap.position.set(s*0.48,1.15,0);wrap.rotation.y=Math.PI/2;
+            body.add(wrap);
+            // Ribbon trailing down
+            var ribbon=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.25,0.02),toon(0xFFFFFF));
+            ribbon.position.set(s*0.52,0.95,0);ribbon.rotation.z=s*0.15;
+            body.add(ribbon);
+        });
         // Long tail (>=0.6x body)
         var monkTailPts=[];
         for(var mt=0;mt<=10;mt++){
@@ -206,7 +254,7 @@ function createEggMesh(color, accent, charType) {
         }
         var monkTailCurve=new THREE.CatmullRomCurve3(monkTailPts);
         var monkTailGeo=new THREE.TubeGeometry(monkTailCurve,14,0.04,6,false);
-        body.add(new THREE.Mesh(monkTailGeo,toon(0xCC5533)));
+        body.add(new THREE.Mesh(monkTailGeo,toon(0x2255CC)));
     } else if (charType==='rooster') {
         for(var ri=0;ri<3;ri++){
             var cb=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0xFF3333));
@@ -218,21 +266,32 @@ function createEggMesh(color, accent, charType) {
         var beak=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.18,4),toon(0xFFAA00));
         beak.position.set(0,0.7,0.58); beak.rotation.x=-Math.PI/2;
         body.add(beak);
+        // Guile blonde flat-top — rectangular yellow block on top
+        var flatTop=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.2,0.3),toon(0xFFDD44));
+        flatTop.position.set(0,1.35,0);
+        body.add(flatTop);
+        // Flat-top side edges for sharp military look
+        [-1,1].forEach(function(s){
+            var sideFlat=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.18,0.25),toon(0xFFDD44));
+            sideFlat.position.set(s*0.22,1.33,0);
+            body.add(sideFlat);
+        });
         // Wings
         [-1,1].forEach(function(s){
-            var wing=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,4),toon(0xFFEECC));
+            var wing=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,4),toon(0x556B2F));
             wing.position.set(s*0.55,0.65,-0.05);
             wing.scale.set(0.4,1.0,0.8); wing.rotation.z=s*0.3;
             body.add(wing);
         });
         // Tail feathers
         for(var fi=0;fi<3;fi++){
-            var feather=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.4,4),toon(fi===1?0xFF4444:0xFFAA00));
+            var feather=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.4,4),toon(fi===1?0x556B2F:0xFFDD44));
             feather.position.set((fi-1)*0.08,0.85+fi*0.05,-0.55);
             feather.rotation.x=0.6+fi*0.1;
             body.add(feather);
         }
     } else if (charType==='cockroach') {
+        // Dhalsim — elongated body with skull necklace
         // Twin-tail antennae (hair-style)
         var antennae=[];
         [-1,1].forEach(function(s){
@@ -265,10 +324,26 @@ function createEggMesh(color, accent, charType) {
                 body.add(leg);
             }
         });
+        // Skull necklace — 3 small white spheres around neck
+        var skullMat=toon(0xFFFFFF);
+        for(var ski=0;ski<3;ski++){
+            var ska=(ski-1)*0.7;
+            var skull=new THREE.Mesh(new THREE.SphereGeometry(0.06,6,4),skullMat);
+            skull.position.set(Math.sin(ska)*0.35,0.48,Math.cos(ska)*0.35);
+            body.add(skull);
+            // Eye holes on each skull
+            [-1,1].forEach(function(s){
+                var hole=new THREE.Mesh(new THREE.SphereGeometry(0.015,4,3),toon(0x111111));
+                hole.position.set(Math.sin(ska)*0.35+s*0.02,0.5,Math.cos(ska)*0.35+0.03);
+                body.add(hole);
+            });
+        }
+        // Elongate body slightly more
+        body.scale.y=1.1;
     } else if (charType==='pig') {
         // E.Honda — sumo wrestler traits
         // Prominent snout
-        var snout=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.12,8),toon(0xFF8899));
+        var snout=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.12,8),toon(0xFFCCAA));
         snout.position.set(0,0.68,0.52); snout.rotation.x=Math.PI/2;
         body.add(snout);
         [-1,1].forEach(function(s){
@@ -278,15 +353,24 @@ function createEggMesh(color, accent, charType) {
         // Sumo topknot (mage)
         var topknot=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0x222222));
         topknot.position.set(0,1.2,0);body.add(topknot);
-        // Face paint (kabuki lines)
-        var paint1=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.3,0.02),toon(0xFF0000));
-        paint1.position.set(-0.2,0.75,0.55);body.add(paint1);
-        var paint2=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.3,0.02),toon(0xFF0000));
-        paint2.position.set(0.2,0.75,0.55);body.add(paint2);
+        // Face paint — prominent blue and red kabuki stripes
+        // Blue vertical stripes (Honda's signature)
+        [-1,1].forEach(function(s){
+            var blueStripe=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.35,0.02),toon(0x2244AA));
+            blueStripe.position.set(s*0.18,0.78,0.55);body.add(blueStripe);
+        });
+        // Red horizontal stripe across face
+        var redStripe=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,0.02),toon(0xCC2222));
+        redStripe.position.set(0,0.85,0.54);body.add(redStripe);
+        // Additional red marks under eyes
+        [-1,1].forEach(function(s){
+            var redMark=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.04,0.02),toon(0xCC2222));
+            redMark.position.set(s*0.2,0.72,0.56);body.add(redMark);
+        });
         // Small floppy ears
         var pearG=new THREE.SphereGeometry(0.14,6,4); pearG.scale(1,1.2,0.5);
         [-1,1].forEach(function(s){
-            var ear=new THREE.Mesh(pearG,toon(0xFFBBBB));
+            var ear=new THREE.Mesh(pearG,toon(0xFFCCAA));
             ear.position.set(s*0.35,1.08,0.1); ear.rotation.z=s*0.5;
             body.add(ear);
         });
@@ -302,9 +386,9 @@ function createEggMesh(color, accent, charType) {
         }
         var pigTailCurve=new THREE.CatmullRomCurve3(pigTailPts);
         var pigTailGeo=new THREE.TubeGeometry(pigTailCurve,16,0.03,6,false);
-        body.add(new THREE.Mesh(pigTailGeo,toon(0xFFAAAA)));
+        body.add(new THREE.Mesh(pigTailGeo,toon(0xFFCCAA)));
     } else if (charType==='frog') {
-        // Bulging eyes on top
+        // Zangief — bulging eyes on top
         [-1,1].forEach(function(s){
             var bulge=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),toon(color));
             bulge.position.set(s*0.22,1.0,0.3); body.add(bulge);
@@ -320,7 +404,31 @@ function createEggMesh(color, accent, charType) {
             new THREE.Vector3(0.25,0.5,0.48)
         );
         var mouthGeo=new THREE.TubeGeometry(mouthCurve,10,0.025,4,false);
-        body.add(new THREE.Mesh(mouthGeo,toon(0x226622)));
+        body.add(new THREE.Mesh(mouthGeo,toon(0x881111)));
+        // Chest hair — brown fuzzy patch on front
+        var chestHairMat=toon(0x8B4513);
+        for(var chi=0;chi<7;chi++){
+            var cha=(chi-3)*0.12;
+            var chv=0.55+Math.abs(chi-3)*0.03;
+            var hair=new THREE.Mesh(new THREE.ConeGeometry(0.025,0.12,3),chestHairMat);
+            hair.position.set(cha,chv,0.5);hair.rotation.x=-0.3;
+            body.add(hair);
+        }
+        // Extra chest hair row
+        for(var chi2=0;chi2<5;chi2++){
+            var cha2=(chi2-2)*0.1;
+            var hair2=new THREE.Mesh(new THREE.ConeGeometry(0.02,0.1,3),chestHairMat);
+            hair2.position.set(cha2,0.45,0.52);hair2.rotation.x=-0.3;
+            body.add(hair2);
+        }
+        // Scars — thin lines on body
+        var scarMat=toon(0xFFAAAA);
+        var scar1=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.015,0.01),scarMat);
+        scar1.position.set(0.15,0.7,0.52);scar1.rotation.z=0.3;
+        body.add(scar1);
+        var scar2=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.015,0.01),scarMat);
+        scar2.position.set(-0.1,0.6,0.53);scar2.rotation.z=-0.2;
+        body.add(scar2);
     }
 
     // Feet
