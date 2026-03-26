@@ -959,23 +959,15 @@ function handlePlayerInput(){
     }
     if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
     playerEgg._prevBfBack=_inputBack;playerEgg._prevBfFwd=_inputFwd;
-    // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) — reuse bf detection ----
+    // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) ----
     playerEgg._tatsuReady=playerEgg._bfReady;
     // ---- Hadouken (波動拳): 後+前+R (back-forward-punch) ----
-    if(!playerEgg._hadouSeq)playerEgg._hadouSeq=0;
-    if(!playerEgg._hadouTimer)playerEgg._hadouTimer=0;
-    playerEgg._hadouTimer--;
-    if(_inputBackPress&&playerEgg._hadouSeq===0){
-        playerEgg._hadouSeq=1;playerEgg._hadouTimer=30;
-    } else if(_inputFwdPress&&playerEgg._hadouSeq===1){
-        playerEgg._hadouSeq=2;playerEgg._hadouTimer=30;playerEgg._hadouReady=true;
-    }
-    if(playerEgg._hadouTimer<=0){playerEgg._hadouSeq=0;playerEgg._hadouReady=false;}
+    playerEgg._hadouReady=playerEgg._bfReady;
     playerEgg._prevHLeft=_hLeft;playerEgg._prevHRight=_hRight;playerEgg._prevHDown=_hDown;playerEgg._prevHUp=_hUp;
     // ---- Simple command inputs for charge characters (no actual charging needed) ----
-    // Sonic Boom / 気功拳: use ←→+R (same as hadouken)
-    playerEgg._chargeForwardReady=playerEgg._hadouReady;
-    // Somersault / Spinning Bird: use ←→+T (same as tatsumaki, which is now bf)
+    // Sonic Boom / 気功拳: use ←→+R (same as hadouken = bf)
+    playerEgg._chargeForwardReady=playerEgg._bfReady;
+    // Somersault / Spinning Bird: use ←→+T (same as tatsumaki = bf)
     playerEgg._chargeUpReady=playerEgg._bfReady;
     // ---- Rapid press detection (Chun-Li/Honda/Blanka) ----
     if(!playerEgg._rapidR)playerEgg._rapidR=0;
