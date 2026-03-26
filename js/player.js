@@ -1114,7 +1114,7 @@ function handlePlayerInput(){
         playerEgg.vy=0;
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         var _bsBody=playerEgg.mesh.userData.body;
-        if(_bsBody)_bsBody.rotation.x+=16.0;
+        if(_bsBody)_bsBody.rotation.x+=80.0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg._blankaSpinTimer%4===0){
             for(var _bri=0;_bri<allEggs.length;_bri++){
@@ -1162,13 +1162,17 @@ function handlePlayerInput(){
     // Blanka spin falling — keep spinning at same speed until landing
     if(playerEgg._blankaSpinFalling){
         var _bsFBody=playerEgg.mesh.userData.body;
-        if(_bsFBody)_bsFBody.rotation.x+=16.0;
+        if(_bsFBody)_bsFBody.rotation.x+=80.0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg.onGround){
             playerEgg._blankaSpinFalling=false;
             if(_bsFBody)_bsFBody.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1);
-            if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
+            if(playerEgg._dashFaceY!==undefined){
+                playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
+                playerEgg._dashBounceTimer=15; // prevent physics from overriding facing
+            }
+            playerEgg.vx*=0.2;playerEgg.vz*=0.2;
         }
     }
     // ---- Honda/Blanka Dash Attack (constant speed each frame) ----
