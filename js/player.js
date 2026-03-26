@@ -818,6 +818,23 @@ function handlePlayerInput(){
             playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
         );
         playerEgg.mesh.rotation.y+=0.12;
+        // ---- Shoryuken hit detection (every 4 frames) ----
+        if(playerEgg._shoryuActive%4===0){
+            for(var _shi=0;_shi<allEggs.length;_shi++){
+                var _she=allEggs[_shi];if(_she===playerEgg||!_she.alive||_she.heldBy)continue;
+                if(_she._slamImmune>0)continue;
+                var _shdx=_she.mesh.position.x-playerEgg.mesh.position.x;
+                var _shdz=_she.mesh.position.z-playerEgg.mesh.position.z;
+                var _shdy=_she.mesh.position.y-playerEgg.mesh.position.y;
+                var _shd=Math.sqrt(_shdx*_shdx+_shdz*_shdz+_shdy*_shdy);
+                if(_shd<3&&_shd>0.01){
+                    _she.vx+=_shdx/_shd*0.4;_she.vz+=_shdz/_shd*0.4;
+                    _she.vy=0.3;_she.squash=0.4;_she.throwTimer=35;_she._bounces=1;
+                    _she._stunTimer=50;
+                    _dropNpcStolenCoins(_she);playHitSound();
+                }
+            }
+        }
         // ---- Shoryuken Dragon (visual only) ----
         if(!window._shoryuDragon){
             window._shoryuDragon=[];

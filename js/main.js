@@ -20,9 +20,11 @@ function _handleStart(){
     if(ctx&&ctx.state==='suspended')ctx.resume();
     // 700ms delay before showing select screen
     _menuJoyConfirmCD=60; // block button inputs during transition
+    keys['KeyR']=false;keys['KeyT']=false;keys['KeyF']=false;keys['Space']=false;
     setTimeout(function(){
         showScreen('select-screen');
         if(_touchVisible)_showMenuTouch();
+        _menuJoyConfirmCD=30; // extra cooldown after screen appears
         startSelectBGM();playMenuConfirm();
     },700);
 }
