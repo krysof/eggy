@@ -135,11 +135,9 @@ CHARACTERS.forEach((ch,i) => {
     const cell = document.createElement('div');
     cell.className = 'char-cell' + (i===0?' selected':'');
     var miniCanvas=_drawMiniPortrait(ch,56);
-    miniCanvas.style.cssText='width:42px;height:42px;border-radius:4px;';
+    miniCanvas.style.cssText='width:52px;height:52px;border-radius:6px;';
     miniCanvas.className='char-icon-canvas';
     cell.appendChild(miniCanvas);
-    var label=document.createElement('span');label.className='char-label';label.textContent=ch.name;
-    cell.appendChild(label);
     cell.addEventListener('click', () => {
         document.querySelectorAll('.char-cell').forEach(c=>c.classList.remove('selected'));
         cell.classList.add('selected');

@@ -621,14 +621,14 @@ function updateCity(){
             if(gm.dodgeTimer>0){gm.dodgeTimer--;}
             else if(Math.random()<0.005){gm.dodgeTimer=8+Math.floor(Math.random()*10);gm.dodgeDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();}
             // Compute waypoint — faction-based targeting (spread out more)
-            var _fTargets={efsf:{x:-250,z:50},zentradi:{x:-200,z:-250},unSpacy:{x:-250,z:-100},zeon:{x:-250,z:-50}};
+            var _fTargets={efsf:{x:150,z:-200},zentradi:{x:-200,z:200},unSpacy:{x:200,z:100},zeon:{x:-150,z:-50}};
             var _ft=_fTargets[gm.faction]||{x:0,z:0};
-            // Stable waypoint — less per-frame randomness
-            var wpx=_ft.x+Math.cos(gm.wpAngle)*120;
+            // Stable waypoint — patrol around faction target area
+            var wpx=_ft.x+Math.cos(gm.wpAngle)*150;
             var wpy=gm.wpR;
-            var wpz=_ft.z+Math.sin(gm.wpAngle)*120;
-            // Zeon stays closer to cities (defenders) but spread out
-            if(gm.faction==='zeon'){wpx=-250+Math.cos(gm.wpAngle)*100;wpz=-50+Math.sin(gm.wpAngle)*200;}
+            var wpz=_ft.z+Math.sin(gm.wpAngle)*150;
+            // Zeon patrols around cities
+            if(gm.faction==='zeon'){wpx=-150+Math.cos(gm.wpAngle)*120;wpz=-50+Math.sin(gm.wpAngle)*200;}
             // Steer toward waypoint
             var dx3=wpx-gm.group.position.x,dy3=wpy-gm.group.position.y,dz3=wpz-gm.group.position.z;
             var dd3=Math.sqrt(dx3*dx3+dy3*dy3+dz3*dz3)||1;

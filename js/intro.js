@@ -167,28 +167,32 @@ function _renderIntro(now){
             _drawIntroEgg(ctx,cx-lean*15*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
             _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else if(pt<0.6){
-            // Punch forward — hands extended for hadouken
+            // Hadouken pose — crouch, hands pushed forward, energy ball grows
             var punch=(pt-0.3)/0.3;
-            var punchX=cx+punch*W*0.15;
-            _drawIntroEgg(ctx,cx+punch*20*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
-            // Arm extending from body to fist
-            ctx.strokeStyle='#FFCC00';ctx.lineWidth=4*scale;
-            ctx.beginPath();
-            ctx.moveTo(cx+punch*20*scale+eggSize*0.4,cy);
-            ctx.lineTo(punchX+eggSize*0.6,cy-eggSize*0.1);
-            ctx.stroke();
-            // Both hands cupped (hadouken pose)
-            _drawFist(ctx,punchX+eggSize*0.7,cy-eggSize*0.15,eggSize*0.25,'#FFDD44');
-            _drawFist(ctx,punchX+eggSize*0.7,cy+eggSize*0.05,eggSize*0.22,'#FFDD44');
-            // Energy ball forming between hands
-            if(punch>0.5){
-                var _ebAlpha=(punch-0.5)*2;
-                var _ebR=eggSize*0.2*_ebAlpha;
-                ctx.fillStyle='rgba(68,170,255,'+_ebAlpha*0.8+')';
-                ctx.beginPath();ctx.arc(punchX+eggSize*0.9,cy-eggSize*0.05,_ebR,0,Math.PI*2);ctx.fill();
-                ctx.fillStyle='rgba(255,255,255,'+_ebAlpha*0.5+')';
-                ctx.beginPath();ctx.arc(punchX+eggSize*0.9,cy-eggSize*0.05,_ebR*0.5,0,Math.PI*2);ctx.fill();
-            }
+            var bodyX=cx-5*scale; // slight crouch back
+            var bodyY=cy+8*scale; // lower stance
+            _drawIntroEgg(ctx,bodyX,bodyY,eggSize*0.95,'#FFDD44','#FFAA00',false,true);
+            // Arms extending forward (both hands pushing)
+            var armEndX=bodyX+eggSize*0.5+punch*eggSize*0.6;
+            ctx.strokeStyle='#FFCC00';ctx.lineWidth=5*scale;
+            ctx.beginPath();ctx.moveTo(bodyX+eggSize*0.35,bodyY-eggSize*0.05);ctx.lineTo(armEndX,bodyY-eggSize*0.1);ctx.stroke();
+            ctx.beginPath();ctx.moveTo(bodyX+eggSize*0.35,bodyY+eggSize*0.1);ctx.lineTo(armEndX,bodyY+eggSize*0.05);ctx.stroke();
+            // Hands
+            _drawFist(ctx,armEndX+eggSize*0.1,bodyY-eggSize*0.1,eggSize*0.18,'#FFDD44');
+            _drawFist(ctx,armEndX+eggSize*0.1,bodyY+eggSize*0.05,eggSize*0.18,'#FFDD44');
+            // Energy ball — grows with punch progress
+            var _ebSize=eggSize*0.3+punch*eggSize*1.5;
+            var _ebX=armEndX+eggSize*0.2+punch*eggSize*0.5;
+            // Outer glow
+            var _ebGrad=ctx.createRadialGradient(_ebX,bodyY,0,_ebX,bodyY,_ebSize);
+            _ebGrad.addColorStop(0,'rgba(255,100,50,'+punch*0.9+')');
+            _ebGrad.addColorStop(0.5,'rgba(255,180,80,'+punch*0.6+')');
+            _ebGrad.addColorStop(1,'rgba(255,220,150,0)');
+            ctx.fillStyle=_ebGrad;
+            ctx.beginPath();ctx.ellipse(_ebX,bodyY,_ebSize*1.2,_ebSize,0,0,Math.PI*2);ctx.fill();
+            // Core
+            ctx.fillStyle='rgba(255,240,200,'+punch*0.8+')';
+            ctx.beginPath();ctx.ellipse(_ebX,bodyY,_ebSize*0.7,_ebSize*0.6,0,0,Math.PI*2);ctx.fill();
             _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else {
             // Impact + cockroach flies back
