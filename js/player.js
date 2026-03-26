@@ -496,12 +496,12 @@ function handlePlayerInput(){
         // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
         if(_ct==='pig'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,'Hyakuretsu!');
-            playerEgg._comboCount=0;playerEgg._attackCD=8;
+            playerEgg._comboCount=0;playerEgg._attackCD=4;
             // Start continuous slap state
             if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
-            playerEgg._hyakuretsuTimer=60; // 1 second of slapping
+            playerEgg._hyakuretsuTimer=60;
             playerEgg._hyakuretsuTick=0;
-            playerEgg.vx=0;playerEgg.vz=0; // stop movement
+            playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.squash=0.88;
         }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
@@ -587,12 +587,12 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             var _shFaceDir=playerEgg.mesh.rotation.y;
-            var _shFwd=_ct==='dog'?0.25:0.15; // Ken flies further forward
-            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?1.8:1.5); // Ken jumps higher too
+            var _shFwd=_ct==='dog'?0.45:0.25; // Ken flies 3x further forward than Ryu
+            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?2.0:1.6);
             playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
             playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
             playerEgg.squash=0.5;
-            playerEgg._shoryuActive=_ct==='dog'?75:60; // Ken lasts longer
+            playerEgg._shoryuActive=_ct==='dog'?85:65; // Ken lasts longer
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
             playJumpSound();
         } else if(_isShoryu&&_ct==='rooster'){
@@ -821,27 +821,28 @@ function handlePlayerInput(){
         // ---- Shoryuken Dragon (visual only) ----
         if(!window._shoryuDragon){
             window._shoryuDragon=[];
-            var _sdMat=new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.7});
-            var _sdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85});
+            var _sdMat=new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.8});
+            var _sdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9});
             for(var _sdi=0;_sdi<16;_sdi++){
-                var _sdSize=_sdi===0?0.5:0.4-_sdi*0.015;
-                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_sdSize,0.1),6,4),_sdi===0?_sdMatHead:_sdMat);
+                var _sdSize=_sdi===0?0.6:0.45-_sdi*0.018;
+                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_sdSize,0.12),8,6),_sdi===0?_sdMatHead:_sdMat);
                 _sdSeg.visible=false;scene.add(_sdSeg);
                 window._shoryuDragon.push(_sdSeg);
             }
         }
-        // Store start position on first frame
-        if(!playerEgg._shoryuStartY)playerEgg._shoryuStartY=playerEgg.mesh.position.y;
-        if(!playerEgg._shoryuStartX)playerEgg._shoryuStartX=playerEgg.mesh.position.x;
-        if(!playerEgg._shoryuStartZ)playerEgg._shoryuStartZ=playerEgg.mesh.position.z;
+        // Store start position on first frame only
+        if(!playerEgg._shoryuStartSet){
+            playerEgg._shoryuStartSet=true;
+            playerEgg._shoryuStartX=playerEgg.mesh.position.x;
+            playerEgg._shoryuStartY=playerEgg.mesh.position.y;
+            playerEgg._shoryuStartZ=playerEgg.mesh.position.z;
+        }
         for(var _sdj=0;_sdj<window._shoryuDragon.length;_sdj++){
             var _sdSeg2=window._shoryuDragon[_sdj];
             _sdSeg2.visible=true;
-            // Dragon spirals from start position up to current position
-            var _sdT=Math.max(0,1-_sdj/window._shoryuDragon.length);
             var _sdAngle=_sfDir+_sdj*0.6+playerEgg._shoryuActive*0.15;
-            var _sdR=1.0+_sdj*0.05;
-            // Lerp between current pos and start pos based on segment index
+            var _sdR=1.2+_sdj*0.06;
+            // Lerp between current pos (head) and start pos (tail)
             var _sdLerp=_sdj/window._shoryuDragon.length;
             var _sdPx=playerEgg.mesh.position.x*(1-_sdLerp)+playerEgg._shoryuStartX*_sdLerp;
             var _sdPy=playerEgg.mesh.position.y*(1-_sdLerp)+playerEgg._shoryuStartY*_sdLerp;
@@ -854,7 +855,7 @@ function handlePlayerInput(){
         }
         if(playerEgg.vy<=0||playerEgg.onGround){
             playerEgg._shoryuActive=0;
-            playerEgg._shoryuStartY=0;playerEgg._shoryuStartX=0;playerEgg._shoryuStartZ=0;
+            playerEgg._shoryuStartSet=false;
             window._shoryuFist.visible=false;
             if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
         }
@@ -930,9 +931,10 @@ function handlePlayerInput(){
         playerEgg._hyakuretsuTimer--;
         if(!playerEgg._hyakuretsuTick)playerEgg._hyakuretsuTick=0;
         playerEgg._hyakuretsuTick++;
-        // Pressing R again extends the duration
-        if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._hyakuretsuTimer<50){
-            playerEgg._hyakuretsuTimer=60;
+        // Pressing R again extends the duration (no gap)
+        if(keys['KeyR']){
+            playerEgg._hyakuretsuTimer=Math.max(playerEgg._hyakuretsuTimer,30);
+            playerEgg._attackCD=0; // allow immediate re-trigger if timer runs out
         }
         // Animate arms: cycle every 3 frames, upper/mid/lower
         var _hSlot=Math.floor(playerEgg._hyakuretsuTick/3)%3;
