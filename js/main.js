@@ -21,6 +21,9 @@ function _handleStart(){
     // Stop intro animation
     if(typeof _introRunning!=='undefined')_introRunning=false;
     stopTitleBGM();
+    // Hide start screen immediately to prevent title BGM from restarting
+    var _ss=document.getElementById('start-screen');
+    if(_ss)_ss.classList.remove('active');
     var ctx=ensureAudio();
     if(ctx&&ctx.state==='suspended')ctx.resume();
     // 700ms delay before showing select screen

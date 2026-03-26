@@ -571,18 +571,23 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
-            // SONIC BOOM (Guile) — crescent blade projectile
+            // SONIC BOOM (Guile) — yellow crescent projectile
             _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;
             var _sbDir=playerEgg.mesh.rotation.y;
-            // Simple crescent: torus with partial arc
             var _sbGroup=new THREE.Group();
-            var _sbCres=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.1,6,12,Math.PI*1.3),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9,side:THREE.DoubleSide}));
-            _sbGroup.add(_sbCres);
+            // Build crescent from 3 flat boxes arranged in an arc
+            for(var _sbi=0;_sbi<5;_sbi++){
+                var _sba=(_sbi-2)*0.35;
+                var _sbPiece=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.18,0.06),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9}));
+                _sbPiece.position.set(Math.sin(_sba)*0.35,Math.cos(_sba)*0.35,0);
+                _sbPiece.rotation.z=_sba;
+                _sbGroup.add(_sbPiece);
+            }
             _sbGroup.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
             _sbGroup.rotation.y=_sbDir;
             scene.add(_sbGroup);
-            var _sbRing=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.04,6,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.4}));
+            var _sbRing=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.4}));
             _sbRing.position.copy(_sbGroup.position);scene.add(_sbRing);
             window._playerHadouken={ball:_sbGroup,ring:_sbRing,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
@@ -1102,7 +1107,7 @@ function handlePlayerInput(){
                     _bse._slamImmune=45;
                     // Knock back away from Blanka
                     var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)||1;
-                    _bse.vx=_bsdx/_elDist*0.3;_bse.vz=_bsdz/_elDist*0.3;_bse.vy=0.15;
+                    _bse.vx=_bsdx/_elDist*0.5;_bse.vz=_bsdz/_elDist*0.5;_bse.vy=0.2;
                     _bse.throwTimer=30;_bse._bounces=1;
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
