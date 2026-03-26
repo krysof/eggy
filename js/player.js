@@ -1106,7 +1106,9 @@ function handlePlayerInput(){
         playerEgg.vx*=0.1;playerEgg.vz*=0.1; // stay in place
         playerEgg.vy=0; // cancel gravity, hover in air
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // stay airborne
-        playerEgg.mesh.rotation.x+=2.0; // fast forward tumble
+        // Rotate the body around its own center, not the mesh origin (feet)
+        var _bsBody=playerEgg.mesh.userData.body;
+        if(_bsBody)_bsBody.rotation.x+=2.0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         // Hit nearby enemies
         if(playerEgg._blankaSpinTimer%4===0){
@@ -1123,7 +1125,8 @@ function handlePlayerInput(){
             }
         }
         if(playerEgg._blankaSpinTimer<=0){
-            playerEgg.mesh.rotation.x=0;
+            var _bsBody2=playerEgg.mesh.userData.body;
+            if(_bsBody2)_bsBody2.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1);
         }
     }
