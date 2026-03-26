@@ -422,14 +422,14 @@ function updateCity(){
                 }
             }
         }
-        // Electrocution flight phase — constant push each frame
+        // Electrocution flight phase — smooth slide (direct position move)
         if(npc._elecFlying>0){
             npc._elecFlying--;
             if(npc._elecFlyDir){
-                npc.vx=npc._elecFlyDir.x*0.25;
-                npc.vz=npc._elecFlyDir.z*0.25;
+                npc.mesh.position.x+=npc._elecFlyDir.x*0.15;
+                npc.mesh.position.z+=npc._elecFlyDir.z*0.15;
+                npc.vx=0;npc.vz=0;npc.vy=0; // no physics
             }
-            npc.vy=0; // stay on ground level, slide
             var _efBody=npc.mesh.userData.body;
             if(_efBody){
                 if(Math.floor(npc._elecFlying/3)%2===0){
@@ -1842,8 +1842,11 @@ function _gameUpdate(){
         }
         if(playerEgg&&playerEgg._elecFlying>0){
             playerEgg._elecFlying--;
-            if(playerEgg._elecFlyDir){playerEgg.vx=playerEgg._elecFlyDir.x*0.25;playerEgg.vz=playerEgg._elecFlyDir.z*0.25;}
-            playerEgg.vy=0;
+            if(playerEgg._elecFlyDir){
+                playerEgg.mesh.position.x+=playerEgg._elecFlyDir.x*0.15;
+                playerEgg.mesh.position.z+=playerEgg._elecFlyDir.z*0.15;
+                playerEgg.vx=0;playerEgg.vz=0;playerEgg.vy=0;
+            }
             var _peBody2=playerEgg.mesh.userData.body;
             if(_peBody2)_peBody2.material=new THREE.MeshBasicMaterial({color:Math.floor(playerEgg._elecFlying/3)%2===0?0x111111:0xFFFFFF,transparent:true,opacity:0.9});
             if(playerEgg._elecFlying<=0){

@@ -1071,18 +1071,21 @@ function handlePlayerInput(){
         var _gsBody2=playerEgg.mesh.userData.body;
         if(_gsBody2)_gsBody2.rotation.x-=Math.PI*2/65;
         playerEgg._dashBounceTimer=5; // prevent physics from changing facing
-        // Blade arc follows player, fades out
+        // Blade arc — rotates with the backflip (360 degree sweep)
         if(window._guileArc){
             window._guileArc.visible=true;
             var _gaFace=playerEgg.mesh.rotation.y;
+            // Arc orbits around the character following the backflip angle
+            var _gaFlipAngle=_gsBody2?_gsBody2.rotation.x:0;
+            var _gaR=1.0;
             window._guileArc.position.set(
-                playerEgg.mesh.position.x+Math.sin(_gaFace)*0.8,
-                playerEgg.mesh.position.y+1.0,
-                playerEgg.mesh.position.z+Math.cos(_gaFace)*0.8
+                playerEgg.mesh.position.x+Math.sin(_gaFace)*Math.cos(_gaFlipAngle)*_gaR,
+                playerEgg.mesh.position.y+0.7-Math.sin(_gaFlipAngle)*_gaR,
+                playerEgg.mesh.position.z+Math.cos(_gaFace)*Math.cos(_gaFlipAngle)*_gaR
             );
             window._guileArc.rotation.y=_gaFace;
-            window._guileArc.rotation.z+=0.3;
-            window._guileArc.material.opacity=Math.min(0.9,playerEgg._guileSomersault/15);
+            window._guileArc.rotation.x=_gaFlipAngle;
+            window._guileArc.material.opacity=Math.min(0.9,playerEgg._guileSomersault/10);
         }
         // Hit detection
         if(playerEgg._guileSomersault%4===0){
