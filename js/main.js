@@ -13,6 +13,8 @@ applyCityTheme();
 var _startBtn=document.getElementById('start-btn');
 function _handleStart(){
     _unlockAudio();
+    // Stop intro animation
+    if(typeof _introRunning!=='undefined')_introRunning=false;
     stopTitleBGM();
     var ctx=ensureAudio();
     if(ctx&&ctx.state==='suspended')ctx.resume();
@@ -240,7 +242,7 @@ document.getElementById('race-back-btn').addEventListener('click', goBackToCity)
     var _e=function(id){return document.getElementById(id);};
     var h1=document.querySelector('#start-screen h1');if(h1)h1.textContent=L('title');
     var sub=document.querySelector('.subtitle');if(sub)sub.textContent=L('subtitle');
-    var ver=document.querySelector('.version-text');if(ver)ver.textContent=L('version');
+    var ver=document.querySelector('.version-text')||document.getElementById('intro-version');if(ver)ver.textContent=L('version');
     var slo2=document.querySelector('.slogan-text');if(slo2)slo2.textContent=L('slogan');
     var sb=_e('start-btn');if(sb)sb.textContent=L('startBtn');
     var st=document.querySelector('.select-title');if(st)st.textContent=L('selectTitle');

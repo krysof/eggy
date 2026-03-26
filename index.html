@@ -10,16 +10,13 @@
 <div id="game-container">
   <div id="three-root"></div>
 
-  <!-- Title screen -->
+  <!-- Title screen — SF2 style animated intro -->
   <div id="start-screen" class="screen active">
-    <div class="title-area">
-      <div class="egg-bounce">🥚</div>
-      <h1>蛋宝世界</h1>
-      <p class="subtitle">D A N B O &nbsp; W O R L D</p>
-      <p class="slogan-text">探索城市 · 穿越世界 · 一起冒险</p>
-      <p class="version-text">v20260327.1</p>
+    <canvas id="intro-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+    <div id="intro-ui" style="position:absolute;bottom:12%;left:0;right:0;text-align:center;z-index:2;">
+      <p class="version-text" id="intro-version">v20260327.1</p>
+      <button id="start-btn" class="btn btn-primary" style="opacity:0;transition:opacity 0.5s;">🎮 Start Game</button>
     </div>
-    <button id="start-btn" class="btn btn-primary">🎮 Start Game</button>
   </div>
 
   <!-- Character select — SF2 style -->
@@ -138,13 +135,14 @@ if(typeof THREE==='undefined'){
   var s=document.createElement('script');
   s.src='https://unpkg.com/three@0.160.0/build/three.min.js';
   s.onload=function(){
-    var files=['js/core.js','js/audio.js','js/renderer.js','js/characters.js','js/ui.js','js/hud.js','js/input.js','js/entity.js','js/city.js','js/world.js','js/race.js','js/physics.js','js/ai.js','js/player.js','js/camera.js','js/gameloop.js','js/main.js'];
+    var files=['js/core.js','js/intro.js','js/audio.js','js/renderer.js','js/characters.js','js/ui.js','js/hud.js','js/input.js','js/entity.js','js/city.js','js/world.js','js/race.js','js/physics.js','js/ai.js','js/player.js','js/camera.js','js/gameloop.js','js/main.js'];
     (function loadNext(i){if(i>=files.length)return;var g=document.createElement('script');g.src=files[i];g.onload=function(){loadNext(i+1);};g.onerror=function(){console.error('Failed to load '+files[i]);};document.body.appendChild(g);})(0);
   };
   s.onerror=function(){document.getElementById('start-btn').textContent='Load failed, please refresh';};
   document.body.appendChild(s);
 } else {
   document.write('<script src="js/core.js"><\/script>');
+  document.write('<script src="js/intro.js"><\/script>');
   document.write('<script src="js/audio.js"><\/script>');
   document.write('<script src="js/renderer.js"><\/script>');
   document.write('<script src="js/characters.js"><\/script>');

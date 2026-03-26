@@ -5,7 +5,7 @@ body{overflow:hidden;background:#000;font-family:'Segoe UI','PingFang SC','Micro
 #three-root canvas{display:block;width:100%;height:100%;pointer-events:auto}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10;pointer-events:auto}
 .screen.active{display:flex}
-#start-screen{background:linear-gradient(160deg,#FF9A9E 0%,#FAD0C4 30%,#A18CD1 70%,#FBC2EB 100%);gap:18px}
+#start-screen{background:#000;gap:0;padding:0}
 .title-area{text-align:center}
 .egg-bounce{font-size:64px;animation:bounce .8s ease-in-out infinite}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
