@@ -609,28 +609,26 @@ function updateCity(){
             // Waypoint AI: move toward random waypoint near player
             gm.wpTimer--;
             if(gm.wpTimer<=0){
-                gm.wpTimer=60+Math.floor(Math.random()*120);
-                // Bias waypoints toward player position (within ~120 degrees)
-                gm.wpAngle=_plAng+(Math.random()-0.5)*Math.PI*1.3;
-                gm.wpElev=_plElev+(Math.random()-0.5)*Math.PI*0.6;
-                gm.wpElev=Math.max(-Math.PI*0.45,Math.min(Math.PI*0.45,gm.wpElev));
-                gm.wpR=30+Math.random()*60;
+                gm.wpTimer=120+Math.floor(Math.random()*180); // longer patrol legs
+                gm.wpAngle+=((Math.random()-0.5)*Math.PI*0.6); // gradual turns, not random jumps
+                gm.wpElev+=(Math.random()-0.5)*0.3;
+                gm.wpElev=Math.max(-Math.PI*0.3,Math.min(Math.PI*0.3,gm.wpElev));
+                gm.wpR=40+Math.random()*80;
                 if(gm.ms==='sdf1')gm.wpR=200+Math.random()*100;
                 if(gm.ms==='zenCruiser')gm.wpR=150+Math.random()*100;
             }
-            // Random dodge maneuver
+            // Random dodge maneuver (less frequent)
             if(gm.dodgeTimer>0){gm.dodgeTimer--;}
-            else if(Math.random()<0.02){gm.dodgeTimer=10+Math.floor(Math.random()*15);gm.dodgeDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();}
-            // Compute waypoint — faction-based targeting
-            // EFSF & Zentradi attack cities, Zeon defends cities, UN Spacy attacks from east
-            var _fTargets={efsf:{x:-200,z:0},zentradi:{x:-200,z:-200},unSpacy:{x:-200,z:-100},zeon:{x:-200,z:-50}};
+            else if(Math.random()<0.005){gm.dodgeTimer=8+Math.floor(Math.random()*10);gm.dodgeDir=new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize();}
+            // Compute waypoint — faction-based targeting (spread out more)
+            var _fTargets={efsf:{x:-250,z:50},zentradi:{x:-200,z:-250},unSpacy:{x:-250,z:-100},zeon:{x:-250,z:-50}};
             var _ft=_fTargets[gm.faction]||{x:0,z:0};
-            // Waypoint biased toward faction target with some randomness
-            var wpx=_ft.x+(Math.random()-0.5)*200+Math.cos(gm.wpAngle)*80;
+            // Stable waypoint — less per-frame randomness
+            var wpx=_ft.x+Math.cos(gm.wpAngle)*120;
             var wpy=gm.wpR;
-            var wpz=_ft.z+(Math.random()-0.5)*200+Math.sin(gm.wpAngle)*80;
-            // Zeon stays closer to cities (defenders)
-            if(gm.faction==='zeon'){wpx=-200+(Math.random()-0.5)*120;wpz=-100+(Math.random()-0.5)*250;}
+            var wpz=_ft.z+Math.sin(gm.wpAngle)*120;
+            // Zeon stays closer to cities (defenders) but spread out
+            if(gm.faction==='zeon'){wpx=-250+Math.cos(gm.wpAngle)*100;wpz=-50+Math.sin(gm.wpAngle)*200;}
             // Steer toward waypoint
             var dx3=wpx-gm.group.position.x,dy3=wpy-gm.group.position.y,dz3=wpz-gm.group.position.z;
             var dd3=Math.sqrt(dx3*dx3+dy3*dy3+dz3*dz3)||1;

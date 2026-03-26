@@ -1181,14 +1181,14 @@ function buildCity() {
             else faction='zeon';
             // Faction-based spawn zones (formations)
             // Zeon: near cities (defenders), EFSF: north, UN Spacy: east, Zentradi: south
-            var _fZone={efsf:{cx:200,cz:-200},unSpacy:{cx:200,cz:200},zentradi:{cx:-100,cz:250},zeon:{cx:-200,cz:-50}};
+            var _fZone={efsf:{cx:300,cz:-350},unSpacy:{cx:350,cz:300},zentradi:{cx:-250,cz:350},zeon:{cx:-300,cz:-150}};
             var _fz=_fZone[faction];
-            gFlatX=_fz.cx+(Math.random()-0.5)*150;
-            gFlatZ=_fz.cz+(Math.random()-0.5)*150;
+            gFlatX=_fz.cx+(Math.random()-0.5)*400;
+            gFlatZ=_fz.cz+(Math.random()-0.5)*400;
             // Random waypoint AI state
             var wpAngle=Math.random()*Math.PI*2;
-            var wpElev=(Math.random()-0.5)*Math.PI*0.6;
-            var wpR=30+Math.random()*60;
+            var wpElev=(Math.random()-0.5)*Math.PI*0.3;
+            var wpR=50+Math.random()*100;
             if(mu.ms==='sdf1')wpR=200+Math.random()*100;
             if(mu.ms==='zenCruiser')wpR=150+Math.random()*100;
             window._moonGundams.push({group:gd.group,type:mu.weapon,ms:mu.ms,faction:faction,
