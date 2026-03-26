@@ -14,7 +14,7 @@
   <div id="start-screen" class="screen active">
     <canvas id="intro-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
     <div id="intro-ui" style="position:absolute;bottom:12%;left:0;right:0;text-align:center;z-index:2;">
-      <p class="version-text" id="intro-version">v20260327.1</p>
+      <p class="version-text" id="intro-version"></p>
       <button id="start-btn" class="btn btn-primary" style="opacity:0;transition:opacity 0.5s;">🎮 Start Game</button>
     </div>
   </div>
@@ -130,19 +130,35 @@
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-var _threeLoaded=(typeof THREE!=='undefined');
-if(!_threeLoaded){
-  document.getElementById('start-btn').textContent='Loading 3D engine...';
+if(typeof THREE==='undefined'){
+  var _sb=document.getElementById('start-btn');if(_sb)_sb.textContent='Loading 3D engine...';
   var s=document.createElement('script');
   s.src='https://unpkg.com/three@0.160.0/build/three.min.js';
   s.onload=function(){
     var files=['js/core.js','js/intro.js','js/audio.js','js/renderer.js','js/characters.js','js/ui.js','js/hud.js','js/input.js','js/entity.js','js/city.js','js/world.js','js/race.js','js/physics.js','js/ai.js','js/player.js','js/camera.js','js/gameloop.js','js/main.js'];
-    (function loadNext(i){if(i>=files.length)return;var g=document.createElement('script');g.src=files[i];g.onload=function(){loadNext(i+1);};g.onerror=function(){console.error('Failed to load '+files[i]);};document.body.appendChild(g);})(0);
+    (function loadNext(i){if(i>=files.length)return;var g=document.createElement('script');g.src=files[i];g.onload=function(){loadNext(i+1);};g.onerror=function(){console.error('Failed: '+files[i]);loadNext(i+1);};document.body.appendChild(g);})(0);
   };
-  s.onerror=function(){document.getElementById('start-btn').textContent='Load failed, please refresh';};
+  s.onerror=function(){var _sb2=document.getElementById('start-btn');if(_sb2)_sb2.textContent='Load failed, please refresh';};
   document.body.appendChild(s);
 }
 </script>
-<script>if(typeof _threeLoaded!=='undefined'&&_threeLoaded){document.write('\x3Cscript src="js/core.js">\x3C/script>\x3Cscript src="js/intro.js">\x3C/script>\x3Cscript src="js/audio.js">\x3C/script>\x3Cscript src="js/renderer.js">\x3C/script>\x3Cscript src="js/characters.js">\x3C/script>\x3Cscript src="js/ui.js">\x3C/script>\x3Cscript src="js/hud.js">\x3C/script>\x3Cscript src="js/input.js">\x3C/script>\x3Cscript src="js/entity.js">\x3C/script>\x3Cscript src="js/city.js">\x3C/script>\x3Cscript src="js/world.js">\x3C/script>\x3Cscript src="js/race.js">\x3C/script>\x3Cscript src="js/physics.js">\x3C/script>\x3Cscript src="js/ai.js">\x3C/script>\x3Cscript src="js/player.js">\x3C/script>\x3Cscript src="js/camera.js">\x3C/script>\x3Cscript src="js/gameloop.js">\x3C/script>\x3Cscript src="js/main.js">\x3C/script>');}</script>
+<script src="js/core.js"></script>
+<script src="js/intro.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/characters.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/input.js"></script>
+<script src="js/entity.js"></script>
+<script src="js/city.js"></script>
+<script src="js/world.js"></script>
+<script src="js/race.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/player.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/gameloop.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
