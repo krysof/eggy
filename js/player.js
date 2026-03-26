@@ -825,10 +825,11 @@ function handlePlayerInput(){
         // ---- Shoryuken Dragon (visual only) ----
         if(!window._shoryuDragon){
             window._shoryuDragon=[];
-            var _sdMat=new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.6});
-            var _sdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.7});
-            for(var _sdi=0;_sdi<12;_sdi++){
-                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(_sdi===0?0.3:0.22-_sdi*0.012,6,4),_sdi===0?_sdMatHead:_sdMat);
+            var _sdMat=new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.7});
+            var _sdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85});
+            for(var _sdi=0;_sdi<16;_sdi++){
+                var _sdSize=_sdi===0?0.5:0.4-_sdi*0.015;
+                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_sdSize,0.1),6,4),_sdi===0?_sdMatHead:_sdMat);
                 _sdSeg.visible=false;scene.add(_sdSeg);
                 window._shoryuDragon.push(_sdSeg);
             }
@@ -837,16 +838,14 @@ function handlePlayerInput(){
         for(var _sdj=0;_sdj<window._shoryuDragon.length;_sdj++){
             var _sdSeg2=window._shoryuDragon[_sdj];
             _sdSeg2.visible=true;
-            var _sdOff=_sdj*0.12;
-            var _sdT=Math.max(0,_sdPhase-_sdOff*0.3);
-            var _sdAngle=_sfDir+_sdj*0.5+_sdPhase*8;
-            var _sdR=0.6+_sdj*0.08;
+            var _sdAngle=_sfDir+_sdj*0.55+_sdPhase*10;
+            var _sdR=1.2+_sdj*0.1;
+            var _sdY=playerEgg.mesh.position.y-0.5+_sdj*0.35;
             _sdSeg2.position.set(
                 playerEgg.mesh.position.x+Math.sin(_sdAngle)*_sdR,
-                playerEgg.mesh.position.y+1.0+_sdj*0.2-_sdOff*0.5,
+                _sdY,
                 playerEgg.mesh.position.z+Math.cos(_sdAngle)*_sdR
             );
-            _sdSeg2.material.opacity=Math.max(0,0.7-_sdj*0.04);
         }
         if(playerEgg.vy<=0||playerEgg.onGround){
             playerEgg._shoryuActive=0;
@@ -876,10 +875,11 @@ function handlePlayerInput(){
         // ---- Tatsumaki Dragon (visual only, wraps around legs) ----
         if(!window._tatsuDragon){
             window._tatsuDragon=[];
-            var _tdMat=new THREE.MeshBasicMaterial({color:0xFF6644,transparent:true,opacity:0.5});
-            var _tdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.7});
-            for(var _tdi=0;_tdi<10;_tdi++){
-                var _tdSeg=new THREE.Mesh(new THREE.SphereGeometry(_tdi===0?0.25:0.18-_tdi*0.01,6,4),_tdi===0?_tdMatHead:_tdMat);
+            var _tdMat=new THREE.MeshBasicMaterial({color:0xFF6644,transparent:true,opacity:0.6});
+            var _tdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85});
+            for(var _tdi=0;_tdi<14;_tdi++){
+                var _tdSize=_tdi===0?0.45:0.35-_tdi*0.012;
+                var _tdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_tdSize,0.1),6,4),_tdi===0?_tdMatHead:_tdMat);
                 _tdSeg.visible=false;scene.add(_tdSeg);
                 window._tatsuDragon.push(_tdSeg);
             }
@@ -888,15 +888,14 @@ function handlePlayerInput(){
         for(var _ttj=0;_ttj<window._tatsuDragon.length;_ttj++){
             var _ttSeg=window._tatsuDragon[_ttj];
             _ttSeg.visible=true;
-            var _ttAngle=_ttPhase-_ttj*0.6;
-            var _ttR=0.8+_ttj*0.06;
-            var _ttY=playerEgg.mesh.position.y-0.3+Math.sin(_ttAngle*0.5+_ttj*0.3)*0.3;
+            var _ttAngle=_ttPhase-_ttj*0.5;
+            var _ttR=1.2+_ttj*0.08;
+            var _ttY=playerEgg.mesh.position.y-0.2+Math.sin(_ttAngle*0.5+_ttj*0.4)*0.4;
             _ttSeg.position.set(
                 playerEgg.mesh.position.x+Math.sin(_ttAngle)*_ttR,
                 _ttY,
                 playerEgg.mesh.position.z+Math.cos(_ttAngle)*_ttR
             );
-            _ttSeg.material.opacity=Math.max(0,0.6-_ttj*0.05);
         }
         for(var _ti=0;_ti<allEggs.length;_ti++){
             var _te=allEggs[_ti];if(_te===playerEgg||!_te.alive||_te.heldBy)continue;
