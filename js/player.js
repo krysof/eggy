@@ -1049,20 +1049,30 @@ function handlePlayerInput(){
             playerEgg._blankaShock=Math.max(playerEgg._blankaShock,30);
             playerEgg._attackCD=0;
         }
-        playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.05)*0.3;
-        // Electric body particles
+        // Crouch down and stay still
+        playerEgg.vx*=0.1;playerEgg.vz*=0.1;
+        playerEgg.mesh.scale.set(1.1,0.7,1.1); // squash down = crouch
+        playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.08)*0.15;
+        // Electric spark particles — radiate outward (range ~1.0, half of Hyakuretsu)
         if(!playerEgg._elecParticles){
             playerEgg._elecParticles=[];
-            for(var _epi=0;_epi<8;_epi++){
-                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,0.4),new THREE.MeshBasicMaterial({color:0x44FFFF,transparent:true,opacity:0.8}));
-                _ep.visible=false;playerEgg.mesh.userData.body.add(_ep);
+            for(var _epi=0;_epi<10;_epi++){
+                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.05,0.35),new THREE.MeshBasicMaterial({color:0x44FFFF,transparent:true,opacity:0.85}));
+                _ep.visible=false;scene.add(_ep); // world-space so they radiate outward
                 playerEgg._elecParticles.push(_ep);
             }
         }
+        var _epFace=playerEgg.mesh.rotation.y;
         for(var _epj=0;_epj<playerEgg._elecParticles.length;_epj++){
             var _epp=playerEgg._elecParticles[_epj];
             _epp.visible=true;
-            _epp.position.set((Math.random()-0.5)*1.0,(Math.random()-0.5)*1.2,(Math.random()-0.5)*0.8);
+            var _epAngle=_epFace+_epj*Math.PI*2/playerEgg._elecParticles.length+Math.random()*0.5;
+            var _epDist=0.5+Math.random()*0.8;
+            _epp.position.set(
+                playerEgg.mesh.position.x+Math.sin(_epAngle)*_epDist,
+                playerEgg.mesh.position.y+0.3+Math.random()*0.8,
+                playerEgg.mesh.position.z+Math.cos(_epAngle)*_epDist
+            );
             _epp.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
             _epp.material.color.setHex(Math.random()>0.4?0x44FFFF:0xFFFFFF);
         }
@@ -1070,7 +1080,7 @@ function handlePlayerInput(){
             var _bse=allEggs[_bsi];if(_bse===playerEgg||!_bse.alive||_bse.heldBy)continue;
             var _bsdx=_bse.mesh.position.x-playerEgg.mesh.position.x;
             var _bsdz=_bse.mesh.position.z-playerEgg.mesh.position.z;
-            if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<3){
+            if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<2){
                 _bse.vx+=_bsdx*0.1;_bse.vz+=_bsdz*0.1;_bse.vy=0.1;
                 _bse.squash=0.6;_bse._hitStun=6;
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
@@ -1078,6 +1088,7 @@ function handlePlayerInput(){
         }
         if(playerEgg._blankaShock<=0){
             playerEgg.mesh.rotation.z=0;
+            playerEgg.mesh.scale.set(1,1,1); // restore from crouch
             if(playerEgg._elecParticles)for(var _epk=0;_epk<playerEgg._elecParticles.length;_epk++)playerEgg._elecParticles[_epk].visible=false;
         }
     }
@@ -1100,10 +1111,10 @@ function handlePlayerInput(){
             }
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         }
-        // Blanka rolls visually — same height as Honda, fast 360 spin
+        // Blanka rolls visually — same height as Honda, fast forward roll
         if(playerEgg._blankaRoll){
-            playerEgg.mesh.rotation.x+=1.2; // fast 360 spin
-            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // same height as Honda
+            playerEgg.mesh.rotation.x-=2.0; // fast counterclockwise forward roll
+            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
             playerEgg.mesh.scale.set(0.8,0.8,0.8); // ball shape
         }
         for(var _hdi=0;_hdi<allEggs.length;_hdi++){
