@@ -570,24 +570,18 @@ function handlePlayerInput(){
             _yfRing.position.copy(_yfBall.position);scene.add(_yfRing);
             window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
-        } else if(_isHadou&&(_ct==='rooster')){
+        } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — crescent blade projectile
             _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;
             var _sbDir=playerEgg.mesh.rotation.y;
-            // Crescent moon shape — yellow, spins around center horizontally
+            // Simple crescent: torus with partial arc
             var _sbGroup=new THREE.Group();
-            var _sbShape=new THREE.Shape();
-            _sbShape.absarc(0,0,0.5,0.4,Math.PI*2-0.4,false);
-            _sbShape.absarc(0,0,0.28,Math.PI*2-0.4,0.4,true);
-            var _sbGeo=new THREE.ExtrudeGeometry(_sbShape,{depth:0.06,bevelEnabled:false});
-            var _sbMesh=new THREE.Mesh(_sbGeo,new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9,side:THREE.DoubleSide}));
-            _sbMesh.position.z=-0.03; // center the extrude
-            _sbGroup.add(_sbMesh);
+            var _sbCres=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.1,6,12,Math.PI*1.3),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9,side:THREE.DoubleSide}));
+            _sbGroup.add(_sbCres);
             _sbGroup.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
-            _sbGroup.rotation.y=_sbDir; // face travel direction
+            _sbGroup.rotation.y=_sbDir;
             scene.add(_sbGroup);
-            // Glow ring
             var _sbRing=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.04,6,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.4}));
             _sbRing.position.copy(_sbGroup.position);scene.add(_sbRing);
             window._playerHadouken={ball:_sbGroup,ring:_sbRing,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
@@ -650,13 +644,12 @@ function handlePlayerInput(){
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=60;
             playJumpSound();
-        } else if(_isHadou&&(_ct==='rooster'||_ct==='monkey')&&!window._playerHadouken){
-            // SONIC BOOM (Guile) / 気功拳 (Chun-Li) — ↓→+R
-            _shoutMove(playerEgg,_ct==='monkey'?'Kikouken!':'Sonic Boom!');
+        } else if(_isHadou&&_ct==='monkey'&&!window._playerHadouken){
+            // 気功拳 (Chun-Li)
+            _shoutMove(playerEgg,'Kikouken!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
             var _sbDir2=playerEgg.mesh.rotation.y;
-            var _sbColor2=_ct==='monkey'?0x88BBFF:0x44FF44;
-            var _sbBall2=new THREE.Mesh(new THREE.SphereGeometry(_ct==='monkey'?0.5:0.3,8,6),new THREE.MeshBasicMaterial({color:_sbColor2,transparent:true,opacity:0.85}));
+            var _sbBall2=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.85}));
             _sbBall2.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir2)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir2)*1.5);scene.add(_sbBall2);
             var _sbRing2=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
             _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
@@ -1105,10 +1098,12 @@ function handlePlayerInput(){
             var _bsdz=_bse.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<4){
                 if(!_bse._electrocuted){
-                    // First hit — start electrocution (skeleton flash effect)
-                    _bse._electrocuted=40; // flash for 40 frames
-                    _bse._slamImmune=45; // immune during electrocution
-                    _bse.vx=0;_bse.vz=0; // freeze in place
+                    _bse._electrocuted=40;
+                    _bse._slamImmune=45;
+                    // Knock back away from Blanka
+                    var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)||1;
+                    _bse.vx=_bsdx/_elDist*0.3;_bse.vz=_bsdz/_elDist*0.3;_bse.vy=0.15;
+                    _bse.throwTimer=30;_bse._bounces=1;
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
