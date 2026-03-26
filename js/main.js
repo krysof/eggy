@@ -72,7 +72,10 @@ if('ontouchstart' in window){
     _updateGamepadBtn();
 }
 
+var _selectConfirmed=false;
 document.getElementById('confirm-btn').addEventListener('click',()=>{
+    if(_selectConfirmed)return;
+    _selectConfirmed=true;
     playMenuConfirm();
     stopSelectBGM();
     // Airplane animation: fly from center to character's country
@@ -81,6 +84,7 @@ document.getElementById('confirm-btn').addEventListener('click',()=>{
         showScreen(null);
         spawnCityNPCs();
         enterCity();
+        _selectConfirmed=false; // reset for next time
     });
 });
 
