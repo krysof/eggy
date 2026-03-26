@@ -399,7 +399,8 @@ function updateCity(){
         // Electrocution effect (Blanka electric) — flash skeleton
         if(npc._electrocuted>0){
             npc._electrocuted--;
-            npc.vx*=0.1;npc.vz*=0.1; // frozen during shock
+            npc.vx=0;npc.vz=0;npc.vy=0; // completely frozen
+            npc.throwTimer=0; // prevent physics bounce
             // Flash between normal and dark skeleton every 3 frames
             var _elecBody=npc.mesh.userData.body;
             if(_elecBody){

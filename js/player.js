@@ -1215,8 +1215,8 @@ function handlePlayerInput(){
                     if(_elDist<0.1)_elDist=0.1;
                     _bse._elecKnockDir={x:_bsdx/_elDist,z:_bsdz/_elDist};
                     _bse.vx=0;_bse.vz=0;_bse.vy=0;
+                    _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
                 }
-                _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
         }
         if(playerEgg._blankaShock<=0){

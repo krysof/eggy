@@ -196,6 +196,8 @@ function updateObstacles(){
 // ============================================================
 function updateCityNPC(egg){if(egg.heldBy)return;
     if(!egg.alive)return;
+    // Electrocuted NPCs cannot act
+    if(egg._electrocuted>0||egg._elecFlying>0)return;
     // Thrown or stunned NPCs cannot act
     if(egg.throwTimer>0)return;
     if(egg._hitStun>0){egg._hitStun--;egg.vx*=0.85;egg.vz*=0.85;return;} // flinch — no stars
