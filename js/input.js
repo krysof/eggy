@@ -40,7 +40,8 @@ function _bindVBtn(btn,keyCode){
     btn.addEventListener('mouseleave',function(e){keys[keyCode]=false;});
 }
 _bindVBtn(jumpBtn,'Space');
-_bindVBtn(document.getElementById('grab-btn'),'KeyF');
+var grabBtn=document.getElementById('grab-btn');
+_bindVBtn(grabBtn,'KeyF');
 _bindVBtn(document.getElementById('punch-btn'),'KeyR');
 _bindVBtn(document.getElementById('kick-btn'),'KeyT');
 // Chat button (touch + mouse)

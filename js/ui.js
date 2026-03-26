@@ -49,7 +49,7 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
     // Plane engine sound
     var _planeCtx=ensureAudio();
     var _planeNodes=[];
-    if(_planeCtx&&sfxEnabled){
+    if(_planeCtx&&sfxEnabled){try{
         // Jet whoosh — filtered noise + rising pitch
         var dur=1.5;
         var nb=_planeCtx.createBuffer(1,Math.floor(_planeCtx.sampleRate*dur),_planeCtx.sampleRate);
@@ -65,7 +65,7 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
         var eg=_planeCtx.createGain();eg.gain.setValueAtTime(0,_planeCtx.currentTime);eg.gain.linearRampToValueAtTime(0.04,_planeCtx.currentTime+0.1);eg.gain.setValueAtTime(0.03,_planeCtx.currentTime+dur*0.6);eg.gain.exponentialRampToValueAtTime(0.003,_planeCtx.currentTime+dur);
         eo.connect(eg);eg.connect(_planeCtx.destination);eo.start();eo.stop(_planeCtx.currentTime+dur);
         _planeNodes.push(eo);
-    }
+    }catch(e){}}
     // Start from outside the screen (left edge), fly to target country
     var sx=-30;
     var sy=pc.height*0.3;

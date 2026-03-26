@@ -139,28 +139,29 @@ if(typeof THREE==='undefined'){
   s.src='https://unpkg.com/three@0.160.0/build/three.min.js';
   s.onload=function(){
     var files=['js/core.js','js/audio.js','js/renderer.js','js/characters.js','js/ui.js','js/hud.js','js/input.js','js/entity.js','js/city.js','js/world.js','js/race.js','js/physics.js','js/ai.js','js/player.js','js/camera.js','js/gameloop.js','js/main.js'];
-    (function loadNext(i){if(i>=files.length)return;var g=document.createElement('script');g.src=files[i];g.onload=function(){loadNext(i+1);};document.body.appendChild(g);})(0);
+    (function loadNext(i){if(i>=files.length)return;var g=document.createElement('script');g.src=files[i];g.onload=function(){loadNext(i+1);};g.onerror=function(){console.error('Failed to load '+files[i]);};document.body.appendChild(g);})(0);
   };
   s.onerror=function(){document.getElementById('start-btn').textContent='Load failed, please refresh';};
   document.body.appendChild(s);
+} else {
+  document.write('<script src="js/core.js"><\/script>');
+  document.write('<script src="js/audio.js"><\/script>');
+  document.write('<script src="js/renderer.js"><\/script>');
+  document.write('<script src="js/characters.js"><\/script>');
+  document.write('<script src="js/ui.js"><\/script>');
+  document.write('<script src="js/hud.js"><\/script>');
+  document.write('<script src="js/input.js"><\/script>');
+  document.write('<script src="js/entity.js"><\/script>');
+  document.write('<script src="js/city.js"><\/script>');
+  document.write('<script src="js/world.js"><\/script>');
+  document.write('<script src="js/race.js"><\/script>');
+  document.write('<script src="js/physics.js"><\/script>');
+  document.write('<script src="js/ai.js"><\/script>');
+  document.write('<script src="js/player.js"><\/script>');
+  document.write('<script src="js/camera.js"><\/script>');
+  document.write('<script src="js/gameloop.js"><\/script>');
+  document.write('<script src="js/main.js"><\/script>');
 }
 </script>
-<script src="js/core.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/renderer.js"></script>
-<script src="js/characters.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/hud.js"></script>
-<script src="js/input.js"></script>
-<script src="js/entity.js"></script>
-<script src="js/city.js"></script>
-<script src="js/world.js"></script>
-<script src="js/race.js"></script>
-<script src="js/physics.js"></script>
-<script src="js/ai.js"></script>
-<script src="js/player.js"></script>
-<script src="js/camera.js"></script>
-<script src="js/gameloop.js"></script>
-<script src="js/main.js"></script>
 </body>
 </html>
