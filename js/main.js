@@ -18,14 +18,13 @@ function _handleStart(){
     stopTitleBGM();
     var ctx=ensureAudio();
     if(ctx&&ctx.state==='suspended')ctx.resume();
-    showScreen('select-screen');
-    // Show touch controls on select screen for mobile navigation
-    if(_touchVisible)_showMenuTouch();
-    // Delay BGM to let AudioContext fully resume (iOS needs longer)
+    // 700ms delay before showing select screen
+    _menuJoyConfirmCD=60; // block button inputs during transition
     setTimeout(function(){
-        if(ctx&&ctx.state==='suspended')ctx.resume();
+        showScreen('select-screen');
+        if(_touchVisible)_showMenuTouch();
         startSelectBGM();playMenuConfirm();
-    },200);
+    },700);
 }
 _startBtn.addEventListener('click',_handleStart);
 _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
@@ -108,6 +107,7 @@ function _updateMenuJoy(){
     // Select screen: joystick navigates, jump/grab = confirm
     var sel=document.getElementById('select-screen');
     if(!sel||!sel.classList.contains('active')){requestAnimationFrame(_updateMenuJoy);return;}
+    if(_selectConfirmed){requestAnimationFrame(_updateMenuJoy);return;} // locked after confirm
     // Joystick navigation
     if(_menuJoyCD>0){_menuJoyCD--;} else if(joyActive){
         var ax=Math.abs(joyVec.x),ay=Math.abs(joyVec.y);
@@ -158,7 +158,7 @@ addEventListener('keydown',function(e){
             }
         }
         var sel2=document.getElementById('select-screen');
-        if(sel2&&sel2.classList.contains('active')){
+        if(sel2&&sel2.classList.contains('active')&&!_selectConfirmed){
             if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();selectCharByIndex(selectedChar+1);playMenuMove();}
             if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();selectCharByIndex(selectedChar-1);playMenuMove();}
             if(e.code==='ArrowDown'||e.code==='KeyS'){e.preventDefault();selectCharByIndex(selectedChar+4);playMenuMove();}

@@ -1134,7 +1134,7 @@ function updateHeldEggs(){
         var pct2=Math.max(0,playerEgg.struggleTimer/playerEgg.struggleMax);
         document.getElementById('struggle-fill').style.width=(pct2*100)+'%';
     } else {
-        struggleBarDiv.style.display='none';
+        if(!playerEgg||!playerEgg._stunTimer||playerEgg._stunTimer<=0)struggleBarDiv.style.display='none';
     }
     // ---- NPC grab AI (low chance, very close range) ----
     for(var n=0;n<allEggs.length;n++){
