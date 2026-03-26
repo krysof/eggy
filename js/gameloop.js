@@ -399,23 +399,47 @@ function updateCity(){
         // Electrocution effect (Blanka electric) — flash skeleton
         if(npc._electrocuted>0){
             npc._electrocuted--;
-            npc.vx*=0.1;npc.vz*=0.1; // frozen
+            npc.vx*=0.1;npc.vz*=0.1; // frozen during shock
             // Flash between normal and dark skeleton every 3 frames
             var _elecBody=npc.mesh.userData.body;
             if(_elecBody){
                 if(Math.floor(npc._electrocuted/3)%2===0){
-                    // Skeleton flash — dark with white bone lines
                     _elecBody.material=new THREE.MeshBasicMaterial({color:0x111111,transparent:true,opacity:0.9});
                 } else {
-                    // Normal — bright flash
                     _elecBody.material=new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.9});
                 }
             }
-            // When done — knockdown and restore material
+            // When shock phase ends — launch knockback (phase 2)
             if(npc._electrocuted<=0){
-                if(_elecBody)_elecBody.material=toon(npc._origColor||0xFFDD44);
-                npc.vy=0.15;npc.squash=0.5;npc.throwTimer=25;npc._bounces=1;npc._stunTimer=40;
-                npc._slamImmune=0;
+                if(npc._elecKnockDir){
+                    npc.vx=npc._elecKnockDir.x*0.6;
+                    npc.vz=npc._elecKnockDir.z*0.6;
+                    npc.vy=0.08;
+                    npc.throwTimer=80;npc._bounces=0;
+                    npc._elecKnockDir=null;
+                    npc._elecFlying=80; // keep flashing during flight
+                } else {
+                    // No direction saved — just stun
+                    if(_elecBody)_elecBody.material=toon(npc._origColor||0xFFDD44);
+                    npc._stunTimer=40;npc._slamImmune=0;
+                }
+            }
+        }
+        // Electrocution flight phase — keep flashing until landing
+        if(npc._elecFlying>0){
+            npc._elecFlying--;
+            var _efBody=npc.mesh.userData.body;
+            if(_efBody){
+                if(Math.floor(npc._elecFlying/3)%2===0){
+                    _efBody.material=new THREE.MeshBasicMaterial({color:0x111111,transparent:true,opacity:0.9});
+                } else {
+                    _efBody.material=new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.9});
+                }
+            }
+            if(npc._elecFlying<=0||npc.onGround){
+                npc._elecFlying=0;
+                if(_efBody)_efBody.material=toon(npc._origColor||0xFFDD44);
+                npc._stunTimer=40;npc._slamImmune=0;
             }
         }
     }

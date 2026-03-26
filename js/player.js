@@ -1177,13 +1177,11 @@ function handlePlayerInput(){
             var _bsdz=_bse.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<4){
                 if(!_bse._electrocuted){
-                    _bse._electrocuted=40;
-                    _bse._slamImmune=45;
-                    // Knock back away from Blanka
-                    var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
-                    if(_elDist<0.1)_elDist=0.1;
-                    _bse.vx=_bsdx/_elDist*0.6;_bse.vz=_bsdz/_elDist*0.6;_bse.vy=0.08;
-                    _bse.throwTimer=80;_bse._bounces=0;_bse.squash=0.4;
+                    // Phase 1: freeze in place, electrocuted for 1.5s
+                    _bse._electrocuted=90; // 1.5 seconds
+                    _bse._slamImmune=200; // immune throughout
+                    _bse._elecKnockDir={x:_bsdx/_elDist,z:_bsdz/_elDist}; // save knockback direction
+                    _bse.vx=0;_bse.vz=0;_bse.vy=0; // freeze
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
