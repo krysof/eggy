@@ -599,13 +599,21 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             var _shFaceDir=playerEgg.mesh.rotation.y;
-            var _shFwd=_ct==='dog'?1.8:0.25; // Ken flies much further forward
-            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?2.2:1.6);
+            var _shFwd=_ct==='dog'?0.35:0.15; // Ken: 3 body-lengths further, same speed feel
+            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?1.7:1.6); // Ken only slightly higher
             playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
             playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
             playerEgg.squash=0.5;
-            playerEgg._shoryuActive=_ct==='dog'?95:65; // Ken lasts longer
-            playerEgg._shoryuIsKen=(_ct==='dog'); // flag for fire dragon color
+            playerEgg._shoryuActive=_ct==='dog'?75:65;
+            playerEgg._shoryuIsKen=(_ct==='dog');
+            // Ken: store forward direction to maintain momentum during rise
+            if(_ct==='dog'){
+                playerEgg._shoryuFwdX=Math.sin(_shFaceDir)*_shFwd;
+                playerEgg._shoryuFwdZ=Math.cos(_shFaceDir)*_shFwd;
+            } else {
+                playerEgg._shoryuFwdX=Math.sin(_shFaceDir)*_shFwd*0.5;
+                playerEgg._shoryuFwdZ=Math.cos(_shFaceDir)*_shFwd*0.5;
+            }
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
             playJumpSound();
         } else if(_isShoryu&&_ct==='rooster'){
@@ -831,6 +839,11 @@ function handlePlayerInput(){
             playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
         );
         playerEgg.mesh.rotation.y+=0.12;
+        // Maintain forward momentum during shoryuken (override friction)
+        if(playerEgg._shoryuFwdX!==undefined){
+            playerEgg.vx=playerEgg._shoryuFwdX;
+            playerEgg.vz=playerEgg._shoryuFwdZ;
+        }
         // ---- Shoryuken hit detection (every 4 frames) ----
         if(playerEgg._shoryuActive%4===0){
             for(var _shi=0;_shi<allEggs.length;_shi++){
@@ -901,6 +914,7 @@ function handlePlayerInput(){
         if(playerEgg._shoryuActive<55&&(playerEgg.vy<=0||playerEgg.onGround)){
             playerEgg._shoryuActive=0;
             playerEgg._shoryuStartSet=false;
+            playerEgg._shoryuFwdX=undefined;playerEgg._shoryuFwdZ=undefined;
             window._shoryuFist.visible=false;
             if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
         } else {
