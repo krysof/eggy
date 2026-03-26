@@ -28,6 +28,7 @@ function handlePlayerInput(){
             var _cdB=playerEgg.mesh.userData.body;if(_cdB)_cdB.rotation.x=0;
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;playerEgg._blankaRoll=false;}
         playerEgg._blankaShock=0;
+        playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
         if(_iud.rightArm)_iud.rightArm.visible=false;
@@ -252,7 +253,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -495,22 +496,12 @@ function handlePlayerInput(){
         // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
         if(_ct==='pig'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,'Hyakuretsu!');
-            playerEgg._comboCount=0;playerEgg._attackCD=2;
-            if(!playerEgg._slapSide)playerEgg._slapSide=0;
-            playerEgg._slapSide=(playerEgg._slapSide+1)%3;
-            var _slapY=[0.5,0.2,-0.1][playerEgg._slapSide];
-            var _sArm=(playerEgg._slapSide%2===0)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
-            var _sArmOther=(playerEgg._slapSide%2===0)?playerEgg.mesh.userData.leftArm:playerEgg.mesh.userData.rightArm;
-            if(_sArm){_sArm.visible=true;_sArm.position.set((playerEgg._slapSide%2===0)?0.4:-0.4,_slapY,4.5);_sArm.scale.set(1.8,1.8,1.8);}
-            playerEgg._atkAnim=2;
-            var _hsDir=playerEgg.mesh.rotation.y;
-            playerEgg.vx+=Math.sin(_hsDir)*0.04;playerEgg.vz+=Math.cos(_hsDir)*0.04;
-            for(var _hsi=0;_hsi<allEggs.length;_hsi++){
-                var _hse=allEggs[_hsi];if(_hse===playerEgg||!_hse.alive||_hse.heldBy)continue;
-                var _hsdx=_hse.mesh.position.x-playerEgg.mesh.position.x;
-                var _hsdz=_hse.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_hsdx*_hsdx+_hsdz*_hsdz)<4.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
-            }
+            playerEgg._comboCount=0;playerEgg._attackCD=8;
+            // Start continuous slap state
+            if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
+            playerEgg._hyakuretsuTimer=60; // 1 second of slapping
+            playerEgg._hyakuretsuTick=0;
+            playerEgg.vx=0;playerEgg.vz=0; // stop movement
             playerEgg.squash=0.88;
         }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
@@ -917,6 +908,59 @@ function handlePlayerInput(){
         }
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
+    }
+    // ---- Honda Hyakuretsu continuous animation ----
+    if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
+    if(playerEgg._hyakuretsuTimer>0){
+        playerEgg._hyakuretsuTimer--;
+        if(!playerEgg._hyakuretsuTick)playerEgg._hyakuretsuTick=0;
+        playerEgg._hyakuretsuTick++;
+        // Pressing R again extends the duration
+        if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._hyakuretsuTimer<50){
+            playerEgg._hyakuretsuTimer=60;
+        }
+        // Animate arms: cycle every 3 frames, upper/mid/lower
+        var _hSlot=Math.floor(playerEgg._hyakuretsuTick/3)%3;
+        var _hSlapY=[0.45,0.2,-0.05][_hSlot];
+        var _hUseRight=(Math.floor(playerEgg._hyakuretsuTick/3)%2===0);
+        var _hArmA=_hUseRight?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
+        var _hArmB=_hUseRight?playerEgg.mesh.userData.leftArm:playerEgg.mesh.userData.rightArm;
+        // Smooth extend/retract within 3-frame cycle
+        var _hFrame=playerEgg._hyakuretsuTick%3;
+        var _hExtend=_hFrame===0?1.8:(_hFrame===1?1.4:0.6); // extend, hold, retract
+        var _hZ=_hFrame===0?1.8:(_hFrame===1?1.5:0.8); // z=1.8 at full extend (2/5 of 4.5)
+        if(_hArmA){_hArmA.visible=true;_hArmA.position.set(_hUseRight?0.35:-0.35,_hSlapY,_hZ);_hArmA.scale.set(_hExtend,_hExtend,_hExtend);}
+        if(_hArmB){_hArmB.visible=false;} // hide the other arm
+        // Stop player movement, only allow manual forward creep
+        playerEgg.vx*=0.3;playerEgg.vz*=0.3;
+        var _hFaceDir=playerEgg.mesh.rotation.y;
+        var _hmx=0,_hmz=0;
+        if(keys['KeyA']||keys['ArrowLeft'])_hmx-=1;
+        if(keys['KeyD']||keys['ArrowRight'])_hmx+=1;
+        if(keys['KeyW']||keys['ArrowUp'])_hmz-=1;
+        if(keys['KeyS']||keys['ArrowDown'])_hmz+=1;
+        if(joyActive){_hmx+=joyVec.x;_hmz+=joyVec.y;}
+        var _hInputDot=_hmx*Math.sin(_hFaceDir)+_hmz*Math.cos(_hFaceDir);
+        if(_hInputDot>0.2){
+            playerEgg.vx+=Math.sin(_hFaceDir)*MOVE_ACCEL*0.3;
+            playerEgg.vz+=Math.cos(_hFaceDir)*MOVE_ACCEL*0.3;
+        }
+        // Hit detection
+        if(playerEgg._hyakuretsuTick%3===0){
+            for(var _hhi=0;_hhi<allEggs.length;_hhi++){
+                var _hhe=allEggs[_hhi];if(_hhe===playerEgg||!_hhe.alive||_hhe.heldBy)continue;
+                var _hhdx=_hhe.mesh.position.x-playerEgg.mesh.position.x;
+                var _hhdz=_hhe.mesh.position.z-playerEgg.mesh.position.z;
+                if(Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)<2.5){_hhe.vx+=_hhdx*0.08;_hhe.vz+=_hhdz*0.08;_hhe._hitStun=5;_dropNpcStolenCoins(_hhe);playHitSound();}
+            }
+        }
+        playerEgg.squash=0.85+Math.sin(playerEgg._hyakuretsuTick*0.8)*0.05;
+        // End: hide arms
+        if(playerEgg._hyakuretsuTimer<=0){
+            var _hud2=playerEgg.mesh.userData;
+            if(_hud2.rightArm){_hud2.rightArm.visible=false;_hud2.rightArm.scale.set(1,1,1);}
+            if(_hud2.leftArm){_hud2.leftArm.visible=false;_hud2.leftArm.scale.set(1,1,1);}
+        }
     }
     // ---- Blanka Electric Thunder ----
     if(playerEgg._blankaShock>0){
