@@ -18,7 +18,7 @@ function _handleStart(){
     if(ctx&&ctx.state==='suspended')ctx.resume();
     showScreen('select-screen');
     // Show touch controls on select screen for mobile navigation
-    _showMenuTouch();
+    if(_touchVisible)_showMenuTouch();
     // Delay BGM to let AudioContext fully resume (iOS needs longer)
     setTimeout(function(){
         if(ctx&&ctx.state==='suspended')ctx.resume();
@@ -29,20 +29,45 @@ _startBtn.addEventListener('click',_handleStart);
 _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
 
 // ---- Mobile touch for menu screens ----
+var _touchVisible=false;
 function _showMenuTouch(){
-    if(!('ontouchstart' in window))return;
     var tc=document.getElementById('touch-controls');
     tc.classList.remove('hidden');
     tc.style.zIndex='20'; // above .screen (z-index:10)
+    _touchVisible=true;
+    _updateGamepadBtn();
 }
 function _hideMenuTouch(){
     var tc=document.getElementById('touch-controls');
     tc.style.zIndex=''; // reset to CSS default (6)
 }
+function _updateGamepadBtn(){
+    var gb=document.getElementById('gamepad-btn');
+    if(gb)gb.style.opacity=_touchVisible?'1':'0.5';
+}
+// Gamepad toggle button — works on PC too
+var _gamepadBtn=document.getElementById('gamepad-btn');
+if(_gamepadBtn){
+    _gamepadBtn.addEventListener('click',function(){
+        var tc=document.getElementById('touch-controls');
+        if(_touchVisible){
+            tc.classList.add('hidden');
+            _touchVisible=false;
+        } else {
+            tc.classList.remove('hidden');
+            _touchVisible=true;
+            // If in menu, raise z-index
+            if(gameState==='menu')tc.style.zIndex='20';
+        }
+        _updateGamepadBtn();
+    });
+}
 // Show touch controls immediately on title screen for mobile
 if('ontouchstart' in window){
     document.getElementById('touch-controls').classList.remove('hidden');
     document.getElementById('touch-controls').style.zIndex='20';
+    _touchVisible=true;
+    _updateGamepadBtn();
 }
 
 document.getElementById('confirm-btn').addEventListener('click',()=>{
