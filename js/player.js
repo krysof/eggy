@@ -1123,9 +1123,14 @@ function handlePlayerInput(){
             }
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         }
-        // Blanka rolls visually — same height as Honda, fast forward roll
+        // Blanka rolls visually — forward tumble (head down first, clockwise from viewer's perspective)
         if(playerEgg._blankaRoll){
-            playerEgg.mesh.rotation.x-=2.0; // fast counterclockwise forward roll
+            // Face the dash direction
+            if(playerEgg._dashDirX!==undefined){
+                playerEgg.mesh.rotation.y=Math.atan2(playerEgg._dashDirX,playerEgg._dashDirZ);
+            }
+            playerEgg.mesh.rotation.z=0;
+            playerEgg.mesh.rotation.x+=2.0; // clockwise forward tumble (head goes down first)
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
             playerEgg.mesh.scale.set(0.8,0.8,0.8); // ball shape
         }
