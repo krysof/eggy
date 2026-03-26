@@ -502,7 +502,6 @@ function handlePlayerInput(){
             var _sArm=(playerEgg._slapSide%2===0)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
             var _sArmOther=(playerEgg._slapSide%2===0)?playerEgg.mesh.userData.leftArm:playerEgg.mesh.userData.rightArm;
             if(_sArm){_sArm.visible=true;_sArm.position.set((playerEgg._slapSide%2===0)?0.4:-0.4,_slapY,4.5);_sArm.scale.set(1.8,1.8,1.8);}
-            if(_sArmOther){_sArmOther.visible=true;_sArmOther.position.set((playerEgg._slapSide%2===0)?-0.25:0.25,_slapY+0.1,2.5);_sArmOther.scale.set(1.3,1.3,1.3);}
             playerEgg._atkAnim=2;
             var _hsDir=playerEgg.mesh.rotation.y;
             playerEgg.vx+=Math.sin(_hsDir)*0.04;playerEgg.vz+=Math.cos(_hsDir)*0.04;
