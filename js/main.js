@@ -90,8 +90,9 @@ function _updateMenuJoy(){
     // Title screen: jump or grab button = start game
     var ss=document.getElementById('start-screen');
     if(ss&&ss.classList.contains('active')){
-        if((keys['Space']||keys['KeyF'])&&_menuJoyConfirmCD<=0){
+        if((keys['Space']||keys['KeyF']||keys['KeyR']||keys['KeyT'])&&_menuJoyConfirmCD<=0){
             _menuJoyConfirmCD=30;
+            keys['Space']=false;keys['KeyF']=false;keys['KeyR']=false;keys['KeyT']=false;
             _handleStart();
         }
         if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
@@ -116,10 +117,11 @@ function _updateMenuJoy(){
             }
         }
     }
-    // Jump or Grab button = confirm on select screen
+    // Any action button = confirm on select screen (jump, grab, punch, kick)
     if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
-    if((keys['Space']||keys['KeyF'])&&_menuJoyConfirmCD<=0){
+    if((keys['Space']||keys['KeyF']||keys['KeyR']||keys['KeyT'])&&_menuJoyConfirmCD<=0){
         _menuJoyConfirmCD=30;
+        keys['Space']=false;keys['KeyF']=false;keys['KeyR']=false;keys['KeyT']=false;
         document.getElementById('confirm-btn').click();
     }
     requestAnimationFrame(_updateMenuJoy);

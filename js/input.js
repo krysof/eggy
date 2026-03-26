@@ -15,6 +15,11 @@ if(joystickArea){
     joystickArea.addEventListener('touchstart',e=>{e.preventDefault();joyTouchId=e.changedTouches[0].identifier;joyActive=true;updJoy(e.changedTouches[0]);},{passive:false});
     joystickArea.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches)if(t.identifier===joyTouchId)updJoy(t);},{passive:false});
     joystickArea.addEventListener('touchend',e=>{for(const t of e.changedTouches)if(t.identifier===joyTouchId){joyActive=false;joyVec={x:0,y:0};joystickKnob.style.transform='translate(0,0)';}});
+    // Mouse support for PC
+    var _joyMouseDown=false;
+    joystickArea.addEventListener('mousedown',function(e){e.preventDefault();_joyMouseDown=true;joyActive=true;updJoy(e);});
+    document.addEventListener('mousemove',function(e){if(_joyMouseDown)updJoy(e);});
+    document.addEventListener('mouseup',function(e){if(_joyMouseDown){_joyMouseDown=false;joyActive=false;joyVec={x:0,y:0};joystickKnob.style.transform='translate(0,0)';}});
 }
 function updJoy(touch){
     const r=joystickBase.getBoundingClientRect();
@@ -24,34 +29,25 @@ function updJoy(touch){
     joystickKnob.style.transform='translate('+dx+'px,'+dy+'px)';
     joyVec={x:dx/maxR,y:dy/maxR};
 }
-if(jumpBtn){
-    jumpBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['Space']=true;},{passive:false});
-    jumpBtn.addEventListener('touchend',function(e){e.preventDefault();keys['Space']=false;},{passive:false});
-    jumpBtn.addEventListener('touchcancel',function(e){keys['Space']=false;},{passive:false});
+// Helper: add both touch and mouse support to a virtual button
+function _bindVBtn(btn,keyCode){
+    if(!btn)return;
+    btn.addEventListener('touchstart',function(e){e.preventDefault();keys[keyCode]=true;},{passive:false});
+    btn.addEventListener('touchend',function(e){e.preventDefault();keys[keyCode]=false;},{passive:false});
+    btn.addEventListener('touchcancel',function(e){keys[keyCode]=false;},{passive:false});
+    btn.addEventListener('mousedown',function(e){e.preventDefault();keys[keyCode]=true;});
+    btn.addEventListener('mouseup',function(e){e.preventDefault();keys[keyCode]=false;});
+    btn.addEventListener('mouseleave',function(e){keys[keyCode]=false;});
 }
-const grabBtn=document.getElementById('grab-btn');
-if(grabBtn){
-    grabBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyF']=true;},{passive:false});
-    grabBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyF']=false;},{passive:false});
-    grabBtn.addEventListener('touchcancel',function(e){keys['KeyF']=false;},{passive:false});
-}
-// Chat button (mobile)
+_bindVBtn(jumpBtn,'Space');
+_bindVBtn(document.getElementById('grab-btn'),'KeyF');
+_bindVBtn(document.getElementById('punch-btn'),'KeyR');
+_bindVBtn(document.getElementById('kick-btn'),'KeyT');
+// Chat button (touch + mouse)
 var chatBtn=document.getElementById('chat-btn');
 if(chatBtn){
     chatBtn.addEventListener('touchstart',function(e){e.preventDefault();_openChatInput();},{passive:false});
-}
-// Punch/Kick buttons (mobile)
-var punchBtn=document.getElementById('punch-btn');
-if(punchBtn){
-    punchBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyR']=true;},{passive:false});
-    punchBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyR']=false;},{passive:false});
-    punchBtn.addEventListener('touchcancel',function(e){keys['KeyR']=false;},{passive:false});
-}
-var kickBtn=document.getElementById('kick-btn');
-if(kickBtn){
-    kickBtn.addEventListener('touchstart',function(e){e.preventDefault();keys['KeyT']=true;},{passive:false});
-    kickBtn.addEventListener('touchend',function(e){e.preventDefault();keys['KeyT']=false;},{passive:false});
-    kickBtn.addEventListener('touchcancel',function(e){keys['KeyT']=false;},{passive:false});
+    chatBtn.addEventListener('click',function(){_openChatInput();});
 }
 
 // ---- Pinch-to-zoom (mobile) ----
