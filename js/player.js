@@ -1126,7 +1126,7 @@ function handlePlayerInput(){
                     // Knock back away from Blanka
                     var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
                     if(_elDist<0.1)_elDist=0.1;
-                    _bse.vx=_bsdx/_elDist*0.8;_bse.vz=_bsdz/_elDist*0.8;_bse.vy=0.25;
+                    _bse.vx=_bsdx/_elDist*4.0;_bse.vz=_bsdz/_elDist*4.0;_bse.vy=1.0;
                     _bse.throwTimer=40;_bse._bounces=1;_bse.squash=0.4;
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
