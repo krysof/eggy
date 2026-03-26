@@ -52,6 +52,7 @@ h1{font-size:clamp(32px,8vw,56px);color:#fff;text-shadow:3px 3px 0 #FF8800,6px 6
 .char-cell.selected{border-color:#FFD700;box-shadow:0 0 12px rgba(255,215,0,.5);background:rgba(255,215,0,.12);animation:selectPulse 1s ease-in-out infinite}
 @keyframes selectPulse{0%,100%{box-shadow:0 0 12px rgba(255,215,0,.5)}50%{box-shadow:0 0 20px rgba(255,215,0,.7)}}
 .char-cell .char-icon{font-size:26px}
+.char-cell .char-icon-canvas{display:block;margin:0 auto;}
 .char-cell .char-label{font-size:9px;color:rgba(255,255,255,.6);font-weight:600}
 
 /* City HUD */

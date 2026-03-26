@@ -13,7 +13,10 @@ if(typeof _updateSF2Select==='function')_updateSF2Select(0);
 
 // Start button
 var _startBtn=document.getElementById('start-btn');
+var _startTriggered=false;
 function _handleStart(){
+    if(_startTriggered)return;
+    _startTriggered=true;
     _unlockAudio();
     // Stop intro animation
     if(typeof _introRunning!=='undefined')_introRunning=false;
