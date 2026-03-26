@@ -28,6 +28,7 @@ function handlePlayerInput(){
             var _cdB=playerEgg.mesh.userData.body;if(_cdB)_cdB.rotation.x=0;
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;playerEgg._blankaRoll=false;}
         playerEgg._blankaShock=0;
+        if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
         playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -253,7 +254,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -504,6 +505,16 @@ function handlePlayerInput(){
             playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.squash=0.88;
         }
+        // ---- BLANKA: always Electric Thunder on normal punch ----
+        else if(_ct==='cat'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
+            _shoutMove(playerEgg,'ELECTRIC!');
+            playerEgg._comboCount=0;playerEgg._attackCD=4;
+            if(!playerEgg._blankaShockTimer)playerEgg._blankaShockTimer=0;
+            playerEgg._blankaShockTimer=60;
+            playerEgg._blankaShock=60;
+            playerEgg.squash=0.6;
+            if(sfxEnabled){var _beCtx3=ensureAudio();if(_beCtx3){var _bet3=_beCtx3.currentTime;var _beo3=_beCtx3.createOscillator();var _beg3=_beCtx3.createGain();_beo3.type='square';_beo3.frequency.setValueAtTime(800,_bet3);_beo3.frequency.linearRampToValueAtTime(2000,_bet3+0.1);_beg3.gain.setValueAtTime(0.08,_bet3);_beg3.gain.exponentialRampToValueAtTime(0.001,_bet3+0.3);_beo3.connect(_beg3);_beg3.connect(_beCtx3.destination);_beo3.start(_bet3);_beo3.stop(_bet3+0.3);}}
+        }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
         else if(playerEgg._rapidRReady&&_ct==='pig'){
             playerEgg._comboCount=0;playerEgg._attackCD=1;playerEgg._rapidR=2;
@@ -540,12 +551,13 @@ function handlePlayerInput(){
             var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
             var _hz=playerEgg.mesh.position.z+Math.cos(_hDir)*1.5;
             var _hy=playerEgg.mesh.position.y+0.7;
-            var _hColor=_ct==='egg'?0xFF4444:0xFF4444; // Both red
+            var _hColor=_ct==='egg'?0xFF4444:0x44AAFF; // Ryu=red, Ken=blue
             var _hBall=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),new THREE.MeshBasicMaterial({color:_hColor,transparent:true,opacity:0.85}));
             _hBall.position.set(_hx,_hy,_hz);scene.add(_hBall);
-            var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:0xFFAA66,transparent:true,opacity:0.6}));
+            var _hRingColor=_ct==='egg'?0xFFAA66:0x88DDFF;
+            var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:_hRingColor,transparent:true,opacity:0.6}));
             _hRing.position.copy(_hBall.position);scene.add(_hRing);
-            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*0.35,vz:Math.cos(_hDir)*0.35,life:120,owner:playerEgg,burns:true};
+            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*0.35,vz:Math.cos(_hDir)*0.35,life:120,owner:playerEgg,burns:(_ct==='egg')};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ct==='cockroach'){
@@ -835,7 +847,7 @@ function handlePlayerInput(){
                     _dropNpcStolenCoins(_she);playHitSound();
                     // Ken fire effect — burning particles on hit enemy
                     if(playerEgg._shoryuIsKen){
-                        _she._onFire=60; // 1 second of fire
+                        _she._onFire=120; // 2 seconds of fire
                     }
                 }
             }
@@ -1018,7 +1030,28 @@ function handlePlayerInput(){
     // ---- Blanka Electric Thunder ----
     if(playerEgg._blankaShock>0){
         playerEgg._blankaShock--;
+        // Pressing R extends electric duration
+        if(keys['KeyR']){
+            playerEgg._blankaShock=Math.max(playerEgg._blankaShock,30);
+            playerEgg._attackCD=0;
+        }
         playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.05)*0.3;
+        // Electric body particles
+        if(!playerEgg._elecParticles){
+            playerEgg._elecParticles=[];
+            for(var _epi=0;_epi<8;_epi++){
+                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,0.4),new THREE.MeshBasicMaterial({color:0x44FFFF,transparent:true,opacity:0.8}));
+                _ep.visible=false;playerEgg.mesh.userData.body.add(_ep);
+                playerEgg._elecParticles.push(_ep);
+            }
+        }
+        for(var _epj=0;_epj<playerEgg._elecParticles.length;_epj++){
+            var _epp=playerEgg._elecParticles[_epj];
+            _epp.visible=true;
+            _epp.position.set((Math.random()-0.5)*1.0,(Math.random()-0.5)*1.2,(Math.random()-0.5)*0.8);
+            _epp.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+            _epp.material.color.setHex(Math.random()>0.4?0x44FFFF:0xFFFFFF);
+        }
         for(var _bsi=0;_bsi<allEggs.length;_bsi++){
             var _bse=allEggs[_bsi];if(_bse===playerEgg||!_bse.alive||_bse.heldBy)continue;
             var _bsdx=_bse.mesh.position.x-playerEgg.mesh.position.x;
@@ -1029,7 +1062,10 @@ function handlePlayerInput(){
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
         }
-        if(playerEgg._blankaShock<=0)playerEgg.mesh.rotation.z=0;
+        if(playerEgg._blankaShock<=0){
+            playerEgg.mesh.rotation.z=0;
+            if(playerEgg._elecParticles)for(var _epk=0;_epk<playerEgg._elecParticles.length;_epk++)playerEgg._elecParticles[_epk].visible=false;
+        }
     }
     // ---- Honda/Blanka Dash Attack (constant speed each frame) ----
     if(playerEgg._hondaDash>0){
