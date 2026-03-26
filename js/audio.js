@@ -8,7 +8,10 @@ document.addEventListener('visibilitychange',function(){
     if(document.hidden){
         if(audioCtx&&audioCtx.state==='running')audioCtx.suspend();
     } else {
-        if(audioCtx&&audioCtx.state==='suspended'&&soundEnabled)audioCtx.resume();
+        if(audioCtx&&audioCtx.state==='suspended'&&soundEnabled){
+            // Small delay to prevent audio overlap on resume
+            setTimeout(function(){if(audioCtx)audioCtx.resume();},300);
+        }
     }
 });
 function ensureAudio(){
@@ -188,8 +191,8 @@ function _applyLang(){
             }
         }
     }
-    // Rebuild portal signs
-    if(typeof buildPortals==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildPortals();}
+    // Portal signs are canvas textures - rebuild them would need full portal rebuild
+    // Just update the portal object names (prompt text uses these)
     // Update select grid cell labels
     var _cells=document.querySelectorAll('.char-cell .char-label');
     for(var ci2=0;ci2<_cells.length&&ci2<CHARACTERS.length;ci2++){_cells[ci2].textContent=CHARACTERS[ci2].name;}

@@ -1551,9 +1551,9 @@ addEventListener('keydown',function(e){
         if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();_hideMoonPipePrompt();}
         return;
     }
-    if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();_portalSel=1;_updatePortalSel();}
-    if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();_portalSel=0;_updatePortalSel();}
-    if(e.code==='Enter'||e.code==='Space'||e.code==='KeyY'||e.code==='KeyR'||e.code==='KeyT'||e.code==='KeyF'){e.preventDefault();if(_portalSel===0)confirmPortalEnter();else hidePortalConfirm();}
+    if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();_portalSel=(_portalSel+1)%2;_updatePortalSel();}
+    if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();_portalSel=(_portalSel+1)%2;_updatePortalSel();}
+    if(e.code==='Enter'||e.code==='Space'||e.code==='KeyR'||e.code==='KeyT'||e.code==='KeyF'||e.code==='KeyG'){e.preventDefault();if(_portalSel===0)confirmPortalEnter();else hidePortalConfirm();}
     if(e.code==='Escape'||e.code==='KeyN'){e.preventDefault();hidePortalConfirm();}
 });
 // Result screen — Enter/Space to go back to city

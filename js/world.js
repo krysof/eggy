@@ -21,6 +21,11 @@ for(var _ri=0;_ri<RACES.length;_ri++){RACES[_ri].name=I18N.raceNames[_langCode][
 
 function buildPortals() {
     if(currentCityStyle===5) return; // No race portals on moon
+    // Clear old portals
+    for(var _opi=portals.length-1;_opi>=0;_opi--){
+        if(portals[_opi].mesh)cityGroup.remove(portals[_opi].mesh);
+    }
+    portals.length=0;
     RACES.forEach((race,i)=>{
         const g = new THREE.Group();
         var portalX=race.x, portalY=0, portalZ=race.z;
@@ -66,14 +71,16 @@ function buildPortals() {
         portals.push({mesh:g, ring, inner, name:race.name, desc:race.desc, raceIndex:i, x:portalX, z:portalZ, y:portalY, color:race.color});
 
         // Name sign above portal
-        var _pc=document.createElement('canvas');_pc.width=256;_pc.height=64;
+        var _pc=document.createElement('canvas');_pc.width=512;_pc.height=64;
         var _px=_pc.getContext('2d');
-        _px.fillStyle='rgba(0,0,0,0.6)';_px.fillRect(0,0,256,64);
-        _px.fillStyle='#fff';_px.font='bold 24px sans-serif';_px.textAlign='center';
-        _px.fillText(race.name,128,42);
+        _px.fillStyle='rgba(0,0,0,0.7)';_px.fillRect(0,0,512,64);
+        _px.fillStyle='#FFD700';_px.textAlign='center';
+        var _pfs=28;_px.font='bold '+_pfs+'px sans-serif';
+        while(_px.measureText(race.name).width>480&&_pfs>12){_pfs-=2;_px.font='bold '+_pfs+'px sans-serif';}
+        _px.fillText(race.name,256,42);
         var _ptex=new THREE.CanvasTexture(_pc);
         var _psign=new THREE.Sprite(new THREE.SpriteMaterial({map:_ptex,transparent:true}));
-        _psign.scale.set(4.5,1.1,1);_psign.position.y=5;
+        _psign.scale.set(6,0.8,1);_psign.position.y=5;
         g.add(_psign);
         // No collider for portals — player walks through them to enter
     });
