@@ -1053,28 +1053,40 @@ function handlePlayerInput(){
         playerEgg.vx*=0.1;playerEgg.vz*=0.1;
         playerEgg.mesh.scale.set(1.1,0.7,1.1); // squash down = crouch
         playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.08)*0.15;
-        // Electric spark particles — radiate outward (range ~1.0, half of Hyakuretsu)
+        // Electric bolts — radiate outward from body center
         if(!playerEgg._elecParticles){
             playerEgg._elecParticles=[];
-            for(var _epi=0;_epi<10;_epi++){
-                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.05,0.35),new THREE.MeshBasicMaterial({color:0x44FFFF,transparent:true,opacity:0.85}));
-                _ep.visible=false;scene.add(_ep); // world-space so they radiate outward
+            for(var _epi=0;_epi<12;_epi++){
+                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.04,0.6),new THREE.MeshBasicMaterial({color:0x44FFFF,transparent:true,opacity:0.9}));
+                _ep.visible=false;scene.add(_ep);
                 playerEgg._elecParticles.push(_ep);
             }
         }
-        var _epFace=playerEgg.mesh.rotation.y;
+        // Sound: electric crackle every 8 frames
+        if(playerEgg._blankaShock%8===0&&sfxEnabled){
+            var _esCtx=ensureAudio();if(_esCtx){var _est=_esCtx.currentTime;
+            var _esb=_esCtx.createBuffer(1,Math.floor(_esCtx.sampleRate*0.06),_esCtx.sampleRate);
+            var _esd=_esb.getChannelData(0);
+            for(var _esi=0;_esi<_esd.length;_esi++)_esd[_esi]=(Math.random()-0.5)*0.3*Math.exp(-_esi/(_esd.length*0.2));
+            var _ess=_esCtx.createBufferSource();_ess.buffer=_esb;
+            var _esg=_esCtx.createGain();_esg.gain.value=0.06;
+            _ess.connect(_esg);_esg.connect(_esCtx.destination);_ess.start(_est);_ess.stop(_est+0.06);}
+        }
+        var _epCx=playerEgg.mesh.position.x,_epCy=playerEgg.mesh.position.y+0.5,_epCz=playerEgg.mesh.position.z;
         for(var _epj=0;_epj<playerEgg._elecParticles.length;_epj++){
             var _epp=playerEgg._elecParticles[_epj];
             _epp.visible=true;
-            var _epAngle=_epFace+_epj*Math.PI*2/playerEgg._elecParticles.length+Math.random()*0.5;
-            var _epDist=0.5+Math.random()*0.8;
-            _epp.position.set(
-                playerEgg.mesh.position.x+Math.sin(_epAngle)*_epDist,
-                playerEgg.mesh.position.y+0.3+Math.random()*0.8,
-                playerEgg.mesh.position.z+Math.cos(_epAngle)*_epDist
-            );
-            _epp.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
-            _epp.material.color.setHex(Math.random()>0.4?0x44FFFF:0xFFFFFF);
+            // Each bolt shoots outward from center in a random direction
+            var _epAngle=_epj*Math.PI*2/playerEgg._elecParticles.length+Math.random()*0.8;
+            var _epLen=0.4+Math.random()*0.7; // bolt length
+            var _epYOff=(Math.random()-0.5)*0.6;
+            var _epMidX=_epCx+Math.sin(_epAngle)*_epLen;
+            var _epMidZ=_epCz+Math.cos(_epAngle)*_epLen;
+            _epp.position.set(_epMidX,_epCy+_epYOff,_epMidZ);
+            // Point bolt outward from center
+            _epp.lookAt(_epMidX+Math.sin(_epAngle),_epCy+_epYOff+(Math.random()-0.5)*0.3,_epMidZ+Math.cos(_epAngle));
+            _epp.scale.set(1,1,0.5+Math.random()*1.0);
+            _epp.material.color.setHex(Math.random()>0.3?0x44FFFF:0xFFFFFF);
         }
         for(var _bsi=0;_bsi<allEggs.length;_bsi++){
             var _bse=allEggs[_bsi];if(_bse===playerEgg||!_bse.alive||_bse.heldBy)continue;
