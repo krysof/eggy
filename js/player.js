@@ -29,6 +29,7 @@ function handlePlayerInput(){
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;playerEgg._blankaRoll=false;}
         playerEgg._blankaShock=0;
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
+        playerEgg._blankaSpinTimer=0;
         playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -254,7 +255,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -505,6 +506,14 @@ function handlePlayerInput(){
             playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.squash=0.88;
         }
+        // ---- BLANKA: always Electric Thunder on punch ----
+        else if(_ct==='cat'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
+            _shoutMove(playerEgg,'ELECTRIC!');
+            playerEgg._comboCount=0;playerEgg._attackCD=4;
+            playerEgg._blankaShock=60;
+            playerEgg.squash=0.6;
+            if(sfxEnabled){var _beCtx3=ensureAudio();if(_beCtx3){var _bet3=_beCtx3.currentTime;var _beo3=_beCtx3.createOscillator();var _beg3=_beCtx3.createGain();_beo3.type='square';_beo3.frequency.setValueAtTime(800,_bet3);_beo3.frequency.linearRampToValueAtTime(2000,_bet3+0.1);_beg3.gain.setValueAtTime(0.08,_bet3);_beg3.gain.exponentialRampToValueAtTime(0.001,_bet3+0.3);_beo3.connect(_beg3);_beg3.connect(_beCtx3.destination);_beo3.start(_bet3);_beo3.stop(_bet3+0.3);}}
+        }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
         else if(playerEgg._rapidRReady&&_ct==='pig'){
             playerEgg._comboCount=0;playerEgg._attackCD=1;playerEgg._rapidR=2;
@@ -643,14 +652,12 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*0.5,vz:Math.cos(_sbDir2)*0.5,life:100,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&(_ct==='cat')){
-            // ROLLING ATTACK (Blanka) — ←→+R, ball roll 12 body-lengths
+            // ROLLING ATTACK (Blanka) — ←→+R, spin in place
             _shoutMove(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._bfReady=false;playerEgg._bfSeq=0;
-            var _raDir=playerEgg.mesh.rotation.y;
-            playerEgg.vx=Math.sin(_raDir)*MAX_SPEED*3;playerEgg.vz=Math.cos(_raDir)*MAX_SPEED*3;
-            playerEgg._dashDirX=Math.sin(_raDir)*MAX_SPEED*3;playerEgg._dashDirZ=Math.cos(_raDir)*MAX_SPEED*3;
-            playerEgg._hondaDash=80;playerEgg._atkAnim=82;playerEgg.squash=0.5;
-            playerEgg._blankaRoll=true; // flag for bounce-back on hit
+            playerEgg.vx=0;playerEgg.vz=0; // stay in place
+            playerEgg._blankaSpinTimer=80;
+            playerEgg.squash=0.8;
         } else {
         // Normal punch combo
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
@@ -1090,6 +1097,32 @@ function handlePlayerInput(){
         if(playerEgg._blankaShock<=0){
             playerEgg.mesh.scale.set(1,1,1); // restore from crouch
             if(playerEgg._elecParticles)for(var _epk=0;_epk<playerEgg._elecParticles.length;_epk++)playerEgg._elecParticles[_epk].visible=false;
+        }
+    }
+    // ---- Blanka in-place spin (Rolling Attack) ----
+    if(!playerEgg._blankaSpinTimer)playerEgg._blankaSpinTimer=0;
+    if(playerEgg._blankaSpinTimer>0){
+        playerEgg._blankaSpinTimer--;
+        playerEgg.vx*=0.1;playerEgg.vz*=0.1; // stay in place
+        playerEgg.mesh.rotation.x+=2.0; // fast forward tumble
+        playerEgg.mesh.scale.set(0.8,0.8,0.8);
+        // Hit nearby enemies
+        if(playerEgg._blankaSpinTimer%4===0){
+            for(var _bri=0;_bri<allEggs.length;_bri++){
+                var _bre=allEggs[_bri];if(_bre===playerEgg||!_bre.alive||_bre.heldBy)continue;
+                var _brdx=_bre.mesh.position.x-playerEgg.mesh.position.x;
+                var _brdz=_bre.mesh.position.z-playerEgg.mesh.position.z;
+                var _brd=Math.sqrt(_brdx*_brdx+_brdz*_brdz);
+                if(_brd<2.5&&_brd>0.01){
+                    _bre.vx+=_brdx/_brd*0.3;_bre.vz+=_brdz/_brd*0.3;_bre.vy=0.2;
+                    _bre.squash=0.5;_bre._hitStun=10;
+                    _dropNpcStolenCoins(_bre);playHitSound();
+                }
+            }
+        }
+        if(playerEgg._blankaSpinTimer<=0){
+            playerEgg.mesh.rotation.x=0;
+            playerEgg.mesh.scale.set(1,1,1);
         }
     }
     // ---- Honda/Blanka Dash Attack (constant speed each frame) ----
