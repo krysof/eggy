@@ -38,6 +38,7 @@ function updateCity(){
             if(_hd2<1.5){
                 _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
                 _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_he2._stunTimer=50;
+                if(_hk.burns)_he2._onFire=60; // fire effect on hit
                 _dropNpcStolenCoins(_he2);playHitSound();
                 _hk.life=0;break;
             }

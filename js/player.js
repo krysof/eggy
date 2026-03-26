@@ -533,19 +533,19 @@ function handlePlayerInput(){
         }
         // ---- COMMAND INPUT SPECIALS ----
         else if(_isHadou&&(_ct==='egg'||_ct==='dog')){
-            // HADOUKEN (Ryu blue, Ken red)
+            // HADOUKEN (Ryu red, Ken red)
             _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;
             var _hDir=playerEgg.mesh.rotation.y;
             var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
             var _hz=playerEgg.mesh.position.z+Math.cos(_hDir)*1.5;
             var _hy=playerEgg.mesh.position.y+0.7;
-            var _hColor=_ct==='dog'?0xFF4444:0x44AAFF; // Ken=red, Ryu=blue
+            var _hColor=_ct==='egg'?0xFF4444:0xFF4444; // Both red
             var _hBall=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),new THREE.MeshBasicMaterial({color:_hColor,transparent:true,opacity:0.85}));
             _hBall.position.set(_hx,_hy,_hz);scene.add(_hBall);
-            var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:_ct==='dog'?0xFFAA66:0x88DDFF,transparent:true,opacity:0.6}));
+            var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:0xFFAA66,transparent:true,opacity:0.6}));
             _hRing.position.copy(_hBall.position);scene.add(_hRing);
-            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*0.35,vz:Math.cos(_hDir)*0.35,life:120,owner:playerEgg};
+            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*0.35,vz:Math.cos(_hDir)*0.35,life:120,owner:playerEgg,burns:true};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ct==='cockroach'){
