@@ -1046,9 +1046,9 @@ function handlePlayerInput(){
             playerEgg._blankaShock=Math.max(playerEgg._blankaShock,30);
             playerEgg._attackCD=0;
         }
-        // Crouch down and stay still
+        // Shake and stay still
         playerEgg.vx*=0.1;playerEgg.vz*=0.1;
-        playerEgg.mesh.scale.set(1.1,0.7,1.1); // squash down = crouch
+        playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.05)*0.3;
         // Electric bolts — radiate outward from body center (purple)
         if(!playerEgg._elecParticles){
             playerEgg._elecParticles=[];
@@ -1095,7 +1095,7 @@ function handlePlayerInput(){
             }
         }
         if(playerEgg._blankaShock<=0){
-            playerEgg.mesh.scale.set(1,1,1); // restore from crouch
+            playerEgg.mesh.rotation.z=0;
             if(playerEgg._elecParticles)for(var _epk=0;_epk<playerEgg._elecParticles.length;_epk++)playerEgg._elecParticles[_epk].visible=false;
         }
     }
@@ -1104,6 +1104,8 @@ function handlePlayerInput(){
     if(playerEgg._blankaSpinTimer>0){
         playerEgg._blankaSpinTimer--;
         playerEgg.vx*=0.1;playerEgg.vz*=0.1; // stay in place
+        playerEgg.vy=0; // cancel gravity, hover in air
+        playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // stay airborne
         playerEgg.mesh.rotation.x+=2.0; // fast forward tumble
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         // Hit nearby enemies
