@@ -23,13 +23,14 @@ function _handleStart(){
     stopTitleBGM();
     // Hide start screen immediately to prevent title BGM from restarting
     var _ss=document.getElementById('start-screen');
-    if(_ss)_ss.classList.remove('active');
+    if(_ss){_ss.classList.remove('active');_ss.style.display='flex';_ss.style.background='#000';if(_introCanvas)_introCanvas.style.display='none';}
     var ctx=ensureAudio();
     if(ctx&&ctx.state==='suspended')ctx.resume();
     // 700ms delay before showing select screen
     _menuJoyConfirmCD=60; // block button inputs during transition
     keys['KeyR']=false;keys['KeyT']=false;keys['KeyF']=false;keys['Space']=false;
     setTimeout(function(){
+        if(_ss){_ss.style.display='';_ss.style.background='';}
         showScreen('select-screen');
         if(_touchVisible)_showMenuTouch();
         _menuJoyConfirmCD=30; // extra cooldown after screen appears

@@ -571,25 +571,26 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
-            // SONIC BOOM (Guile) — yellow crescent projectile
+            // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
             _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;
             var _sbDir=playerEgg.mesh.rotation.y;
-            var _sbGroup=new THREE.Group();
-            // Build crescent from 3 flat boxes arranged in an arc
-            for(var _sbi=0;_sbi<5;_sbi++){
-                var _sba=(_sbi-2)*0.35;
-                var _sbPiece=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.18,0.06),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9}));
-                _sbPiece.position.set(Math.sin(_sba)*0.35,Math.cos(_sba)*0.35,0);
-                _sbPiece.rotation.z=_sba;
-                _sbGroup.add(_sbPiece);
-            }
-            _sbGroup.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
-            _sbGroup.rotation.y=_sbDir;
-            scene.add(_sbGroup);
-            var _sbRing=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.4}));
-            _sbRing.position.copy(_sbGroup.position);scene.add(_sbRing);
-            window._playerHadouken={ball:_sbGroup,ring:_sbRing,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
+            // Draw crescent on a canvas texture
+            var _sbCvs=document.createElement('canvas');_sbCvs.width=64;_sbCvs.height=64;
+            var _sbCtx2=_sbCvs.getContext('2d');
+            _sbCtx2.fillStyle='#FFDD44';
+            _sbCtx2.beginPath();_sbCtx2.arc(32,32,28,0,Math.PI*2);_sbCtx2.fill();
+            _sbCtx2.globalCompositeOperation='destination-out';
+            _sbCtx2.beginPath();_sbCtx2.arc(44,32,22,0,Math.PI*2);_sbCtx2.fill();
+            var _sbTex=new THREE.CanvasTexture(_sbCvs);
+            var _sbPlane=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:_sbTex,transparent:true,side:THREE.DoubleSide}));
+            _sbPlane.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
+            _sbPlane.rotation.y=_sbDir;
+            scene.add(_sbPlane);
+            // Small glow sphere
+            var _sbGlow=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.3}));
+            _sbGlow.position.copy(_sbPlane.position);scene.add(_sbGlow);
+            window._playerHadouken={ball:_sbPlane,ring:_sbGlow,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance

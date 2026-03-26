@@ -26,9 +26,9 @@ function updateCity(){
         _hk.ball.position.x+=_hk.vx;_hk.ball.position.z+=_hk.vz;
         _hk.ring.position.copy(_hk.ball.position);
         _hk.ring.rotation.z+=0.2;
-        // Sonic Boom: spin crescent horizontally
+        // Sonic Boom: spin the crescent plane
         if(_hk.isSonicBoom){
-            _hk.ball.rotation.x+=0.5;
+            _hk.ball.rotation.x+=0.4;
         }
         _hk.life--;
         _hk.ball.material.opacity=Math.min(0.9,_hk.life/30);
