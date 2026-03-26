@@ -331,7 +331,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         // Skip walk body tilt during spin dash — let the whole mesh spin freely
         var _isSpinning=(egg.isPlayer&&_spinDashing)||(egg._npcSpinTimer&&egg._npcSpinTimer>=30&&egg._npcSpinTimer<90);
         if(!_isSpinning){
-            var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;body.rotation.x+=(tx-body.rotation.x)*0.1;
+            var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;if(!egg._guileSomersault)body.rotation.x+=(tx-body.rotation.x)*0.1;
         }
     }
 
@@ -350,9 +350,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg._wobbleTimer--;
         var wob=Math.sin(egg.walkPhase*1.5)*egg._wobbleAmt*egg._wobbleDir;
         egg.mesh.rotation.z+=(wob-egg.mesh.rotation.z)*0.1;
-        if(!egg._guileSomersault)egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
+        egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
     } else {
-        if(!egg._guileSomersault)egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
+        egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
         egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.12;
     }
 

@@ -1068,8 +1068,9 @@ function handlePlayerInput(){
             playerEgg.vx=playerEgg._guileSomFwdX;
             playerEgg.vz=playerEgg._guileSomFwdZ;
         }
-        // Full 360 backflip — rotate the WHOLE mesh (not just body)
-        playerEgg.mesh.rotation.x-=Math.PI*2/65;
+        // Full 360 backflip — rotate BODY in local space (follows facing direction)
+        var _gsB=playerEgg.mesh.userData.body;
+        if(_gsB)_gsB.rotation.x-=Math.PI*2/65;
         playerEgg._dashBounceTimer=5;
         // Blade arc — release at peak height, flies forward ~1 body length
         if(window._guileArc){
@@ -1124,6 +1125,7 @@ function handlePlayerInput(){
             playerEgg._guileSomersault=0;
         }
         if(playerEgg._guileSomersault<=0){
+            var _gsB2=playerEgg.mesh.userData.body;if(_gsB2)_gsB2.rotation.x=0;
             playerEgg.mesh.rotation.x=0;
             if(window._guileArc)window._guileArc.visible=false;
             playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
