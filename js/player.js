@@ -492,8 +492,30 @@ function handlePlayerInput(){
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         var _isShoryu=playerEgg._shoryuReady;
+        // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
+        if(_ct==='pig'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
+            _shoutMove(playerEgg,'Hyakuretsu!');
+            playerEgg._comboCount=0;playerEgg._attackCD=2;
+            if(!playerEgg._slapSide)playerEgg._slapSide=0;
+            playerEgg._slapSide=(playerEgg._slapSide+1)%3;
+            var _slapY=[0.5,0.2,-0.1][playerEgg._slapSide];
+            var _sArm=(playerEgg._slapSide%2===0)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
+            var _sArmOther=(playerEgg._slapSide%2===0)?playerEgg.mesh.userData.leftArm:playerEgg.mesh.userData.rightArm;
+            if(_sArm){_sArm.visible=true;_sArm.position.set((playerEgg._slapSide%2===0)?0.4:-0.4,_slapY,4.5);_sArm.scale.set(1.8,1.8,1.8);}
+            if(_sArmOther){_sArmOther.visible=true;_sArmOther.position.set((playerEgg._slapSide%2===0)?-0.25:0.25,_slapY+0.1,2.5);_sArmOther.scale.set(1.3,1.3,1.3);}
+            playerEgg._atkAnim=2;
+            var _hsDir=playerEgg.mesh.rotation.y;
+            playerEgg.vx+=Math.sin(_hsDir)*0.04;playerEgg.vz+=Math.cos(_hsDir)*0.04;
+            for(var _hsi=0;_hsi<allEggs.length;_hsi++){
+                var _hse=allEggs[_hsi];if(_hse===playerEgg||!_hse.alive||_hse.heldBy)continue;
+                var _hsdx=_hse.mesh.position.x-playerEgg.mesh.position.x;
+                var _hsdz=_hse.mesh.position.z-playerEgg.mesh.position.z;
+                if(Math.sqrt(_hsdx*_hsdx+_hsdz*_hsdz)<4.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
+            }
+            playerEgg.squash=0.88;
+        }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
-        if(playerEgg._rapidRReady&&_ct==='pig'){
+        else if(playerEgg._rapidRReady&&_ct==='pig'){
             playerEgg._comboCount=0;playerEgg._attackCD=1;playerEgg._rapidR=2;
             if(!playerEgg._slapSide)playerEgg._slapSide=0;
             playerEgg._slapSide=(playerEgg._slapSide+1)%3;
