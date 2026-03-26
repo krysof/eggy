@@ -599,7 +599,7 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             var _shFaceDir=playerEgg.mesh.rotation.y;
-            var _shFwd=_ct==='dog'?0.9:0.25; // Ken flies much further forward
+            var _shFwd=_ct==='dog'?1.8:0.25; // Ken flies much further forward
             playerEgg.vy=JUMP_FORCE*(_ct==='dog'?2.2:1.6);
             playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
             playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
@@ -1086,8 +1086,12 @@ function handlePlayerInput(){
             }
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         }
-        // Blanka rolls visually
-        if(playerEgg._blankaRoll)playerEgg.mesh.rotation.x+=0.6;
+        // Blanka rolls visually — same height as Honda, fast 360 spin
+        if(playerEgg._blankaRoll){
+            playerEgg.mesh.rotation.x+=1.2; // fast 360 spin
+            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // same height as Honda
+            playerEgg.mesh.scale.set(0.8,0.8,0.8); // ball shape
+        }
         for(var _hdi=0;_hdi<allEggs.length;_hdi++){
             var _hde=allEggs[_hdi];if(_hde===playerEgg||!_hde.alive||_hde.heldBy)continue;
             var _hddx=_hde.mesh.position.x-playerEgg.mesh.position.x;
@@ -1099,7 +1103,13 @@ function handlePlayerInput(){
                 // Bounce back on hit — reverse, land, recover
                 playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
                 playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
-                playerEgg._hondaDash=0;playerEgg._dashBounceTimer=30;
+                if(playerEgg._blankaRoll){
+                    // Blanka keeps rolling during bounce-back
+                    playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
+                } else {
+                    playerEgg._hondaDash=0;
+                }
+                playerEgg._dashBounceTimer=30;
                 playerEgg.vy=0.1; // small hop on bounce
             }
         }
@@ -1110,7 +1120,12 @@ function handlePlayerInput(){
             if(Math.abs(_ddx)<_dc.hw+1&&Math.abs(_ddz)<_dc.hd+1&&playerEgg.mesh.position.y<(_dc.h||6)){
                 playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
                 playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
-                playerEgg._hondaDash=0;playerEgg.vy=0.1;playerEgg._dashBounceTimer=30;
+                if(playerEgg._blankaRoll){
+                    playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
+                } else {
+                    playerEgg._hondaDash=0;
+                }
+                playerEgg.vy=0.1;playerEgg._dashBounceTimer=30;
                 playHitSound();break;
             }
         }
