@@ -811,12 +811,18 @@ function handlePlayerInput(){
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
         } else if(_isTatsu&&(_ct==='rooster')){
-            // SOMERSAULT KICK (Guile) — backflip with blade arc
+            // SOMERSAULT KICK (Guile) — backflip with blade arc, Ryu-like trajectory
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
-            playerEgg.vy=JUMP_FORCE*2.0;playerEgg.squash=0.5;
-            playerEgg._shoryuActive=50;
-            playerEgg._guileSomersault=50; // backflip timer
+            var _gsFaceDir=playerEgg.mesh.rotation.y;
+            playerEgg.vy=JUMP_FORCE*1.6; // same height as Ryu
+            playerEgg.vx=Math.sin(_gsFaceDir)*0.15; // same forward as Ryu
+            playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
+            playerEgg.squash=0.5;
+            playerEgg._shoryuActive=65; // same duration as Ryu
+            playerEgg._shoryuFwdX=Math.sin(_gsFaceDir)*0.15; // constant forward push
+            playerEgg._shoryuFwdZ=Math.cos(_gsFaceDir)*0.15;
+            playerEgg._guileSomersault=65; // full backflip over the duration
             // Create blade arc effect
             if(!window._guileArc){
                 var _gaCvs=document.createElement('canvas');_gaCvs.width=64;_gaCvs.height=64;
@@ -903,7 +909,7 @@ function handlePlayerInput(){
         if(playerEgg._guileSomersault>0){
             playerEgg._guileSomersault--;
             var _gsBody=playerEgg.mesh.userData.body;
-            if(_gsBody)_gsBody.rotation.x-=0.35; // backflip
+            if(_gsBody)_gsBody.rotation.x-=Math.PI*2/65; // one full backflip over duration
             // Track blade arc to player position
             if(window._guileArc){
                 window._guileArc.visible=true;
@@ -1176,8 +1182,8 @@ function handlePlayerInput(){
                     // Knock back away from Blanka
                     var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
                     if(_elDist<0.1)_elDist=0.1;
-                    _bse.vx=_bsdx/_elDist*1.2;_bse.vz=_bsdz/_elDist*1.2;_bse.vy=0.3;
-                    _bse.throwTimer=50;_bse._bounces=2;_bse.squash=0.4;
+                    _bse.vx=_bsdx/_elDist*0.6;_bse.vz=_bsdz/_elDist*0.6;_bse.vy=0.08;
+                    _bse.throwTimer=80;_bse._bounces=0;_bse.squash=0.4;
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
