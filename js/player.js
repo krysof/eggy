@@ -46,6 +46,7 @@ function handlePlayerInput(){
         playerEgg._blankaShock=0;
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
         playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
+        playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
         playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -271,7 +272,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling||playerEgg._guileSomersault);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -811,18 +812,17 @@ function handlePlayerInput(){
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
         } else if(_isTatsu&&(_ct==='rooster')){
-            // SOMERSAULT KICK (Guile) — backflip with blade arc, Ryu-like trajectory
+            // SOMERSAULT KICK (Guile) — backflip with blade arc
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             var _gsFaceDir=playerEgg.mesh.rotation.y;
-            playerEgg.vy=JUMP_FORCE*1.6; // same height as Ryu
-            playerEgg.vx=Math.sin(_gsFaceDir)*0.15; // same forward as Ryu
+            playerEgg.vy=JUMP_FORCE*1.6;
+            playerEgg.vx=Math.sin(_gsFaceDir)*0.15;
             playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
             playerEgg.squash=0.5;
-            playerEgg._shoryuActive=65; // same duration as Ryu
-            playerEgg._shoryuFwdX=Math.sin(_gsFaceDir)*0.15; // constant forward push
-            playerEgg._shoryuFwdZ=Math.cos(_gsFaceDir)*0.15;
-            playerEgg._guileSomersault=65; // full backflip over the duration
+            playerEgg._guileSomersault=65;
+            playerEgg._guileSomFwdX=Math.sin(_gsFaceDir)*0.15;
+            playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
             // Create blade arc effect
             if(!window._guileArc){
                 var _gaCvs=document.createElement('canvas');_gaCvs.width=64;_gaCvs.height=64;
@@ -905,24 +905,6 @@ function handlePlayerInput(){
             playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
         );
         playerEgg.mesh.rotation.y+=0.12;
-        // Guile Somersault: backflip + blade arc
-        if(playerEgg._guileSomersault>0){
-            playerEgg._guileSomersault--;
-            var _gsBody=playerEgg.mesh.userData.body;
-            if(_gsBody)_gsBody.rotation.x-=Math.PI*2/65; // one full backflip over duration
-            // Track blade arc to player position
-            if(window._guileArc){
-                window._guileArc.visible=true;
-                window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.8,playerEgg.mesh.position.z);
-                window._guileArc.rotation.y=_sfDir;
-                window._guileArc.rotation.x=playerEgg._guileSomersault*0.12;
-                window._guileArc.material.opacity=Math.min(0.8,playerEgg._guileSomersault/15);
-            }
-            if(playerEgg._guileSomersault<=0){
-                if(_gsBody)_gsBody.rotation.x=0;
-                if(window._guileArc)window._guileArc.visible=false;
-            }
-        }
         // Maintain forward momentum during shoryuken (override friction)
         if(playerEgg._shoryuFwdX!==undefined){
             playerEgg.vx=playerEgg._shoryuFwdX;
@@ -1070,6 +1052,56 @@ function handlePlayerInput(){
         }
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
+    }
+    // ---- Guile Somersault Kick (standalone, no shoryuken effect) ----
+    if(playerEgg._guileSomersault>0){
+        playerEgg._guileSomersault--;
+        // Constant forward push (same as Ryu shoryuken trajectory)
+        if(playerEgg._guileSomFwdX!==undefined){
+            playerEgg.vx=playerEgg._guileSomFwdX;
+            playerEgg.vz=playerEgg._guileSomFwdZ;
+        }
+        // Full 360 backflip on body
+        var _gsBody2=playerEgg.mesh.userData.body;
+        if(_gsBody2)_gsBody2.rotation.x-=Math.PI*2/65;
+        // Blade arc follows player, fades out
+        if(window._guileArc){
+            window._guileArc.visible=true;
+            window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.8,playerEgg.mesh.position.z);
+            window._guileArc.rotation.y=playerEgg.mesh.rotation.y;
+            window._guileArc.rotation.z+=0.3;
+            window._guileArc.material.opacity=Math.min(0.8,playerEgg._guileSomersault/20);
+        }
+        // Hit detection
+        if(playerEgg._guileSomersault%4===0){
+            for(var _gsi=0;_gsi<allEggs.length;_gsi++){
+                var _gse=allEggs[_gsi];if(_gse===playerEgg||!_gse.alive||_gse.heldBy)continue;
+                if(_gse._slamImmune>0)continue;
+                var _gsdx=_gse.mesh.position.x-playerEgg.mesh.position.x;
+                var _gsdz=_gse.mesh.position.z-playerEgg.mesh.position.z;
+                var _gsdy=_gse.mesh.position.y-playerEgg.mesh.position.y;
+                var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdz*_gsdz+_gsdy*_gsdy);
+                if(_gsd<3&&_gsd>0.01){
+                    _gse.vx+=_gsdx/_gsd*0.4;_gse.vz+=_gsdz/_gsd*0.4;_gse.vy=0.3;
+                    _gse.squash=0.4;_gse.throwTimer=35;_gse._bounces=1;
+                    _addStunDamage(_gse,20);
+                    _dropNpcStolenCoins(_gse);playHitSound();
+                }
+            }
+        }
+        // End check — skip first 10 frames
+        if(playerEgg._guileSomersault<55&&(playerEgg.vy<=0||playerEgg.onGround)){
+            playerEgg._guileSomersault=0;
+        } else if(playerEgg._guileSomersault<=0){
+            playerEgg._guileSomersault=0;
+        }
+        if(playerEgg._guileSomersault<=0){
+            if(_gsBody2)_gsBody2.rotation.x=0;
+            if(window._guileArc)window._guileArc.visible=false;
+            playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
+        }
+    } else {
+        if(window._guileArc)window._guileArc.visible=false;
     }
     // ---- Honda Hyakuretsu continuous animation ----
     if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
