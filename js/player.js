@@ -924,13 +924,16 @@ function handlePlayerInput(){
     var _hLeftPress=_hLeft&&!playerEgg._prevHLeft;
     var _hRightPress=_hRight&&!playerEgg._prevHRight;
     var _hDownPress=_hDown&&!playerEgg._prevHDown;
-    // ---- Shoryuken: 前+下+R (forward then down + punch) ----
+    var _joyU=joyActive&&joyVec.y<-0.3;
+    var _hUp=(keys['KeyW']||keys['ArrowUp']||_joyU);
+    var _hUpPress=_hUp&&!playerEgg._prevHUp;
+    // ---- Shoryuken: 下+上+R (down then up + punch) ----
     if(!playerEgg._shoryuSeq)playerEgg._shoryuSeq=0;
     if(!playerEgg._shoryuTimer)playerEgg._shoryuTimer=0;
     playerEgg._shoryuTimer--;
-    if((_hLeftPress||_hRightPress)&&playerEgg._shoryuSeq===0){
+    if(_hDownPress&&playerEgg._shoryuSeq===0){
         playerEgg._shoryuSeq=1;playerEgg._shoryuTimer=30;
-    } else if(_hDownPress&&playerEgg._shoryuSeq===1){
+    } else if(_hUpPress&&playerEgg._shoryuSeq===1){
         playerEgg._shoryuSeq=2;playerEgg._shoryuTimer=30;playerEgg._shoryuReady=true;
     }
     if(playerEgg._shoryuTimer<=0){playerEgg._shoryuSeq=0;playerEgg._shoryuReady=false;}
@@ -956,16 +959,8 @@ function handlePlayerInput(){
     }
     if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
     playerEgg._prevBfBack=_inputBack;playerEgg._prevBfFwd=_inputFwd;
-    // ---- Tatsumaki (旋风腿): 下+後+T (down-back-kick) ----
-    if(!playerEgg._tatsuSeq)playerEgg._tatsuSeq=0;
-    if(!playerEgg._tatsuTimer)playerEgg._tatsuTimer=0;
-    playerEgg._tatsuTimer--;
-    if(_hDownPress&&playerEgg._tatsuSeq===0){
-        playerEgg._tatsuSeq=1;playerEgg._tatsuTimer=30;
-    } else if(playerEgg._tatsuSeq===1&&(_hLeftPress||_hRightPress)){
-        playerEgg._tatsuSeq=2;playerEgg._tatsuTimer=30;playerEgg._tatsuReady=true;
-    }
-    if(playerEgg._tatsuTimer<=0){playerEgg._tatsuSeq=0;playerEgg._tatsuReady=false;}
+    // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) — reuse bf detection ----
+    playerEgg._tatsuReady=playerEgg._bfReady;
     // ---- Hadouken (波動拳): 後+前+R (back-forward-punch) ----
     if(!playerEgg._hadouSeq)playerEgg._hadouSeq=0;
     if(!playerEgg._hadouTimer)playerEgg._hadouTimer=0;
@@ -976,12 +971,12 @@ function handlePlayerInput(){
         playerEgg._hadouSeq=2;playerEgg._hadouTimer=30;playerEgg._hadouReady=true;
     }
     if(playerEgg._hadouTimer<=0){playerEgg._hadouSeq=0;playerEgg._hadouReady=false;}
-    playerEgg._prevHLeft=_hLeft;playerEgg._prevHRight=_hRight;playerEgg._prevHDown=_hDown;
+    playerEgg._prevHLeft=_hLeft;playerEgg._prevHRight=_hRight;playerEgg._prevHDown=_hDown;playerEgg._prevHUp=_hUp;
     // ---- Simple command inputs for charge characters (no actual charging needed) ----
-    // Sonic Boom / 気功拳 / Rolling Attack: use ←→+R (same as hadouken)
+    // Sonic Boom / 気功拳: use ←→+R (same as hadouken)
     playerEgg._chargeForwardReady=playerEgg._hadouReady;
-    // Somersault / Spinning Bird: use ←→+T (reuse hadou input for kick)
-    playerEgg._chargeUpReady=playerEgg._hadouReady;
+    // Somersault / Spinning Bird: use ←→+T (same as tatsumaki, which is now bf)
+    playerEgg._chargeUpReady=playerEgg._bfReady;
     // ---- Rapid press detection (Chun-Li/Honda/Blanka) ----
     if(!playerEgg._rapidR)playerEgg._rapidR=0;
     if(!playerEgg._rapidT)playerEgg._rapidT=0;
