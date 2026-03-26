@@ -37,8 +37,8 @@ function drawPortrait(ch) {
         window._portraitRenderer.setClearColor(0x0a0a2e,1);
         window._portraitScene=new THREE.Scene();
         window._portraitCamera=new THREE.PerspectiveCamera(35,W/H,0.1,100);
-        window._portraitCamera.position.set(0,1.2,3.5);
-        window._portraitCamera.lookAt(0,0.7,0);
+        window._portraitCamera.position.set(0,0.8,3.5);
+        window._portraitCamera.lookAt(0,0.5,0);
         window._portraitScene.add(new THREE.AmbientLight(0xffffff,0.7));
         var _pSun=new THREE.DirectionalLight(0xFFEECC,1.5);
         _pSun.position.set(2,3,2);
