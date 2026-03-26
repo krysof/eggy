@@ -611,14 +611,20 @@ function handlePlayerInput(){
             _sbGlow.position.copy(_sbPlane.position);scene.add(_sbGlow);
             window._playerHadouken={ball:_sbPlane,ring:_sbGlow,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
-            // Sonic boom sound
+            // Sonic boom sound — loud crack
             if(sfxEnabled){var _sbSCtx=ensureAudio();if(_sbSCtx){var _sbt=_sbSCtx.currentTime;
-                var _sbb=_sbSCtx.createBuffer(1,Math.floor(_sbSCtx.sampleRate*0.2),_sbSCtx.sampleRate);
+                // Sharp crack
+                var _sbb=_sbSCtx.createBuffer(1,Math.floor(_sbSCtx.sampleRate*0.15),_sbSCtx.sampleRate);
                 var _sbd=_sbb.getChannelData(0);
-                for(var _sbsi=0;_sbsi<_sbd.length;_sbsi++){var _sbp=_sbsi/_sbd.length;_sbd[_sbsi]=(Math.random()-0.5)*0.4*Math.exp(-_sbp*5)*Math.sin(_sbp*Math.PI*30);}
+                for(var _sbsi=0;_sbsi<_sbd.length;_sbsi++){var _sbp=_sbsi/_sbd.length;_sbd[_sbsi]=(Math.random()-0.5)*0.8*Math.exp(-_sbp*8);}
                 var _sbs=_sbSCtx.createBufferSource();_sbs.buffer=_sbb;
-                var _sbg2=_sbSCtx.createGain();_sbg2.gain.value=0.12;
-                _sbs.connect(_sbg2);_sbg2.connect(_sbSCtx.destination);_sbs.start(_sbt);_sbs.stop(_sbt+0.2);
+                var _sbg2=_sbSCtx.createGain();_sbg2.gain.value=0.25;
+                _sbs.connect(_sbg2);_sbg2.connect(_sbSCtx.destination);_sbs.start(_sbt);_sbs.stop(_sbt+0.15);
+                // Low boom
+                var _sbo=_sbSCtx.createOscillator();var _sbog=_sbSCtx.createGain();
+                _sbo.type='sine';_sbo.frequency.setValueAtTime(120,_sbt);_sbo.frequency.exponentialRampToValueAtTime(40,_sbt+0.2);
+                _sbog.gain.setValueAtTime(0.2,_sbt);_sbog.gain.exponentialRampToValueAtTime(0.001,_sbt+0.25);
+                _sbo.connect(_sbog);_sbog.connect(_sbSCtx.destination);_sbo.start(_sbt);_sbo.stop(_sbt+0.25);
             }}
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_ct==='pig'){
@@ -805,12 +811,26 @@ function handlePlayerInput(){
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
         } else if(_isTatsu&&(_ct==='rooster')){
-            // SOMERSAULT KICK (Guile) — ↓←+T
+            // SOMERSAULT KICK (Guile) — backflip with blade arc
+            _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*2.0;playerEgg.squash=0.5;
             playerEgg._shoryuActive=50;
+            playerEgg._guileSomersault=50; // backflip timer
+            // Create blade arc effect
+            if(!window._guileArc){
+                var _gaCvs=document.createElement('canvas');_gaCvs.width=64;_gaCvs.height=64;
+                var _gaCtx=_gaCvs.getContext('2d');
+                _gaCtx.strokeStyle='#88FFFF';_gaCtx.lineWidth=4;
+                _gaCtx.beginPath();_gaCtx.arc(32,32,26,0.2,Math.PI-0.2);_gaCtx.stroke();
+                _gaCtx.strokeStyle='#FFFFFF';_gaCtx.lineWidth=2;
+                _gaCtx.beginPath();_gaCtx.arc(32,32,24,0.3,Math.PI-0.3);_gaCtx.stroke();
+                var _gaTex=new THREE.CanvasTexture(_gaCvs);
+                window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(3,3),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
+                scene.add(window._guileArc);
+            }
+            window._guileArc.visible=true;
             playJumpSound();
-            _shoutMove(playerEgg,'Somersault Kick!');
         } else {
         // Normal kick
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
@@ -879,6 +899,24 @@ function handlePlayerInput(){
             playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
         );
         playerEgg.mesh.rotation.y+=0.12;
+        // Guile Somersault: backflip + blade arc
+        if(playerEgg._guileSomersault>0){
+            playerEgg._guileSomersault--;
+            var _gsBody=playerEgg.mesh.userData.body;
+            if(_gsBody)_gsBody.rotation.x-=0.35; // backflip
+            // Track blade arc to player position
+            if(window._guileArc){
+                window._guileArc.visible=true;
+                window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.8,playerEgg.mesh.position.z);
+                window._guileArc.rotation.y=_sfDir;
+                window._guileArc.rotation.x=playerEgg._guileSomersault*0.12;
+                window._guileArc.material.opacity=Math.min(0.8,playerEgg._guileSomersault/15);
+            }
+            if(playerEgg._guileSomersault<=0){
+                if(_gsBody)_gsBody.rotation.x=0;
+                if(window._guileArc)window._guileArc.visible=false;
+            }
+        }
         // Maintain forward momentum during shoryuken (override friction)
         if(playerEgg._shoryuFwdX!==undefined){
             playerEgg.vx=playerEgg._shoryuFwdX;
@@ -1138,8 +1176,8 @@ function handlePlayerInput(){
                     // Knock back away from Blanka
                     var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
                     if(_elDist<0.1)_elDist=0.1;
-                    _bse.vx=_bsdx/_elDist*4.0;_bse.vz=_bsdz/_elDist*4.0;_bse.vy=0.25;
-                    _bse.throwTimer=40;_bse._bounces=1;_bse.squash=0.4;
+                    _bse.vx=_bsdx/_elDist*1.2;_bse.vz=_bsdz/_elDist*1.2;_bse.vy=0.3;
+                    _bse.throwTimer=50;_bse._bounces=2;_bse.squash=0.4;
                 }
                 _dropNpcStolenCoins(_bse);if(_bse.isPlayer)playHitSound();
             }
