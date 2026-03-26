@@ -29,7 +29,7 @@ function handlePlayerInput(){
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;playerEgg._blankaRoll=false;}
         playerEgg._blankaShock=0;
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
-        playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;
+        playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
         playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -255,7 +255,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -659,6 +659,8 @@ function handlePlayerInput(){
             playerEgg._blankaSpinTimer=60;
             playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*2;
             playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*2;
+            playerEgg._dashFaceY=_brDir; // remember facing for landing
+            playerEgg._blankaSpinFalling=false;
             playerEgg.squash=0.8;
         } else {
         // Normal punch combo
@@ -1110,11 +1112,10 @@ function handlePlayerInput(){
             playerEgg.vx=playerEgg._blankaSpinDirX;
             playerEgg.vz=playerEgg._blankaSpinDirZ;
         }
-        playerEgg.vy=0; // cancel gravity, hover in air
-        playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // stay airborne
-        // Rotate the body around its own center, 2x faster
+        playerEgg.vy=0; // cancel gravity while timer active
+        playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         var _bsBody=playerEgg.mesh.userData.body;
-        if(_bsBody)_bsBody.rotation.x+=4.0;
+        if(_bsBody)_bsBody.rotation.x+=8.0; // very fast spin
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         // Hit nearby enemies
         if(playerEgg._blankaSpinTimer%4===0){
@@ -1127,7 +1128,6 @@ function handlePlayerInput(){
                     _bre.vx+=_brdx/_brd*0.3;_bre.vz+=_brdz/_brd*0.3;_bre.vy=0.2;
                     _bre.squash=0.5;_bre._hitStun=10;
                     _dropNpcStolenCoins(_bre);playHitSound();
-                    // Bounce back like Honda
                     if(playerEgg._blankaSpinDirX!==undefined){
                         playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
                         playerEgg._blankaSpinTimer=Math.min(playerEgg._blankaSpinTimer,20);
@@ -1136,12 +1136,24 @@ function handlePlayerInput(){
                 }
             }
         }
+        // When timer ends, start falling but keep spinning
         if(playerEgg._blankaSpinTimer<=0){
-            var _bsBody2=playerEgg.mesh.userData.body;
-            if(_bsBody2)_bsBody2.rotation.x=0;
-            playerEgg.mesh.scale.set(1,1,1);
+            playerEgg._blankaSpinFalling=true;
             playerEgg.vx*=0.2;playerEgg.vz*=0.2;
             playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;
+        }
+    }
+    // Blanka spin falling phase — keep spinning until landing
+    if(playerEgg._blankaSpinFalling){
+        var _bsFBody=playerEgg.mesh.userData.body;
+        if(_bsFBody)_bsFBody.rotation.x+=8.0;
+        playerEgg.mesh.scale.set(0.8,0.8,0.8);
+        if(playerEgg.onGround){
+            // Landed — stop spin, face forward
+            playerEgg._blankaSpinFalling=false;
+            if(_bsFBody)_bsFBody.rotation.x=0;
+            playerEgg.mesh.scale.set(1,1,1);
+            if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
         }
     }
     // ---- Honda/Blanka Dash Attack (constant speed each frame) ----
