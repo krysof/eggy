@@ -26,8 +26,13 @@ function updateCity(){
         _hk.ball.position.x+=_hk.vx;_hk.ball.position.z+=_hk.vz;
         _hk.ring.position.copy(_hk.ball.position);
         _hk.ring.rotation.z+=0.2;
+        // Sonic Boom: spin the crescent around its bottom tip
+        if(_hk.isSonicBoom){
+            _hk.ball.rotation.z+=0.4; // spin around bottom point
+            _hk.ball.rotation.y=_hk.spinDir; // keep facing travel direction
+        }
         _hk.life--;
-        _hk.ball.material.opacity=Math.min(0.85,_hk.life/30);
+        _hk.ball.material.opacity=Math.min(0.9,_hk.life/30);
         _hk.ring.material.opacity=Math.min(0.6,_hk.life/30);
         // Hit eggs
         for(var _hei=0;_hei<allEggs.length;_hei++){

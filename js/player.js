@@ -571,15 +571,23 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&(_ct==='rooster')){
-            // SONIC BOOM (Guile) — ↓→+R fast projectile
+            // SONIC BOOM (Guile) — crescent blade projectile
+            _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;
             var _sbDir=playerEgg.mesh.rotation.y;
-            var _sbColor=_ct==='rooster'?0x44FF44:0xFF8800;
-            var _sbBall=new THREE.Mesh(new THREE.SphereGeometry(_ct==='cat'?0.6:0.3,8,6),new THREE.MeshBasicMaterial({color:_sbColor,transparent:true,opacity:0.85}));
-            _sbBall.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);scene.add(_sbBall);
-            var _sbRing=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:_sbColor,transparent:true,opacity:0.5}));
+            // Crescent blade shape — yellow glowing arc
+            var _sbShape=new THREE.Shape();
+            _sbShape.absarc(0,0,0.5,0.3,Math.PI-0.3,false);
+            _sbShape.absarc(0,0,0.25,Math.PI-0.3,0.3,true);
+            var _sbGeo=new THREE.ExtrudeGeometry(_sbShape,{depth:0.08,bevelEnabled:false});
+            var _sbBall=new THREE.Mesh(_sbGeo,new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9,side:THREE.DoubleSide}));
+            _sbBall.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
+            _sbBall.rotation.y=_sbDir;
+            scene.add(_sbBall);
+            // Glow ring
+            var _sbRing=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.04,6,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.4}));
             _sbRing.position.copy(_sbBall.position);scene.add(_sbRing);
-            window._playerHadouken={ball:_sbBall,ring:_sbRing,vx:Math.sin(_sbDir)*(_ct==='cat'?0.45:0.5),vz:Math.cos(_sbDir)*(_ct==='cat'?0.45:0.5),life:100,owner:playerEgg};
+            window._playerHadouken={ball:_sbBall,ring:_sbRing,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true,spinDir:_sbDir};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
