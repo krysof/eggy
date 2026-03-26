@@ -18,46 +18,178 @@ const AI_COLORS=[0xFFAA44,0x66DD66,0xFF5555,0x88CCDD,0xEEEE55,0xCC88CC,0xFFBBCC,
 // ---- SF2 Character Select Grid ----
 const charGrid = document.getElementById('char-grid');
 const portraitCanvas = document.getElementById('portrait-canvas');
-const portraitCtx = null; // no longer using 2D context — drawPortrait uses WebGL
+const portraitCtx = portraitCanvas ? portraitCanvas.getContext('2d') : null;
 const portraitName = document.getElementById('portrait-name');
 
 function drawPortrait(ch) {
-    if (!portraitCanvas) return;
+    if (!portraitCtx) return;
     var W=portraitCanvas.width, H=portraitCanvas.height;
-    // Use a separate Three.js renderer to render the actual 3D character
-    if(!window._portraitRenderer){
-        try{
-            window._portraitRenderer=new THREE.WebGLRenderer({canvas:portraitCanvas,alpha:true,antialias:true});
-        }catch(e){
-            // WebGL failed — skip portrait rendering
-            window._portraitRenderer=null;
-            return;
+    portraitCtx.clearRect(0,0,W,H);
+    var bg=portraitCtx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#1a1a4a');bg.addColorStop(1,'#0a0a2e');
+    portraitCtx.fillStyle=bg;portraitCtx.fillRect(0,0,W,H);
+    var cx=W/2,cy=H*0.52,rx=55,ry=70;
+    // Body
+    portraitCtx.beginPath();portraitCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+    portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
+    portraitCtx.strokeStyle='rgba(255,255,255,0.15)';portraitCtx.lineWidth=2;portraitCtx.stroke();
+    // Eyes
+    var _eyeY=ch.type==='frog'?cy-25:cy-12;
+    [-1,1].forEach(function(s){
+        portraitCtx.beginPath();portraitCtx.ellipse(cx+s*18,_eyeY,10,12,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#fff';portraitCtx.fill();
+        portraitCtx.beginPath();portraitCtx.arc(cx+s*18,_eyeY+1,6,0,Math.PI*2);
+        portraitCtx.fillStyle='#111';portraitCtx.fill();
+        portraitCtx.beginPath();portraitCtx.arc(cx+s*16,_eyeY-3,2,0,Math.PI*2);
+        portraitCtx.fillStyle='#fff';portraitCtx.fill();
+    });
+    // Smile
+    portraitCtx.beginPath();portraitCtx.arc(cx,cy+12,14,0.15*Math.PI,0.85*Math.PI);
+    portraitCtx.strokeStyle='#333';portraitCtx.lineWidth=2.5;portraitCtx.stroke();
+    // Blush
+    [-1,1].forEach(function(s){
+        portraitCtx.beginPath();portraitCtx.ellipse(cx+s*32,cy+8,10,6,0,0,Math.PI*2);
+        portraitCtx.fillStyle='rgba(255,120,120,0.3)';portraitCtx.fill();
+    });
+    // ---- Character-specific SF2 features ----
+    var _ac='#'+((ch.accent||0).toString(16)).padStart(6,'0');
+    if(ch.type==='egg'){
+        // Ryu: eggshell + red headband
+        portraitCtx.strokeStyle='#FFFFF0';portraitCtx.lineWidth=2.5;
+        portraitCtx.beginPath();
+        portraitCtx.moveTo(cx-35,cy-55);portraitCtx.lineTo(cx-28,cy-65);portraitCtx.lineTo(cx-15,cy-52);
+        portraitCtx.lineTo(cx-5,cy-68);portraitCtx.lineTo(cx+8,cy-54);portraitCtx.lineTo(cx+20,cy-66);
+        portraitCtx.lineTo(cx+30,cy-53);portraitCtx.lineTo(cx+38,cy-58);portraitCtx.stroke();
+        // Red headband
+        portraitCtx.strokeStyle='#CC2222';portraitCtx.lineWidth=5;
+        portraitCtx.beginPath();portraitCtx.arc(cx,cy-48,38,0.7*Math.PI,0.3*Math.PI);portraitCtx.stroke();
+        // Trailing ends
+        portraitCtx.beginPath();portraitCtx.moveTo(cx+36,cy-42);portraitCtx.quadraticCurveTo(cx+50,cy-35,cx+55,cy-25);
+        portraitCtx.strokeStyle='#CC2222';portraitCtx.lineWidth=4;portraitCtx.stroke();
+    } else if(ch.type==='dog'){
+        // Ken: floppy ears + blonde spiky hair
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*45,cy-50,16,28,s*0.3,0,Math.PI*2);
+            portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
+        });
+        // Blonde spiky hair
+        for(var ki=0;ki<5;ki++){
+            portraitCtx.beginPath();portraitCtx.moveTo(cx-20+ki*10,cy-60);
+            portraitCtx.lineTo(cx-15+ki*10,cy-80-Math.random()*10);portraitCtx.lineTo(cx-10+ki*10,cy-60);
+            portraitCtx.fillStyle='#FFDD44';portraitCtx.fill();
         }
-        window._portraitRenderer.setSize(W,H);
-        window._portraitRenderer.setClearColor(0x0a0a2e,1);
-        window._portraitScene=new THREE.Scene();
-        window._portraitCamera=new THREE.PerspectiveCamera(35,W/H,0.1,100);
-        window._portraitCamera.position.set(0,0.8,3.5);
-        window._portraitCamera.lookAt(0,0.5,0);
-        window._portraitScene.add(new THREE.AmbientLight(0xffffff,0.7));
-        var _pSun=new THREE.DirectionalLight(0xFFEECC,1.5);
-        _pSun.position.set(2,3,2);
-        window._portraitScene.add(_pSun);
-        window._portraitScene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.4));
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+6,12,8,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#333';portraitCtx.fill();
+    } else if(ch.type==='pig'){
+        // Honda: pig ears + snout + blue/red face paint
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*40,cy-45,16,20,s*0.4,0,Math.PI*2);
+            portraitCtx.fillStyle='#FFBBBB';portraitCtx.fill();
+        });
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+10,16,12,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#FF8899';portraitCtx.fill();
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*5,cy+10,3,4,0,0,Math.PI*2);
+            portraitCtx.fillStyle='#DD6677';portraitCtx.fill();
+        });
+        // Face paint stripes (blue + red)
+        portraitCtx.fillStyle='rgba(34,68,170,0.4)';
+        portraitCtx.fillRect(cx-40,cy-8,18,4);portraitCtx.fillRect(cx+22,cy-8,18,4);
+        portraitCtx.fillStyle='rgba(204,34,34,0.4)';
+        portraitCtx.fillRect(cx-40,cy-2,18,4);portraitCtx.fillRect(cx+22,cy-2,18,4);
+        // Sumo topknot
+        portraitCtx.beginPath();portraitCtx.arc(cx,cy-68,10,0,Math.PI*2);
+        portraitCtx.fillStyle='#222';portraitCtx.fill();
+    } else if(ch.type==='cat'){
+        // Blanka: pointed ears UP + orange wild mane + fangs
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*30,cy-60);
+            portraitCtx.lineTo(cx+s*50,cy-30);portraitCtx.lineTo(cx+s*15,cy-35);
+            portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
+        });
+        // Orange wild mane
+        for(var bi=0;bi<8;bi++){
+            var ba=bi/8*Math.PI-Math.PI/2;
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+Math.cos(ba)*30,cy-50+Math.sin(ba)*15);
+            portraitCtx.lineTo(cx+Math.cos(ba)*55,cy-55+Math.sin(ba)*25);
+            portraitCtx.lineTo(cx+Math.cos(ba+0.3)*35,cy-48+Math.sin(ba+0.3)*15);
+            portraitCtx.fillStyle='#FF8800';portraitCtx.fill();
+        }
+        // Fangs
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy+18);portraitCtx.lineTo(cx+s*8,cy+28);
+            portraitCtx.lineTo(cx+s*12,cy+18);portraitCtx.fillStyle='#fff';portraitCtx.fill();
+        });
+        // Whiskers
+        [-1,1].forEach(function(s){for(var w=-1;w<=1;w++){
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*20,cy+8+w*6);portraitCtx.lineTo(cx+s*55,cy+4+w*8);
+            portraitCtx.strokeStyle='rgba(0,0,0,0.3)';portraitCtx.lineWidth=1;portraitCtx.stroke();
+        }});
+    } else if(ch.type==='rooster'){
+        // Guile: comb + blonde flat-top + beak
+        for(var ri=0;ri<3;ri++){
+            portraitCtx.beginPath();portraitCtx.arc(cx-10+ri*10,cy-68+Math.abs(ri-1)*5,10,0,Math.PI*2);
+            portraitCtx.fillStyle='#FF3333';portraitCtx.fill();
+        }
+        // Blonde flat-top
+        portraitCtx.fillStyle='#FFDD44';portraitCtx.fillRect(cx-25,cy-78,50,16);
+        // Beak
+        portraitCtx.beginPath();portraitCtx.moveTo(cx-6,cy+4);portraitCtx.lineTo(cx+6,cy+4);
+        portraitCtx.lineTo(cx,cy+16);portraitCtx.fillStyle='#FFAA00';portraitCtx.fill();
+        // Wattle
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+28,8,12,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#FF3333';portraitCtx.fill();
+    } else if(ch.type==='monkey'){
+        // Chun-Li: round ears + hair buns with white ribbons
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*55,cy-5,18,0,Math.PI*2);
+            portraitCtx.fillStyle='#FFCC88';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*55,cy-5,12,0,Math.PI*2);
+            portraitCtx.fillStyle='#D4956B';portraitCtx.fill();
+        });
+        // Hair buns
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*38,cy-55,14,0,Math.PI*2);
+            portraitCtx.fillStyle='#222';portraitCtx.fill();
+            // White ribbon
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*38,cy-42);portraitCtx.lineTo(cx+s*42,cy-30);
+            portraitCtx.lineTo(cx+s*34,cy-30);portraitCtx.fillStyle='#fff';portraitCtx.fill();
+        });
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+10,25,18,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#FFCC88';portraitCtx.fill();
+    } else if(ch.type==='frog'){
+        // Zangief: bulging eyes on top + chest hair + scars
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*25,cy-50,20,0,Math.PI*2);
+            portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*25,cy-50,14,0,Math.PI*2);
+            portraitCtx.fillStyle='#fff';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*25,cy-48,8,0,Math.PI*2);
+            portraitCtx.fillStyle='#111';portraitCtx.fill();
+        });
+        // Chest hair
+        portraitCtx.fillStyle='rgba(139,69,19,0.5)';
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+15,20,12,0,0,Math.PI*2);portraitCtx.fill();
+        // Scars
+        portraitCtx.strokeStyle='rgba(200,100,100,0.5)';portraitCtx.lineWidth=2;
+        portraitCtx.beginPath();portraitCtx.moveTo(cx-15,cy-5);portraitCtx.lineTo(cx-5,cy+10);portraitCtx.stroke();
+        portraitCtx.beginPath();portraitCtx.moveTo(cx+10,cy);portraitCtx.lineTo(cx+20,cy+12);portraitCtx.stroke();
+    } else if(ch.type==='cockroach'){
+        // Dhalsim: antennae + skull necklace
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy-55);
+            portraitCtx.quadraticCurveTo(cx+s*35,cy-85,cx+s*45,cy-70);
+            portraitCtx.strokeStyle='#5C2E0A';portraitCtx.lineWidth=3;portraitCtx.stroke();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*45,cy-70,5,0,Math.PI*2);
+            portraitCtx.fillStyle='#8B6040';portraitCtx.fill();
+        });
+        // Skull necklace
+        for(var si=0;si<3;si++){
+            portraitCtx.beginPath();portraitCtx.arc(cx-12+si*12,cy+35,5,0,Math.PI*2);
+            portraitCtx.fillStyle='#fff';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx-12+si*12,cy+35,2,0,Math.PI*2);
+            portraitCtx.fillStyle='#333';portraitCtx.fill();
+        }
     }
-    if(!window._portraitRenderer)return;
-    // Remove old character mesh
-    if(window._portraitMesh){
-        window._portraitScene.remove(window._portraitMesh);
-        window._portraitMesh=null;
-    }
-    // Create the actual character mesh
-    var mesh=createEggMesh(ch.color,ch.accent,ch.type);
-    mesh.position.set(0,0,0);
-    mesh.rotation.y=0.3; // slight angle for better view
-    window._portraitScene.add(mesh);
-    window._portraitMesh=mesh;
-    // Render
-    window._portraitRenderer.render(window._portraitScene,window._portraitCamera);
 }
 

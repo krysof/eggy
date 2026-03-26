@@ -156,29 +156,29 @@ function _renderIntro(now){
     if(t<1.5){
         // Phase 1: face off — both standing, slight bounce
         var bounce=Math.sin(t*4)*3*scale;
-        _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#F5F5F0','#CC2222',false,true);
-        _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B6914','#FFFFFF',true,true);
+        _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#FFDD44','#FFAA00',false,true);
+        _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B4513','#5C2E0A',true,true);
     } else if(t<3){
         // Phase 2: punch animation
         var pt=t-1.5; // 0 to 1.5
         if(pt<0.3){
             // Wind up — egg leans back
             var lean=pt/0.3;
-            _drawIntroEgg(ctx,cx-lean*15*scale,cy,eggSize,'#F5F5F0','#CC2222',false,true);
-            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B6914','#FFFFFF',true,true);
+            _drawIntroEgg(ctx,cx-lean*15*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
+            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else if(pt<0.6){
             // Punch forward
             var punch=(pt-0.3)/0.3;
             var punchX=cx+punch*W*0.15;
-            _drawIntroEgg(ctx,cx+punch*20*scale,cy,eggSize,'#F5F5F0','#CC2222',false,true);
-            _drawFist(ctx,punchX+eggSize*0.8,cy-eggSize*0.1,eggSize*0.3,'#F5F5F0');
-            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B6914','#FFFFFF',true,true);
+            _drawIntroEgg(ctx,cx+punch*20*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
+            _drawFist(ctx,punchX+eggSize*0.8,cy-eggSize*0.1,eggSize*0.3,'#FFDD44');
+            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else {
             // Impact + cockroach flies back
             var hit=(pt-0.6)/0.9;
             var flashAlpha=Math.max(0,1-hit*3);
             if(flashAlpha>0) _drawFlash(ctx,rx-eggSize*0.5,ry-eggSize*0.2,eggSize*3,flashAlpha);
-            _drawIntroEgg(ctx,cx+20*scale,cy,eggSize,'#F5F5F0','#CC2222',false,true);
+            _drawIntroEgg(ctx,cx+20*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
             // Cockroach flies back and up
             var flyX=rx+hit*W*0.3;
             var flyY=ry-Math.sin(hit*Math.PI)*H*0.3;
@@ -186,7 +186,7 @@ function _renderIntro(now){
             ctx.save();
             ctx.translate(flyX,flyY);
             ctx.rotate(spin);
-            _drawIntroEgg(ctx,0,0,eggSize*(1-hit*0.3),'#8B6914','#FFFFFF',true,hit<0.5);
+            _drawIntroEgg(ctx,0,0,eggSize*(1-hit*0.3),'#8B4513','#5C2E0A',true,hit<0.5);
             ctx.restore();
             // Hit sparks
             if(hit<0.4){
