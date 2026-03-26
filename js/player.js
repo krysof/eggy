@@ -583,11 +583,16 @@ function handlePlayerInput(){
             var _hBody=playerEgg.mesh.userData.body;
             if(_hBody)_hBody.rotation.x=-0.6;
         } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
-            // SHORYUKEN (Ryu/Ken)
+            // SHORYUKEN (Ryu/Ken) — Ryu: diagonal up-forward, Ken: flies further
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
-            playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
-            playerEgg._shoryuActive=60;
+            var _shFaceDir=playerEgg.mesh.rotation.y;
+            var _shFwd=_ct==='dog'?0.25:0.15; // Ken flies further forward
+            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?1.8:1.5); // Ken jumps higher too
+            playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
+            playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
+            playerEgg.squash=0.5;
+            playerEgg._shoryuActive=_ct==='dog'?75:60; // Ken lasts longer
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
             playJumpSound();
         } else if(_isShoryu&&_ct==='rooster'){
@@ -825,21 +830,31 @@ function handlePlayerInput(){
                 window._shoryuDragon.push(_sdSeg);
             }
         }
-        var _sdPhase=(60-playerEgg._shoryuActive)/60;
+        // Store start position on first frame
+        if(!playerEgg._shoryuStartY)playerEgg._shoryuStartY=playerEgg.mesh.position.y;
+        if(!playerEgg._shoryuStartX)playerEgg._shoryuStartX=playerEgg.mesh.position.x;
+        if(!playerEgg._shoryuStartZ)playerEgg._shoryuStartZ=playerEgg.mesh.position.z;
         for(var _sdj=0;_sdj<window._shoryuDragon.length;_sdj++){
             var _sdSeg2=window._shoryuDragon[_sdj];
             _sdSeg2.visible=true;
-            var _sdAngle=_sfDir+_sdj*0.55+_sdPhase*10;
-            var _sdR=1.2+_sdj*0.1;
-            var _sdY=playerEgg.mesh.position.y-0.5+_sdj*0.35;
+            // Dragon spirals from start position up to current position
+            var _sdT=Math.max(0,1-_sdj/window._shoryuDragon.length);
+            var _sdAngle=_sfDir+_sdj*0.6+playerEgg._shoryuActive*0.15;
+            var _sdR=1.0+_sdj*0.05;
+            // Lerp between current pos and start pos based on segment index
+            var _sdLerp=_sdj/window._shoryuDragon.length;
+            var _sdPx=playerEgg.mesh.position.x*(1-_sdLerp)+playerEgg._shoryuStartX*_sdLerp;
+            var _sdPy=playerEgg.mesh.position.y*(1-_sdLerp)+playerEgg._shoryuStartY*_sdLerp;
+            var _sdPz=playerEgg.mesh.position.z*(1-_sdLerp)+playerEgg._shoryuStartZ*_sdLerp;
             _sdSeg2.position.set(
-                playerEgg.mesh.position.x+Math.sin(_sdAngle)*_sdR,
-                _sdY,
-                playerEgg.mesh.position.z+Math.cos(_sdAngle)*_sdR
+                _sdPx+Math.sin(_sdAngle)*_sdR,
+                _sdPy+0.5,
+                _sdPz+Math.cos(_sdAngle)*_sdR
             );
         }
         if(playerEgg.vy<=0||playerEgg.onGround){
             playerEgg._shoryuActive=0;
+            playerEgg._shoryuStartY=0;playerEgg._shoryuStartX=0;playerEgg._shoryuStartZ=0;
             window._shoryuFist.visible=false;
             if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
         }
