@@ -28,6 +28,17 @@ function _handleStart(){
 _startBtn.addEventListener('click',_handleStart);
 _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
 
+// Title screen: show touch controls so user can tap jump/grab to start
+if('ontouchstart' in window){
+    var _titleTouchShown=false;
+    document.getElementById('start-screen').addEventListener('touchstart',function(){
+        if(!_titleTouchShown){
+            _titleTouchShown=true;
+            document.getElementById('touch-controls').classList.remove('hidden');
+        }
+    },{passive:true});
+}
+
 document.getElementById('confirm-btn').addEventListener('click',()=>{
     playMenuConfirm();
     stopSelectBGM();
@@ -44,9 +55,21 @@ document.getElementById('confirm-btn').addEventListener('click',()=>{
 var _menuJoyCD=0; // cooldown to prevent rapid scrolling
 var _menuJoyConfirmCD=0;
 function _updateMenuJoy(){
-    if(gameState!=='menu')return;
+    if(gameState!=='menu'){requestAnimationFrame(_updateMenuJoy);return;}
+    // Title screen: jump or grab button = start game
+    var ss=document.getElementById('start-screen');
+    if(ss&&ss.classList.contains('active')){
+        if((keys['Space']||keys['KeyF'])&&_menuJoyConfirmCD<=0){
+            _menuJoyConfirmCD=30;
+            _handleStart();
+        }
+        if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
+        requestAnimationFrame(_updateMenuJoy);
+        return;
+    }
+    // Select screen: joystick navigates, jump/grab = confirm
     var sel=document.getElementById('select-screen');
-    if(!sel||!sel.classList.contains('active'))return;
+    if(!sel||!sel.classList.contains('active')){requestAnimationFrame(_updateMenuJoy);return;}
     // Joystick navigation
     if(_menuJoyCD>0){_menuJoyCD--;} else if(joyActive){
         var ax=Math.abs(joyVec.x),ay=Math.abs(joyVec.y);
@@ -62,9 +85,9 @@ function _updateMenuJoy(){
             }
         }
     }
-    // Jump button = confirm on select screen
+    // Jump or Grab button = confirm on select screen
     if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
-    if(keys['Space']&&_menuJoyConfirmCD<=0){
+    if((keys['Space']||keys['KeyF'])&&_menuJoyConfirmCD<=0){
         _menuJoyConfirmCD=30;
         document.getElementById('confirm-btn').click();
     }
@@ -87,11 +110,11 @@ addEventListener('keydown',function(e){
             e.preventDefault();
             var ss=document.getElementById('start-screen');
             if(ss&&ss.classList.contains('active')){
-                showScreen('select-screen');stopTitleBGM();ensureAudio();startSelectBGM();playMenuConfirm();
+                _handleStart();
             } else {
                 var sel=document.getElementById('select-screen');
                 if(sel&&sel.classList.contains('active')){
-                    playMenuConfirm(); stopSelectBGM(); showScreen(null); spawnCityNPCs(); enterCity();
+                    document.getElementById('confirm-btn').click();
                 }
             }
         }

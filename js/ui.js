@@ -46,24 +46,27 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
     pc.style.display='block';
     var pctx=pc.getContext('2d');
     pc.width=pc.parentElement.offsetWidth;pc.height=pc.parentElement.offsetHeight;
-    var sx=fromX/400*pc.width,sy=fromY/220*pc.height*0.6+pc.height*0.15;
+    // Start from outside the screen (left edge), fly to target country
+    var sx=-30;
+    var sy=pc.height*0.3;
     var ex=toX/400*pc.width,ey=toY/220*pc.height*0.6+pc.height*0.15;
     var t=0;
     _planeAnim=setInterval(function(){
         t+=0.02;
         pctx.clearRect(0,0,pc.width,pc.height);
-        var cx=sx+(ex-sx)*t;var cy=sy+(ey-sy)*t-Math.sin(t*Math.PI)*40;
+        var cx=sx+(ex-sx)*t;var cy=sy+(ey-sy)*t-Math.sin(t*Math.PI)*50;
         // Trail
         pctx.strokeStyle='rgba(255,255,255,0.3)';pctx.lineWidth=2;
         pctx.beginPath();pctx.moveTo(sx,sy);
-        pctx.quadraticCurveTo((sx+cx)/2,Math.min(sy,cy)-30,cx,cy);
+        pctx.quadraticCurveTo((sx+cx)/2,Math.min(sy,cy)-40,cx,cy);
         pctx.stroke();
         // Plane
         pctx.fillStyle='#FFFFFF';
         pctx.beginPath();
-        var angle=Math.atan2(ey-sy,ex-sx);
+        var dx=ex-sx,dy=ey-sy;
+        var angle=Math.atan2(dy-Math.cos(t*Math.PI)*50*(Math.PI),dx);
         pctx.save();pctx.translate(cx,cy);pctx.rotate(angle);
-        pctx.moveTo(10,0);pctx.lineTo(-8,-6);pctx.lineTo(-5,0);pctx.lineTo(-8,6);
+        pctx.moveTo(12,0);pctx.lineTo(-10,-7);pctx.lineTo(-6,0);pctx.lineTo(-10,7);
         pctx.closePath();pctx.fill();pctx.restore();
         if(t>=1){
             clearInterval(_planeAnim);_planeAnim=null;
