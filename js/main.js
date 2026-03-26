@@ -1,0 +1,211 @@
+// main.js — DANBO World
+// ============================================================
+//  INIT
+// ============================================================
+buildCity();
+buildPortals();
+buildCityCoins();
+buildWarpPipes();
+applyCityTheme();
+
+
+// Start button
+var _startBtn=document.getElementById('start-btn');
+function _handleStart(){
+    _unlockAudio();
+    stopTitleBGM();
+    var ctx=ensureAudio();
+    if(ctx&&ctx.state==='suspended')ctx.resume();
+    showScreen('select-screen');
+    // Show touch controls on select screen for mobile navigation
+    if('ontouchstart' in window) document.getElementById('touch-controls').classList.remove('hidden');
+    // Delay BGM to let AudioContext fully resume (iOS needs longer)
+    setTimeout(function(){
+        if(ctx&&ctx.state==='suspended')ctx.resume();
+        startSelectBGM();playMenuConfirm();
+    },200);
+}
+_startBtn.addEventListener('click',_handleStart);
+_startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
+
+document.getElementById('confirm-btn').addEventListener('click',()=>{
+    playMenuConfirm();
+    stopSelectBGM();
+    // Airplane animation: fly from center to character's country
+    var _selCh=CHARACTERS[selectedChar];
+    _startPlaneAnim(200,110,_selCh.mapX,_selCh.mapY,function(){
+        showScreen(null);
+        spawnCityNPCs();
+        enterCity();
+    });
+});
+
+// ---- Mobile menu navigation via joystick ----
+var _menuJoyCD=0; // cooldown to prevent rapid scrolling
+var _menuJoyConfirmCD=0;
+function _updateMenuJoy(){
+    if(gameState!=='menu')return;
+    var sel=document.getElementById('select-screen');
+    if(!sel||!sel.classList.contains('active'))return;
+    // Joystick navigation
+    if(_menuJoyCD>0){_menuJoyCD--;} else if(joyActive){
+        var ax=Math.abs(joyVec.x),ay=Math.abs(joyVec.y);
+        if(ax>0.4||ay>0.4){
+            if(ax>ay){
+                // horizontal
+                if(joyVec.x>0.4){selectCharByIndex(selectedChar+1);_menuJoyCD=12;}
+                else if(joyVec.x<-0.4){selectCharByIndex(selectedChar-1);_menuJoyCD=12;}
+            } else {
+                // vertical
+                if(joyVec.y>0.4){selectCharByIndex(selectedChar+4);_menuJoyCD=12;}
+                else if(joyVec.y<-0.4){selectCharByIndex(selectedChar-4);_menuJoyCD=12;}
+            }
+        }
+    }
+    // Jump button = confirm on select screen
+    if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
+    if(keys['Space']&&_menuJoyConfirmCD<=0){
+        _menuJoyConfirmCD=30;
+        document.getElementById('confirm-btn').click();
+    }
+    requestAnimationFrame(_updateMenuJoy);
+}
+_updateMenuJoy();
+
+// Keyboard navigation for menus
+function selectCharByIndex(idx){
+    if(idx<0)idx=CHARACTERS.length-1;
+    if(idx>=CHARACTERS.length)idx=0;
+    selectedChar=idx;
+    document.querySelectorAll('.char-cell').forEach((c,i)=>{c.classList.toggle('selected',i===idx);});
+    _updateSF2Select(idx);
+    playMenuMove();
+}
+addEventListener('keydown',function(e){
+    if(gameState==='menu'){
+        if(e.code==='Enter'||e.code==='Space'){
+            e.preventDefault();
+            var ss=document.getElementById('start-screen');
+            if(ss&&ss.classList.contains('active')){
+                showScreen('select-screen');stopTitleBGM();ensureAudio();startSelectBGM();playMenuConfirm();
+            } else {
+                var sel=document.getElementById('select-screen');
+                if(sel&&sel.classList.contains('active')){
+                    playMenuConfirm(); stopSelectBGM(); showScreen(null); spawnCityNPCs(); enterCity();
+                }
+            }
+        }
+        var sel2=document.getElementById('select-screen');
+        if(sel2&&sel2.classList.contains('active')){
+            if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();selectCharByIndex(selectedChar+1);playMenuMove();}
+            if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();selectCharByIndex(selectedChar-1);playMenuMove();}
+            if(e.code==='ArrowDown'||e.code==='KeyS'){e.preventDefault();selectCharByIndex(selectedChar+4);playMenuMove();}
+            if(e.code==='ArrowUp'||e.code==='KeyW'){e.preventDefault();selectCharByIndex(selectedChar-4);playMenuMove();}
+        }
+    }
+});
+
+// Back to city (shared logic)
+function goBackToCity(){
+    if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
+    // Reset all blocking states
+    _portalConfirmOpen=false;
+    _portalConfirmRace=-1;
+    _portalConfirmHidden=null;
+    document.getElementById('portal-confirm').style.display='none';
+    document.getElementById('portal-prompt').style.display='none';
+    finishedEggs=[];playerFinished=false;
+    gameState='city';
+    raceGroup.visible=false;
+    clearRace();
+    document.getElementById('race-hud').classList.add('hidden');
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    cityGroup.visible=true;
+    for(const npc of cityNPCs) npc.mesh.visible=true;
+    // Spawn near the portal they entered, offset so it won't re-trigger
+    var sx=0,sz=5;
+    if(currentRaceIndex>=0&&currentRaceIndex<RACES.length&&RACES[currentRaceIndex]){
+        var r=RACES[currentRaceIndex];
+        // Offset 5 units away from portal center (toward city center)
+        var dx2=r.x,dz2=r.z;
+        var dd=Math.sqrt(dx2*dx2+dz2*dz2)||1;
+        sx=r.x-dx2/dd*5;
+        sz=r.z-dz2/dd*5;
+    }
+    enterCity(sx,sz);
+    // Reset any stale key states and ensure focus
+    for(var k in keys) keys[k]=false;
+    R.domElement.focus();
+}
+
+// Back to city from race result
+document.getElementById('back-city-btn').addEventListener('click', goBackToCity);
+
+// Back to city during race
+document.getElementById('race-back-btn').addEventListener('click', goBackToCity);
+
+// Auto-detect nav bar / notch offset for all Android & iOS devices
+(function(){
+    var tc=document.getElementById('touch-controls');
+    if(!tc)return;
+    function calcOffset(){
+        var offset=12; // base minimum
+        // Method 1: visualViewport — most reliable on Android Chrome
+        if(window.visualViewport){
+            var diff=window.innerHeight-window.visualViewport.height;
+            if(diff>5)offset=Math.max(offset,diff+8);
+        }
+        // Method 2: screen vs window — catches Samsung/Xiaomi nav bars
+        var screenH=screen.height;
+        var winH=window.innerHeight;
+        var dpr=window.devicePixelRatio||1;
+        // On Android, screen.height is physical pixels / dpr, window.innerHeight is CSS pixels
+        // If there's a significant gap, it's likely a nav bar
+        if(screenH>0&&winH>0){
+            var gap=screenH-winH;
+            if(gap>30)offset=Math.max(offset,Math.min(gap*0.6,80));
+        }
+        tc.style.setProperty('--nav-offset',offset+'px');
+    }
+    calcOffset();
+    window.addEventListener('resize',calcOffset);
+    if(window.visualViewport){
+        window.visualViewport.addEventListener('resize',calcOffset);
+        window.visualViewport.addEventListener('scroll',calcOffset);
+    }
+    // Also recalc on orientation change
+    window.addEventListener('orientationchange',function(){setTimeout(calcOffset,300);});
+})();
+
+// ---- i18n: Apply localized text to HTML elements ----
+(function(){
+    document.documentElement.lang=_langCode==='zhs'?'zh-CN':_langCode==='zht'?'zh-TW':_langCode==='ja'?'ja':'en';
+    document.title=L('title');
+    var _e=function(id){return document.getElementById(id);};
+    var h1=document.querySelector('#start-screen h1');if(h1)h1.textContent=L('title');
+    var sub=document.querySelector('.subtitle');if(sub)sub.textContent=L('subtitle');
+    var ver=document.querySelector('.version-text');if(ver)ver.textContent=L('version');
+    var slo2=document.querySelector('.slogan-text');if(slo2)slo2.textContent=L('slogan');
+    var sb=_e('start-btn');if(sb)sb.textContent=L('startBtn');
+    var st=document.querySelector('.select-title');if(st)st.textContent=L('selectTitle');
+    var cb=_e('confirm-btn');if(cb)cb.textContent=L('confirmBtn');
+    var py=_e('portal-yes');if(py)py.textContent=L('portalYes');
+    var pn=_e('portal-no');if(pn)pn.textContent=L('portalNo');
+    var mb=_e('music-btn');if(mb)mb.title=L('music');
+    var sb2=_e('sfx-btn');if(sb2)sb2.title=L('sfx');
+    var gt=document.querySelector('.hud-pill:last-child');
+    // Grab/throw pill in city HUD
+    var pills=document.querySelectorAll('#city-hud .hud-pill');
+    if(pills.length>=3)pills[2].textContent=L('grabThrow');
+    var zh2=_e('zoom-hud');if(zh2)zh2.textContent=(currentCityStyle===5)?L('moonCamHint'):L('zoomHint');
+    var rb=_e('race-back-btn');if(rb)rb.textContent=L('raceBack');
+    var bc=_e('back-city-btn');if(bc)bc.textContent=L('backCity');
+    var rt=_e('result-title');if(rt)rt.textContent=L('resultDone');
+    var gb=_e('grab-btn');if(gb)gb.textContent=L('grab');
+    var jb=_e('jump-btn');if(jb)jb.textContent=L('jump');
+    // City name HUD
+    var cn=_e('city-name-hud');if(cn)cn.textContent=CITY_STYLES[currentCityStyle].name;
+    var pn2=_e('portrait-name');if(pn2)pn2.textContent=CHARACTERS[0].name;
+})();
+
+animate();

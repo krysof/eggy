@@ -1,0 +1,108 @@
+// camera.js — DANBO World
+// ============================================================
+//  CAMERA
+// ============================================================
+var _cameraZoom=1.0; // 1.0 = default, smaller = closer, larger = farther
+// Moon third-person camera orbit angles (mouse-controlled)
+var _moonCamYaw=0; // horizontal orbit angle around player (radians)
+var _moonCamPitch=0.35; // vertical angle (0=level, positive=above)
+var _moonCamDragging=false;
+var _moonCamLastX=0, _moonCamLastY=0;
+document.addEventListener('wheel',function(e){
+    _cameraZoom+=e.deltaY*0.001*Math.max(1,_cameraZoom*0.5);
+    if(_cameraZoom<0.04)_cameraZoom=0.04;
+    if(_cameraZoom>1000)_cameraZoom=1000;
+},{passive:true});
+// Mouse drag to orbit camera (disabled — moon now uses flat camera)
+document.addEventListener('mousedown',function(e){
+});
+document.addEventListener('mousemove',function(e){
+    if(_moonCamDragging){
+        var dx=e.clientX-_moonCamLastX, dy=e.clientY-_moonCamLastY;
+        _moonCamYaw-=dx*0.005;
+        _moonCamPitch+=dy*0.005;
+        if(_moonCamPitch<0.05)_moonCamPitch=0.05;
+        if(_moonCamPitch>1.2)_moonCamPitch=1.2;
+        _moonCamLastX=e.clientX;_moonCamLastY=e.clientY;
+    }
+});
+document.addEventListener('mouseup',function(e){
+    if(e.button===2||e.button===1)_moonCamDragging=false;
+});
+document.addEventListener('contextmenu',function(e){});
+// Touch orbit disabled — moon now uses flat camera
+var _moonTouchOrbit=false, _moonTouchStartX=0, _moonTouchStartY=0;
+function updateCamera(){
+    if(!playerEgg)return;
+    const p=playerEgg.mesh.position;
+    // Normal flat camera (used for all cities including moon)
+    var tx=p.x, ty=p.y+10*_cameraZoom, tz=p.z+14*_cameraZoom;
+    camera.position.x+=(tx-camera.position.x)*0.08;
+    camera.position.y+=(ty-camera.position.y)*0.08;
+    camera.position.z+=(tz-camera.position.z)*0.08;
+    // Clamp camera above ground to prevent blue screen when falling
+    if(camera.position.y<3)camera.position.y=3;
+    // Earthquake shake
+    if(_earthquakeTimer>0){
+        var shakeAmt=_earthquakeIntensity*(_earthquakeTimer/180);
+        camera.position.x+=(Math.random()-0.5)*shakeAmt*2;
+        camera.position.y+=(Math.random()-0.5)*shakeAmt*1.5;
+        camera.position.z+=(Math.random()-0.5)*shakeAmt*2;
+        _earthquakeTimer--;
+    }
+    camera.lookAt(p.x, p.y+1, p.z-4);
+    sun.position.set(p.x+60,80,p.z+40);
+    sun.target.position.set(p.x,0,p.z);
+    // Sun mesh follows directional light direction (far away visual)
+    _sunMesh.position.set(p.x+180,240,p.z+120);
+    _sunGlow.position.copy(_sunMesh.position);
+
+    // Building occlusion — fade buildings between camera and player
+    // BUT don't fade if player is standing on the roof
+    if(gameState==='city'){
+        const cx=camera.position.x, cz=camera.position.z;
+        const px2=p.x, pz2=p.z;
+        const py2=playerEgg?playerEgg.mesh.position.y:0;
+        for(const bld of cityBuildingMeshes){
+            // Check if player is on this building's roof
+            var onRoof=false;
+            if(Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2>=bld.h-1){
+                onRoof=true;
+            }
+            // 2D line-segment (camera→player) vs AABB intersection in XZ
+            let shouldFade=false;
+            if(!onRoof){
+            const bx0=bld.x-bld.hw-0.5, bx1=bld.x+bld.hw+0.5;
+            const bz0=bld.z-bld.hd-0.5, bz1=bld.z+bld.hd+0.5;
+            // Liang-Barsky algorithm for 2D segment clipping
+            const dx=px2-cx, dz=pz2-cz;
+            const pp=[-dx, dx, -dz, dz];
+            const qq=[cx-bx0, bx1-cx, cz-bz0, bz1-cz];
+            let tmin=0, tmax=1;
+            let valid=true;
+            for(let i=0;i<4;i++){
+                if(Math.abs(pp[i])<1e-8){
+                    if(qq[i]<0){valid=false;break;}
+                } else {
+                    const t=qq[i]/pp[i];
+                    if(pp[i]<0){if(t>tmin)tmin=t;} else {if(t<tmax)tmax=t;}
+                }
+            }
+            if(valid&&tmin<tmax&&tmax>0.05&&tmin<0.95) shouldFade=true;
+            }
+
+            const targetOp=shouldFade?0.2:1.0;
+            for(const m of bld.meshes){
+                const mat=m.material;
+                if(!mat.hasOwnProperty('_origOpacity')){mat._origOpacity=mat.opacity||1;mat._origTransparent=mat.transparent||false;mat._origDepthWrite=mat.depthWrite!==undefined?mat.depthWrite:true;}
+                const goal=targetOp*mat._origOpacity;
+                mat.opacity+=(goal-mat.opacity)*0.15;
+                mat.transparent=true;
+                mat.depthWrite=mat.opacity>0.95;
+                mat.needsUpdate=true;
+                m.renderOrder=shouldFade?10:0;
+            }
+        }
+    }
+}
+

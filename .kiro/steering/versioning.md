@@ -13,17 +13,17 @@ inclusion: always
 
 ## 操作步骤
 
-1. 读取 `game.js` 中当前版本: `var v='vYYYYMMDD.N'`
+1. 读取 `js/core.js` 中当前版本: `var v='vYYYYMMDD.N'`
 2. 获取当前日期（参考系统提供的 current_date_and_time）
 3. 如果日期与版本中的日期相同，N+1
 4. 如果日期不同，更新日期并将 N 重置为 1
-5. 替换 `game.js` 中的版本字符串
-6. 每次提交必须执行 `node -c game.js` 语法检查
+5. 替换 `js/core.js` 中的版本字符串
+6. 每次提交必须执行 `node -c` 语法检查所有 `js/*.js` 文件
 7. 每次提交后必须 `git push`
 
 ## 版本位置
 
-`game.js` 第 ~22 行:
+`js/core.js` 第 ~23 行:
 ```js
 version:(function(){var v='vYYYYMMDD.N';return{...};})(),
 ```
