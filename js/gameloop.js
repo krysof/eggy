@@ -368,6 +368,27 @@ function updateCity(){
         updateCityNPC(npc);
         updateEggPhysics(npc, true);
         _updateStunStars(npc);
+        // Fire effect (Ken shoryuken)
+        if(npc._onFire>0){
+            npc._onFire--;
+            if(!npc._fireParticles){
+                npc._fireParticles=[];
+                for(var _fpi=0;_fpi<6;_fpi++){
+                    var _fp=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,3),new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.7}));
+                    _fp.visible=false;npc.mesh.add(_fp);
+                    npc._fireParticles.push(_fp);
+                }
+            }
+            for(var _fpj=0;_fpj<npc._fireParticles.length;_fpj++){
+                var _fpp=npc._fireParticles[_fpj];
+                _fpp.visible=true;
+                var _fpa=_fpj*Math.PI*2/npc._fireParticles.length+npc._onFire*0.2;
+                _fpp.position.set(Math.sin(_fpa)*0.5,0.5+Math.random()*0.8,Math.cos(_fpa)*0.5);
+                _fpp.material.color.setHex(Math.random()>0.5?0xFF4400:0xFFCC00);
+                _fpp.scale.setScalar(0.5+Math.random()*0.8);
+            }
+            if(npc._onFire<=0){for(var _fpk=0;_fpk<npc._fireParticles.length;_fpk++)npc._fireParticles[_fpk].visible=false;}
+        }
     }
 
     // ---- Tower of Babel rise animation ----

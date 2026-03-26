@@ -587,12 +587,13 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             var _shFaceDir=playerEgg.mesh.rotation.y;
-            var _shFwd=_ct==='dog'?0.45:0.25; // Ken flies 3x further forward than Ryu
-            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?2.0:1.6);
+            var _shFwd=_ct==='dog'?0.9:0.25; // Ken flies much further forward
+            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?2.2:1.6);
             playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
             playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
             playerEgg.squash=0.5;
-            playerEgg._shoryuActive=_ct==='dog'?85:65; // Ken lasts longer
+            playerEgg._shoryuActive=_ct==='dog'?95:65; // Ken lasts longer
+            playerEgg._shoryuIsKen=(_ct==='dog'); // flag for fire dragon color
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
             playJumpSound();
         } else if(_isShoryu&&_ct==='rooster'){
@@ -832,20 +833,35 @@ function handlePlayerInput(){
                     _she.vy=0.3;_she.squash=0.4;_she.throwTimer=35;_she._bounces=1;
                     _she._stunTimer=50;
                     _dropNpcStolenCoins(_she);playHitSound();
+                    // Ken fire effect — burning particles on hit enemy
+                    if(playerEgg._shoryuIsKen){
+                        _she._onFire=60; // 1 second of fire
+                    }
                 }
             }
         }
         // ---- Shoryuken Dragon (visual only) ----
         if(!window._shoryuDragon){
             window._shoryuDragon=[];
-            var _sdMat=new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.8});
-            var _sdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9});
+            // Create both blue (Ryu) and fire (Ken) materials
+            window._shoryuDragonMats={
+                blue:new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.8}),
+                blueHead:new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9}),
+                fire:new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.8}),
+                fireHead:new THREE.MeshBasicMaterial({color:0xFFCC00,transparent:true,opacity:0.9})
+            };
             for(var _sdi=0;_sdi<16;_sdi++){
                 var _sdSize=_sdi===0?0.6:0.45-_sdi*0.018;
-                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_sdSize,0.12),8,6),_sdi===0?_sdMatHead:_sdMat);
+                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_sdSize,0.12),8,6),window._shoryuDragonMats.blueHead);
                 _sdSeg.visible=false;scene.add(_sdSeg);
                 window._shoryuDragon.push(_sdSeg);
             }
+        }
+        // Set dragon color based on character
+        var _isKenDragon=playerEgg._shoryuIsKen;
+        var _sdMats=window._shoryuDragonMats;
+        for(var _sdm=0;_sdm<window._shoryuDragon.length;_sdm++){
+            window._shoryuDragon[_sdm].material=_sdm===0?(_isKenDragon?_sdMats.fireHead:_sdMats.blueHead):(_isKenDragon?_sdMats.fire:_sdMats.blue);
         }
         // Store start position on first frame only
         if(!playerEgg._shoryuStartSet){
