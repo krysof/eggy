@@ -1825,6 +1825,33 @@ function _gameUpdate(){
         if(playerEgg&&!_pipeTraveling) updateEggPhysics(playerEgg, true);
         if(playerEgg) _updateStunStars(playerEgg);
         if(playerEgg&&playerEgg._stunMeter>0&&playerEgg._stunTimer<=0)playerEgg._stunMeter=Math.max(0,playerEgg._stunMeter-0.5);
+        // Player electrocution effect
+        if(playerEgg&&playerEgg._electrocuted>0){
+            playerEgg._electrocuted--;
+            playerEgg.vx=0;playerEgg.vz=0;playerEgg.vy=0;playerEgg.throwTimer=0;
+            var _peBody=playerEgg.mesh.userData.body;
+            if(_peBody)_peBody.material=new THREE.MeshBasicMaterial({color:Math.floor(playerEgg._electrocuted/3)%2===0?0x111111:0xFFFFFF,transparent:true,opacity:0.9});
+            if(playerEgg._electrocuted<=0&&playerEgg._elecKnockDir){
+                playerEgg._elecFlying=60;
+                playerEgg._elecFlyDir={x:playerEgg._elecKnockDir.x,z:playerEgg._elecKnockDir.z};
+                playerEgg._elecKnockDir=null;
+            } else if(playerEgg._electrocuted<=0){
+                if(_peBody)_peBody.material=toon(playerEgg._origColor||0xFFDD44);
+                playerEgg._stunTimer=40;playerEgg._slamImmune=0;
+            }
+        }
+        if(playerEgg&&playerEgg._elecFlying>0){
+            playerEgg._elecFlying--;
+            if(playerEgg._elecFlyDir){playerEgg.vx=playerEgg._elecFlyDir.x*0.25;playerEgg.vz=playerEgg._elecFlyDir.z*0.25;}
+            playerEgg.vy=0;
+            var _peBody2=playerEgg.mesh.userData.body;
+            if(_peBody2)_peBody2.material=new THREE.MeshBasicMaterial({color:Math.floor(playerEgg._elecFlying/3)%2===0?0x111111:0xFFFFFF,transparent:true,opacity:0.9});
+            if(playerEgg._elecFlying<=0){
+                if(_peBody2)_peBody2.material=toon(playerEgg._origColor||0xFFDD44);
+                playerEgg.vx*=0.1;playerEgg.vz*=0.1;
+                playerEgg._stunTimer=40;playerEgg._slamImmune=0;playerEgg._elecFlyDir=null;
+            }
+        }
         updateCity();
         const cityEggList = [playerEgg, ...cityNPCs].filter(e=>e&&e.alive);
         resolveEggCollisions(cityEggList);

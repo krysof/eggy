@@ -82,6 +82,12 @@ function handlePlayerInput(){
         if(_spinDashing){_spinDashing=false;_spinDashTimer=0;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
         if(playerEgg._stunTimer<=0){playerEgg._stunMax=0;struggleBarDiv.style.display='none';}
         return;}
+    // Player electrocuted — can't move
+    if(playerEgg._electrocuted>0||playerEgg._elecFlying>0){
+        playerEgg.vx=0;playerEgg.vz=0;
+        if(playerEgg._electrocuted>0)playerEgg.vy=0;
+        return;
+    }
     let mx=0,mz=0;
     if(keys['KeyA']||keys['ArrowLeft'])mx-=1;
     if(keys['KeyD']||keys['ArrowRight'])mx+=1;
@@ -832,7 +838,7 @@ function handlePlayerInput(){
                 _gaCtx.strokeStyle='#FFFFFF';_gaCtx.lineWidth=2;
                 _gaCtx.beginPath();_gaCtx.arc(32,32,24,0.3,Math.PI-0.3);_gaCtx.stroke();
                 var _gaTex=new THREE.CanvasTexture(_gaCvs);
-                window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(3,3),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
+                window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(1.5,1.5),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
                 scene.add(window._guileArc);
             }
             window._guileArc.visible=true;
@@ -1064,13 +1070,19 @@ function handlePlayerInput(){
         // Full 360 backflip on body
         var _gsBody2=playerEgg.mesh.userData.body;
         if(_gsBody2)_gsBody2.rotation.x-=Math.PI*2/65;
+        playerEgg._dashBounceTimer=5; // prevent physics from changing facing
         // Blade arc follows player, fades out
         if(window._guileArc){
             window._guileArc.visible=true;
-            window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.8,playerEgg.mesh.position.z);
-            window._guileArc.rotation.y=playerEgg.mesh.rotation.y;
+            var _gaFace=playerEgg.mesh.rotation.y;
+            window._guileArc.position.set(
+                playerEgg.mesh.position.x+Math.sin(_gaFace)*0.8,
+                playerEgg.mesh.position.y+1.0,
+                playerEgg.mesh.position.z+Math.cos(_gaFace)*0.8
+            );
+            window._guileArc.rotation.y=_gaFace;
             window._guileArc.rotation.z+=0.3;
-            window._guileArc.material.opacity=Math.min(0.8,playerEgg._guileSomersault/20);
+            window._guileArc.material.opacity=Math.min(0.9,playerEgg._guileSomersault/15);
         }
         // Hit detection
         if(playerEgg._guileSomersault%4===0){
