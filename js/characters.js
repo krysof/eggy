@@ -18,7 +18,7 @@ const AI_COLORS=[0xFFAA44,0x66DD66,0xFF5555,0x88CCDD,0xEEEE55,0xCC88CC,0xFFBBCC,
 // ---- SF2 Character Select Grid ----
 const charGrid = document.getElementById('char-grid');
 const portraitCanvas = document.getElementById('portrait-canvas');
-const portraitCtx = portraitCanvas ? portraitCanvas.getContext('2d') : null;
+const portraitCtx = null; // no longer using 2D context — drawPortrait uses WebGL
 const portraitName = document.getElementById('portrait-name');
 
 function drawPortrait(ch) {
@@ -26,7 +26,13 @@ function drawPortrait(ch) {
     var W=portraitCanvas.width, H=portraitCanvas.height;
     // Use a separate Three.js renderer to render the actual 3D character
     if(!window._portraitRenderer){
-        window._portraitRenderer=new THREE.WebGLRenderer({canvas:portraitCanvas,alpha:true,antialias:true});
+        try{
+            window._portraitRenderer=new THREE.WebGLRenderer({canvas:portraitCanvas,alpha:true,antialias:true});
+        }catch(e){
+            // WebGL failed — skip portrait rendering
+            window._portraitRenderer=null;
+            return;
+        }
         window._portraitRenderer.setSize(W,H);
         window._portraitRenderer.setClearColor(0x0a0a2e,1);
         window._portraitScene=new THREE.Scene();
@@ -39,6 +45,7 @@ function drawPortrait(ch) {
         window._portraitScene.add(_pSun);
         window._portraitScene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.4));
     }
+    if(!window._portraitRenderer)return;
     // Remove old character mesh
     if(window._portraitMesh){
         window._portraitScene.remove(window._portraitMesh);
