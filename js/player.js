@@ -822,11 +822,11 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             var _gsFaceDir=playerEgg.mesh.rotation.y;
-            playerEgg.vy=JUMP_FORCE*1.6;
+            playerEgg.vy=JUMP_FORCE*3.0;
             playerEgg.vx=Math.sin(_gsFaceDir)*0.15;
             playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
             playerEgg.squash=0.5;
-            playerEgg._guileSomersault=65;
+            playerEgg._guileSomersault=80;
             playerEgg._guileSomFwdX=Math.sin(_gsFaceDir)*0.15;
             playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
             // Create blade arc effect
@@ -1119,7 +1119,7 @@ function handlePlayerInput(){
             }
         }
         // End check — skip first 10 frames
-        if(playerEgg._guileSomersault<55&&(playerEgg.vy<=0||playerEgg.onGround)){
+        if(playerEgg._guileSomersault<65&&(playerEgg.vy<=0||playerEgg.onGround)){
             playerEgg._guileSomersault=0;
         } else if(playerEgg._guileSomersault<=0){
             playerEgg._guileSomersault=0;
