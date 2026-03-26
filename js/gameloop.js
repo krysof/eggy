@@ -28,7 +28,7 @@ function updateCity(){
         _hk.ring.rotation.z+=0.2;
         // Sonic Boom: spin the crescent plane
         if(_hk.isSonicBoom){
-            _hk.ball.rotation.x+=0.4;
+            _hk.ball.rotation.z+=0.4;
         }
         _hk.life--;
         _hk.ball.material.opacity=Math.min(0.9,_hk.life/30);
@@ -41,7 +41,7 @@ function updateCity(){
             var _hd2=Math.sqrt(_hdx*_hdx+_hdz*_hdz);
             if(_hd2<1.5){
                 _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
-                _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_he2._stunTimer=50;
+                _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,20);
                 if(_hk.burns)_he2._onFire=120; // 2 seconds fire
                 _dropNpcStolenCoins(_he2);playHitSound();
                 _hk.life=0;break;
@@ -373,6 +373,8 @@ function updateCity(){
         updateCityNPC(npc);
         updateEggPhysics(npc, true);
         _updateStunStars(npc);
+        // Stun meter decay
+        if(npc._stunMeter>0&&npc._stunTimer<=0)npc._stunMeter=Math.max(0,npc._stunMeter-0.5);
         // Fire effect (Ken shoryuken)
         if(npc._onFire>0){
             npc._onFire--;
@@ -1795,6 +1797,7 @@ function _gameUpdate(){
         }
         if(playerEgg&&!_pipeTraveling) updateEggPhysics(playerEgg, true);
         if(playerEgg) _updateStunStars(playerEgg);
+        if(playerEgg&&playerEgg._stunMeter>0&&playerEgg._stunTimer<=0)playerEgg._stunMeter=Math.max(0,playerEgg._stunMeter-0.5);
         updateCity();
         const cityEggList = [playerEgg, ...cityNPCs].filter(e=>e&&e.alive);
         resolveEggCollisions(cityEggList);

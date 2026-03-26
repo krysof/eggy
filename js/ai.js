@@ -396,12 +396,12 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     var _nkf=0.35;
                     closest.vx+=(cdx2/cd2)*_nkf;closest.vz+=(cdz2/cd2)*_nkf;
                     closest.vy=0.2;closest.squash=0.4;
-                    closest.throwTimer=30;closest._bounces=1;closest._stunTimer=40;
+                    closest.throwTimer=30;closest._bounces=1;_addStunDamage(closest,25);
                     egg._npcCombo=0;egg._npcAtkCD=20;
                 } else {
                     // Hitstun — flinch
                     closest.vx+=(cdx2/cd2)*0.08;closest.vz+=(cdz2/cd2)*0.08;
-                    closest.squash=0.75;closest._stunTimer=12;
+                    closest.squash=0.75;_addStunDamage(closest,8);
                 }
                 _dropNpcStolenCoins(closest);
                 if(closest.isPlayer)playHitSound();
@@ -427,7 +427,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 egg._npcSpecialCD=60;egg._npcShoryuActive=true;
                 egg.vy=JUMP_FORCE*1.5;egg.squash=0.5;
                 // Hit nearby
-                if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;closest._stunTimer=60;_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();}
+                if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;_addStunDamage(closest,20);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();}
             }
             // NPC Tatsumaki: medium range
             if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.008&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){

@@ -476,7 +476,7 @@ function createEgg(x,z,color,accent,isPlayer,targetScene,charType){
         aiTargetX:x, aiReactTimer:Math.random()*30, aiJumpCD:0,
         conveyorVx:0, conveyorVz:0, onPlatform:null,
         heldBy:null, holding:null, grabCD:0, struggleTimer:0, struggleMax:0, struggleBar:null, throwTimer:0, holdingObs:null, holdingProp:null, weight:1.0, _stunTimer:0,
-        _origColor:color,
+        _origColor:color, _stunMeter:0, _stunThreshold:100,
     };
     allEggs.push(egg);
     return egg;

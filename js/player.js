@@ -2,6 +2,22 @@
 // ============================================================
 //  PLAYER INPUT
 // ============================================================
+// Stun meter system: accumulate damage, stun when threshold exceeded
+// stunAmount: light=8, medium=15, heavy=25, slam=40, special=20
+// Returns true if the target gets stunned
+function _addStunDamage(egg,amount){
+    if(!egg._stunMeter)egg._stunMeter=0;
+    if(!egg._stunThreshold)egg._stunThreshold=100;
+    egg._stunMeter+=amount;
+    if(egg._stunMeter>=egg._stunThreshold&&egg._stunTimer<=0){
+        // Stun! Duration based on overflow
+        var overflow=egg._stunMeter-egg._stunThreshold;
+        egg._stunTimer=Math.floor(40+overflow*0.8);
+        egg._stunMeter=0; // reset meter
+        return true;
+    }
+    return false;
+}
 function handlePlayerInput(){
     if(!playerEgg||!playerEgg.alive)return;
     if(_portalConfirmOpen)return;
@@ -154,7 +170,7 @@ function handlePlayerInput(){
                     var sdForce=_spinDashSpeed*2;
                     sde.vx+=sddx/sdd*sdForce;sde.vy+=0.2+sdForce*0.3;sde.vz+=sddz/sdd*sdForce;
                     sde.throwTimer=20;sde._bounces=1;sde.squash=0.4;
-                    sde._stunTimer=Math.floor(40+_spinDashSpeed*200);
+                    _addStunDamage(sde,40);
                     playHitSound();
                     _dropNpcStolenCoins(sde);
                 }
@@ -586,6 +602,7 @@ function handlePlayerInput(){
             var _sbPlane=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:_sbTex,transparent:true,side:THREE.DoubleSide}));
             _sbPlane.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
             _sbPlane.rotation.y=_sbDir;
+            _sbPlane.rotation.x=Math.PI/2; // horizontal orientation
             scene.add(_sbPlane);
             // Small glow sphere
             var _sbGlow=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.3}));
@@ -711,7 +728,7 @@ function handlePlayerInput(){
                         _ae.vx+=_adx/_ad*_kf;_ae.vz+=_adz/_ad*_kf;
                         _ae.vy=_isAerial?0.25:0.2;
                         _ae.squash=0.4;_ae.throwTimer=30;_ae._bounces=1;
-                        _ae._stunTimer=Math.floor(40+(_isAerial?30:0));
+                        _addStunDamage(_ae,_isAerial?35:25);
                     } else {
                         _ae.vx+=_adx/_ad*0.08;_ae.vz+=_adz/_ad*0.08;
                         _ae.squash=0.78;_ae._hitStun=12;
@@ -813,7 +830,7 @@ function handlePlayerInput(){
                         _ke.vx+=_kdx/_kd*_kkf;_ke.vz+=_kdz/_kd*_kkf;
                         _ke.vy=_kAerial?0.3:0.25;
                         _ke.squash=0.3;_ke.throwTimer=45;_ke._bounces=2;
-                        _ke._stunTimer=Math.floor(60+(_kAerial?40:0));
+                        _addStunDamage(_ke,_kAerial?40:30);
                     } else {
                         _ke.vx+=_kdx/_kd*0.12;_ke.vz+=_kdz/_kd*0.12;
                         _ke.squash=0.72;_ke._hitStun=15;
@@ -867,7 +884,7 @@ function handlePlayerInput(){
                 if(_shd<3&&_shd>0.01){
                     _she.vx+=_shdx/_shd*0.4;_she.vz+=_shdz/_shd*0.4;
                     _she.vy=0.3;_she.squash=0.4;_she.throwTimer=35;_she._bounces=1;
-                    _she._stunTimer=50;
+                    _addStunDamage(_she,20);
                     _dropNpcStolenCoins(_she);playHitSound();
                     // Ken fire effect — burning particles on hit enemy
                     if(playerEgg._shoryuIsKen){
@@ -1228,7 +1245,7 @@ function handlePlayerInput(){
             var _hddz=_hde.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_hddx*_hddx+_hddz*_hddz)<2.5){
                 _hde.vx+=playerEgg.vx*0.5;_hde.vz+=playerEgg.vz*0.5;_hde.vy=0.2;
-                _hde.squash=0.4;_hde.throwTimer=30;_hde._bounces=1;_hde._stunTimer=50;
+                _hde.squash=0.4;_hde.throwTimer=30;_hde._bounces=1;_addStunDamage(_hde,20);
                 _dropNpcStolenCoins(_hde);playHitSound();
                 // Bounce back on hit — reverse, land, recover
                 playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
@@ -1368,7 +1385,7 @@ function handlePlayerInput(){
             var _bsForce=0.4+_slamPower*0.3;
             _bst.vx=Math.sin(_bsDir)*_bsForce;_bst.vy=0.3+_slamPower*0.2;_bst.vz=Math.cos(_bsDir)*_bsForce;
             _bst.throwTimer=40+Math.floor(_slamPower*20);_bst._bounces=2;
-            _bst._stunTimer=Math.floor(60+_slamPower*80);
+            _addStunDamage(_bst,50);
             _dropNpcStolenCoins(_bst);
             playHitSound();
             // Screen shake effect (camera wobble)
