@@ -816,7 +816,6 @@ function handlePlayerInput(){
             scene.add(window._shoryuFist);
         }
         window._shoryuFist.visible=true;
-        // Position fist above and in front of player in world space
         var _sfDir=playerEgg.mesh.rotation.y;
         window._shoryuFist.position.set(
             playerEgg.mesh.position.x+Math.sin(_sfDir)*0.5,
@@ -824,12 +823,40 @@ function handlePlayerInput(){
             playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
         );
         playerEgg.mesh.rotation.y+=0.12;
+        // ---- Shoryuken Dragon (visual only) ----
+        if(!window._shoryuDragon){
+            window._shoryuDragon=[];
+            var _sdMat=new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.6});
+            var _sdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.7});
+            for(var _sdi=0;_sdi<12;_sdi++){
+                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(_sdi===0?0.3:0.22-_sdi*0.012,6,4),_sdi===0?_sdMatHead:_sdMat);
+                _sdSeg.visible=false;scene.add(_sdSeg);
+                window._shoryuDragon.push(_sdSeg);
+            }
+        }
+        var _sdPhase=(60-playerEgg._shoryuActive)/60;
+        for(var _sdj=0;_sdj<window._shoryuDragon.length;_sdj++){
+            var _sdSeg2=window._shoryuDragon[_sdj];
+            _sdSeg2.visible=true;
+            var _sdOff=_sdj*0.12;
+            var _sdT=Math.max(0,_sdPhase-_sdOff*0.3);
+            var _sdAngle=_sfDir+_sdj*0.5+_sdPhase*8;
+            var _sdR=0.6+_sdj*0.08;
+            _sdSeg2.position.set(
+                playerEgg.mesh.position.x+Math.sin(_sdAngle)*_sdR,
+                playerEgg.mesh.position.y+1.0+_sdj*0.2-_sdOff*0.5,
+                playerEgg.mesh.position.z+Math.cos(_sdAngle)*_sdR
+            );
+            _sdSeg2.material.opacity=Math.max(0,0.7-_sdj*0.04);
+        }
         if(playerEgg.vy<=0||playerEgg.onGround){
             playerEgg._shoryuActive=0;
             window._shoryuFist.visible=false;
+            if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
         }
-    } else if(window._shoryuFist){
-        window._shoryuFist.visible=false;
+    } else {
+        if(window._shoryuFist)window._shoryuFist.visible=false;
+        if(window._shoryuDragon)for(var _sdl=0;_sdl<window._shoryuDragon.length;_sdl++)window._shoryuDragon[_sdl].visible=false;
     }
     // ---- Tatsumaki animation (runs even during special move) ----
     if(playerEgg._tatsuActive>0){
@@ -847,6 +874,31 @@ function handlePlayerInput(){
         playerEgg.vz=Math.cos(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
         playerEgg.vy=_tVert;
         if(playerEgg.mesh.position.y<0.5)playerEgg.mesh.position.y=0.5;
+        // ---- Tatsumaki Dragon (visual only, wraps around legs) ----
+        if(!window._tatsuDragon){
+            window._tatsuDragon=[];
+            var _tdMat=new THREE.MeshBasicMaterial({color:0xFF6644,transparent:true,opacity:0.5});
+            var _tdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.7});
+            for(var _tdi=0;_tdi<10;_tdi++){
+                var _tdSeg=new THREE.Mesh(new THREE.SphereGeometry(_tdi===0?0.25:0.18-_tdi*0.01,6,4),_tdi===0?_tdMatHead:_tdMat);
+                _tdSeg.visible=false;scene.add(_tdSeg);
+                window._tatsuDragon.push(_tdSeg);
+            }
+        }
+        var _ttPhase=playerEgg.mesh.rotation.y;
+        for(var _ttj=0;_ttj<window._tatsuDragon.length;_ttj++){
+            var _ttSeg=window._tatsuDragon[_ttj];
+            _ttSeg.visible=true;
+            var _ttAngle=_ttPhase-_ttj*0.6;
+            var _ttR=0.8+_ttj*0.06;
+            var _ttY=playerEgg.mesh.position.y-0.3+Math.sin(_ttAngle*0.5+_ttj*0.3)*0.3;
+            _ttSeg.position.set(
+                playerEgg.mesh.position.x+Math.sin(_ttAngle)*_ttR,
+                _ttY,
+                playerEgg.mesh.position.z+Math.cos(_ttAngle)*_ttR
+            );
+            _ttSeg.material.opacity=Math.max(0,0.6-_ttj*0.05);
+        }
         for(var _ti=0;_ti<allEggs.length;_ti++){
             var _te=allEggs[_ti];if(_te===playerEgg||!_te.alive||_te.heldBy)continue;
             if(_te._slamImmune>0)continue;
@@ -861,7 +913,12 @@ function handlePlayerInput(){
                 _dropNpcStolenCoins(_te);playHitSound();
             }
         }
-        if(playerEgg._tatsuActive<=0){playerEgg.vx*=0.3;playerEgg.vz*=0.3;playerEgg._tatsuDir=0;}
+        if(playerEgg._tatsuActive<=0){
+            playerEgg.vx*=0.3;playerEgg.vz*=0.3;playerEgg._tatsuDir=0;
+            if(window._tatsuDragon)for(var _ttk=0;_ttk<window._tatsuDragon.length;_ttk++)window._tatsuDragon[_ttk].visible=false;
+        }
+    } else {
+        if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
     }
     // ---- Blanka Electric Thunder ----
     if(playerEgg._blankaShock>0){
