@@ -408,9 +408,9 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             }
             if(egg._npcAtkCD>0)egg._npcAtkCD--;
             if(egg._npcCombo>0&&Math.random()<0.02)egg._npcCombo=0; // combo timeout
-            // NPC Hadouken: at medium range, rare chance
-            if(cd2>3&&cd2<25&&Math.random()<0.008&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
-                egg._npcHadouCD=80;
+            // NPC Hadouken: at medium range
+            if(cd2>3&&cd2<25&&Math.random()<0.025&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
+                egg._npcHadouCD=50;
                 var _nhDir=Math.atan2(cdx2,cdz2);
                 var _nhx=egg.mesh.position.x+Math.sin(_nhDir)*1.5;
                 var _nhz=egg.mesh.position.z+Math.cos(_nhDir)*1.5;
@@ -422,23 +422,22 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 window._npcHadoukens.push({ball:_nhBall,ring:_nhRing,vx:Math.sin(_nhDir)*0.3,vz:Math.cos(_nhDir)*0.3,life:120,owner:egg});
             }
             if(egg._npcHadouCD>0)egg._npcHadouCD--;
-            // NPC Shoryuken: very close, rare
-            if(cd2<2.5&&egg.onGround&&Math.random()<0.002&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
-                egg._npcSpecialCD=90;egg._npcShoryuActive=true;
+            // NPC Shoryuken: very close
+            if(cd2<2.5&&egg.onGround&&Math.random()<0.008&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=60;egg._npcShoryuActive=true;
                 egg.vy=JUMP_FORCE*1.5;egg.squash=0.5;
                 // Hit nearby
                 if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;closest._stunTimer=60;_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();}
             }
-            // NPC Tatsumaki: at medium range, rare chance
-            // NPC Tatsumaki: medium range, rare
-            if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.002&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
-                egg._npcSpecialCD=90;egg._npcTatsuActive=60;
+            // NPC Tatsumaki: medium range
+            if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.008&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=60;egg._npcTatsuActive=60;
                 egg._npcTatsuDir=Math.atan2(cdx2,cdz2);
                 egg.vy=0.08;
             }
             if(egg._npcSpecialCD>0)egg._npcSpecialCD--;
-            // NPC piledriver: when very close, rare chance
-            if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.003&&!closest.heldBy){
+            // NPC piledriver: when very close
+            if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.01&&!closest.heldBy){
                 egg._npcPiledriver=closest;egg._npcPdPhase=0;
                 closest.heldBy=egg;egg.holding=closest;egg.grabCD=40;
             }

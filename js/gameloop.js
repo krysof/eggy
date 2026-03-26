@@ -947,16 +947,21 @@ var _moveNames={
     'Hadouken!':{zhs:'\u6CE2\u52A8\u62F3\uFF01',zht:'\u6CE2\u52D5\u62F3\uFF01',ja:'\u6CE2\u52D5\u62F3\uFF01',en:'Hadouken!'},
     'SHORYUKEN!':{zhs:'\u5347\u9F99\u62F3\uFF01',zht:'\u6607\u9F8D\u62F3\uFF01',ja:'\u6607\u9F8D\u62F3\uFF01',en:'SHORYUKEN!'},
     'Shoryuken!':{zhs:'\u5347\u9F99\u62F3\uFF01',zht:'\u6607\u9F8D\u62F3\uFF01',ja:'\u6607\u9F8D\u62F3\uFF01',en:'Shoryuken!'},
-    'Tatsumaki Senpukyaku!':{zhs:'\u7AC7\u5377\u65CB\u98CE\u811A\uFF01',zht:'\u7AC7\u5377\u65CB\u98A8\u8173\uFF01',ja:'\u7AC7\u5DFB\u65CB\u98A8\u811A\uFF01',en:'Tatsumaki!'},
+    'Tatsumaki Senpukyaku!':{zhs:'\u9F99\u5377\u65CB\u98CE\u811A\uFF01',zht:'\u9F8D\u5377\u65CB\u98A8\u8173\uFF01',ja:'\u7AC7\u5DFB\u65CB\u98A8\u811A\uFF01',en:'Tatsumaki!'},
     'Sonic Boom!':{zhs:'\u97F3\u901F\u624B\u5200\uFF01',zht:'\u97F3\u901F\u624B\u5200\uFF01',ja:'\u30BD\u30CB\u30C3\u30AF\u30D6\u30FC\u30E0\uFF01',en:'Sonic Boom!'},
-    'Somersault Kick!':{zhs:'\u5012\u8F6C\u8E22\uFF01',zht:'\u5012\u8F49\u8E22\uFF01',ja:'\u30B5\u30DE\u30FC\u30BD\u30EB\u30C8\uFF01',en:'Somersault!'},
+    'Somersault Kick!':{zhs:'\u95EA\u5149\u98DE\u8E22\uFF01',zht:'\u9583\u5149\u98DB\u8E22\uFF01',ja:'\u30B5\u30DE\u30FC\u30BD\u30EB\u30C8\uFF01',en:'Somersault!'},
     'Kikouken!':{zhs:'\u6C14\u529F\u62F3\uFF01',zht:'\u6C23\u529F\u62F3\uFF01',ja:'\u6C17\u529F\u62F3\uFF01',en:'Kikouken!'},
     'Spinning Bird Kick!':{zhs:'\u56DE\u65CB\u9E1F\u8E22\uFF01',zht:'\u56DE\u65CB\u9CE5\u8E22\uFF01',ja:'\u30B9\u30D4\u30CB\u30F3\u30B0\u30D0\u30FC\u30C9\uFF01',en:'Spinning Bird!'},
-    'Yoga Fire!':{zhs:'\u7477\u4F3D\u706B\u7130\uFF01',zht:'\u7477\u4F3D\u706B\u7130\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
+    'Yoga Fire!':{zhs:'\u745C\u4F3D\u706B\u7130\uFF01',zht:'\u745C\u4F3D\u706B\u7130\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
     'ELECTRIC!':{zhs:'\u7535\u51FB\uFF01',zht:'\u96FB\u64CA\uFF01',ja:'\u96FB\u6483\uFF01',en:'ELECTRIC!'},
     'GRAAAH!':{zhs:'\u554A\u554A\u554A\uFF01',zht:'\u554A\u554A\u554A\uFF01',ja:'\u30B0\u30E9\u30A2\u30A2\uFF01',en:'GRAAAH!'},
-    'Dosukoi!':{zhs:'\u7C97\u53E3\u4F53\uFF01',zht:'\u7C97\u53E3\u9AD4\uFF01',ja:'\u3069\u3059\u3053\u3044\uFF01',en:'Dosukoi!'},
-    'Double Lariat!':{zhs:'\u53CC\u56DE\u65CB\uFF01',zht:'\u96D9\u56DE\u65CB\uFF01',ja:'\u30C0\u30D6\u30EB\u30E9\u30EA\u30A2\u30C3\u30C8\uFF01',en:'Double Lariat!'}
+    'Dosukoi!':{zhs:'\u76F8\u6251\u5934\u9524\uFF01',zht:'\u76F8\u64B2\u982D\u9318\uFF01',ja:'\u3069\u3059\u3053\u3044\uFF01',en:'Dosukoi!'},
+    'Hyakuretsu!':{zhs:'\u767E\u88C2\u5F20\u624B\uFF01',zht:'\u767E\u88C2\u5F35\u624B\uFF01',ja:'\u767E\u88C2\u5F35\u624B\uFF01',en:'Hyakuretsu!'},
+    'Double Lariat!':{zhs:'\u53CC\u56DE\u65CB\u81C2\uFF01',zht:'\u96D9\u56DE\u65CB\u81C2\uFF01',ja:'\u30C0\u30D6\u30EB\u30E9\u30EA\u30A2\u30C3\u30C8\uFF01',en:'Double Lariat!'},
+    'Piledriver!':{zhs:'\u87BA\u65CB\u6253\u6869\uFF01',zht:'\u87BA\u65CB\u6253\u6A01\uFF01',ja:'\u30D1\u30A4\u30EB\u30C9\u30E9\u30A4\u30D0\u30FC\uFF01',en:'Piledriver!'},
+    'Rolling Attack!':{zhs:'\u6EDA\u52A8\u7A81\u51FB\uFF01',zht:'\u6EFE\u52D5\u7A81\u64CA\uFF01',ja:'\u30ED\u30FC\u30EA\u30F3\u30B0\u30A2\u30BF\u30C3\u30AF\uFF01',en:'Rolling Attack!'},
+    'Electric Thunder!':{zhs:'\u7535\u51FB\u96F7\u9E23\uFF01',zht:'\u96FB\u64CA\u96F7\u9CF4\uFF01',ja:'\u30A8\u30EC\u30AF\u30C8\u30EA\u30C3\u30AF\u30B5\u30F3\u30C0\u30FC\uFF01',en:'Electric Thunder!'},
+    'Hyakuretsu Kick!':{zhs:'\u767E\u88C2\u811A\uFF01',zht:'\u767E\u88C2\u8173\uFF01',ja:'\u767E\u88C2\u811A\uFF01',en:'Lightning Kick!'}
 };
 function _shoutMove(egg,key){
     var t=_moveNames[key];
