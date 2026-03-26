@@ -1535,17 +1535,17 @@ function _confirmMoonPipeEnter(){
 addEventListener('keydown',function(e){
     if(!_portalConfirmOpen)return;
     if(_babylonPromptOpen){
-        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();_confirmBabylonEnter();}
-        if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();_hideBabylonPrompt();}
+        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();_confirmBabylonEnter();}
+        if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();_hideBabylonPrompt();}
         return;
     }
     if(_moonPipePromptOpen){
-        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();_confirmMoonPipeEnter();}
-        if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();_hideMoonPipePrompt();}
+        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();_confirmMoonPipeEnter();}
+        if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();_hideMoonPipePrompt();}
         return;
     }
-    if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'){e.preventDefault();confirmPortalEnter();}
-    if(e.code==='KeyN'||e.code==='Escape'){e.preventDefault();hidePortalConfirm();}
+    if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();confirmPortalEnter();}
+    if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();hidePortalConfirm();}
 });
 // Result screen — Enter/Space to go back to city
 addEventListener('keydown',function(e){

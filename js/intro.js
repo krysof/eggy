@@ -180,19 +180,24 @@ function _renderIntro(now){
             // Hands
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY-eggSize*0.1,eggSize*0.18,'#FFDD44');
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY+eggSize*0.05,eggSize*0.18,'#FFDD44');
-            // Energy ball — grows with punch progress
-            var _ebSize=eggSize*0.3+punch*eggSize*1.5;
-            var _ebX=armEndX+eggSize*0.2+punch*eggSize*0.5;
+            // Energy beam — light pillar shooting forward
+            var _ebX=armEndX+eggSize*0.2;
+            var _beamLen=punch*W*0.6; // beam grows across screen
             // Outer glow
-            var _ebGrad=ctx.createRadialGradient(_ebX,bodyY,0,_ebX,bodyY,_ebSize);
-            _ebGrad.addColorStop(0,'rgba(255,100,50,'+punch*0.9+')');
-            _ebGrad.addColorStop(0.5,'rgba(255,180,80,'+punch*0.6+')');
-            _ebGrad.addColorStop(1,'rgba(255,220,150,0)');
-            ctx.fillStyle=_ebGrad;
-            ctx.beginPath();ctx.ellipse(_ebX,bodyY,_ebSize*1.2,_ebSize,0,0,Math.PI*2);ctx.fill();
-            // Core
+            var _beamGrad=ctx.createLinearGradient(_ebX,bodyY,_ebX+_beamLen,bodyY);
+            _beamGrad.addColorStop(0,'rgba(255,100,50,'+punch*0.9+')');
+            _beamGrad.addColorStop(0.3,'rgba(255,200,100,'+punch*0.7+')');
+            _beamGrad.addColorStop(1,'rgba(255,240,200,0)');
+            ctx.fillStyle=_beamGrad;
+            var _beamH=eggSize*0.4+punch*eggSize*0.8;
+            ctx.beginPath();
+            ctx.ellipse(_ebX+_beamLen*0.5,bodyY,_beamLen*0.5+eggSize*0.2,_beamH*0.6,0,0,Math.PI*2);
+            ctx.fill();
+            // Core beam
             ctx.fillStyle='rgba(255,240,200,'+punch*0.8+')';
-            ctx.beginPath();ctx.ellipse(_ebX,bodyY,_ebSize*0.7,_ebSize*0.6,0,0,Math.PI*2);ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(_ebX+_beamLen*0.5,bodyY,_beamLen*0.5,_beamH*0.3,0,0,Math.PI*2);
+            ctx.fill();
             _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else {
             // Impact + cockroach flies back

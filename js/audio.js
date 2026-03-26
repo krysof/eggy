@@ -178,6 +178,16 @@ function _applyLang(){
     var chatF=document.getElementById('chat-field');if(chatF)chatF.placeholder=L('chatPlaceholder');
     // Rebuild warp pipe signs with new city names
     if(typeof buildWarpPipes==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildWarpPipes();}
+    // Update portal names/descs to match new language
+    if(typeof portals!=='undefined'){
+        for(var pi2=0;pi2<portals.length;pi2++){
+            var _pr=portals[pi2];
+            if(_pr.raceIndex>=0&&_pr.raceIndex<RACES.length){
+                _pr.name=RACES[_pr.raceIndex].name;
+                _pr.desc=RACES[_pr.raceIndex].desc;
+            }
+        }
+    }
     // Rebuild portal signs
     if(typeof buildPortals==='function'&&typeof cityGroup!=='undefined'&&gameState==='city'){buildPortals();}
     // Update select grid cell labels

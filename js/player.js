@@ -1079,7 +1079,7 @@ function handlePlayerInput(){
                 var _gaFace3=playerEgg.mesh.rotation.y;
                 window._guileArc.visible=true;
                 window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.5,playerEgg.mesh.position.z);
-                window._guileArc.rotation.set(0,_gaFace3,0); // vertical, facing character direction
+                window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,0); // vertical, perpendicular to view
                 window._guileArc.userData._vx=Math.sin(_gaFace3)*0.08;
                 window._guileArc.userData._vz=Math.cos(_gaFace3)*0.08;
                 window._guileArc.userData._life=20; // ~1 body length at 0.08/frame
