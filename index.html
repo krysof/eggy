@@ -128,9 +128,10 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="document.getElementById('start-btn').textContent='Load failed, please refresh';"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-if(typeof THREE==='undefined'){
+var _threeLoaded=(typeof THREE!=='undefined');
+if(!_threeLoaded){
   document.getElementById('start-btn').textContent='Loading 3D engine...';
   var s=document.createElement('script');
   s.src='https://unpkg.com/three@0.160.0/build/three.min.js';
@@ -140,26 +141,8 @@ if(typeof THREE==='undefined'){
   };
   s.onerror=function(){document.getElementById('start-btn').textContent='Load failed, please refresh';};
   document.body.appendChild(s);
-} else {
-  document.write('<script src="js/core.js"><\/script>');
-  document.write('<script src="js/intro.js"><\/script>');
-  document.write('<script src="js/audio.js"><\/script>');
-  document.write('<script src="js/renderer.js"><\/script>');
-  document.write('<script src="js/characters.js"><\/script>');
-  document.write('<script src="js/ui.js"><\/script>');
-  document.write('<script src="js/hud.js"><\/script>');
-  document.write('<script src="js/input.js"><\/script>');
-  document.write('<script src="js/entity.js"><\/script>');
-  document.write('<script src="js/city.js"><\/script>');
-  document.write('<script src="js/world.js"><\/script>');
-  document.write('<script src="js/race.js"><\/script>');
-  document.write('<script src="js/physics.js"><\/script>');
-  document.write('<script src="js/ai.js"><\/script>');
-  document.write('<script src="js/player.js"><\/script>');
-  document.write('<script src="js/camera.js"><\/script>');
-  document.write('<script src="js/gameloop.js"><\/script>');
-  document.write('<script src="js/main.js"><\/script>');
 }
 </script>
+<script>if(typeof _threeLoaded!=='undefined'&&_threeLoaded){document.write('\x3Cscript src="js/core.js">\x3C/script>\x3Cscript src="js/intro.js">\x3C/script>\x3Cscript src="js/audio.js">\x3C/script>\x3Cscript src="js/renderer.js">\x3C/script>\x3Cscript src="js/characters.js">\x3C/script>\x3Cscript src="js/ui.js">\x3C/script>\x3Cscript src="js/hud.js">\x3C/script>\x3Cscript src="js/input.js">\x3C/script>\x3Cscript src="js/entity.js">\x3C/script>\x3Cscript src="js/city.js">\x3C/script>\x3Cscript src="js/world.js">\x3C/script>\x3Cscript src="js/race.js">\x3C/script>\x3Cscript src="js/physics.js">\x3C/script>\x3Cscript src="js/ai.js">\x3C/script>\x3Cscript src="js/player.js">\x3C/script>\x3Cscript src="js/camera.js">\x3C/script>\x3Cscript src="js/gameloop.js">\x3C/script>\x3Cscript src="js/main.js">\x3C/script>');}</script>
 </body>
 </html>
