@@ -29,7 +29,7 @@ function handlePlayerInput(){
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;playerEgg._blankaRoll=false;}
         playerEgg._blankaShock=0;
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
-        playerEgg._blankaSpinTimer=0;
+        playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;
         playerEgg._hyakuretsuTimer=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -652,11 +652,13 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*0.5,vz:Math.cos(_sbDir2)*0.5,life:100,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&(_ct==='cat')){
-            // ROLLING ATTACK (Blanka) — ←→+R, spin in place
+            // ROLLING ATTACK (Blanka) — ←→+R, forward roll same speed/distance as Honda
             _shoutMove(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._bfReady=false;playerEgg._bfSeq=0;
-            playerEgg.vx=0;playerEgg.vz=0; // stay in place
-            playerEgg._blankaSpinTimer=80;
+            var _brDir=playerEgg.mesh.rotation.y;
+            playerEgg._blankaSpinTimer=60;
+            playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*2;
+            playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*2;
             playerEgg.squash=0.8;
         } else {
         // Normal punch combo
@@ -1103,12 +1105,16 @@ function handlePlayerInput(){
     if(!playerEgg._blankaSpinTimer)playerEgg._blankaSpinTimer=0;
     if(playerEgg._blankaSpinTimer>0){
         playerEgg._blankaSpinTimer--;
-        playerEgg.vx*=0.1;playerEgg.vz*=0.1; // stay in place
+        // Move forward at Honda speed
+        if(playerEgg._blankaSpinDirX!==undefined){
+            playerEgg.vx=playerEgg._blankaSpinDirX;
+            playerEgg.vz=playerEgg._blankaSpinDirZ;
+        }
         playerEgg.vy=0; // cancel gravity, hover in air
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // stay airborne
-        // Rotate the body around its own center, not the mesh origin (feet)
+        // Rotate the body around its own center, 2x faster
         var _bsBody=playerEgg.mesh.userData.body;
-        if(_bsBody)_bsBody.rotation.x+=2.0;
+        if(_bsBody)_bsBody.rotation.x+=4.0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         // Hit nearby enemies
         if(playerEgg._blankaSpinTimer%4===0){
@@ -1121,6 +1127,12 @@ function handlePlayerInput(){
                     _bre.vx+=_brdx/_brd*0.3;_bre.vz+=_brdz/_brd*0.3;_bre.vy=0.2;
                     _bre.squash=0.5;_bre._hitStun=10;
                     _dropNpcStolenCoins(_bre);playHitSound();
+                    // Bounce back like Honda
+                    if(playerEgg._blankaSpinDirX!==undefined){
+                        playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
+                        playerEgg._blankaSpinTimer=Math.min(playerEgg._blankaSpinTimer,20);
+                        playerEgg._dashBounceTimer=30;
+                    }
                 }
             }
         }
@@ -1128,6 +1140,8 @@ function handlePlayerInput(){
             var _bsBody2=playerEgg.mesh.userData.body;
             if(_bsBody2)_bsBody2.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1);
+            playerEgg.vx*=0.2;playerEgg.vz*=0.2;
+            playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;
         }
     }
     // ---- Honda/Blanka Dash Attack (constant speed each frame) ----
