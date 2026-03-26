@@ -18,7 +18,7 @@ function _handleStart(){
     if(ctx&&ctx.state==='suspended')ctx.resume();
     showScreen('select-screen');
     // Show touch controls on select screen for mobile navigation
-    if('ontouchstart' in window) document.getElementById('touch-controls').classList.remove('hidden');
+    _showMenuTouch();
     // Delay BGM to let AudioContext fully resume (iOS needs longer)
     setTimeout(function(){
         if(ctx&&ctx.state==='suspended')ctx.resume();
@@ -28,15 +28,21 @@ function _handleStart(){
 _startBtn.addEventListener('click',_handleStart);
 _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStart();},{passive:false});
 
-// Title screen: show touch controls so user can tap jump/grab to start
+// ---- Mobile touch for menu screens ----
+function _showMenuTouch(){
+    if(!('ontouchstart' in window))return;
+    var tc=document.getElementById('touch-controls');
+    tc.classList.remove('hidden');
+    tc.style.zIndex='20'; // above .screen (z-index:10)
+}
+function _hideMenuTouch(){
+    var tc=document.getElementById('touch-controls');
+    tc.style.zIndex=''; // reset to CSS default (6)
+}
+// Show touch controls immediately on title screen for mobile
 if('ontouchstart' in window){
-    var _titleTouchShown=false;
-    document.getElementById('start-screen').addEventListener('touchstart',function(){
-        if(!_titleTouchShown){
-            _titleTouchShown=true;
-            document.getElementById('touch-controls').classList.remove('hidden');
-        }
-    },{passive:true});
+    document.getElementById('touch-controls').classList.remove('hidden');
+    document.getElementById('touch-controls').style.zIndex='20';
 }
 
 document.getElementById('confirm-btn').addEventListener('click',()=>{

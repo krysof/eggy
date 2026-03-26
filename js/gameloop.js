@@ -1521,7 +1521,7 @@ function enterCity(spawnX,spawnZ){
     startBGM();
     document.getElementById('city-hud').classList.remove('hidden');
     document.getElementById('race-hud').classList.add('hidden');
-    if('ontouchstart' in window) document.getElementById('touch-controls').classList.remove('hidden');
+    if('ontouchstart' in window){document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
 
     cityGroup.visible=true; raceGroup.visible=false;
     clearRace();
@@ -1628,7 +1628,7 @@ function enterRace(raceIndex){
             document.getElementById('race-hud').classList.remove('hidden');
             document.getElementById('round-hud').textContent='🏆 '+race.name;
             document.getElementById('alive-hud').textContent='🥚 '+allEggs.filter(e=>!e.cityNPC).length;
-            if('ontouchstart' in window) document.getElementById('touch-controls').classList.remove('hidden');
+            if('ontouchstart' in window){document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
         }
     },1000);
 }
