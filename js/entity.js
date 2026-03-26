@@ -58,7 +58,7 @@ function createEggMesh(color, accent, charType) {
     }
     bodyGeo.computeVertexNormals();
     var body=new THREE.Mesh(bodyGeo,toon(color));
-    body.position.y=0.7; body.castShadow=true; body.receiveShadow=true; g.add(body);
+    body.position.y=0.7; body.receiveShadow=true; g.add(body);
 
     // Cracked eggshell — ONLY for egg character
     if (charType==='egg') {
@@ -130,7 +130,7 @@ function createEggMesh(color, accent, charType) {
         [-1,1].forEach(function(s){
             var ear=new THREE.Mesh(earG,toon(0xA0704A));
             ear.position.set(s*0.42,1.05,0.1); ear.rotation.z=s*0.6;
-            ear.castShadow=true; body.add(ear);
+            body.add(ear);
         });
         var nose=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0x333333));
         nose.position.set(0,0.72,0.55); body.add(nose);
@@ -327,7 +327,7 @@ function createEggMesh(color, accent, charType) {
     var ftG=new THREE.SphereGeometry(0.14,8,6); ftG.scale(1.1,0.45,1.4);
     var ftM=toon(accent||0xFFCC00);
     var feet=[];
-    [-1,1].forEach(function(s){ var ft=new THREE.Mesh(ftG,ftM); ft.position.set(s*0.2,0.05,0.06); ft.castShadow=true; g.add(ft); feet.push(ft); });
+    [-1,1].forEach(function(s){ var ft=new THREE.Mesh(ftG,ftM); ft.position.set(s*0.2,0.05,0.06); g.add(ft); feet.push(ft); });
     // Attack limbs (hidden by default, shown during punch/kick)
     var armMat=toon(accent||0xFFCC00);
     var fistMat=toon(0xFFFFFF); // white fists for visibility
