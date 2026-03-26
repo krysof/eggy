@@ -505,16 +505,6 @@ function handlePlayerInput(){
             playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.squash=0.88;
         }
-        // ---- BLANKA: always Electric Thunder on normal punch ----
-        else if(_ct==='cat'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
-            _shoutMove(playerEgg,'ELECTRIC!');
-            playerEgg._comboCount=0;playerEgg._attackCD=4;
-            if(!playerEgg._blankaShockTimer)playerEgg._blankaShockTimer=0;
-            playerEgg._blankaShockTimer=60;
-            playerEgg._blankaShock=60;
-            playerEgg.squash=0.6;
-            if(sfxEnabled){var _beCtx3=ensureAudio();if(_beCtx3){var _bet3=_beCtx3.currentTime;var _beo3=_beCtx3.createOscillator();var _beg3=_beCtx3.createGain();_beo3.type='square';_beo3.frequency.setValueAtTime(800,_bet3);_beo3.frequency.linearRampToValueAtTime(2000,_bet3+0.1);_beg3.gain.setValueAtTime(0.08,_bet3);_beg3.gain.exponentialRampToValueAtTime(0.001,_bet3+0.3);_beo3.connect(_beg3);_beg3.connect(_beCtx3.destination);_beo3.start(_bet3);_beo3.stop(_bet3+0.3);}}
-        }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
         else if(playerEgg._rapidRReady&&_ct==='pig'){
             playerEgg._comboCount=0;playerEgg._attackCD=1;playerEgg._rapidR=2;
@@ -535,7 +525,7 @@ function handlePlayerInput(){
                 if(Math.sqrt(_hsdx*_hsdx+_hsdz*_hsdz)<3.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
             }
             playerEgg.squash=0.88;
-        } else if(playerEgg._rapidRReady&&_ct==='cat'){
+        } else if(playerEgg._rapidR>=2&&_ct==='cat'){
             // ELECTRIC THUNDER (Blanka) — infinite while mashing
             _shoutMove(playerEgg,'ELECTRIC!');
             playerEgg._comboCount=0;playerEgg._attackCD=2;playerEgg._rapidR=2;
@@ -1052,12 +1042,11 @@ function handlePlayerInput(){
         // Crouch down and stay still
         playerEgg.vx*=0.1;playerEgg.vz*=0.1;
         playerEgg.mesh.scale.set(1.1,0.7,1.1); // squash down = crouch
-        playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.08)*0.15;
-        // Electric bolts — radiate outward from body center
+        // Electric bolts — radiate outward from body center (purple)
         if(!playerEgg._elecParticles){
             playerEgg._elecParticles=[];
             for(var _epi=0;_epi<12;_epi++){
-                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.04,0.6),new THREE.MeshBasicMaterial({color:0x44FFFF,transparent:true,opacity:0.9}));
+                var _ep=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.04,0.6),new THREE.MeshBasicMaterial({color:0xAA44FF,transparent:true,opacity:0.9}));
                 _ep.visible=false;scene.add(_ep);
                 playerEgg._elecParticles.push(_ep);
             }
@@ -1086,7 +1075,7 @@ function handlePlayerInput(){
             // Point bolt outward from center
             _epp.lookAt(_epMidX+Math.sin(_epAngle),_epCy+_epYOff+(Math.random()-0.5)*0.3,_epMidZ+Math.cos(_epAngle));
             _epp.scale.set(1,1,0.5+Math.random()*1.0);
-            _epp.material.color.setHex(Math.random()>0.3?0x44FFFF:0xFFFFFF);
+            _epp.material.color.setHex(Math.random()>0.3?0xAA44FF:0xDD88FF);
         }
         for(var _bsi=0;_bsi<allEggs.length;_bsi++){
             var _bse=allEggs[_bsi];if(_bse===playerEgg||!_bse.alive||_bse.heldBy)continue;
@@ -1099,7 +1088,6 @@ function handlePlayerInput(){
             }
         }
         if(playerEgg._blankaShock<=0){
-            playerEgg.mesh.rotation.z=0;
             playerEgg.mesh.scale.set(1,1,1); // restore from crouch
             if(playerEgg._elecParticles)for(var _epk=0;_epk<playerEgg._elecParticles.length;_epk++)playerEgg._elecParticles[_epk].visible=false;
         }
