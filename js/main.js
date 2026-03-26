@@ -7,6 +7,8 @@ buildPortals();
 buildCityCoins();
 buildWarpPipes();
 applyCityTheme();
+// Initial portrait draw (after entity.js loaded)
+if(typeof _updateSF2Select==='function')_updateSF2Select(0);
 
 
 // Start button

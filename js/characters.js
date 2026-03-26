@@ -22,142 +22,35 @@ const portraitCtx = portraitCanvas ? portraitCanvas.getContext('2d') : null;
 const portraitName = document.getElementById('portrait-name');
 
 function drawPortrait(ch) {
-    if (!portraitCtx) return;
-    const W=portraitCanvas.width, H=portraitCanvas.height;
-    portraitCtx.clearRect(0,0,W,H);
-    const bg=portraitCtx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,'#1a1a4a'); bg.addColorStop(1,'#0a0a2e');
-    portraitCtx.fillStyle=bg; portraitCtx.fillRect(0,0,W,H);
-    const cx=W/2, cy=H*0.52, rx=55, ry=70;
-    portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
-    portraitCtx.fillStyle=ch.portrait; portraitCtx.fill();
-    portraitCtx.strokeStyle='rgba(255,255,255,0.15)'; portraitCtx.lineWidth=2; portraitCtx.stroke();
-    // Eyes
-    [-1,1].forEach(s => {
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx+s*18,cy-12,10,12,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#fff'; portraitCtx.fill();
-        portraitCtx.beginPath(); portraitCtx.arc(cx+s*18,cy-11,6,0,Math.PI*2);
-        portraitCtx.fillStyle='#111'; portraitCtx.fill();
-        portraitCtx.beginPath(); portraitCtx.arc(cx+s*16,cy-14,2,0,Math.PI*2);
-        portraitCtx.fillStyle='#fff'; portraitCtx.fill();
-    });
-    // Smile
-    portraitCtx.beginPath(); portraitCtx.arc(cx,cy+12,14,0.15*Math.PI,0.85*Math.PI);
-    portraitCtx.strokeStyle='#333'; portraitCtx.lineWidth=2.5; portraitCtx.stroke();
-    // Blush
-    [-1,1].forEach(s => {
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx+s*32,cy+8,10,6,0,0,Math.PI*2);
-        portraitCtx.fillStyle='rgba(255,120,120,0.35)'; portraitCtx.fill();
-    });
-    // Type features
-    if (ch.type==='dog') {
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.ellipse(cx+s*45,cy-50,16,28,s*0.3,0,Math.PI*2);
-            portraitCtx.fillStyle='#A0704A'; portraitCtx.fill();
-        });
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy+6,12,8,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#333'; portraitCtx.fill();
-        // Short tail hint
-        portraitCtx.beginPath(); portraitCtx.arc(cx+52,cy+30,8,0,Math.PI*2);
-        portraitCtx.fillStyle='#A0704A'; portraitCtx.fill();
-    } else if (ch.type==='cat') {
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.moveTo(cx+s*30,cy-60);
-            portraitCtx.lineTo(cx+s*50,cy-30); portraitCtx.lineTo(cx+s*15,cy-35);
-            portraitCtx.fillStyle='#BBBBBB'; portraitCtx.fill();
-        });
-        [-1,1].forEach(s => { for(let w=-1;w<=1;w++){
-            portraitCtx.beginPath(); portraitCtx.moveTo(cx+s*20,cy+8+w*6);
-            portraitCtx.lineTo(cx+s*55,cy+4+w*8);
-            portraitCtx.strokeStyle='rgba(0,0,0,0.3)'; portraitCtx.lineWidth=1; portraitCtx.stroke();
-        }});
-        // Tail
-        portraitCtx.beginPath(); portraitCtx.moveTo(cx+50,cy+30);
-        portraitCtx.quadraticCurveTo(cx+65,cy-10,cx+55,cy-30);
-        portraitCtx.strokeStyle='#CCCCCC'; portraitCtx.lineWidth=5; portraitCtx.stroke();
-    } else if (ch.type==='monkey') {
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.arc(cx+s*55,cy-5,18,0,Math.PI*2);
-            portraitCtx.fillStyle='#FFCC88'; portraitCtx.fill();
-            portraitCtx.beginPath(); portraitCtx.arc(cx+s*55,cy-5,12,0,Math.PI*2);
-            portraitCtx.fillStyle='#D4956B'; portraitCtx.fill();
-        });
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy+10,25,18,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#FFCC88'; portraitCtx.fill();
-        // Long tail
-        portraitCtx.beginPath(); portraitCtx.moveTo(cx+48,cy+30);
-        portraitCtx.quadraticCurveTo(cx+70,cy+10,cx+60,cy-20);
-        portraitCtx.quadraticCurveTo(cx+55,cy-35,cx+65,cy-40);
-        portraitCtx.strokeStyle='#CC5533'; portraitCtx.lineWidth=4; portraitCtx.stroke();
-    } else if (ch.type==='rooster') {
-        for(let i=0;i<3;i++){
-            portraitCtx.beginPath(); portraitCtx.arc(cx-10+i*10,cy-68+Math.abs(i-1)*5,10,0,Math.PI*2);
-            portraitCtx.fillStyle='#FF3333'; portraitCtx.fill();
-        }
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy+28,8,12,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#FF3333'; portraitCtx.fill();
-        portraitCtx.beginPath(); portraitCtx.moveTo(cx-6,cy+4); portraitCtx.lineTo(cx+6,cy+4);
-        portraitCtx.lineTo(cx,cy+16); portraitCtx.fillStyle='#FFAA00'; portraitCtx.fill();
-        // Wings
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.ellipse(cx+s*52,cy+5,12,22,s*0.2,0,Math.PI*2);
-            portraitCtx.fillStyle='#FFEECC'; portraitCtx.fill();
-        });
-        // Tail feathers
-        for(let fi=0;fi<3;fi++){
-            portraitCtx.beginPath(); portraitCtx.moveTo(cx-8+fi*8,cy+45);
-            portraitCtx.lineTo(cx-12+fi*8,cy+70); portraitCtx.lineTo(cx-4+fi*8,cy+70);
-            portraitCtx.fillStyle=fi===1?'#FF4444':'#FFAA00'; portraitCtx.fill();
-        }
-    } else if (ch.type==='cockroach') {
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.moveTo(cx+s*10,cy-55);
-            portraitCtx.quadraticCurveTo(cx+s*35,cy-85,cx+s*45,cy-70);
-            portraitCtx.strokeStyle='#5C2E0A'; portraitCtx.lineWidth=3; portraitCtx.stroke();
-            // Tip ball
-            portraitCtx.beginPath(); portraitCtx.arc(cx+s*45,cy-70,5,0,Math.PI*2);
-            portraitCtx.fillStyle='#8B6040'; portraitCtx.fill();
-        });
-        portraitCtx.beginPath(); portraitCtx.moveTo(cx,cy-30); portraitCtx.lineTo(cx,cy+40);
-        portraitCtx.strokeStyle='rgba(60,30,10,0.3)'; portraitCtx.lineWidth=1.5; portraitCtx.stroke();
-    } else if (ch.type==='pig') {
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy+10,16,12,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#FF8899'; portraitCtx.fill();
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.ellipse(cx+s*5,cy+10,3,4,0,0,Math.PI*2);
-            portraitCtx.fillStyle='#DD6677'; portraitCtx.fill();
-        });
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.ellipse(cx+s*40,cy-45,16,20,s*0.4,0,Math.PI*2);
-            portraitCtx.fillStyle='#FFBBBB'; portraitCtx.fill();
-        });
-        // Curly tail hint
-        portraitCtx.beginPath(); portraitCtx.arc(cx+50,cy+25,8,0,Math.PI*1.5);
-        portraitCtx.strokeStyle='#FFAAAA'; portraitCtx.lineWidth=3; portraitCtx.stroke();
-    } else if (ch.type==='frog') {
-        [-1,1].forEach(s => {
-            portraitCtx.beginPath(); portraitCtx.arc(cx+s*25,cy-50,20,0,Math.PI*2);
-            portraitCtx.fillStyle='#55BB55'; portraitCtx.fill();
-            portraitCtx.beginPath(); portraitCtx.arc(cx+s*25,cy-50,14,0,Math.PI*2);
-            portraitCtx.fillStyle='#fff'; portraitCtx.fill();
-            portraitCtx.beginPath(); portraitCtx.arc(cx+s*25,cy-48,8,0,Math.PI*2);
-            portraitCtx.fillStyle='#111'; portraitCtx.fill();
-        });
-        portraitCtx.beginPath(); portraitCtx.arc(cx,cy+8,22,0.1*Math.PI,0.9*Math.PI);
-        portraitCtx.strokeStyle='#338833'; portraitCtx.lineWidth=3; portraitCtx.stroke();
+    if (!portraitCanvas) return;
+    var W=portraitCanvas.width, H=portraitCanvas.height;
+    // Use a separate Three.js renderer to render the actual 3D character
+    if(!window._portraitRenderer){
+        window._portraitRenderer=new THREE.WebGLRenderer({canvas:portraitCanvas,alpha:true,antialias:true});
+        window._portraitRenderer.setSize(W,H);
+        window._portraitRenderer.setClearColor(0x0a0a2e,1);
+        window._portraitScene=new THREE.Scene();
+        window._portraitCamera=new THREE.PerspectiveCamera(35,W/H,0.1,100);
+        window._portraitCamera.position.set(0,1.2,3.5);
+        window._portraitCamera.lookAt(0,0.7,0);
+        window._portraitScene.add(new THREE.AmbientLight(0xffffff,0.7));
+        var _pSun=new THREE.DirectionalLight(0xFFEECC,1.5);
+        _pSun.position.set(2,3,2);
+        window._portraitScene.add(_pSun);
+        window._portraitScene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.4));
     }
-    // Eggshell for egg character
-    if (ch.type==='egg') {
-        portraitCtx.strokeStyle='#FFFFF0'; portraitCtx.lineWidth=2.5;
-        portraitCtx.beginPath();
-        portraitCtx.moveTo(cx-35,cy-55); portraitCtx.lineTo(cx-28,cy-65); portraitCtx.lineTo(cx-15,cy-52);
-        portraitCtx.lineTo(cx-5,cy-68); portraitCtx.lineTo(cx+8,cy-54);
-        portraitCtx.lineTo(cx+20,cy-66); portraitCtx.lineTo(cx+30,cy-53); portraitCtx.lineTo(cx+38,cy-58);
-        portraitCtx.stroke();
-        portraitCtx.fillStyle='rgba(255,255,240,0.25)';
-        portraitCtx.beginPath(); portraitCtx.ellipse(cx,cy-55,38,8,0,0,Math.PI*2);
-        portraitCtx.fill();
+    // Remove old character mesh
+    if(window._portraitMesh){
+        window._portraitScene.remove(window._portraitMesh);
+        window._portraitMesh=null;
     }
-    if (portraitName) portraitName.textContent = ch.name;
+    // Create the actual character mesh
+    var mesh=createEggMesh(ch.color,ch.accent,ch.type);
+    mesh.position.set(0,0,0);
+    mesh.rotation.y=0.3; // slight angle for better view
+    window._portraitScene.add(mesh);
+    window._portraitMesh=mesh;
+    // Render
+    window._portraitRenderer.render(window._portraitScene,window._portraitCamera);
 }
 

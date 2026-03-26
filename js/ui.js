@@ -122,7 +122,7 @@ CHARACTERS.forEach((ch,i) => {
     });
     if (charGrid) charGrid.appendChild(cell);
 });
-if (portraitCtx) _updateSF2Select(0);
+// Initial portrait draw deferred to main.js (after entity.js loads)
 
 // ---- State ----
 let gameState = 'menu'; // menu, city, raceIntro, racing, raceResult
