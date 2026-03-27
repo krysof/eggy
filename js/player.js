@@ -1087,10 +1087,6 @@ function handlePlayerInput(){
             }
             playerEgg.vy=0;
             if(playerEgg.mesh.position.y>0.1)playerEgg.mesh.position.y=0.01; // force ground
-            // R+T pressed again near end → queue next lariat
-            if(keys['KeyR']&&keys['KeyT']&&playerEgg._tatsuActive<15&&playerEgg._tatsuActive>0){
-                playerEgg._lariatQueued=true;
-            }
         } else {
             var _tFwd=1.5;var _tVert=0;
             if(_tCT==='monkey'){
@@ -1155,13 +1151,7 @@ function handlePlayerInput(){
             if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;playerEgg.squash=1;}
             // Reset Zangief lariat arms
             if(playerEgg._isLariat){
-                // Check for queued next lariat
-                if(playerEgg._lariatQueued){
-                    playerEgg._lariatQueued=false;
-                    playerEgg._tatsuActive=60;playerEgg._attackCD=0;
-                } else {
-                    playerEgg._isLariat=false;var _lud2=playerEgg.mesh.userData;if(_lud2.rightArm){_lud2.rightArm.visible=false;_lud2.rightArm.scale.set(1,1,1);}if(_lud2.leftArm){_lud2.leftArm.visible=false;_lud2.leftArm.scale.set(1,1,1);}
-                }
+                playerEgg._isLariat=false;var _lud2=playerEgg.mesh.userData;if(_lud2.rightArm){_lud2.rightArm.visible=false;_lud2.rightArm.scale.set(1,1,1);}if(_lud2.leftArm){_lud2.leftArm.visible=false;_lud2.leftArm.scale.set(1,1,1);}
             }
         }
     } else {
@@ -1761,7 +1751,15 @@ function handlePlayerInput(){
     // ---- Piledriver animation (direct position control) ----
     if(playerEgg._piledriverTarget){
         var _pdt=playerEgg._piledriverTarget;
+        // Safety: abort if target died, escaped, or phase too long
+        if(!_pdt.alive||!_pdt._piledriverLocked||playerEgg._piledriverPhase>80){
+            _pdt._piledriverLocked=false;_pdt.mesh.rotation.z=0;
+            playerEgg._piledriverTarget=null;playerEgg._piledriverPhase=0;playerEgg._pdStartX=0;playerEgg._pdStartZ=0;
+            playerEgg.grabCD=20;playerEgg._stunTimer=0;playerEgg._slamImmune=30;
+        } else {
         playerEgg._piledriverPhase++;
+        // Player immune during piledriver
+        playerEgg._slamImmune=5;playerEgg._stunTimer=0;playerEgg.throwTimer=0;
         var _pdStartX=playerEgg._pdStartX||(playerEgg._pdStartX=playerEgg.mesh.position.x);
         var _pdStartZ=playerEgg._pdStartZ||(playerEgg._pdStartZ=playerEgg.mesh.position.z);
         var _pdMaxY=15; // max height
@@ -1811,6 +1809,7 @@ function handlePlayerInput(){
         }
         // Position target on player head
         if(playerEgg._piledriverTarget)_pdt.mesh.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+1.5,playerEgg.mesh.position.z);
+        } // end safety else
     }
     playerEgg._fWasDown=!!keys['KeyF'];
 }
