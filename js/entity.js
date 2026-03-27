@@ -408,27 +408,27 @@ function createEggMesh(color, accent, charType) {
         var chestHairMat=toon(0x8B4513);
         for(var chi=0;chi<9;chi++){
             var cha=(chi-4)*0.1;
-            var chv=0.55+Math.abs(chi-4)*0.02;
+            var chv=0.35+Math.abs(chi-4)*0.02;
             var hair=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.18,3),chestHairMat);
-            hair.position.set(cha,chv,0.48);hair.rotation.x=-0.4;
+            hair.position.set(cha,chv,0.5);hair.rotation.x=-0.4;
             body.add(hair);
         }
-        // Scars — Zangief trait (large X-shaped scars on body)
+        // Scars — Zangief trait (large X-shaped scars on chest)
         var scarMat=toon(0xFF6666);
-        // Big X scar on chest
+        // Big X scar on chest center
         var scar1=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.05,0.05),scarMat);
-        scar1.position.set(0,0.45,0.45);scar1.rotation.z=0.6;body.add(scar1);
+        scar1.position.set(0,0.25,0.5);scar1.rotation.z=0.6;body.add(scar1);
         var scar2=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.05,0.05),scarMat);
-        scar2.position.set(0,0.45,0.45);scar2.rotation.z=-0.6;body.add(scar2);
+        scar2.position.set(0,0.25,0.5);scar2.rotation.z=-0.6;body.add(scar2);
         // Scar on left side
         var scar3=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.05,0.05),scarMat);
-        scar3.position.set(-0.45,0.5,0.2);scar3.rotation.z=0.4;body.add(scar3);
+        scar3.position.set(-0.45,0.3,0.2);scar3.rotation.z=0.4;body.add(scar3);
         // Scar on right side
         var scar4=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.05,0.05),scarMat);
-        scar4.position.set(0.45,0.35,0.15);scar4.rotation.z=-0.3;body.add(scar4);
+        scar4.position.set(0.45,0.2,0.15);scar4.rotation.z=-0.3;body.add(scar4);
         // Scar on back
         var scar5=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.05,0.05),scarMat);
-        scar5.position.set(0.1,0.5,-0.42);scar5.rotation.z=0.5;body.add(scar5);
+        scar5.position.set(0.1,0.3,-0.45);scar5.rotation.z=0.5;body.add(scar5);
         // Short stubby bear tail
         var bearTail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0x6B4A2A));
         bearTail.position.set(0,0.65,-0.55);body.add(bearTail);
