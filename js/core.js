@@ -21,7 +21,7 @@ var I18N={
     title:{zhs:'\u86CB\u5B9D\u4E16\u754C',zht:'\u86CB\u5B9D\u4E16\u754C',ja:'\u30C0\u30F3\u30DC\u30EF\u30FC\u30EB\u30C9',en:'DANBO World'},
     subtitle:{zhs:'D A N B O   W O R L D',zht:'D A N B O   W O R L D',ja:'D A N B O   W O R L D',en:'D A N B O   W O R L D'},
     slogan:{zhs:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u9669',zht:'\u63A2\u7D22\u57CE\u5E02 \u00B7 \u7A7F\u8D8A\u4E16\u754C \u00B7 \u4E00\u8D77\u5192\u96AA',ja:'\u63A2\u691C\u30FB\u3064\u306A\u304C\u308B\u30FB\u3044\u3063\u3057\u3087\u306B\u904A\u307C\u3046',en:'Explore \u00B7 Connect \u00B7 Run Together'},
-    version:(function(){var v='v20260328.26';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
+    version:(function(){var v='v20260328.27';return{zhs:v+' by \u767D\u6CB3\u6101',zht:v+' by \u767D\u6CB3\u6101',ja:v+' by \u767D\u6CB3\u6101',en:v+' by Kryso'};})(),
     startBtn:{zhs:'\uD83C\uDFAE \u5F00\u59CB\u6E38\u620F',zht:'\uD83C\uDFAE \u958B\u59CB\u904A\u6232',ja:'\uD83C\uDFAE \u30B2\u30FC\u30E0\u30B9\u30BF\u30FC\u30C8',en:'\uD83C\uDFAE Start Game'},
     selectTitle:{zhs:'\u2014 \u9009 \u62E9 \u89D2 \u8272 \u2014',zht:'\u2014 \u9078 \u64C7 \u89D2 \u8272 \u2014',ja:'\u2014 \u30AD\u30E3\u30E9\u9078\u629E \u2014',en:'\u2014 SELECT CHARACTER \u2014'},
     confirmBtn:{zhs:'\u2694\uFE0F \u786E\u8BA4\u51FA\u6218',zht:'\u2694\uFE0F \u78BA\u8A8D\u51FA\u6230',ja:'\u2694\uFE0F \u6C7A\u5B9A',en:'\u2694\uFE0F Confirm'},
@@ -49,10 +49,10 @@ var I18N={
     earthReturn:{zhs:'\u8FD4\u56DE\u5730\u7403',zht:'\u8FD4\u56DE\u5730\u7403',ja:'\u5730\u7403\u3078\u5E30\u9084',en:'Return to Earth'},
     earthReturnDesc:{zhs:'\u4F20\u9001\u56DE\u5730\u7403\u57CE\u5E02',zht:'\u50B3\u9001\u56DE\u5730\u7403\u57CE\u5E02',ja:'\u5730\u7403\u306E\u8857\u3078\u30C6\u30EC\u30DD\u30FC\u30C8',en:'Teleport back to Earth city'},
     charNames:{
-        zhs:['\u7ECF\u5178\u86CB\u5B9D','\u732A\u4ED4','\u732B\u4ED4','\u9E21\u516C','\u72D7\u4ED4','\u9A6C\u9A9D','\u7530\u9E21','\u66F1\u7534'],
-        zht:['\u7D93\u5178\u86CB\u5BF6','\u8C6C\u4ED4','\u8C93\u4ED4','\u96DE\u516C','\u72D7\u4ED4','\u99AC\u9A2E','\u7530\u96DE','\u66F1\u7534'],
-        ja:['\u30AF\u30E9\u30B7\u30C3\u30AF\u30C0\u30F3\u30DC','\u30D6\u30BF','\u30CD\u30B3','\u30CB\u30EF\u30C8\u30EA','\u30A4\u30CC','\u30B5\u30EB','\u30AB\u30A8\u30EB','\u30B4\u30AD\u30D6\u30EA'],
-        en:['Classic Danbo','Piggy','Kitty','Rooster','Puppy','Monkey','Frog','Cockroach']
+        zhs:['\u7ECF\u5178\u86CB\u5B9D','\u5927\u718A','\u732B\u4ED4','\u9E21\u516C','\u72D7\u4ED4','\u9A6C\u9A9D','\u7530\u9E21','\u66F1\u7534'],
+        zht:['\u7D93\u5178\u86CB\u5BF6','\u5927\u718A','\u8C93\u4ED4','\u96DE\u516C','\u72D7\u4ED4','\u99AC\u9A2E','\u7530\u96DE','\u66F1\u7534'],
+        ja:['\u30AF\u30E9\u30B7\u30C3\u30AF\u30C0\u30F3\u30DC','\u30AF\u30DE','\u30CD\u30B3','\u30CB\u30EF\u30C8\u30EA','\u30A4\u30CC','\u30B5\u30EB','\u30AB\u30A8\u30EB','\u30B4\u30AD\u30D6\u30EA'],
+        en:['Classic Danbo','Bear','Kitty','Rooster','Puppy','Monkey','Frog','Cockroach']
     },
     cityNames:{
         zhs:['\uD83C\uDFD9\uFE0F \u5E0C\u671B\u4E4B\u57CE','\uD83C\uDFDC\uFE0F \u6C99\u6F20\u57CE','\u2744\uFE0F \u51B0\u96EA\u57CE','\uD83D\uDD25 \u7194\u5CA9\u57CE','\uD83C\uDF6C \u7CD6\u679C\u57CE','\uD83C\uDF19 \u6708\u9762\u90FD\u5E02'],

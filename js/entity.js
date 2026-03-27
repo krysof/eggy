@@ -343,52 +343,42 @@ function createEggMesh(color, accent, charType) {
         // Elongate body slightly more
         body.scale.y=1.1;
     } else if (charType==='pig') {
-        // E.Honda — sumo wrestler traits
-        // Prominent snout
-        var snout=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.12,8),toon(0xFFCCAA));
-        snout.position.set(0,0.68,0.52); snout.rotation.x=Math.PI/2;
-        body.add(snout);
+        // Bear with boar mask (Inosuke style) — Honda moveset
+        // Round bear ears
         [-1,1].forEach(function(s){
-            var nos=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0xDD6677));
-            nos.position.set(s*0.06,0.68,0.6); body.add(nos);
+            var ear=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),toon(0x6B4A2A));
+            ear.position.set(s*0.35,1.15,0.05);body.add(ear);
+            var earInner=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0xAA7755));
+            earInner.position.set(s*0.35,1.15,0.1);body.add(earInner);
         });
-        // Sumo topknot (mage)
-        var topknot=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0x222222));
-        topknot.position.set(0,1.2,0);body.add(topknot);
-        // Face paint — prominent blue and red kabuki stripes
-        // Blue vertical stripes (Honda's signature)
+        // Boar mask on face (lighter color, snout shape)
+        var mask=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),toon(0xDDCCAA));
+        mask.position.set(0,0.82,0.35);mask.scale.set(1,0.8,0.6);body.add(mask);
+        // Boar snout
+        var snout=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.14,0.15,8),toon(0xCCBB99));
+        snout.position.set(0,0.7,0.55);snout.rotation.x=Math.PI/2;body.add(snout);
         [-1,1].forEach(function(s){
-            var blueStripe=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.35,0.02),toon(0x2244AA));
-            blueStripe.position.set(s*0.18,0.78,0.55);body.add(blueStripe);
+            var nos=new THREE.Mesh(new THREE.SphereGeometry(0.035,4,4),toon(0x885544));
+            nos.position.set(s*0.05,0.7,0.63);body.add(nos);
         });
-        // Red horizontal stripe across face
-        var redStripe=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,0.02),toon(0xCC2222));
-        redStripe.position.set(0,0.85,0.54);body.add(redStripe);
-        // Additional red marks under eyes
+        // Boar tusks
         [-1,1].forEach(function(s){
-            var redMark=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.04,0.02),toon(0xCC2222));
-            redMark.position.set(s*0.2,0.72,0.56);body.add(redMark);
+            var tusk=new THREE.Mesh(new THREE.ConeGeometry(0.025,0.12,4),toon(0xFFFFF0));
+            tusk.position.set(s*0.1,0.6,0.58);tusk.rotation.x=-0.3;tusk.rotation.z=s*0.2;body.add(tusk);
         });
-        // Small floppy ears
-        var pearG=new THREE.SphereGeometry(0.14,6,4); pearG.scale(1,1.2,0.5);
+        // Sumo topknot (Honda trait)
+        var topknot=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0x222222));
+        topknot.position.set(0,1.22,0);body.add(topknot);
+        // Face paint stripes (Honda signature)
         [-1,1].forEach(function(s){
-            var ear=new THREE.Mesh(pearG,toon(0xFFCCAA));
-            ear.position.set(s*0.35,1.08,0.1); ear.rotation.z=s*0.5;
-            body.add(ear);
+            var blueStripe=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.25,0.02),toon(0x2244AA));
+            blueStripe.position.set(s*0.16,0.82,0.56);body.add(blueStripe);
         });
-        // Curly tail
-        var pigTailPts=[];
-        for(var pt=0;pt<=12;pt++){
-            var ptt=pt/12;
-            pigTailPts.push(new THREE.Vector3(
-                Math.sin(ptt*Math.PI*3)*0.08,
-                0.7+Math.cos(ptt*Math.PI*3)*0.08,
-                -0.5-ptt*0.25
-            ));
-        }
-        var pigTailCurve=new THREE.CatmullRomCurve3(pigTailPts);
-        var pigTailGeo=new THREE.TubeGeometry(pigTailCurve,16,0.03,6,false);
-        body.add(new THREE.Mesh(pigTailGeo,toon(0xFFCCAA)));
+        var redStripe=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.05,0.02),toon(0xCC2222));
+        redStripe.position.set(0,0.9,0.55);body.add(redStripe);
+        // Short stubby bear tail
+        var bearTail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0x6B4A2A));
+        bearTail.position.set(0,0.65,-0.55);body.add(bearTail);
     } else if (charType==='frog') {
         // Zangief — bulging eyes on top
         [-1,1].forEach(function(s){
