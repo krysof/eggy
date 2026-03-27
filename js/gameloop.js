@@ -2,6 +2,30 @@
 // ============================================================
 //  CITY UPDATE (portals, coins, NPCs)
 // ============================================================
+// Pain expression — squint eyes and open mouth when hurt
+function _updatePainFace(egg){
+    var ud=egg.mesh.userData;
+    if(!ud._eyeWhites||!ud._pupils)return;
+    var inPain=egg._hitStun>0||egg._stunTimer>0||egg.throwTimer>0||egg._electrocuted>0||egg._elecFlying>0;
+    if(inPain){
+        // Squint eyes — flatten vertically
+        for(var i=0;i<ud._eyeWhites.length;i++){
+            ud._eyeWhites[i].scale.set(1,0.2,0.7); // squished flat = squinting
+            ud._pupils[i].visible=false;
+            ud._shines[i].visible=false;
+        }
+        // Mouth — open in pain (move smile down and scale)
+        if(ud._smile){ud._smile.position.y=-0.05;ud._smile.scale.set(1.3,1.3,1.3);}
+    } else {
+        // Normal eyes
+        for(var j=0;j<ud._eyeWhites.length;j++){
+            ud._eyeWhites[j].scale.set(1,1.2,0.7);
+            ud._pupils[j].visible=true;
+            ud._shines[j].visible=true;
+        }
+        if(ud._smile){ud._smile.position.y=0;ud._smile.scale.set(1,1,1);}
+    }
+}
 function updateCity(){
     if(!playerEgg)return;
     const px=playerEgg.mesh.position.x, pz=playerEgg.mesh.position.z, py=playerEgg.mesh.position.y;
@@ -372,7 +396,7 @@ function updateCity(){
     for(const npc of cityNPCs){
         updateCityNPC(npc);
         updateEggPhysics(npc, true);
-        _updateStunStars(npc);
+        _updateStunStars(npc);_updatePainFace(npc);
         // Stun meter decay
         if(npc._stunMeter>0&&npc._stunTimer<=0)npc._stunMeter=Math.max(0,npc._stunMeter-0.5);
         // Fire effect (Ken shoryuken)
@@ -1977,7 +2001,7 @@ function _gameUpdate(){
             handlePlayerInput();
         }
         if(playerEgg&&!_pipeTraveling) updateEggPhysics(playerEgg, true);
-        if(playerEgg) _updateStunStars(playerEgg);
+        if(playerEgg){_updateStunStars(playerEgg);_updatePainFace(playerEgg);}
         if(playerEgg&&playerEgg._stunMeter>0&&playerEgg._stunTimer<=0)playerEgg._stunMeter=Math.max(0,playerEgg._stunMeter-0.5);
         // Player electrocution effect
         if(playerEgg&&playerEgg._electrocuted>0){

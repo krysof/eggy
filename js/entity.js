@@ -98,16 +98,17 @@ function createEggMesh(color, accent, charType) {
     var pupilG=new THREE.SphereGeometry(0.1,10,8);
     var shineG=new THREE.SphereGeometry(0.04,6,4);
     var eyeY=charType==='frog'?0.68:0.88;
+    var _eyeWhites=[],_pupils=[],_shines=[];
     [-1,1].forEach(function(s){
         var ew=new THREE.Mesh(eyeWhiteG,toon(0xffffff));
         ew.position.set(s*0.24, eyeY, 0.46); ew.scale.set(1,1.2,0.7);
-        body.add(ew);
+        body.add(ew);_eyeWhites.push(ew);
         var ep=new THREE.Mesh(pupilG,toon(0x222222));
         ep.position.set(s*0.24, eyeY-0.02, 0.53);
-        body.add(ep);
+        body.add(ep);_pupils.push(ep);
         var es=new THREE.Mesh(shineG,toon(0xffffff));
         es.position.set(s*0.24+s*0.04, eyeY+0.04, 0.56);
-        body.add(es);
+        body.add(es);_shines.push(es);
     });
 
     // Smile
@@ -117,7 +118,8 @@ function createEggMesh(color, accent, charType) {
         new THREE.Vector3(0.12, 0.62, 0.52)
     );
     var smileGeo = new THREE.TubeGeometry(smileCurve, 10, 0.025, 6, false);
-    body.add(new THREE.Mesh(smileGeo, toon(0x333333)));
+    var _smileMesh=new THREE.Mesh(smileGeo, toon(0x333333));
+    body.add(_smileMesh);
 
     // Blush cheeks
     var blG=new THREE.CircleGeometry(0.1,12);
@@ -450,6 +452,7 @@ function createEggMesh(color, accent, charType) {
     var leftLeg=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.13,0.7,6),armMat);
     leftLeg.position.set(-0.22,0.1,0.5);leftLeg.rotation.x=-Math.PI/3;leftLeg.visible=false;g.add(leftLeg);
     g.userData.body=body; g.userData.feet=feet; g.userData._charType=charType;
+    g.userData._eyeWhites=_eyeWhites;g.userData._pupils=_pupils;g.userData._shines=_shines;g.userData._smile=_smileMesh;g.userData._eyeY=eyeY;
     g.userData.rightArm=rightArm;g.userData.leftArm=leftArm;
     g.userData.rightLeg=rightLeg;g.userData.leftLeg=leftLeg;
     return g;

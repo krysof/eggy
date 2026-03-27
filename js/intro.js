@@ -40,12 +40,13 @@ function _drawIntroEgg(ctx,x,y,size,color,accentColor,facingLeft,eyeOpen){
         ctx.beginPath();ctx.arc(x+ex*size*0.2,y-size*0.22,size*0.03,0,Math.PI*2);ctx.fill();
         ctx.beginPath();ctx.arc(x+ex*size*0.38,y-size*0.2,size*0.025,0,Math.PI*2);ctx.fill();
     }
-    ctx.fillStyle='rgba(255,120,120,0.3)';
+    ctx.fillStyle='rgba(255,120,120,0.15)';
     ctx.beginPath();ctx.ellipse(x+ex*size*0.08,y+size*0.02,size*0.12,size*0.06,0,0,Math.PI*2);ctx.fill();
     ctx.beginPath();ctx.ellipse(x+ex*size*0.42,y+size*0.04,size*0.1,size*0.05,0,0,Math.PI*2);ctx.fill();
+    // Serious expression — slight frown
     if(eyeOpen){
-        ctx.strokeStyle='rgba(80,40,20,0.5)';ctx.lineWidth=size*0.02;
-        ctx.beginPath();ctx.arc(x+ex*size*0.25,y+size*0.08,size*0.1,0.1*Math.PI,0.9*Math.PI);ctx.stroke();
+        ctx.strokeStyle='rgba(80,40,20,0.4)';ctx.lineWidth=size*0.02;
+        ctx.beginPath();ctx.moveTo(x+ex*size*0.15,y+size*0.1);ctx.lineTo(x+ex*size*0.35,y+size*0.08);ctx.stroke();
     }
 }
 
@@ -150,13 +151,13 @@ function _drawCityBG(ctx,W,H,panY){
 
 // Wind rain particles
 var _introRain=[];
-for(var _ri=0;_ri<200;_ri++){
-    _introRain.push({x:Math.random(),y:Math.random(),speed:0.015+Math.random()*0.025,len:12+Math.random()*20});
+for(var _ri=0;_ri<120;_ri++){
+    _introRain.push({x:Math.random(),y:Math.random(),speed:0.012+Math.random()*0.018,len:10+Math.random()*14});
 }
 function _drawRain(ctx,W,H,alpha){
     if(alpha<=0)return;
-    ctx.strokeStyle='rgba(200,220,255,'+alpha*0.5+')';
-    ctx.lineWidth=1.5;
+    ctx.strokeStyle='rgba(180,200,255,'+alpha*0.35+')';
+    ctx.lineWidth=1;
     for(var i=0;i<_introRain.length;i++){
         var r=_introRain[i];
         r.x+=0.006;r.y+=r.speed;
@@ -218,10 +219,10 @@ function _renderIntro(now){
     // ======== Background ========
     _drawCityBG(ctx,W,H,panY);
     // Wind rain effect during street scene
-    if(t>=1.5&&t<5){
+    if(t>=1.5&&t<7){
         var _rainAlpha=1;
         if(t<2)_rainAlpha=(t-1.5)/0.5;
-        if(t>4.5)_rainAlpha=1-(t-4.5)/0.5;
+        if(t>6.5)_rainAlpha=1-(t-6.5)/0.5;
         _drawRain(ctx,W,H,_rainAlpha);
     }
 
