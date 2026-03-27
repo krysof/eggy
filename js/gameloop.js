@@ -404,8 +404,9 @@ function updateCity(){
             npc._onFire--;
             if(!npc._fireParticles){
                 npc._fireParticles=[];
-                for(var _fpi=0;_fpi<6;_fpi++){
-                    var _fp=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,3),new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.7}));
+                for(var _fpi=0;_fpi<14;_fpi++){
+                    var _fpSize=_fpi<4?0.3:0.2;
+                    var _fp=new THREE.Mesh(new THREE.SphereGeometry(_fpSize,5,4),new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.85}));
                     _fp.visible=false;npc.mesh.add(_fp);
                     npc._fireParticles.push(_fp);
                 }
@@ -413,12 +414,23 @@ function updateCity(){
             for(var _fpj=0;_fpj<npc._fireParticles.length;_fpj++){
                 var _fpp=npc._fireParticles[_fpj];
                 _fpp.visible=true;
-                var _fpa=_fpj*Math.PI*2/npc._fireParticles.length+npc._onFire*0.2;
-                _fpp.position.set(Math.sin(_fpa)*0.5,0.5+Math.random()*0.8,Math.cos(_fpa)*0.5);
-                _fpp.material.color.setHex(Math.random()>0.5?0xFF4400:0xFFCC00);
-                _fpp.scale.setScalar(0.5+Math.random()*0.8);
+                var _fpa=_fpj*Math.PI*2/npc._fireParticles.length+npc._onFire*0.25;
+                var _fpR=0.4+Math.sin(_fpa*2)*0.2;
+                var _fpY=0.3+_fpj*0.12+Math.random()*0.3;
+                _fpp.position.set(Math.sin(_fpa)*_fpR,_fpY,Math.cos(_fpa)*_fpR);
+                // Flicker between orange, yellow, red
+                var _fpRnd=Math.random();
+                _fpp.material.color.setHex(_fpRnd>0.6?0xFFCC00:(_fpRnd>0.3?0xFF6600:0xFF2200));
+                _fpp.material.opacity=0.6+Math.random()*0.35;
+                _fpp.scale.setScalar(0.6+Math.random()*1.0);
             }
-            if(npc._onFire<=0){for(var _fpk=0;_fpk<npc._fireParticles.length;_fpk++)npc._fireParticles[_fpk].visible=false;}
+            // Body tint orange while burning
+            var _fbody=npc.mesh.userData.body;
+            if(_fbody&&npc._onFire>0){_fbody.material.emissive=new THREE.Color(0xFF4400);_fbody.material.emissiveIntensity=0.3+Math.sin(npc._onFire*0.3)*0.15;}
+            if(npc._onFire<=0){
+                for(var _fpk=0;_fpk<npc._fireParticles.length;_fpk++)npc._fireParticles[_fpk].visible=false;
+                if(_fbody){_fbody.material.emissiveIntensity=0;}
+            }
         }
         // Electrocution effect (Blanka electric) — flash skeleton
         if(npc._electrocuted>0){
