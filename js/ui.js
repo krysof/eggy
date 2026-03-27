@@ -4,9 +4,9 @@ function _drawSF2Map(highlightX,highlightY){
     var mc=document.getElementById('sf2-map-canvas');if(!mc)return;
     var ctx=mc.getContext('2d');var W=mc.width,H=mc.height;
     ctx.clearRect(0,0,W,H);
-    // Ocean gradient — bright cute blue
+    // Ocean gradient — sunset warm
     var _og=ctx.createLinearGradient(0,0,0,H);
-    _og.addColorStop(0,'#88CCEE');_og.addColorStop(0.5,'#77BBDD');_og.addColorStop(1,'#99DDFF');
+    _og.addColorStop(0,'#553366');_og.addColorStop(0.5,'#884455');_og.addColorStop(1,'#CC7744');
     ctx.fillStyle=_og;ctx.fillRect(0,0,W,H);
     // Draw continent with path
     function _land(pts,color){

@@ -110,54 +110,43 @@ function _drawLightning(ctx,x1,y1,x2,y2,alpha,thickness){
     ctx.shadowBlur=0;
 }
 
-// Draw bright daytime city background with smiling sun
+// Draw sunset city background with setting sun
 function _drawCityBG(ctx,W,H,panY){
     var skyGrad=ctx.createLinearGradient(0,0,0,H);
-    skyGrad.addColorStop(0,'#87CEEB');
-    skyGrad.addColorStop(0.5,'#B0E0FF');
-    skyGrad.addColorStop(1,'#E0F0FF');
+    skyGrad.addColorStop(0,'#1a0533');
+    skyGrad.addColorStop(0.2,'#6B2FA0');
+    skyGrad.addColorStop(0.4,'#CC4444');
+    skyGrad.addColorStop(0.6,'#FF8844');
+    skyGrad.addColorStop(0.8,'#FFCC66');
+    skyGrad.addColorStop(1,'#FFE8AA');
     ctx.fillStyle=skyGrad;
     ctx.fillRect(0,0,W,H);
-    // Smiling sun (top-right)
-    var sunX=W*0.82,sunY=H*0.12+panY*0.3;
-    var sunR=H*0.08;
-    // Sun rays
-    ctx.strokeStyle='rgba(255,220,50,0.4)';ctx.lineWidth=sunR*0.15;
-    for(var _ri=0;_ri<12;_ri++){
-        var _ra=_ri*Math.PI/6;
-        ctx.beginPath();ctx.moveTo(sunX+Math.cos(_ra)*sunR*1.3,sunY+Math.sin(_ra)*sunR*1.3);
-        ctx.lineTo(sunX+Math.cos(_ra)*sunR*1.8,sunY+Math.sin(_ra)*sunR*1.8);ctx.stroke();
-    }
+    // Setting sun (right side, low)
+    var sunX=W*0.78,sunY=H*0.55+panY*0.3;
+    var sunR=H*0.1;
+    // Sun glow
+    var sunGlow=ctx.createRadialGradient(sunX,sunY,sunR*0.5,sunX,sunY,sunR*3);
+    sunGlow.addColorStop(0,'rgba(255,200,100,0.4)');sunGlow.addColorStop(1,'rgba(255,100,50,0)');
+    ctx.fillStyle=sunGlow;ctx.fillRect(0,0,W,H);
     // Sun body
     var sunGrad=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,sunR);
-    sunGrad.addColorStop(0,'#FFEE55');sunGrad.addColorStop(1,'#FFCC00');
+    sunGrad.addColorStop(0,'#FFEE66');sunGrad.addColorStop(0.7,'#FF8833');sunGrad.addColorStop(1,'#FF5522');
     ctx.fillStyle=sunGrad;ctx.beginPath();ctx.arc(sunX,sunY,sunR,0,Math.PI*2);ctx.fill();
-    // Sun face — eyes
-    ctx.fillStyle='#333';
-    ctx.beginPath();ctx.arc(sunX-sunR*0.3,sunY-sunR*0.15,sunR*0.1,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.arc(sunX+sunR*0.3,sunY-sunR*0.15,sunR*0.1,0,Math.PI*2);ctx.fill();
-    // Sun face — smile
-    ctx.strokeStyle='#333';ctx.lineWidth=sunR*0.08;ctx.lineCap='round';
-    ctx.beginPath();ctx.arc(sunX,sunY+sunR*0.05,sunR*0.35,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
-    // Blush
-    ctx.fillStyle='rgba(255,150,150,0.4)';
-    ctx.beginPath();ctx.ellipse(sunX-sunR*0.45,sunY+sunR*0.15,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
-    ctx.beginPath();ctx.ellipse(sunX+sunR*0.45,sunY+sunR*0.15,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
 
     ctx.save();
     ctx.translate(0,panY);
 
-    var bColors=['#E8D0B0','#D4B896','#F0DCC0','#C8B090'];
+    var bColors=['#1a1020','#221428','#181022','#251530'];
     var bx=0;
     for(var bi=0;bi<8;bi++){
         var bw=W*0.12+bi*W*0.02;
         var bh=H*0.3+bi*H*0.08+(bi%3)*H*0.05;
         ctx.fillStyle=bColors[bi%bColors.length];
         ctx.fillRect(bx,H-bh-panY*0.3,bw,bh+panY*0.3+H);
-        ctx.fillStyle='rgba(135,206,235,0.3)';
+        ctx.fillStyle='rgba(255,200,80,0.5)';
         for(var wi=0;wi<6;wi++){
             for(var wj=0;wj<Math.floor(bh/(H*0.04));wj++){
-                if(Math.random()>0.4){
+                if(Math.random()>0.35){
                     ctx.fillRect(bx+bw*0.15+wi*bw*0.13,H-bh+wj*H*0.04+H*0.02,bw*0.08,H*0.02);
                 }
             }
@@ -165,10 +154,10 @@ function _drawCityBG(ctx,W,H,panY){
         bx+=bw+W*0.01;
     }
 
-    // Ground — bright green grass
-    ctx.fillStyle='#7BC67E';
+    // Ground — dark warm
+    ctx.fillStyle='#2a1a10';
     ctx.fillRect(0,H*0.82,W,H*0.2);
-    ctx.fillStyle='#6AB86D';
+    ctx.fillStyle='#3a2a18';
     ctx.fillRect(0,H*0.82,W,H*0.01);
 
     ctx.restore();
@@ -545,8 +534,8 @@ function _renderIntro(now){
         var bldW=W*0.35,bldH=H*1.8;
         var bldX=(W-bldW)/2;
         var bldY=H-bldH+panY;
-        _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#D4C0A0','rgba(135,206,235,0.3)');
-        ctx.fillStyle='#C8B496';
+        _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#1a1028','rgba(255,200,80,0.5)');
+        ctx.fillStyle='#2a1838';
         ctx.fillRect(bldX+bldW*0.1,bldY,bldW*0.8,bldH*0.02);
         ctx.shadowColor='rgba(255,215,0,0.5)';
         ctx.shadowBlur=30*scale;
