@@ -835,7 +835,8 @@ function handlePlayerInput(){
                 window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
                 scene.add(window._guileArc);
             }
-            window._guileArc.visible=true;
+            window._guileArc.visible=false;
+            playerEgg._guileArcLaunched=false;
             playJumpSound();
         } else {
         // Normal kick
