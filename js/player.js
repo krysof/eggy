@@ -811,11 +811,11 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             var _gsFaceDir=playerEgg.mesh.rotation.y;
-            playerEgg.vy=JUMP_FORCE*3.0;
+            playerEgg.vy=JUMP_FORCE*1.6;
             playerEgg.vx=Math.sin(_gsFaceDir)*0.15;
             playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
             playerEgg.squash=0.5;
-            playerEgg._guileSomersault=80;
+            playerEgg._guileSomersault=65;
             playerEgg._guileSomFwdX=Math.sin(_gsFaceDir)*0.15;
             playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
             // Create blade arc effect
@@ -1063,7 +1063,7 @@ function handlePlayerInput(){
         playerEgg._dashBounceTimer=5;
         // Blade arc — release at peak height, flies forward ~1 body length
         if(window._guileArc){
-            if(!playerEgg._guileArcLaunched&&playerEgg._guileSomersault<45){
+            if(!playerEgg._guileArcLaunched&&playerEgg._guileSomersault<40){
                 // Launch when about 1 body height up (~20 frames in)
                 playerEgg._guileArcLaunched=true;
                 var _gaFace3=playerEgg.mesh.rotation.y;
@@ -1108,7 +1108,7 @@ function handlePlayerInput(){
             }
         }
         // End check — skip first 10 frames
-        if(playerEgg._guileSomersault<65&&(playerEgg.vy<=0||playerEgg.onGround)){
+        if(playerEgg._guileSomersault<50&&(playerEgg.vy<=0||playerEgg.onGround)){
             playerEgg._guileSomersault=0;
         } else if(playerEgg._guileSomersault<=0){
             playerEgg._guileSomersault=0;
