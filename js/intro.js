@@ -576,6 +576,7 @@ function _renderIntro(now){
 
     // ======== PHASE 5: PRESS START + button (7s+) ========
     if(t>7){
+        if(!_introSkipped){_introSkipped=true;if(_introCanvas)_introCanvas.style.pointerEvents='none';}
         var btn=document.getElementById('start-btn');
         if(btn)btn.style.opacity='1';
         if(Math.floor(t*2)%2===0){
