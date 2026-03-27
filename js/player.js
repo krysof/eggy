@@ -1068,7 +1068,9 @@ function handlePlayerInput(){
                 playerEgg._guileArcLaunched=true;
                 var _gaFace3=playerEgg.mesh.rotation.y;
                 window._guileArc.visible=true;
-                window._guileArc.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+0.5,playerEgg.mesh.position.z);
+                var _gaOffX=Math.sin(_gaFace3)*1.5;
+                var _gaOffZ=Math.cos(_gaFace3)*1.5;
+                window._guileArc.position.set(playerEgg.mesh.position.x+_gaOffX,playerEgg.mesh.position.y+0.5,playerEgg.mesh.position.z+_gaOffZ);
                 window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,0); // vertical, perpendicular to view
                 window._guileArc.userData._vx=Math.sin(_gaFace3)*0.08;
                 window._guileArc.userData._vz=Math.cos(_gaFace3)*0.08;
