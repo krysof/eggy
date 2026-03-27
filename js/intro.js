@@ -274,6 +274,34 @@ function _renderIntro(now){
         var bounce=Math.sin((t-2.5)*8)*4*scale;
         _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#FFDD44','#FFAA00',false,true);
         _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B4513','#5C2E0A',true,true);
+        // White cat runs across the bottom
+        var _catT=(t-2.5)/1.0; // 0 to 1 over 1 second
+        var _catX=W+20*scale-_catT*W*1.3; // right to left
+        var _catY=H*0.88;
+        var _catS=12*scale;
+        // Body
+        ctx.fillStyle='#EEEEEE';
+        ctx.beginPath();ctx.ellipse(_catX,_catY,_catS*1.2,_catS*0.6,0,0,Math.PI*2);ctx.fill();
+        // Head
+        ctx.beginPath();ctx.arc(_catX-_catS*1.0,_catY-_catS*0.3,_catS*0.5,0,Math.PI*2);ctx.fill();
+        // Ears
+        ctx.beginPath();ctx.moveTo(_catX-_catS*1.3,_catY-_catS*0.7);ctx.lineTo(_catX-_catS*1.5,_catY-_catS*1.2);ctx.lineTo(_catX-_catS*1.1,_catY-_catS*0.8);ctx.fill();
+        ctx.beginPath();ctx.moveTo(_catX-_catS*0.8,_catY-_catS*0.7);ctx.lineTo(_catX-_catS*0.7,_catY-_catS*1.2);ctx.lineTo(_catX-_catS*0.5,_catY-_catS*0.7);ctx.fill();
+        // Tail (curved up)
+        ctx.strokeStyle='#EEEEEE';ctx.lineWidth=_catS*0.2;ctx.lineCap='round';
+        ctx.beginPath();ctx.moveTo(_catX+_catS*1.2,_catY);
+        ctx.quadraticCurveTo(_catX+_catS*1.8,_catY-_catS*0.5,_catX+_catS*1.5,_catY-_catS*1.2);ctx.stroke();
+        // Eye
+        ctx.fillStyle='#44AA44';
+        ctx.beginPath();ctx.arc(_catX-_catS*1.2,_catY-_catS*0.35,_catS*0.12,0,Math.PI*2);ctx.fill();
+        // Legs (running animation)
+        ctx.strokeStyle='#DDDDDD';ctx.lineWidth=_catS*0.15;
+        var _legPhase=_catT*20;
+        for(var _li=0;_li<4;_li++){
+            var _lx=_catX+(_li-1.5)*_catS*0.5;
+            var _ly=_catY+_catS*0.5+Math.sin(_legPhase+_li*1.5)*_catS*0.3;
+            ctx.beginPath();ctx.moveTo(_lx,_catY+_catS*0.2);ctx.lineTo(_lx,_ly);ctx.stroke();
+        }
         ctx.restore();
     }
 
