@@ -744,7 +744,7 @@ function handlePlayerInput(){
         var _isAerial=!playerEgg.onGround;
         // Finisher visual: show both arms or headbutt
         if(_isFinisher){
-            var _finType=Math.floor(Math.random()*3); // 0=big punch, 1=headbutt, 2=tail whip
+            var _finType=(_ct==='cockroach')?0:Math.floor(Math.random()*3); // Dhalsim always big punch
             var _fud=playerEgg.mesh.userData;
             var _finZ=(_ct==='cockroach')?3.0:0.9;
             var _finSx=(_ct==='cockroach')?1.0:1.5;
