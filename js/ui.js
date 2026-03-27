@@ -4,35 +4,62 @@ function _drawSF2Map(highlightX,highlightY){
     var mc=document.getElementById('sf2-map-canvas');if(!mc)return;
     var ctx=mc.getContext('2d');var W=mc.width,H=mc.height;
     ctx.clearRect(0,0,W,H);
-    // Ocean
-    ctx.fillStyle='#0a1a3a';ctx.fillRect(0,0,W,H);
-    // Simplified continents (pixel-art style)
-    ctx.fillStyle='#1a4a2a';
+    // Ocean gradient
+    var _og=ctx.createLinearGradient(0,0,0,H);
+    _og.addColorStop(0,'#061428');_og.addColorStop(0.5,'#0a1a3a');_og.addColorStop(1,'#081530');
+    ctx.fillStyle=_og;ctx.fillRect(0,0,W,H);
+    // Draw continent with path
+    function _land(pts,color){
+        ctx.fillStyle=color||'#1a5a2a';ctx.beginPath();ctx.moveTo(pts[0],pts[1]);
+        for(var i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);
+        ctx.closePath();ctx.fill();
+        ctx.strokeStyle='#2a7a3a';ctx.lineWidth=0.8;ctx.stroke();
+    }
     // North America
-    ctx.fillRect(30,30,80,60);ctx.fillRect(40,20,50,15);ctx.fillRect(60,90,30,20);
+    _land([40,18, 55,12, 75,10, 95,15, 105,25, 110,40, 105,55, 95,65, 85,75, 75,85, 65,90, 55,88, 45,80, 35,65, 30,50, 32,35]);
+    // Central America
+    _land([65,90, 72,95, 78,105, 75,112, 68,108, 62,100, 60,95]);
     // South America
-    ctx.fillRect(100,120,40,70);ctx.fillRect(110,110,25,15);
+    _land([78,112, 90,108, 105,115, 115,125, 120,140, 118,160, 112,175, 105,185, 95,190, 85,185, 80,170, 78,155, 80,140, 82,125]);
     // Europe
-    ctx.fillRect(180,25,50,40);ctx.fillRect(170,35,15,20);
+    _land([178,18, 195,15, 210,18, 220,25, 225,35, 222,48, 215,55, 205,52, 195,48, 188,42, 182,35, 175,28]);
+    // UK
+    _land([170,22, 176,20, 178,28, 175,32, 170,30]);
     // Africa
-    ctx.fillRect(185,80,45,70);ctx.fillRect(195,70,30,15);
-    // Asia
-    ctx.fillRect(240,20,120,60);ctx.fillRect(280,75,60,40);ctx.fillRect(340,60,30,50);
+    _land([190,65, 200,60, 215,62, 225,70, 230,85, 228,100, 225,115, 220,130, 212,142, 200,148, 192,145, 185,135, 182,120, 180,105, 182,90, 185,78]);
+    // Middle East
+    _land([228,55, 240,50, 252,55, 255,65, 250,75, 240,78, 232,72, 228,62]);
+    // Russia/North Asia
+    _land([225,10, 250,8, 280,10, 310,12, 340,15, 360,18, 370,25, 365,35, 350,38, 330,35, 310,32, 290,30, 270,28, 250,25, 235,22, 228,18],'#1a5a2a');
+    // China/East Asia
+    _land([280,35, 300,32, 320,38, 340,42, 350,50, 348,62, 340,70, 330,75, 318,72, 305,68, 295,60, 285,52, 278,45]);
     // India
-    ctx.fillRect(275,90,30,35);
+    _land([265,68, 278,62, 290,68, 295,80, 290,95, 282,105, 272,108, 265,100, 260,88, 258,78]);
+    // Southeast Asia
+    _land([320,78, 330,75, 340,80, 345,90, 340,98, 332,95, 325,88]);
+    // Japan
+    _land([355,45, 360,40, 365,42, 368,50, 365,58, 360,62, 355,58, 352,52]);
+    // Indonesia
+    _land([325,105, 335,102, 345,105, 355,108, 350,114, 340,112, 330,110]);
     // Australia
-    ctx.fillRect(330,150,40,25);
+    _land([335,140, 355,135, 370,140, 378,150, 375,165, 365,172, 350,175, 338,170, 332,158, 330,148]);
+    // New Zealand
+    _land([382,168, 386,165, 388,172, 385,178, 382,175]);
+    // Greenland
+    _land([115,5, 130,3, 140,8, 138,18, 128,22, 118,18, 112,12]);
     // Grid lines
-    ctx.strokeStyle='rgba(100,150,255,0.1)';ctx.lineWidth=0.5;
-    for(var gi=0;gi<W;gi+=40){ctx.beginPath();ctx.moveTo(gi,0);ctx.lineTo(gi,H);ctx.stroke();}
-    for(var gj=0;gj<H;gj+=40){ctx.beginPath();ctx.moveTo(0,gj);ctx.lineTo(W,gj);ctx.stroke();}
+    ctx.strokeStyle='rgba(100,150,255,0.06)';ctx.lineWidth=0.5;
+    for(var gi=0;gi<W;gi+=50){ctx.beginPath();ctx.moveTo(gi,0);ctx.lineTo(gi,H);ctx.stroke();}
+    for(var gj=0;gj<H;gj+=44){ctx.beginPath();ctx.moveTo(0,gj);ctx.lineTo(W,gj);ctx.stroke();}
+    // Equator
+    ctx.strokeStyle='rgba(100,150,255,0.12)';ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.moveTo(0,H*0.5);ctx.lineTo(W,H*0.5);ctx.stroke();ctx.setLineDash([]);
     // Highlight marker
     if(highlightX!==undefined){
         ctx.fillStyle='#FF4444';
         ctx.beginPath();ctx.arc(highlightX,highlightY,6,0,Math.PI*2);ctx.fill();
         ctx.strokeStyle='#FFD700';ctx.lineWidth=2;
         ctx.beginPath();ctx.arc(highlightX,highlightY,10,0,Math.PI*2);ctx.stroke();
-        // Pulsing ring
         var pulse=Math.sin(Date.now()*0.005)*3;
         ctx.strokeStyle='rgba(255,215,0,0.4)';ctx.lineWidth=1;
         ctx.beginPath();ctx.arc(highlightX,highlightY,14+pulse,0,Math.PI*2);ctx.stroke();
