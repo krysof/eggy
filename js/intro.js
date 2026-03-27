@@ -150,22 +150,22 @@ function _drawCityBG(ctx,W,H,panY){
 
 // Wind rain particles
 var _introRain=[];
-for(var _ri=0;_ri<80;_ri++){
-    _introRain.push({x:Math.random(),y:Math.random(),speed:0.01+Math.random()*0.015,len:8+Math.random()*12});
+for(var _ri=0;_ri<200;_ri++){
+    _introRain.push({x:Math.random(),y:Math.random(),speed:0.015+Math.random()*0.025,len:12+Math.random()*20});
 }
 function _drawRain(ctx,W,H,alpha){
     if(alpha<=0)return;
-    ctx.strokeStyle='rgba(180,200,255,'+alpha*0.3+')';
-    ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(200,220,255,'+alpha*0.5+')';
+    ctx.lineWidth=1.5;
     for(var i=0;i<_introRain.length;i++){
         var r=_introRain[i];
-        r.x+=0.003;r.y+=r.speed;
+        r.x+=0.006;r.y+=r.speed;
         if(r.y>1){r.y=0;r.x=Math.random();}
         if(r.x>1)r.x-=1;
         var rx=r.x*W,ry=r.y*H;
         ctx.beginPath();
         ctx.moveTo(rx,ry);
-        ctx.lineTo(rx+r.len*0.7,ry+r.len);
+        ctx.lineTo(rx+r.len*1.0,ry+r.len);
         ctx.stroke();
     }
 }
