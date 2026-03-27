@@ -1067,10 +1067,10 @@ function handlePlayerInput(){
         playerEgg._dashBounceTimer=5;
         // Blade arc — release at peak height, flies forward ~1 body length
         if(window._guileArc){
-            if(!playerEgg._guileArcLaunched&&playerEgg._guileSomersault<40){
-                // Launch when about 1 body height up (~20 frames in)
+            if(!playerEgg._guileArcLaunched&&playerEgg._guileSomersault<55){
+                // Launch when about 1 body height up (~10 frames in)
                 playerEgg._guileArcLaunched=true;
-                var _gaFace3=playerEgg.mesh.rotation.y;
+                var _gaFace3=playerEgg._guileArcFaceY;
                 window._guileArc.visible=true;
                 window._guileArc.position.set(
                     playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.0,
