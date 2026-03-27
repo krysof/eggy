@@ -1237,9 +1237,12 @@ function _showChatBubble(egg,msg,duration){
     ctx2.beginPath();ctx2.moveTo(230,100);ctx2.lineTo(256,125);ctx2.lineTo(280,100);ctx2.fill();
     ctx2.strokeStyle='rgba(0,0,0,0.5)';ctx2.lineWidth=3;
     ctx2.beginPath();ctx2.moveTo(230,100);ctx2.lineTo(256,125);ctx2.lineTo(280,100);ctx2.stroke();
-    // Text
-    ctx2.fillStyle='#222';ctx2.font='bold 32px sans-serif';ctx2.textAlign='center';ctx2.textBaseline='middle';
-    ctx2.fillText(msg.substring(0,20),256,55);
+    // Text — auto-size font to fit
+    ctx2.fillStyle='#222';ctx2.textAlign='center';ctx2.textBaseline='middle';
+    var _bfs=32;ctx2.font='bold '+_bfs+'px sans-serif';
+    var _btxt=msg.substring(0,24);
+    while(ctx2.measureText(_btxt).width>470&&_bfs>14){_bfs-=2;ctx2.font='bold '+_bfs+'px sans-serif';}
+    ctx2.fillText(_btxt,256,55);
     var tex=new THREE.CanvasTexture(canvas);
     var spriteMat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
     var sprite=new THREE.Sprite(spriteMat);
