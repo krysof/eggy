@@ -46,8 +46,8 @@ function createEggMesh(color, accent, charType) {
     } else if (charType==='frog') {
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=1.05+0.18*Math.sin(t*Math.PI);
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.85);
+            var s=1.0+0.2*Math.sin(t*Math.PI);
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.0);
         }
     } else {
         for(var i=0;i<pos.count;i++){
@@ -97,7 +97,7 @@ function createEggMesh(color, accent, charType) {
     var eyeWhiteG=new THREE.SphereGeometry(0.17,12,10);
     var pupilG=new THREE.SphereGeometry(0.1,10,8);
     var shineG=new THREE.SphereGeometry(0.04,6,4);
-    var eyeY=charType==='frog'?0.68:0.88;
+    var eyeY=0.88;
     var _eyeWhites=[],_pupils=[],_shines=[];
     [-1,1].forEach(function(s){
         var ew=new THREE.Mesh(eyeWhiteG,toon(0xffffff));
@@ -343,7 +343,38 @@ function createEggMesh(color, accent, charType) {
         // Elongate body slightly more
         body.scale.y=1.1;
     } else if (charType==='pig') {
-        // Bear with boar mask (Inosuke style) — Honda moveset
+        // Buffalo (野牛) — Honda moveset
+        // Curved horns
+        [-1,1].forEach(function(s){
+            var horn=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.3,6),toon(0x333333));
+            horn.position.set(s*0.3,1.15,0.05);horn.rotation.z=s*0.8;horn.rotation.x=-0.2;body.add(horn);
+        });
+        // Nose ring
+        var ringG=new THREE.TorusGeometry(0.06,0.015,6,12,Math.PI);
+        var ring=new THREE.Mesh(ringG,toon(0xCCAA00));
+        ring.position.set(0,0.6,0.58);ring.rotation.x=Math.PI/2;body.add(ring);
+        // Wide nostrils
+        [-1,1].forEach(function(s){
+            var nos=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0x2A1A0A));
+            nos.position.set(s*0.08,0.65,0.55);body.add(nos);
+        });
+        // Sumo topknot (Honda trait)
+        var topknot=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0x222222));
+        topknot.position.set(0,1.22,0);body.add(topknot);
+        // Face paint stripes (Honda signature)
+        [-1,1].forEach(function(s){
+            var blueStripe=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.25,0.02),toon(0x2244AA));
+            blueStripe.position.set(s*0.16,0.82,0.56);body.add(blueStripe);
+        });
+        var redStripe=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.05,0.02),toon(0xCC2222));
+        redStripe.position.set(0,0.9,0.55);body.add(redStripe);
+        // Short tail
+        var bufTail=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.01,0.2,4),toon(0x2A1A0A));
+        bufTail.position.set(0,0.65,-0.55);bufTail.rotation.x=0.5;body.add(bufTail);
+        var tailTuft=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0x222222));
+        tailTuft.position.set(0,0.58,-0.63);body.add(tailTuft);
+    } else if (charType==='frog') {
+        // Bear with boar mask (Inosuke style) — Zangief moveset
         // Round bear ears
         [-1,1].forEach(function(s){
             var ear=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),toon(0x6B4A2A));
@@ -366,38 +397,7 @@ function createEggMesh(color, accent, charType) {
             var tusk=new THREE.Mesh(new THREE.ConeGeometry(0.025,0.12,4),toon(0xFFFFF0));
             tusk.position.set(s*0.1,0.6,0.58);tusk.rotation.x=-0.3;tusk.rotation.z=s*0.2;body.add(tusk);
         });
-        // Sumo topknot (Honda trait)
-        var topknot=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0x222222));
-        topknot.position.set(0,1.22,0);body.add(topknot);
-        // Face paint stripes (Honda signature)
-        [-1,1].forEach(function(s){
-            var blueStripe=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.25,0.02),toon(0x2244AA));
-            blueStripe.position.set(s*0.16,0.82,0.56);body.add(blueStripe);
-        });
-        var redStripe=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.05,0.02),toon(0xCC2222));
-        redStripe.position.set(0,0.9,0.55);body.add(redStripe);
-        // Short stubby bear tail
-        var bearTail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0x6B4A2A));
-        bearTail.position.set(0,0.65,-0.55);body.add(bearTail);
-    } else if (charType==='frog') {
-        // Zangief — bulging eyes on top
-        [-1,1].forEach(function(s){
-            var bulge=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),toon(color));
-            bulge.position.set(s*0.22,1.0,0.3); body.add(bulge);
-            var bigEye=new THREE.Mesh(new THREE.SphereGeometry(0.12,8,6),toon(0xffffff));
-            bigEye.position.set(s*0.22,1.02,0.38); body.add(bigEye);
-            var bigPupil=new THREE.Mesh(new THREE.SphereGeometry(0.07,6,4),toon(0x111111));
-            bigPupil.position.set(s*0.22,1.01,0.44); body.add(bigPupil);
-        });
-        // Wide mouth line
-        var mouthCurve=new THREE.QuadraticBezierCurve3(
-            new THREE.Vector3(-0.25,0.5,0.48),
-            new THREE.Vector3(0,0.42,0.52),
-            new THREE.Vector3(0.25,0.5,0.48)
-        );
-        var mouthGeo=new THREE.TubeGeometry(mouthCurve,10,0.025,4,false);
-        body.add(new THREE.Mesh(mouthGeo,toon(0x881111)));
-        // Chest hair — brown fuzzy patch on front
+        // Chest hair — Zangief trait
         var chestHairMat=toon(0x8B4513);
         for(var chi=0;chi<7;chi++){
             var cha=(chi-3)*0.12;
@@ -406,21 +406,15 @@ function createEggMesh(color, accent, charType) {
             hair.position.set(cha,chv,0.5);hair.rotation.x=-0.3;
             body.add(hair);
         }
-        // Extra chest hair row
-        for(var chi2=0;chi2<5;chi2++){
-            var cha2=(chi2-2)*0.1;
-            var hair2=new THREE.Mesh(new THREE.ConeGeometry(0.02,0.1,3),chestHairMat);
-            hair2.position.set(cha2,0.45,0.52);hair2.rotation.x=-0.3;
-            body.add(hair2);
-        }
-        // Scars — thin lines on body
+        // Scars — Zangief trait
         var scarMat=toon(0xFFAAAA);
         var scar1=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.015,0.01),scarMat);
-        scar1.position.set(0.15,0.7,0.52);scar1.rotation.z=0.3;
-        body.add(scar1);
+        scar1.position.set(0.15,0.7,0.52);scar1.rotation.z=0.3;body.add(scar1);
         var scar2=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.015,0.01),scarMat);
-        scar2.position.set(-0.1,0.6,0.53);scar2.rotation.z=-0.2;
-        body.add(scar2);
+        scar2.position.set(-0.1,0.6,0.53);scar2.rotation.z=-0.2;body.add(scar2);
+        // Short stubby bear tail
+        var bearTail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0x6B4A2A));
+        bearTail.position.set(0,0.65,-0.55);body.add(bearTail);
     }
 
     // Feet

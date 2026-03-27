@@ -2,12 +2,12 @@
 const CHARACTERS = [
     // SF2 select screen layout: top row L→R, bottom row L→R
     {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xF5F5F0,accent:0xCC2222,icon:'\uD83E\uDD5A',portrait:'#F5F5F0',sf2:'Ryu',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
-    {name:'\u5927\u718A',type:'pig',color:0x8B6B4A,accent:0x2244AA,icon:'\uD83D\uDC3B',portrait:'#8B6B4A',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
+    {name:'\u91CE\u725B',type:'pig',color:0x4A3728,accent:0x2244AA,icon:'\uD83D\uDC03',portrait:'#4A3728',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
     {name:'\u732B\u4ED4',type:'cat',color:0x33AA33,accent:0xFF8800,icon:'\uD83D\uDC31',portrait:'#33AA33',sf2:'Blanka',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:95,mapY:155},
     {name:'\u9E21\u516C',type:'rooster',color:0x556B2F,accent:0xFFDD44,icon:'\uD83D\uDC13',portrait:'#556B2F',sf2:'Guile',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:70,mapY:55},
     {name:'\u72D7\u4ED4',type:'dog',color:0xCC2222,accent:0xFFDD44,icon:'\uD83D\uDC36',portrait:'#CC2222',sf2:'Ken',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:70,mapY:55},
     {name:'\u9A6C\u9A9D',type:'monkey',color:0x2255CC,accent:0xFFFFFF,icon:'\uD83D\uDC35',portrait:'#2255CC',sf2:'Chun-Li',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:55},
-    {name:'\u7530\u9E21',type:'frog',color:0xCC3333,accent:0x8B4513,icon:'\uD83D\uDC38',portrait:'#CC3333',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:290,mapY:18},
+    {name:'\u5927\u718A',type:'frog',color:0x8B6B4A,accent:0x8B4513,icon:'\uD83D\uDC3B',portrait:'#8B6B4A',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:290,mapY:18},
     {name:'\u66F1\u7534',type:'cockroach',color:0x8B6914,accent:0xFFFFFF,icon:'\uD83E\uDEB3',portrait:'#8B6914',sf2:'Dhalsim',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:278,mapY:88},
 ];
 let selectedChar = 0;
@@ -34,7 +34,7 @@ function drawPortrait(ch) {
     portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
     portraitCtx.strokeStyle='rgba(255,255,255,0.15)';portraitCtx.lineWidth=2;portraitCtx.stroke();
     // Eyes
-    var _eyeY=ch.type==='frog'?cy-25:cy-12;
+    var _eyeY=cy-12;
     [-1,1].forEach(function(s){
         portraitCtx.beginPath();portraitCtx.ellipse(cx+s*18,_eyeY,10,12,0,0,Math.PI*2);
         portraitCtx.fillStyle='#fff';portraitCtx.fill();
@@ -81,28 +81,20 @@ function drawPortrait(ch) {
         portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+6,12,8,0,0,Math.PI*2);
         portraitCtx.fillStyle='#333';portraitCtx.fill();
     } else if(ch.type==='pig'){
-        // Bear with boar mask (Inosuke style)
-        // Round bear ears
+        // Buffalo (野牛) — Honda
+        // Curved horns
         [-1,1].forEach(function(s){
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*38,cy-55,14,0,Math.PI*2);
-            portraitCtx.fillStyle='#6B4A2A';portraitCtx.fill();
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*38,cy-55,8,0,Math.PI*2);
-            portraitCtx.fillStyle='#AA7755';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*25,cy-50);
+            portraitCtx.quadraticCurveTo(cx+s*50,cy-65,cx+s*45,cy-35);
+            portraitCtx.strokeStyle='#333';portraitCtx.lineWidth=6;portraitCtx.stroke();
         });
-        // Boar mask
-        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+2,30,22,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#DDCCAA';portraitCtx.fill();
-        // Snout
-        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+12,14,10,0,0,Math.PI*2);
-        portraitCtx.fillStyle='#CCBB99';portraitCtx.fill();
+        // Nose ring
+        portraitCtx.beginPath();portraitCtx.arc(cx,cy+18,6,0,Math.PI);
+        portraitCtx.strokeStyle='#CCAA00';portraitCtx.lineWidth=3;portraitCtx.stroke();
+        // Wide nostrils
         [-1,1].forEach(function(s){
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*5,cy+12,3,0,Math.PI*2);
-            portraitCtx.fillStyle='#885544';portraitCtx.fill();
-        });
-        // Tusks
-        [-1,1].forEach(function(s){
-            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy+18);portraitCtx.lineTo(cx+s*8,cy+28);
-            portraitCtx.lineTo(cx+s*14,cy+20);portraitCtx.fillStyle='#FFFFF0';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*8,cy+12,4,0,Math.PI*2);
+            portraitCtx.fillStyle='#2A1A0A';portraitCtx.fill();
         });
         // Face paint
         portraitCtx.fillStyle='rgba(34,68,170,0.4)';
@@ -170,14 +162,28 @@ function drawPortrait(ch) {
         portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+10,25,18,0,0,Math.PI*2);
         portraitCtx.fillStyle='#FFCC88';portraitCtx.fill();
     } else if(ch.type==='frog'){
-        // Zangief: bulging eyes on top + chest hair + scars
+        // Bear with boar mask (Inosuke style) — Zangief
+        // Round bear ears
         [-1,1].forEach(function(s){
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*25,cy-50,20,0,Math.PI*2);
-            portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*25,cy-50,14,0,Math.PI*2);
-            portraitCtx.fillStyle='#fff';portraitCtx.fill();
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*25,cy-48,8,0,Math.PI*2);
-            portraitCtx.fillStyle='#111';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*38,cy-55,14,0,Math.PI*2);
+            portraitCtx.fillStyle='#6B4A2A';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*38,cy-55,8,0,Math.PI*2);
+            portraitCtx.fillStyle='#AA7755';portraitCtx.fill();
+        });
+        // Boar mask
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+2,30,22,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#DDCCAA';portraitCtx.fill();
+        // Snout
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+12,14,10,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#CCBB99';portraitCtx.fill();
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*5,cy+12,3,0,Math.PI*2);
+            portraitCtx.fillStyle='#885544';portraitCtx.fill();
+        });
+        // Tusks
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy+18);portraitCtx.lineTo(cx+s*8,cy+28);
+            portraitCtx.lineTo(cx+s*14,cy+20);portraitCtx.fillStyle='#FFFFF0';portraitCtx.fill();
         });
         // Chest hair
         portraitCtx.fillStyle='rgba(139,69,19,0.5)';
