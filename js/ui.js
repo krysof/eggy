@@ -66,10 +66,22 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
         eo.connect(eg);eg.connect(_planeCtx.destination);eo.start();eo.stop(_planeCtx.currentTime+dur);
         _planeNodes.push(eo);
     }catch(e){}}
-    // Start from outside the screen (left edge), fly to target country
+    // Start from outside screen, fly to target country on the map
     var sx=-30;
     var sy=pc.height*0.3;
-    var ex=toX/400*pc.width,ey=toY/220*pc.height*0.6+pc.height*0.15;
+    // Map canvas position on screen — find actual map element bounds
+    var _mapEl=document.getElementById('sf2-map-canvas');
+    var ex,ey;
+    if(_mapEl){
+        var _mapRect=_mapEl.getBoundingClientRect();
+        var _pcRect=pc.parentElement.getBoundingClientRect();
+        var _dpr=Math.min(devicePixelRatio,2);
+        // Convert map coords (400x220) to screen pixel position relative to plane canvas
+        ex=(_mapRect.left-_pcRect.left+toX/400*_mapRect.width)*_dpr;
+        ey=(_mapRect.top-_pcRect.top+toY/220*_mapRect.height)*_dpr;
+    } else {
+        ex=toX/400*pc.width;ey=toY/220*pc.height*0.6+pc.height*0.15;
+    }
     var t=0;
     _planeAnim=setInterval(function(){
         t+=0.02;
