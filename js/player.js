@@ -307,7 +307,7 @@ function handlePlayerInput(){
             var _pdTarget=null;
             var _pdDist=5.0; // 2x normal grab range
             for(var _pdi=0;_pdi<allEggs.length;_pdi++){
-                var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy||_pde._piledriverLocked)continue;
+                var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy||_pde.holding||_pde._piledriverLocked)continue;
                 var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
                 var _pddz=_pde.mesh.position.z-playerEgg.mesh.position.z;
                 var _pdd=Math.sqrt(_pddx*_pddx+_pddz*_pddz);
@@ -408,7 +408,7 @@ function handlePlayerInput(){
         var nearest=null, nearDist=2.5;
         for(var ei=0;ei<allEggs.length;ei++){
             var e=allEggs[ei];
-            if(e===playerEgg||!e.alive||e.heldBy)continue;
+            if(e===playerEgg||!e.alive||e.heldBy||e.holding)continue;
             var dx2=e.mesh.position.x-playerEgg.mesh.position.x;
             var dz2=e.mesh.position.z-playerEgg.mesh.position.z;
             var d2=Math.sqrt(dx2*dx2+dz2*dz2);
@@ -520,8 +520,8 @@ function handlePlayerInput(){
         playerEgg._isLariat=true; // flag to show arms instead of legs
         // Show both arms extended at head level
         var _lud=playerEgg.mesh.userData;
-        if(_lud.rightArm){_lud.rightArm.visible=true;_lud.rightArm.position.set(0.5,0.9,0);_lud.rightArm.scale.set(1.5,1.5,1.5);}
-        if(_lud.leftArm){_lud.leftArm.visible=true;_lud.leftArm.position.set(-0.5,0.9,0);_lud.leftArm.scale.set(1.5,1.5,1.5);}
+        if(_lud.rightArm){_lud.rightArm.visible=true;_lud.rightArm.position.set(0.6,0.88,0);_lud.rightArm.scale.set(1.5,1.5,1.5);}
+        if(_lud.leftArm){_lud.leftArm.visible=true;_lud.leftArm.position.set(-0.6,0.88,0);_lud.leftArm.scale.set(1.5,1.5,1.5);}
         _shoutMove(playerEgg,'Double Lariat!');
     }
     // Punch (R) — character-specific special moves on command input
