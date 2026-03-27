@@ -151,10 +151,16 @@ function _updateSF2Select(idx){
 function _drawMiniPortrait(ch,size){
     var c=document.createElement('canvas');c.width=size;c.height=size;
     var ctx=c.getContext('2d');
-    var cx=size/2,cy=size*0.48,rx=size*0.32,ry=size*0.38;
+    var cx=size/2,cy=size*0.48;
+    // Body shape varies by character type
+    var rx=size*0.32,ry=size*0.38;
+    if(ch.type==='monkey'){rx=size*0.25;ry=size*0.42;} // Chun-Li: slim
+    else if(ch.type==='cat'||ch.type==='pig'){rx=size*0.38;ry=size*0.34;} // Blanka/Honda: round
+    else if(ch.type==='frog'){rx=size*0.42;ry=size*0.40;} // Zangief: 1.5x big
+    else if(ch.type==='cockroach'){rx=size*0.2;ry=size*0.42;} // Dhalsim: thin
     ctx.fillStyle=ch.portrait;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.fill();
     // Eyes
-    var ey=ch.type==='frog'?cy-size*0.12:cy-size*0.06;
+    var ey=cy-size*0.06;
     [-1,1].forEach(function(s){
         ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(cx+s*size*0.1,ey,size*0.055,size*0.065,0,0,Math.PI*2);ctx.fill();
         ctx.fillStyle='#111';ctx.beginPath();ctx.arc(cx+s*size*0.1,ey+1,size*0.03,0,Math.PI*2);ctx.fill();
