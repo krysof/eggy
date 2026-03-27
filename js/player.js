@@ -1172,7 +1172,7 @@ function handlePlayerInput(){
                 var _hhe=allEggs[_hhi];if(_hhe===playerEgg||!_hhe.alive||_hhe.heldBy)continue;
                 var _hhdx=_hhe.mesh.position.x-playerEgg.mesh.position.x;
                 var _hhdz=_hhe.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)<2.5){_hhe.vx+=_hhdx*0.15;_hhe.vz+=_hhdz*0.15;_hhe._hitStun=8;_dropNpcStolenCoins(_hhe);playHitSound();}
+                if(Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)<2.5){var _hhd2=Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)||1;_hhe.vx+=_hhdx/_hhd2*0.5;_hhe.vz+=_hhdz/_hhd2*0.5;_hhe.vy=0.25;_hhe.squash=0.3;_hhe.throwTimer=45;_hhe._bounces=2;_addStunDamage(_hhe,10);_dropNpcStolenCoins(_hhe);playHitSound();}
             }
         }
         playerEgg.squash=0.85+Math.sin(playerEgg._hyakuretsuTick*0.8)*0.05;
