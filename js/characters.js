@@ -82,11 +82,16 @@ function drawPortrait(ch) {
         portraitCtx.fillStyle='#333';portraitCtx.fill();
     } else if(ch.type==='pig'){
         // Buffalo (野牛) — Honda
-        // Curved horns
+        // Big bull horns (牛魔王 style)
         [-1,1].forEach(function(s){
-            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*25,cy-50);
-            portraitCtx.quadraticCurveTo(cx+s*50,cy-65,cx+s*45,cy-35);
-            portraitCtx.strokeStyle='#333';portraitCtx.lineWidth=6;portraitCtx.stroke();
+            portraitCtx.beginPath();portraitCtx.moveTo(cx+s*20,cy-48);
+            portraitCtx.quadraticCurveTo(cx+s*55,cy-70,cx+s*60,cy-40);
+            portraitCtx.lineTo(cx+s*50,cy-38);
+            portraitCtx.quadraticCurveTo(cx+s*42,cy-60,cx+s*20,cy-42);
+            portraitCtx.fillStyle='#444';portraitCtx.fill();
+            // Horn tip lighter
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*58,cy-40,5,0,Math.PI*2);
+            portraitCtx.fillStyle='#CCBB88';portraitCtx.fill();
         });
         // Nose ring
         portraitCtx.beginPath();portraitCtx.arc(cx,cy+18,6,0,Math.PI);
