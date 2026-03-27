@@ -518,6 +518,7 @@ function _skipIntro(){
 
 if(_introCanvas){
     _introCanvas.addEventListener('click',function(){
+        if(!_introStart)return; // intro not started yet (tap-to-start screen)
         if(!_introSkipped){
             _skipIntro();
         } else {
@@ -526,6 +527,7 @@ if(_introCanvas){
         }
     });
     _introCanvas.addEventListener('touchstart',function(e){
+        if(!_introStart)return; // intro not started yet
         if(_introStart&&(performance.now()-_introStart)>500){
             if(!_introSkipped){
                 _skipIntro();
