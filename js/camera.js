@@ -8,6 +8,9 @@ var _moonCamYaw=0; // horizontal orbit angle around player (radians)
 var _moonCamPitch=0.35; // vertical angle (0=level, positive=above)
 var _moonCamDragging=false;
 var _moonCamLastX=0, _moonCamLastY=0;
+var _spectatorMode=false;
+var _specCamX=0,_specCamY=50,_specCamZ=0;
+var _specLookX=0,_specLookY=0,_specLookZ=-50;
 document.addEventListener('wheel',function(e){
     _cameraZoom+=e.deltaY*0.001*Math.max(1,_cameraZoom*0.5);
     if(_cameraZoom<0.04)_cameraZoom=0.04;
@@ -15,6 +18,7 @@ document.addEventListener('wheel',function(e){
 },{passive:true});
 // Mouse drag to orbit camera (disabled — moon now uses flat camera)
 document.addEventListener('mousedown',function(e){
+    if(currentCityStyle===5&&(e.button===2||e.button===1)){_moonCamDragging=true;_moonCamLastX=e.clientX;_moonCamLastY=e.clientY;e.preventDefault();}
 });
 document.addEventListener('mousemove',function(e){
     if(_moonCamDragging){
@@ -29,11 +33,35 @@ document.addEventListener('mousemove',function(e){
 document.addEventListener('mouseup',function(e){
     if(e.button===2||e.button===1)_moonCamDragging=false;
 });
-document.addEventListener('contextmenu',function(e){});
+document.addEventListener('contextmenu',function(e){if(currentCityStyle===5)e.preventDefault();});
+document.addEventListener('keydown',function(e){
+    if(e.code==='KeyV'&&currentCityStyle===5&&gameState==='city'){
+        _spectatorMode=!_spectatorMode;
+        if(_spectatorMode&&playerEgg){_specCamX=camera.position.x;_specCamY=camera.position.y;_specCamZ=camera.position.z;}
+    }
+});
 // Touch orbit disabled — moon now uses flat camera
 var _moonTouchOrbit=false, _moonTouchStartX=0, _moonTouchStartY=0;
 function updateCamera(){
     if(!playerEgg)return;
+    // Spectator mode — free camera on moon
+    if(_spectatorMode&&currentCityStyle===5){
+        var _spSpd=2+_cameraZoom*0.5;
+        if(keys['KeyW']||keys['ArrowUp']){_specCamX-=Math.sin(_moonCamYaw)*_spSpd;_specCamZ-=Math.cos(_moonCamYaw)*_spSpd;}
+        if(keys['KeyS']||keys['ArrowDown']){_specCamX+=Math.sin(_moonCamYaw)*_spSpd;_specCamZ+=Math.cos(_moonCamYaw)*_spSpd;}
+        if(keys['KeyA']||keys['ArrowLeft']){_specCamX-=Math.cos(_moonCamYaw)*_spSpd;_specCamZ+=Math.sin(_moonCamYaw)*_spSpd;}
+        if(keys['KeyD']||keys['ArrowRight']){_specCamX+=Math.cos(_moonCamYaw)*_spSpd;_specCamZ-=Math.sin(_moonCamYaw)*_spSpd;}
+        if(keys['Space']){_specCamY+=_spSpd;}
+        if(keys['ShiftLeft']||keys['ShiftRight']){_specCamY-=_spSpd;if(_specCamY<5)_specCamY=5;}
+        camera.position.set(_specCamX,_specCamY,_specCamZ);
+        var _lookDist=100;
+        camera.lookAt(_specCamX-Math.sin(_moonCamYaw)*_lookDist,_specCamY-Math.sin(_moonCamPitch)*_lookDist*0.5,_specCamZ-Math.cos(_moonCamYaw)*_lookDist);
+        sun.position.set(_specCamX+60,80,_specCamZ+40);
+        sun.target.position.set(_specCamX,0,_specCamZ);
+        _sunMesh.position.set(_specCamX+180,240,_specCamZ+120);
+        _sunGlow.position.copy(_sunMesh.position);
+        return;
+    }
     const p=playerEgg.mesh.position;
     // Normal flat camera (used for all cities including moon)
     var tx=p.x, ty=p.y+10*_cameraZoom, tz=p.z+14*_cameraZoom;
