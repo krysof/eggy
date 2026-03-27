@@ -521,7 +521,7 @@ function handlePlayerInput(){
         var _isShoryu=playerEgg._shoryuReady;
         // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
         if(_ct==='pig'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
-            _shoutMove(playerEgg,'Hyakuretsu!');
+            _shoutMove(playerEgg,'Hohoho!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             // Start continuous slap state
             if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
@@ -681,14 +681,8 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._shoryuReady=false;
             playerEgg._blankaShock=30;playerEgg.squash=0.6;
             if(sfxEnabled){var _bsCtx2=ensureAudio();if(_bsCtx2){var _bst3=_bsCtx2.currentTime;var _bso2=_bsCtx2.createOscillator();var _bsg2=_bsCtx2.createGain();_bso2.type='square';_bso2.frequency.setValueAtTime(800,_bst3);_bso2.frequency.linearRampToValueAtTime(2000,_bst3+0.1);_bso2.frequency.linearRampToValueAtTime(400,_bst3+0.3);_bsg2.gain.setValueAtTime(0.08,_bst3);_bsg2.gain.exponentialRampToValueAtTime(0.001,_bst3+0.35);_bso2.connect(_bsg2);_bsg2.connect(_bsCtx2.destination);_bso2.start(_bst3);_bso2.stop(_bst3+0.35);}}
-        } else if(_isShoryu&&_ct==='monkey'){
-            // Chun-Li has no shoryuken — fall through to default
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
-            playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
-            playerEgg._shoryuActive=60;
-            playJumpSound();
-        } else if(_isShoryu){
-            // Default: Shoryuken for any character
+        } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
+            // Fallback Shoryuken — Ryu/Ken only
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=60;
@@ -1178,7 +1172,7 @@ function handlePlayerInput(){
                 var _hhe=allEggs[_hhi];if(_hhe===playerEgg||!_hhe.alive||_hhe.heldBy)continue;
                 var _hhdx=_hhe.mesh.position.x-playerEgg.mesh.position.x;
                 var _hhdz=_hhe.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)<2.5){_hhe.vx+=_hhdx*0.08;_hhe.vz+=_hhdz*0.08;_hhe._hitStun=5;_dropNpcStolenCoins(_hhe);playHitSound();}
+                if(Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)<2.5){_hhe.vx+=_hhdx*0.15;_hhe.vz+=_hhdz*0.15;_hhe._hitStun=8;_dropNpcStolenCoins(_hhe);playHitSound();}
             }
         }
         playerEgg.squash=0.85+Math.sin(playerEgg._hyakuretsuTick*0.8)*0.05;
