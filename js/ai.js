@@ -582,8 +582,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(_npdt.struggleBar){_npdt.mesh.remove(_npdt.struggleBar);_npdt.struggleBar=null;}
             _npdt.squash=0.1;
             var _npdDir=Math.random()*Math.PI*2;
-            _npdt.vx=Math.sin(_npdDir)*0.7;_npdt.vy=0.45;_npdt.vz=Math.cos(_npdDir)*0.7;
-            _npdt.throwTimer=70;_npdt._bounces=3;_npdt._stunTimer=150;
+            _npdt.vx=Math.sin(_npdDir)*0.4;_npdt.vy=0.25;_npdt.vz=Math.cos(_npdDir)*0.4;
+            _npdt.throwTimer=40;_npdt._bounces=1;_addStunDamage(_npdt,50);
             _dropNpcStolenCoins(_npdt);
             if(_npdt.isPlayer)playHitSound();
             egg.vy=0.15;egg.grabCD=40;egg._npcPiledriver=null;egg._npcPdPhase=0;

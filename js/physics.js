@@ -365,6 +365,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg.mesh.rotation.y+=diff*0.2; // smooth but quick turn
         }
     }
+    // Clamp max height to prevent flying off screen
+    if(egg.mesh.position.y>50&&!egg._piledriverLocked){egg.mesh.position.y=50;egg.vy=Math.min(egg.vy,0);}
     if(egg.arrow)egg.arrow.position.y=2.0+Math.sin(Date.now()*0.005)*0.15;
 }
 
