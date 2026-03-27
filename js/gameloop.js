@@ -1344,7 +1344,7 @@ function updateHeldEggs(){
         if(holder._piledriverTarget===egg||holder._npcPiledriver===egg||egg._piledriverLocked)continue;
         // Position on holder head
         egg.mesh.position.x=holder.mesh.position.x;
-        egg.mesh.position.y=holder.mesh.position.y+2.2;
+        egg.mesh.position.y=holder.mesh.position.y+3.0;
         egg.mesh.position.z=holder.mesh.position.z;
         egg.vx=0;egg.vy=0;egg.vz=0;
         egg.mesh.rotation.y=holder.mesh.rotation.y+Math.PI; // face toward holder
