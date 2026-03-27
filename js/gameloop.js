@@ -54,6 +54,16 @@ function updateCity(){
         if(_hk.isSonicBoom){
             _hk.ball.rotation.z+=0.5; // spin like a disc
         }
+        // Yoga Fire: flicker flame particles
+        if(_hk.isYogaFire&&_hk.ball.children){
+            for(var _yfc=2;_yfc<_hk.ball.children.length;_yfc++){
+                var _yfch=_hk.ball.children[_yfc];
+                _yfch.position.set((Math.random()-0.5)*0.5,(Math.random()-0.5)*0.5,(Math.random()-0.5)*0.5);
+                _yfch.material.opacity=0.4+Math.random()*0.5;
+                _yfch.scale.setScalar(0.7+Math.random()*0.8);
+            }
+            _hk.ball.children[1].scale.setScalar(0.9+Math.sin(_hk.life*0.3)*0.2); // outer flame pulse
+        }
         _hk.life--;
         _hk.ball.material.opacity=Math.min(0.9,_hk.life/30);
         _hk.ring.material.opacity=Math.min(0.6,_hk.life/30);

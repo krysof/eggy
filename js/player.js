@@ -589,11 +589,23 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Yoga Fire!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _yfDir=playerEgg.mesh.rotation.y;
-            var _yfBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.9}));
-            _yfBall.position.set(playerEgg.mesh.position.x+Math.sin(_yfDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_yfDir)*1.5);scene.add(_yfBall);
-            var _yfRing=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0xFFAA00,transparent:true,opacity:0.5}));
-            _yfRing.position.copy(_yfBall.position);scene.add(_yfRing);
-            window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg,burns:true};
+            // Fireball group: core + outer flame + flickering glow
+            var _yfGroup=new THREE.Group();
+            var _yfCore=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),new THREE.MeshBasicMaterial({color:0xFFDD00,transparent:true,opacity:0.95}));
+            _yfGroup.add(_yfCore);
+            var _yfOuter=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.5}));
+            _yfGroup.add(_yfOuter);
+            // Flame trail particles attached to group
+            for(var _yfi2=0;_yfi2<6;_yfi2++){
+                var _yfp=new THREE.Mesh(new THREE.SphereGeometry(0.15+Math.random()*0.15,4,3),new THREE.MeshBasicMaterial({color:[0xFF2200,0xFF6600,0xFFAA00,0xFFDD00][_yfi2%4],transparent:true,opacity:0.7}));
+                _yfp.position.set((Math.random()-0.5)*0.4,(Math.random()-0.5)*0.4,(Math.random()-0.5)*0.4);
+                _yfGroup.add(_yfp);
+            }
+            _yfGroup.position.set(playerEgg.mesh.position.x+Math.sin(_yfDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_yfDir)*1.5);
+            scene.add(_yfGroup);
+            var _yfRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.4}));
+            _yfRing.position.copy(_yfGroup.position);scene.add(_yfRing);
+            window._playerHadouken={ball:_yfGroup,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg,burns:true,isYogaFire:true};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
@@ -734,10 +746,13 @@ function handlePlayerInput(){
         if(_isFinisher){
             var _finType=Math.floor(Math.random()*3); // 0=big punch, 1=headbutt, 2=tail whip
             var _fud=playerEgg.mesh.userData;
+            var _finZ=(_ct==='cockroach')?3.0:0.9;
+            var _finSx=(_ct==='cockroach')?1.0:1.5;
+            var _finSz=(_ct==='cockroach')?4.0:2;
             if(_finType===0){
                 // Big punch — both arms forward
-                if(_fud.rightArm){_fud.rightArm.visible=true;_fud.rightArm.position.set(0.2,0.85,0.9);_fud.rightArm.scale.set(1.5,1.2,2);}
-                if(_fud.leftArm){_fud.leftArm.visible=true;_fud.leftArm.position.set(-0.2,0.85,0.9);_fud.leftArm.scale.set(1.5,1.2,2);}
+                if(_fud.rightArm){_fud.rightArm.visible=true;_fud.rightArm.position.set(0.2,0.85,_finZ);_fud.rightArm.scale.set(_finSx,1.2,_finSz);}
+                if(_fud.leftArm){_fud.leftArm.visible=true;_fud.leftArm.position.set(-0.2,0.85,_finZ);_fud.leftArm.scale.set(_finSx,1.2,_finSz);}
             } else if(_finType===1){
                 // Headbutt — body lunge forward
                 if(_fud.body)_fud.body.rotation.x=-0.5;
@@ -869,9 +884,11 @@ function handlePlayerInput(){
         if(_kFinisher){
             // Finisher kick: show both legs
             var _kud=playerEgg.mesh.userData;
-            if(_kud.rightLeg){_kud.rightLeg.visible=true;_kud.rightLeg.position.z=0.8;_kud.rightLeg.rotation.x=-Math.PI/2;}
-            if(_kud.leftLeg){_kud.leftLeg.visible=true;_kud.leftLeg.position.z=0.8;_kud.leftLeg.rotation.x=-Math.PI/2;}
-            playerEgg._atkAnim=14;
+            var _kFinZ=(_ct==='cockroach')?2.5:0.8;
+            var _kFinS=(_ct==='cockroach')?3.5:1;
+            if(_kud.rightLeg){_kud.rightLeg.visible=true;_kud.rightLeg.position.z=_kFinZ;_kud.rightLeg.rotation.x=-Math.PI/2;if(_ct==='cockroach')_kud.rightLeg.scale.set(1,1,_kFinS);}
+            if(_kud.leftLeg){_kud.leftLeg.visible=true;_kud.leftLeg.position.z=_kFinZ;_kud.leftLeg.rotation.x=-Math.PI/2;if(_ct==='cockroach')_kud.leftLeg.scale.set(1,1,_kFinS);}
+            playerEgg._atkAnim=(_ct==='cockroach')?28:14;
         }
         for(var _ki=0;_ki<allEggs.length;_ki++){
             var _ke=allEggs[_ki];if(_ke===playerEgg||!_ke.alive||_ke.heldBy)continue;
