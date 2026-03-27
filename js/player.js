@@ -305,7 +305,7 @@ function handlePlayerInput(){
         // ---- Piledriver (Zangief): left-right-left-F ----
         else if(playerEgg._piledriverReady&&playerEgg.onGround&&!playerEgg.holding&&!playerEgg.holdingProp&&!playerEgg.holdingObs){
             var _pdTarget=null;
-            var _pdDist=2.5;
+            var _pdDist=5.0; // 2x normal grab range
             for(var _pdi=0;_pdi<allEggs.length;_pdi++){
                 var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy||_pde._piledriverLocked)continue;
                 var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
@@ -517,6 +517,11 @@ function handlePlayerInput(){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
         playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
+        playerEgg._isLariat=true; // flag to show arms instead of legs
+        // Show both arms extended at head level
+        var _lud=playerEgg.mesh.userData;
+        if(_lud.rightArm){_lud.rightArm.visible=true;_lud.rightArm.position.set(0.5,0.9,0);_lud.rightArm.scale.set(1.5,1.5,1.5);}
+        if(_lud.leftArm){_lud.leftArm.visible=true;_lud.leftArm.position.set(-0.5,0.9,0);_lud.leftArm.scale.set(1.5,1.5,1.5);}
         _shoutMove(playerEgg,'Double Lariat!');
     }
     // Punch (R) — character-specific special moves on command input
@@ -1120,6 +1125,8 @@ function handlePlayerInput(){
             if(window._tatsuDragon)for(var _ttk=0;_ttk<window._tatsuDragon.length;_ttk++)window._tatsuDragon[_ttk].visible=false;
             // Reset Chun-Li upside-down
             if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;playerEgg.squash=1;}
+            // Reset Zangief lariat arms
+            if(playerEgg._isLariat){playerEgg._isLariat=false;var _lud2=playerEgg.mesh.userData;if(_lud2.rightArm){_lud2.rightArm.visible=false;_lud2.rightArm.scale.set(1,1,1);}if(_lud2.leftArm){_lud2.leftArm.visible=false;_lud2.leftArm.scale.set(1,1,1);}}
         }
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
@@ -1664,15 +1671,13 @@ function handlePlayerInput(){
     playerEgg._extendedRange=(_ct==='cockroach')?2.5:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
     playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='frog');
-    // ---- Piledriver input sequence tracker (left-right-left) ----
+    // ---- Piledriver input sequence tracker (forward-back-forward relative to facing) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
     if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
     playerEgg._pdTimer--;
-    var _leftPress=(keys['KeyA']||keys['ArrowLeft'])&&!(playerEgg._pdPrevLeft);
-    var _rightPress=(keys['KeyD']||keys['ArrowRight'])&&!(playerEgg._pdPrevRight);
-    if(_leftPress&&playerEgg._pdSeq===0){playerEgg._pdSeq=1;playerEgg._pdTimer=40;}
-    else if(_rightPress&&playerEgg._pdSeq===1){playerEgg._pdSeq=2;playerEgg._pdTimer=40;}
-    else if(_leftPress&&playerEgg._pdSeq===2){playerEgg._pdSeq=3;playerEgg._pdTimer=40;playerEgg._piledriverReady=true;}
+    if(_inputFwdPress&&playerEgg._pdSeq===0){playerEgg._pdSeq=1;playerEgg._pdTimer=40;}
+    else if(_inputBackPress&&playerEgg._pdSeq===1){playerEgg._pdSeq=2;playerEgg._pdTimer=40;}
+    else if(_inputFwdPress&&playerEgg._pdSeq===2){playerEgg._pdSeq=3;playerEgg._pdTimer=40;playerEgg._piledriverReady=true;}
     if(playerEgg._pdTimer<=0){playerEgg._pdSeq=0;playerEgg._piledriverReady=false;}
     playerEgg._pdPrevLeft=!!(keys['KeyA']||keys['ArrowLeft']);
     playerEgg._pdPrevRight=!!(keys['KeyD']||keys['ArrowRight']);
