@@ -1070,19 +1070,43 @@ function handlePlayerInput(){
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,2.0); // keep elevated (compensate flip)
         }
         if(!playerEgg._tatsuDir)playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
-        var _tFwd=playerEgg._isLariat?0:1.5; // lariat: no forward movement
-        var _tVert=0;
-        if(!playerEgg._isLariat){
-            if(keys['KeyW']||keys['ArrowUp'])_tVert=0.04;
-            if(keys['KeyS']||keys['ArrowDown'])_tVert=-0.03;
+        if(playerEgg._isLariat){
+            // Lariat: free movement with WASD, stay on ground
+            var _lmx=0,_lmz=0;
+            if(keys['KeyA']||keys['ArrowLeft'])_lmx-=1;
+            if(keys['KeyD']||keys['ArrowRight'])_lmx+=1;
+            if(keys['KeyW']||keys['ArrowUp'])_lmz-=1;
+            if(keys['KeyS']||keys['ArrowDown'])_lmz+=1;
+            if(joyActive){_lmx+=joyVec.x;_lmz+=joyVec.y;}
+            var _lmLen=Math.sqrt(_lmx*_lmx+_lmz*_lmz);
+            if(_lmLen>0.1){
+                playerEgg.vx=_lmx/_lmLen*MAX_SPEED*0.8;
+                playerEgg.vz=_lmz/_lmLen*MAX_SPEED*0.8;
+            } else {
+                playerEgg.vx*=0.8;playerEgg.vz*=0.8;
+            }
+            playerEgg.vy=0;
+            // R+T held extends duration
+            if(keys['KeyR']&&keys['KeyT']){
+                playerEgg._tatsuActive=Math.max(playerEgg._tatsuActive,30);
+                playerEgg._attackCD=0;
+            }
+        } else {
+            var _tFwd=1.5;var _tVert=0;
+            if(_tCT==='monkey'){
+                // Chun-Li spinning bird: no manual vertical
+            } else {
+                if(keys['KeyW']||keys['ArrowUp'])_tVert=0.04;
+                if(keys['KeyS']||keys['ArrowDown'])_tVert=-0.03;
+            }
+            var _tSteer=0;
+            if(keys['KeyA']||keys['ArrowLeft'])_tSteer=0.03;
+            if(keys['KeyD']||keys['ArrowRight'])_tSteer=-0.03;
+            playerEgg._tatsuDir+=_tSteer;
+            playerEgg.vx=Math.sin(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
+            playerEgg.vz=Math.cos(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
+            playerEgg.vy=_tVert;
         }
-        var _tSteer=0;
-        if(keys['KeyA']||keys['ArrowLeft'])_tSteer=0.03;
-        if(keys['KeyD']||keys['ArrowRight'])_tSteer=-0.03;
-        playerEgg._tatsuDir+=_tSteer;
-        playerEgg.vx=Math.sin(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
-        playerEgg.vz=Math.cos(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
-        playerEgg.vy=_tVert;
         if(playerEgg.mesh.position.y<0.5)playerEgg.mesh.position.y=0.5;
         // ---- Tatsumaki Dragon (visual only, wraps around legs) ----
         if(!window._tatsuDragon){
