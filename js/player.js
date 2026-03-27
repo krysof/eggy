@@ -1078,9 +1078,9 @@ function handlePlayerInput(){
                     playerEgg.mesh.position.y+0.3,
                     playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.0);
                 window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,0); // vertical, perpendicular to view
-                window._guileArc.userData._vx=Math.sin(_gaFace3)*0.08;
-                window._guileArc.userData._vz=Math.cos(_gaFace3)*0.08;
-                window._guileArc.userData._life=20; // ~1 body length at 0.08/frame
+                window._guileArc.userData._vx=Math.sin(_gaFace3)*0.2;
+                window._guileArc.userData._vz=Math.cos(_gaFace3)*0.2;
+                window._guileArc.userData._life=30; // ~1 body length at 0.08/frame
                 window._guileArc.material.opacity=0.9;
                 // Cutting sound
                 if(sfxEnabled){var _gcCtx=ensureAudio();if(_gcCtx){var _gct=_gcCtx.currentTime;
