@@ -24,7 +24,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
             if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound();
                 // Drop coins on first impact
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
-            } else {var _impSpd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;egg._stunTimer=Math.floor(30+_impSpd2*300);playHitSound();
+            } else {var _impSpd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;if(_impSpd2>0.15){egg._stunTimer=Math.floor(20+_impSpd2*200);}playHitSound();
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                 egg._dropCoinsOnLand=false;egg._coinsDropped=false;
             }
@@ -127,7 +127,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
                     else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
                     if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                     var _wallImpSpd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
-                    egg.throwTimer=1;egg._stunTimer=Math.floor(30+_wallImpSpd*400);
+                    egg.throwTimer=1;if(_wallImpSpd>0.2){egg._stunTimer=Math.floor(20+_wallImpSpd*250);}
                     egg.squash=0.6;playHitSound();
                     break;
                 }
@@ -307,7 +307,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         egg._dropCoinsOnLand=false;egg._coinsDropped=false;
         var _impSpd3=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
-        egg._stunTimer=Math.floor(30+_impSpd3*300);
+        if(_impSpd3>0.15){egg._stunTimer=Math.floor(20+_impSpd3*200);}
     }}else{egg.vx*=FRICTION;egg.vz*=FRICTION;}
 
     // Walk anim

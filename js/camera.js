@@ -62,6 +62,7 @@ document.addEventListener('touchstart',function(e){
     }
 },{passive:true});
 document.addEventListener('touchmove',function(e){
+    if(e.touches.length>=2){_moonTouchOrbit=false;return;}
     if(_moonTouchOrbit&&e.touches.length===1){
         var t=e.touches[0];
         var dx=t.clientX-_moonTouchStartX,dy=t.clientY-_moonTouchStartY;
