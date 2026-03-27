@@ -291,6 +291,16 @@ function _renderIntro(now){
         var _catProgress;
         var _catStopped=false;
         if(_catT<0.3){_catProgress=_catT/0.3*0.35;}
+        // Cat meow when stopping
+        if(_catT>=0.3&&_catT<0.35&&!window._introCatMeowed){
+            window._introCatMeowed=true;
+            try{var _mCtx=ensureAudio();if(_mCtx&&sfxEnabled){var _mt=_mCtx.currentTime;
+                var _mo=_mCtx.createOscillator();var _mg=_mCtx.createGain();
+                _mo.type='sine';_mo.frequency.setValueAtTime(700,_mt);_mo.frequency.exponentialRampToValueAtTime(500,_mt+0.15);_mo.frequency.exponentialRampToValueAtTime(900,_mt+0.25);_mo.frequency.exponentialRampToValueAtTime(400,_mt+0.4);
+                _mg.gain.setValueAtTime(0.08,_mt);_mg.gain.linearRampToValueAtTime(0.12,_mt+0.1);_mg.gain.exponentialRampToValueAtTime(0.001,_mt+0.45);
+                _mo.connect(_mg);_mg.connect(_mCtx.destination);_mo.start(_mt);_mo.stop(_mt+0.45);
+            }}catch(e){}
+        }
         else if(_catT<0.6){_catProgress=0.35;_catStopped=true;}
         else{_catProgress=0.35+(_catT-0.6)/0.4*0.65;}
         var _catX=W*0.85-_catProgress*W*0.7; // right to left, leisurely
@@ -430,14 +440,50 @@ function _renderIntro(now){
                 }}catch(e){}
             }
             var hit=(pt-0.8)/0.7;
-            // Explosion ring effect
-            if(hit<0.5){
-                var _expR=hit*eggSize*6;
-                var _expA=1-hit*2;
-                ctx.strokeStyle='rgba(255,200,50,'+_expA+')';ctx.lineWidth=4*scale;
-                ctx.beginPath();ctx.arc(rx,ry,_expR,0,Math.PI*2);ctx.stroke();
-                ctx.strokeStyle='rgba(255,100,30,'+_expA*0.7+')';ctx.lineWidth=2*scale;
-                ctx.beginPath();ctx.arc(rx,ry,_expR*0.7,0,Math.PI*2);ctx.stroke();
+            // Big fireball explosion (like the reference image)
+            if(hit<0.6){
+                var _fbP=hit/0.6; // 0 to 1
+                var _fbR=eggSize*(1+_fbP*4); // grows big
+                var _fbX=rx-eggSize*0.3;
+                var _fbY=ry;
+                // Outer orange glow
+                var _fbGrad=ctx.createRadialGradient(_fbX,_fbY,0,_fbX,_fbY,_fbR);
+                _fbGrad.addColorStop(0,'rgba(255,255,180,'+(1-_fbP*0.8)+')');
+                _fbGrad.addColorStop(0.3,'rgba(255,220,80,'+(0.9-_fbP*0.6)+')');
+                _fbGrad.addColorStop(0.6,'rgba(255,140,30,'+(0.8-_fbP*0.5)+')');
+                _fbGrad.addColorStop(0.85,'rgba(200,60,10,'+(0.6-_fbP*0.4)+')');
+                _fbGrad.addColorStop(1,'rgba(100,20,0,0)');
+                ctx.fillStyle=_fbGrad;
+                ctx.beginPath();ctx.arc(_fbX,_fbY,_fbR,0,Math.PI*2);ctx.fill();
+                // Inner bright core
+                var _coreR=_fbR*0.4*(1-_fbP*0.5);
+                var _coreGrad=ctx.createRadialGradient(_fbX,_fbY-_fbR*0.1,0,_fbX,_fbY-_fbR*0.1,_coreR);
+                _coreGrad.addColorStop(0,'rgba(255,255,240,'+(1-_fbP)+')');
+                _coreGrad.addColorStop(1,'rgba(255,200,100,0)');
+                ctx.fillStyle=_coreGrad;
+                ctx.beginPath();ctx.arc(_fbX,_fbY-_fbR*0.1,_coreR,0,Math.PI*2);ctx.fill();
+                // Flame tongues (random spikes)
+                for(var _fti=0;_fti<8;_fti++){
+                    var _fta=_fti/8*Math.PI*2+_fbP*2;
+                    var _ftLen=_fbR*(0.8+Math.sin(_fta*3+_fbP*10)*0.4);
+                    var _ftW=_fbR*0.15;
+                    ctx.fillStyle='rgba(255,'+(120+Math.floor(Math.random()*80))+',20,'+(0.6-_fbP*0.5)+')';
+                    ctx.beginPath();
+                    ctx.moveTo(_fbX+Math.cos(_fta)*_fbR*0.5,_fbY+Math.sin(_fta)*_fbR*0.5);
+                    ctx.lineTo(_fbX+Math.cos(_fta)*_ftLen+Math.cos(_fta+0.3)*_ftW,_fbY+Math.sin(_fta)*_ftLen+Math.sin(_fta+0.3)*_ftW);
+                    ctx.lineTo(_fbX+Math.cos(_fta)*_ftLen-Math.cos(_fta+0.3)*_ftW,_fbY+Math.sin(_fta)*_ftLen-Math.sin(_fta+0.3)*_ftW);
+                    ctx.fill();
+                }
+                // Smoke puffs rising
+                if(_fbP>0.3){
+                    var _smA=(1-_fbP)*0.5;
+                    for(var _si2=0;_si2<4;_si2++){
+                        ctx.fillStyle='rgba(80,60,40,'+_smA+')';
+                        ctx.beginPath();
+                        ctx.arc(_fbX+(_si2-1.5)*_fbR*0.3,_fbY-_fbR*(0.5+_fbP*0.8)+_si2*_fbR*0.15,_fbR*0.2+_si2*_fbR*0.05,0,Math.PI*2);
+                        ctx.fill();
+                    }
+                }
             }
             var flashAlpha=Math.max(0,1-hit*3);
             if(flashAlpha>0) _drawFlash(ctx,rx-eggSize*0.5,ry-eggSize*0.2,eggSize*3,flashAlpha);
