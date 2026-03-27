@@ -537,4 +537,60 @@ if(_introCanvas){
     },{passive:true});
 }
 
-_startIntro();
+// Show tap-to-start screen first (needed for iOS audio unlock)
+var _tapStartShown=false;
+function _showTapStart(){
+    if(_tapStartShown)return;
+    _tapStartShown=true;
+    if(!_introCtx||!_introCanvas)return;
+    _resizeIntroCanvas();
+    var W=_introCanvas.width,H=_introCanvas.height;
+    var ctx=_introCtx;
+    var scale=H/600;
+    // Black screen with tap prompt
+    ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+    // Game title small
+    ctx.fillStyle='rgba(255,215,0,0.6)';
+    ctx.font='bold '+Math.floor(28*scale)+'px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(L('title'),W/2,H*0.35);
+    // Tap to start text (multi-language)
+    var _tapText={zhs:'\u70B9\u51FB\u5F00\u59CB',zht:'\u9EDE\u64CA\u958B\u59CB',ja:'\u30BF\u30C3\u30D7\u3057\u3066\u30B9\u30BF\u30FC\u30C8',en:'TAP TO START'};
+    var _tapStr=_tapText[_langCode]||_tapText.en;
+    ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.font='bold '+Math.floor(22*scale)+'px "Segoe UI","PingFang SC",sans-serif';
+    // Blink effect
+    function _blinkTap(){
+        if(!_tapStartShown||_introStart)return;
+        _resizeIntroCanvas();
+        var W2=_introCanvas.width,H2=_introCanvas.height;
+        ctx.fillStyle='#000';ctx.fillRect(0,0,W2,H2);
+        ctx.fillStyle='rgba(255,215,0,0.6)';
+        ctx.font='bold '+Math.floor(28*(H2/600))+'px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.textAlign='center';
+        ctx.fillText(L('title'),W2/2,H2*0.35);
+        if(Math.floor(Date.now()/500)%2===0){
+            ctx.fillStyle='rgba(255,255,255,0.8)';
+            ctx.font='bold '+Math.floor(22*(H2/600))+'px "Segoe UI","PingFang SC",sans-serif';
+            ctx.fillText(_tapStr,W2/2,H2*0.55);
+        }
+        requestAnimationFrame(_blinkTap);
+    }
+    _blinkTap();
+}
+function _onTapStart(){
+    if(_introStart)return; // already started
+    _unlockAudio();
+    _startIntro();
+    // Remove tap listeners
+    _introCanvas.removeEventListener('click',_onTapStart);
+    _introCanvas.removeEventListener('touchstart',_onTapStart);
+    document.removeEventListener('keydown',_onTapStartKey);
+}
+function _onTapStartKey(e){_onTapStart();}
+if(_introCanvas){
+    _introCanvas.addEventListener('click',_onTapStart);
+    _introCanvas.addEventListener('touchstart',_onTapStart,{passive:true});
+}
+document.addEventListener('keydown',_onTapStartKey);
+_showTapStart();
