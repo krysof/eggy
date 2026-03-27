@@ -31,6 +31,8 @@ function _handleStart(){
     keys['KeyR']=false;keys['KeyT']=false;keys['KeyF']=false;keys['Space']=false;
     setTimeout(function(){
         if(_ss){_ss.style.display='';_ss.style.background='';}
+        // Reset start triggered for next time
+        _startTriggered=false;
         showScreen('select-screen');
         if(_touchVisible)_showMenuTouch();
         _menuJoyConfirmCD=30; // extra cooldown after screen appears
