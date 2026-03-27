@@ -669,12 +669,6 @@ function handlePlayerInput(){
             }
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
             playJumpSound();
-        } else if(_isShoryu&&_ct==='rooster'){
-            // SOMERSAULT KICK (Guile) — backflip kick
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
-            playerEgg.vy=JUMP_FORCE*1.8;playerEgg.squash=0.5;
-            playerEgg._shoryuActive=50; // reuse shoryuActive for rising attack
-            playJumpSound();
         } else if(_isShoryu&&_ct==='cat'){
             // ELECTRIC THUNDER (Blanka) — shock nearby enemies
             _shoutMove(playerEgg,'ELECTRIC!');
