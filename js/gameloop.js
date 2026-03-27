@@ -89,6 +89,7 @@ function updateCity(){
             if(Math.sqrt(_nhdx*_nhdx+_nhdz*_nhdz)<1.5){
                 _nhe.vx+=_nh.vx*0.8;_nhe.vz+=_nh.vz*0.8;_nhe.vy=0.15;
                 _nhe.squash=0.5;_nhe.throwTimer=25;_nhe._bounces=1;_nhe._stunTimer=50;
+                if(_nh.burns)_nhe._onFire=120;
                 _dropNpcStolenCoins(_nhe);if(_nhe.isPlayer)playHitSound();
                 _nh.life=0;break;
             }
@@ -1223,7 +1224,7 @@ var _moveNames={
     'Somersault Kick!':{zhs:'\u95EA\u5149\u98DE\u8E22\uFF01',zht:'\u9583\u5149\u98DB\u8E22\uFF01',ja:'\u30B5\u30DE\u30FC\u30BD\u30EB\u30C8\uFF01',en:'Somersault!'},
     'Kikouken!':{zhs:'\u6C14\u529F\u62F3\uFF01',zht:'\u6C23\u529F\u62F3\uFF01',ja:'\u6C17\u529F\u62F3\uFF01',en:'Kikouken!'},
     'Spinning Bird Kick!':{zhs:'\u56DE\u65CB\u9E1F\u8E22\uFF01',zht:'\u56DE\u65CB\u9CE5\u8E22\uFF01',ja:'\u30B9\u30D4\u30CB\u30F3\u30B0\u30D0\u30FC\u30C9\uFF01',en:'Spinning Bird!'},
-    'Yoga Fire!':{zhs:'\u745C\u4F3D\u706B\uFF01',zht:'\u745C\u4F3D\u706B\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
+    'Yoga Fire!':{zhs:'\u745C\u4F3D\u706B\u7403\uFF01',zht:'\u745C\u4F3D\u706B\u7403\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
     'Yoga Flame!':{zhs:'\u745C\u4F3D\u706B\u7130\uFF01',zht:'\u745C\u4F3D\u706B\u7130\uFF01',ja:'\u30E8\u30AC\u30D5\u30EC\u30A4\u30E0\uFF01',en:'Yoga Flame!'},
     'ELECTRIC!':{zhs:'\u55F7\u55F7\u55F7\uFF01',zht:'\u55F7\u55F7\u55F7\uFF01',ja:'\u30AC\u30A6\u30AC\u30A6\uFF01',en:'GRAAAH!'},
     'GRAAAH!':{zhs:'\u55F7\u55F7\u55F7\uFF01',zht:'\u55F7\u55F7\u55F7\uFF01',ja:'\u30AC\u30A6\u30AC\u30A6\uFF01',en:'GRAAAH!'},

@@ -421,7 +421,9 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 var _nhRing=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.07,6,12),new THREE.MeshBasicMaterial({color:0xFFAA66,transparent:true,opacity:0.6}));
                 _nhRing.position.copy(_nhBall.position);scene.add(_nhRing);
                 if(!window._npcHadoukens)window._npcHadoukens=[];
-                window._npcHadoukens.push({ball:_nhBall,ring:_nhRing,vx:Math.sin(_nhDir)*0.3,vz:Math.cos(_nhDir)*0.3,life:120,owner:egg});
+                var _nhCT=egg.mesh.userData._charType;
+                var _nhBurns=(_nhCT==='egg'||_nhCT==='cockroach');
+                window._npcHadoukens.push({ball:_nhBall,ring:_nhRing,vx:Math.sin(_nhDir)*0.3,vz:Math.cos(_nhDir)*0.3,life:120,owner:egg,burns:_nhBurns});
             }
             if(egg._npcHadouCD>0)egg._npcHadouCD--;
             // NPC Shoryuken: very close
@@ -429,7 +431,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 egg._npcSpecialCD=60;egg._npcShoryuActive=true;
                 egg.vy=JUMP_FORCE*1.5;egg.squash=0.5;
                 // Hit nearby
-                if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;_addStunDamage(closest,15);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();}
+                if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;_addStunDamage(closest,15);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();
+                    var _shCT=egg.mesh.userData._charType;if(_shCT==='dog')closest._onFire=120;}
             }
             // NPC Tatsumaki: medium range
             if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.008&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){

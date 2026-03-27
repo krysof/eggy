@@ -28,8 +28,8 @@ function createEggMesh(color, accent, charType) {
     } else if (charType==='cockroach') {
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=1.05+0.15*Math.sin(t*Math.PI);
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.88);
+            var s=0.45+0.1*Math.sin(t*Math.PI);
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.2);
         }
     } else if (charType==='cat') {
         for(var i=0;i<pos.count;i++){
