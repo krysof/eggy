@@ -109,8 +109,7 @@ function _updateMenuJoy(){
         if((keys['Space']||keys['KeyF']||keys['KeyR']||keys['KeyT'])&&_menuJoyConfirmCD<=0){
             _menuJoyConfirmCD=30;
             keys['Space']=false;keys['KeyF']=false;keys['KeyR']=false;keys['KeyT']=false;
-            if(typeof _introRunning!=='undefined'&&_introRunning&&typeof _introSkipped!=='undefined'&&!_introSkipped)return;
-            _handleStart();
+            if(!(typeof _introRunning!=='undefined'&&_introRunning&&!_introSkipped)){_handleStart();}
         }
         if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
         requestAnimationFrame(_updateMenuJoy);
@@ -162,8 +161,7 @@ addEventListener('keydown',function(e){
             var ss=document.getElementById('start-screen');
             if(ss&&ss.classList.contains('active')){
                 // Don't skip to select if intro is still playing
-                if(typeof _introRunning!=='undefined'&&_introRunning&&typeof _introSkipped!=='undefined'&&!_introSkipped)return;
-                _handleStart();
+                if(!(typeof _introRunning!=='undefined'&&_introRunning&&!_introSkipped)){_handleStart();}
             } else {
                 var sel=document.getElementById('select-screen');
                 if(sel&&sel.classList.contains('active')){
