@@ -111,7 +111,12 @@ function _updateMenuJoy(){
         if((keys['Space']||keys['KeyF']||keys['KeyR']||keys['KeyT'])&&_menuJoyConfirmCD<=0){
             _menuJoyConfirmCD=30;
             keys['Space']=false;keys['KeyF']=false;keys['KeyR']=false;keys['KeyT']=false;
-            if(!(typeof _introRunning!=='undefined'&&_introRunning&&!_introSkipped)){_handleStart();}
+            // If intro not started, start it (tap-to-start)
+            if(typeof _introStart!=='undefined'&&!_introStart){if(typeof _onTapStart==='function')_onTapStart();}
+            // If intro playing, skip it
+            else if(typeof _introRunning!=='undefined'&&_introRunning&&!_introSkipped){if(typeof _skipIntro==='function')_skipIntro();}
+            // If intro done, start game
+            else{_handleStart();}
         }
         if(_menuJoyConfirmCD>0)_menuJoyConfirmCD--;
         requestAnimationFrame(_updateMenuJoy);
