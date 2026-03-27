@@ -49,6 +49,7 @@ function handlePlayerInput(){
         playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
         playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;playerEgg._guileArcLaunched=false;
         playerEgg._hyakuretsuTimer=0;
+        playerEgg._yogaFlame=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
         if(_iud.rightArm)_iud.rightArm.visible=false;
@@ -279,7 +280,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling||playerEgg._guileSomersault);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling||playerEgg._guileSomersault||playerEgg._yogaFlame);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -584,7 +585,7 @@ function handlePlayerInput(){
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ct==='cockroach'){
-            // YOGA FIRE (Dhalsim) — slow fireball
+            // YOGA FIRE (Dhalsim) — slow fireball, burns on hit
             _shoutMove(playerEgg,'Yoga Fire!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _yfDir=playerEgg.mesh.rotation.y;
@@ -592,7 +593,7 @@ function handlePlayerInput(){
             _yfBall.position.set(playerEgg.mesh.position.x+Math.sin(_yfDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_yfDir)*1.5);scene.add(_yfBall);
             var _yfRing=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0xFFAA00,transparent:true,opacity:0.5}));
             _yfRing.position.copy(_yfBall.position);scene.add(_yfRing);
-            window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg};
+            window._playerHadouken={ball:_yfBall,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg,burns:true};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
@@ -703,6 +704,21 @@ function handlePlayerInput(){
             playerEgg._dashFaceY=_brDir; // remember facing for landing
             playerEgg._blankaSpinFalling=false;
             playerEgg.squash=0.8;
+        } else if(playerEgg._bfReady&&_ct==='cockroach'){
+            // YOGA FLAME (Dhalsim) — ←→+R, short range fire breath
+            _shoutMove(playerEgg,'Yoga Flame!');
+            playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
+            playerEgg._yogaFlame=60; // 1 second flame duration
+            playerEgg._yogaFlameDir=playerEgg.mesh.rotation.y;
+            playerEgg.squash=0.85;
+            // Fire breath sound
+            if(sfxEnabled){var _yfCtx=ensureAudio();if(_yfCtx){var _yft=_yfCtx.currentTime;
+                var _yfo=_yfCtx.createOscillator();var _yfn=_yfCtx.createBufferSource();
+                var _yfg=_yfCtx.createGain();_yfo.type='sawtooth';
+                _yfo.frequency.setValueAtTime(100,_yft);_yfo.frequency.linearRampToValueAtTime(300,_yft+0.2);_yfo.frequency.linearRampToValueAtTime(80,_yft+0.8);
+                _yfg.gain.setValueAtTime(0.1,_yft);_yfg.gain.linearRampToValueAtTime(0.15,_yft+0.2);_yfg.gain.exponentialRampToValueAtTime(0.001,_yft+0.9);
+                _yfo.connect(_yfg);_yfg.connect(_yfCtx.destination);_yfo.start(_yft);_yfo.stop(_yft+0.9);
+            }}
         } else {
         // Normal punch combo
         playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
@@ -1250,6 +1266,64 @@ function handlePlayerInput(){
         if(playerEgg._blankaShock<=0){
             playerEgg.mesh.rotation.z=0;
             if(playerEgg._elecParticles)for(var _epk=0;_epk<playerEgg._elecParticles.length;_epk++)playerEgg._elecParticles[_epk].visible=false;
+        }
+    }
+    // ---- Yoga Flame (Dhalsim fire breath) ----
+    if(!playerEgg._yogaFlame)playerEgg._yogaFlame=0;
+    if(playerEgg._yogaFlame>0){
+        playerEgg._yogaFlame--;
+        playerEgg.vx*=0.8;playerEgg.vz*=0.8; // slow down during flame
+        // Spawn fire particles in front
+        var _yfFace=playerEgg._yogaFlameDir||playerEgg.mesh.rotation.y;
+        if(playerEgg._yogaFlame%3===0){
+            var _flameRange=3.0;
+            var _flameR=0.3+Math.random()*0.4;
+            var _flameDist=1.0+Math.random()*_flameRange;
+            var _fp2=new THREE.Mesh(new THREE.SphereGeometry(_flameR,5,4),new THREE.MeshBasicMaterial({
+                color:[0xFF4400,0xFF8800,0xFFCC00,0xFF2200][Math.floor(Math.random()*4)],transparent:true,opacity:0.85}));
+            _fp2.position.set(
+                playerEgg.mesh.position.x+Math.sin(_yfFace)*_flameDist+(Math.random()-0.5)*0.8,
+                playerEgg.mesh.position.y+0.3+Math.random()*0.8,
+                playerEgg.mesh.position.z+Math.cos(_yfFace)*_flameDist+(Math.random()-0.5)*0.8);
+            scene.add(_fp2);
+            if(!window._yogaFlameParticles)window._yogaFlameParticles=[];
+            window._yogaFlameParticles.push({mesh:_fp2,life:15});
+        }
+        // Hit detection — enemies in cone in front
+        if(playerEgg._yogaFlame%5===0){
+            for(var _yfi=0;_yfi<allEggs.length;_yfi++){
+                var _yfe=allEggs[_yfi];if(_yfe===playerEgg||!_yfe.alive||_yfe.heldBy)continue;
+                if(_yfe._slamImmune>0||_yfe._onFire>0)continue;
+                var _yfdx=_yfe.mesh.position.x-playerEgg.mesh.position.x;
+                var _yfdz=_yfe.mesh.position.z-playerEgg.mesh.position.z;
+                var _yfd=Math.sqrt(_yfdx*_yfdx+_yfdz*_yfdz);
+                if(_yfd<4&&_yfd>0.01){
+                    // Check if in front (cone check)
+                    var _yfDot=(_yfdx*Math.sin(_yfFace)+_yfdz*Math.cos(_yfFace))/_yfd;
+                    if(_yfDot>0.3){
+                        // Set on fire — like Blanka electric but fire
+                        _yfe._onFire=120; // 2 seconds
+                        _yfe._fireStun=90; // freeze 1.5s then knockback
+                        _yfe._fireStunDir=_yfFace;
+                        _yfe.vx=0;_yfe.vz=0;_yfe.vy=0;
+                        _addStunDamage(_yfe,20);
+                        _dropNpcStolenCoins(_yfe);playHitSound();
+                    }
+                }
+            }
+        }
+        if(playerEgg._yogaFlame<=0){
+            playerEgg._yogaFlameDir=undefined;
+        }
+    }
+    // Update yoga flame particles
+    if(window._yogaFlameParticles){
+        for(var _yfpi=window._yogaFlameParticles.length-1;_yfpi>=0;_yfpi--){
+            var _yfpp=window._yogaFlameParticles[_yfpi];
+            _yfpp.life--;_yfpp.mesh.position.y+=0.03;
+            _yfpp.mesh.material.opacity=_yfpp.life/15*0.85;
+            _yfpp.mesh.scale.multiplyScalar(0.95);
+            if(_yfpp.life<=0){scene.remove(_yfpp.mesh);window._yogaFlameParticles.splice(_yfpi,1);}
         }
     }
     // ---- Blanka in-place spin (Rolling Attack) ----

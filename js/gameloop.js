@@ -66,7 +66,7 @@ function updateCity(){
             if(_hd2<1.5){
                 _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
                 _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,15);
-                if(_hk.burns)_he2._onFire=90; // 1.5 seconds fire
+                if(_hk.burns)_he2._onFire=120; // 2 seconds fire
                 _dropNpcStolenCoins(_he2);playHitSound();
                 _hk.life=0;break;
             }
@@ -430,6 +430,22 @@ function updateCity(){
             if(npc._onFire<=0){
                 for(var _fpk=0;_fpk<npc._fireParticles.length;_fpk++)npc._fireParticles[_fpk].visible=false;
                 if(_fbody){_fbody.material.emissiveIntensity=0;}
+            }
+            // Fire stun (Yoga Flame) — freeze then knockback
+            if(npc._fireStun>0){
+                npc._fireStun--;
+                npc.vx=0;npc.vz=0;npc.vy=0;
+                npc.throwTimer=0;
+                npc._hitStun=5;
+                // Shake while burning
+                npc.mesh.rotation.z=Math.sin(Date.now()*0.05)*0.15;
+                if(npc._fireStun<=0){
+                    // Knockback away from fire source
+                    var _fkDir=npc._fireStunDir||0;
+                    npc.vx=Math.sin(_fkDir)*0.3;npc.vz=Math.cos(_fkDir)*0.3;npc.vy=0.1;
+                    npc.throwTimer=30;npc._bounces=1;npc.squash=0.5;
+                    npc.mesh.rotation.z=0;
+                }
             }
         }
         // Electrocution effect (Blanka electric) — flash skeleton
