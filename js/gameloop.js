@@ -1404,7 +1404,7 @@ function updateHeldEggs(){
                 var barFill=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.08,0.07),new THREE.MeshBasicMaterial({color:0xFF4444}));
                 barFill.position.z=0.01;
                 bg.add(barFill);
-                bg.position.y=-2.2; // negative because egg is upside down
+                bg.position.y=-1.0; // just above butt (top of flipped egg)
                 egg.mesh.add(bg);
                 egg.struggleBar=bg;
                 egg.struggleBar.userData.fill=barFill;

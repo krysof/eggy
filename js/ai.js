@@ -441,6 +441,43 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 egg.vy=0.08;
             }
             if(egg._npcSpecialCD>0)egg._npcSpecialCD--;
+            // ---- Character-specific NPC specials ----
+            var _nCT=egg.mesh.userData._charType;
+            // Honda headbutt dash
+            if(_nCT==='pig'&&cd2>3&&cd2<10&&egg.onGround&&Math.random()<0.006&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=80;
+                var _nhbDir=Math.atan2(cdx2,cdz2);
+                egg.vx=Math.sin(_nhbDir)*MAX_SPEED*2;egg.vz=Math.cos(_nhbDir)*MAX_SPEED*2;
+                egg._hondaDash=40;egg.squash=0.55;egg.mesh.rotation.y=_nhbDir;
+            }
+            // Blanka electric (close range)
+            if(_nCT==='cat'&&cd2<2.5&&Math.random()<0.008&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=60;egg._blankaShock=30;egg.squash=0.6;
+                if(cd2<2){closest._electrocuted=90;closest._elecKnockDir={x:-cdx2/(cd2||1),z:-cdz2/(cd2||1)};closest.vx=0;closest.vz=0;if(closest.isPlayer)playHitSound();}
+            }
+            // Blanka roll (medium range)
+            if(_nCT==='cat'&&cd2>4&&cd2<12&&egg.onGround&&Math.random()<0.005&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=70;
+                var _nbrDir=Math.atan2(cdx2,cdz2);
+                egg.vx=Math.sin(_nbrDir)*MAX_SPEED*3;egg.vz=Math.cos(_nbrDir)*MAX_SPEED*3;
+                egg._blankaSpinTimer=40;egg.squash=0.8;egg.mesh.rotation.y=_nbrDir;
+            }
+            // Guile sonic boom (medium range)
+            if(_nCT==='rooster'&&cd2>4&&cd2<20&&Math.random()<0.015&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
+                egg._npcHadouCD=60;
+                var _nsbDir=Math.atan2(cdx2,cdz2);
+                var _nsbBall=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85}));
+                _nsbBall.position.set(egg.mesh.position.x+Math.sin(_nsbDir)*1.5,egg.mesh.position.y+0.7,egg.mesh.position.z+Math.cos(_nsbDir)*1.5);scene.add(_nsbBall);
+                var _nsbRing=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.06,6,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.5}));
+                _nsbRing.position.copy(_nsbBall.position);scene.add(_nsbRing);
+                if(!window._npcHadoukens)window._npcHadoukens=[];
+                window._npcHadoukens.push({ball:_nsbBall,ring:_nsbRing,vx:Math.sin(_nsbDir)*0.5,vz:Math.cos(_nsbDir)*0.5,life:100,owner:egg});
+            }
+            // Dhalsim yoga flame (close-medium range)
+            if(_nCT==='cockroach'&&cd2<5&&Math.random()<0.006&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                egg._npcSpecialCD=70;
+                if(cd2<4){closest._onFire=120;closest._fireStun=90;closest._fireStunDir=Math.atan2(cdx2,cdz2);closest.vx=0;closest.vz=0;_addStunDamage(closest,20);if(closest.isPlayer)playHitSound();}
+            }
             // NPC piledriver: when very close
             if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.01&&!closest.heldBy){
                 egg._npcPiledriver=closest;egg._npcPdPhase=0;

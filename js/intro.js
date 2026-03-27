@@ -132,6 +132,21 @@ function _drawCityBG(ctx,W,H,panY){
     var sunGrad=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,sunR);
     sunGrad.addColorStop(0,'#FFEE66');sunGrad.addColorStop(0.7,'#FF8833');sunGrad.addColorStop(1,'#FF5522');
     ctx.fillStyle=sunGrad;ctx.beginPath();ctx.arc(sunX,sunY,sunR,0,Math.PI*2);ctx.fill();
+    // Sun cheeky face
+    ctx.fillStyle='#552200';
+    // Squinting eyes (cheeky)
+    ctx.save();ctx.translate(sunX-sunR*0.3,sunY-sunR*0.1);ctx.rotate(-0.1);
+    ctx.fillRect(-sunR*0.12,-sunR*0.03,sunR*0.24,sunR*0.06);ctx.restore();
+    ctx.save();ctx.translate(sunX+sunR*0.3,sunY-sunR*0.1);ctx.rotate(0.1);
+    ctx.fillRect(-sunR*0.12,-sunR*0.03,sunR*0.24,sunR*0.06);ctx.restore();
+    // Cheeky grin (wide, slightly crooked)
+    ctx.strokeStyle='#552200';ctx.lineWidth=sunR*0.07;ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(sunX-sunR*0.35,sunY+sunR*0.15);
+    ctx.quadraticCurveTo(sunX,sunY+sunR*0.45,sunX+sunR*0.4,sunY+sunR*0.1);ctx.stroke();
+    // Blush
+    ctx.fillStyle='rgba(255,100,80,0.35)';
+    ctx.beginPath();ctx.ellipse(sunX-sunR*0.45,sunY+sunR*0.2,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sunX+sunR*0.5,sunY+sunR*0.15,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
 
     ctx.save();
     ctx.translate(0,panY);
@@ -310,10 +325,15 @@ function _renderIntro(now){
         if(_catT>=0.3&&_catT<0.35&&!window._introCatMeowed){
             window._introCatMeowed=true;
             try{var _mCtx=ensureAudio();if(_mCtx&&sfxEnabled){var _mt=_mCtx.currentTime;
+                // Realistic cat meow — high pitch slide down with vibrato
                 var _mo=_mCtx.createOscillator();var _mg=_mCtx.createGain();
-                _mo.type='sine';_mo.frequency.setValueAtTime(700,_mt);_mo.frequency.exponentialRampToValueAtTime(500,_mt+0.15);_mo.frequency.exponentialRampToValueAtTime(900,_mt+0.25);_mo.frequency.exponentialRampToValueAtTime(400,_mt+0.4);
-                _mg.gain.setValueAtTime(0.08,_mt);_mg.gain.linearRampToValueAtTime(0.12,_mt+0.1);_mg.gain.exponentialRampToValueAtTime(0.001,_mt+0.45);
-                _mo.connect(_mg);_mg.connect(_mCtx.destination);_mo.start(_mt);_mo.stop(_mt+0.45);
+                _mo.type='sine';_mo.frequency.setValueAtTime(900,_mt);_mo.frequency.exponentialRampToValueAtTime(1100,_mt+0.05);_mo.frequency.exponentialRampToValueAtTime(700,_mt+0.2);_mo.frequency.exponentialRampToValueAtTime(500,_mt+0.35);
+                _mg.gain.setValueAtTime(0,_mt);_mg.gain.linearRampToValueAtTime(0.1,_mt+0.03);_mg.gain.linearRampToValueAtTime(0.12,_mt+0.1);_mg.gain.exponentialRampToValueAtTime(0.001,_mt+0.4);
+                // Vibrato LFO
+                var _mvib=_mCtx.createOscillator();var _mvg=_mCtx.createGain();
+                _mvib.frequency.value=6;_mvg.gain.value=30;
+                _mvib.connect(_mvg);_mvg.connect(_mo.frequency);_mvib.start(_mt);_mvib.stop(_mt+0.4);
+                _mo.connect(_mg);_mg.connect(_mCtx.destination);_mo.start(_mt);_mo.stop(_mt+0.4);
             }}catch(e){}
         }
         else if(_catT<0.55){_catProgress=0.3;_catStopped=true;}

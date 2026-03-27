@@ -111,7 +111,7 @@ function _updateStunStars(egg){
         var ss=egg._stunStars;
         ss.phase+=0.12;
         var p=egg.mesh.position;
-        ss.group.position.set(p.x,p.y+2.2,p.z);
+        ss.group.position.set(p.x,p.y+1.4,p.z);
         for(var i=0;i<ss.stars.length;i++){
             var a=ss.phase+i/ss.stars.length*Math.PI*2;
             var ix=Math.cos(a)*0.7,iz=Math.sin(a)*0.7;
