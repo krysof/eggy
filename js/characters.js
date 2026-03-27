@@ -26,7 +26,7 @@ function drawPortrait(ch) {
     var W=portraitCanvas.width, H=portraitCanvas.height;
     portraitCtx.clearRect(0,0,W,H);
     var bg=portraitCtx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,'#1a1a4a');bg.addColorStop(1,'#0a0a2e');
+    bg.addColorStop(0,'#87CEEB');bg.addColorStop(1,'#FFE4F0');
     portraitCtx.fillStyle=bg;portraitCtx.fillRect(0,0,W,H);
     var cx=W/2,cy=H*0.52;
     // Body shape varies by character type

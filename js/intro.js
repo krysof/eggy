@@ -110,14 +110,39 @@ function _drawLightning(ctx,x1,y1,x2,y2,alpha,thickness){
     ctx.shadowBlur=0;
 }
 
-// Draw dark city background
+// Draw bright daytime city background with smiling sun
 function _drawCityBG(ctx,W,H,panY){
     var skyGrad=ctx.createLinearGradient(0,0,0,H);
-    skyGrad.addColorStop(0,'#050510');
-    skyGrad.addColorStop(0.6,'#0a0820');
-    skyGrad.addColorStop(1,'#151030');
+    skyGrad.addColorStop(0,'#87CEEB');
+    skyGrad.addColorStop(0.5,'#B0E0FF');
+    skyGrad.addColorStop(1,'#E0F0FF');
     ctx.fillStyle=skyGrad;
     ctx.fillRect(0,0,W,H);
+    // Smiling sun (top-right)
+    var sunX=W*0.82,sunY=H*0.12+panY*0.3;
+    var sunR=H*0.08;
+    // Sun rays
+    ctx.strokeStyle='rgba(255,220,50,0.4)';ctx.lineWidth=sunR*0.15;
+    for(var _ri=0;_ri<12;_ri++){
+        var _ra=_ri*Math.PI/6;
+        ctx.beginPath();ctx.moveTo(sunX+Math.cos(_ra)*sunR*1.3,sunY+Math.sin(_ra)*sunR*1.3);
+        ctx.lineTo(sunX+Math.cos(_ra)*sunR*1.8,sunY+Math.sin(_ra)*sunR*1.8);ctx.stroke();
+    }
+    // Sun body
+    var sunGrad=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,sunR);
+    sunGrad.addColorStop(0,'#FFEE55');sunGrad.addColorStop(1,'#FFCC00');
+    ctx.fillStyle=sunGrad;ctx.beginPath();ctx.arc(sunX,sunY,sunR,0,Math.PI*2);ctx.fill();
+    // Sun face — eyes
+    ctx.fillStyle='#333';
+    ctx.beginPath();ctx.arc(sunX-sunR*0.3,sunY-sunR*0.15,sunR*0.1,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(sunX+sunR*0.3,sunY-sunR*0.15,sunR*0.1,0,Math.PI*2);ctx.fill();
+    // Sun face — smile
+    ctx.strokeStyle='#333';ctx.lineWidth=sunR*0.08;ctx.lineCap='round';
+    ctx.beginPath();ctx.arc(sunX,sunY+sunR*0.05,sunR*0.35,0.15*Math.PI,0.85*Math.PI);ctx.stroke();
+    // Blush
+    ctx.fillStyle='rgba(255,150,150,0.4)';
+    ctx.beginPath();ctx.ellipse(sunX-sunR*0.45,sunY+sunR*0.15,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.ellipse(sunX+sunR*0.45,sunY+sunR*0.15,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
 
     ctx.save();
     ctx.translate(0,panY);
@@ -285,14 +310,15 @@ function _renderIntro(now){
         var bounce=Math.sin((t-2.5)*8)*4*scale;
         _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#FFDD44','#FFAA00',false,true);
         _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B4513','#5C2E0A',true,true);
-        // White cat strolls across leisurely — walk, stop to watch, walk again
-        var _catT=(t-2.5)/1.0; // 0 to 1 over 1 second
-        // Movement: walk 0-0.3, stop 0.3-0.6 (watching), walk 0.6-1.0
+        // White cat strolls across — walk, stop to watch, then run away
+        var _catT=(t-2.5)/1.5; // 0 to 1 over 1.5 seconds (longer)
+        // Movement: walk 0-0.25, stop 0.25-0.55 (watching), run 0.55-1.0
         var _catProgress;
         var _catStopped=false;
-        if(_catT<0.3){_catProgress=_catT/0.3*0.35;}
+        var _catRunning=false;
+        if(_catT<0.25){_catProgress=_catT/0.25*0.3;}
         // Cat meow when stopping
-        if(_catT>=0.3&&_catT<0.35&&!window._introCatMeowed){
+        if(_catT>=0.25&&_catT<0.3&&!window._introCatMeowed){
             window._introCatMeowed=true;
             try{var _mCtx=ensureAudio();if(_mCtx&&sfxEnabled){var _mt=_mCtx.currentTime;
                 var _mo=_mCtx.createOscillator();var _mg=_mCtx.createGain();
@@ -301,8 +327,8 @@ function _renderIntro(now){
                 _mo.connect(_mg);_mg.connect(_mCtx.destination);_mo.start(_mt);_mo.stop(_mt+0.45);
             }}catch(e){}
         }
-        else if(_catT<0.6){_catProgress=0.35;_catStopped=true;}
-        else{_catProgress=0.35+(_catT-0.6)/0.4*0.65;}
+        else if(_catT<0.55){_catProgress=0.3;_catStopped=true;}
+        else{_catProgress=0.3+(_catT-0.55)/0.45*0.7;_catRunning=true;} // run fast!
         var _catX=W*0.85-_catProgress*W*0.7; // right to left, leisurely
         var _catY=H*0.88;
         var _catS=12*scale;
@@ -338,10 +364,10 @@ function _renderIntro(now){
             ctx.beginPath();ctx.moveTo(_catX-_catS*0.6,_catY+_catS*0.2);ctx.lineTo(_catX-_catS*0.6,_catY+_catS*0.6);ctx.stroke();
             ctx.beginPath();ctx.moveTo(_catX-_catS*0.3,_catY+_catS*0.2);ctx.lineTo(_catX-_catS*0.3,_catY+_catS*0.6);ctx.stroke();
         } else {
-            var _legPhase=_catProgress*30;
+            var _legPhase=_catRunning?_catProgress*80:_catProgress*30;
             for(var _li=0;_li<4;_li++){
                 var _lx=_catX+(_li-1.5)*_catS*0.5;
-                var _ly=_catY+_catS*0.5+Math.sin(_legPhase+_li*1.5)*_catS*0.25;
+                var _ly=_catY+_catS*0.5+Math.sin(_legPhase+_li*1.5)*_catS*(_catRunning?0.4:0.25);
                 ctx.beginPath();ctx.moveTo(_lx,_catY+_catS*0.2);ctx.lineTo(_lx,_ly);ctx.stroke();
             }
         }
