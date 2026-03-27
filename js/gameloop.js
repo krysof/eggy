@@ -1684,6 +1684,7 @@ function confirmPortalEnter(){
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
         startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
     }
+    else if(ht==='platformer'){if(typeof _pfStart==='function'){gameState='platformer';_pfStart();}}
     else if(ts>=0){ switchCity(ts); }
 }
 document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else if(_moonPipePromptOpen){_confirmMoonPipeEnter();}else{confirmPortalEnter();}});

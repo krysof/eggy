@@ -84,6 +84,34 @@ function buildPortals() {
         g.add(_psign);
         // No collider for portals — player walks through them to enter
     });
+
+    // ---- Platformer mini-game portal ----
+    if(currentCityStyle!==5){
+        var _pfPortalG=new THREE.Group();
+        var _pfPX=15,_pfPZ=-15;
+        _pfPortalG.position.set(_pfPX,0,_pfPZ);
+        var _pfRing=new THREE.Mesh(new THREE.TorusGeometry(2,0.3,8,24),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.4}));
+        _pfRing.position.y=2.5;_pfPortalG.add(_pfRing);
+        var _pfInner=new THREE.Mesh(new THREE.CircleGeometry(1.7,20),toon(0xFF8844,{transparent:true,opacity:0.4,side:THREE.DoubleSide,emissive:0xFF6622,emissiveIntensity:0.5}));
+        _pfInner.position.y=2.5;_pfPortalG.add(_pfInner);
+        var _pfBase=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.8,0.4,16),toon(0x886644));
+        _pfBase.position.y=0.2;_pfPortalG.add(_pfBase);
+        cityGroup.add(_pfPortalG);
+        var _pfName={zhs:'\uD83C\uDF44 \u86CB\u5B9D\u5192\u9669',zht:'\uD83C\uDF44 \u86CB\u5BF6\u5192\u96AA',ja:'\uD83C\uDF44 \u30C0\u30F3\u30DC\u30A2\u30C9\u30D9\u30F3\u30C1\u30E3\u30FC',en:'\uD83C\uDF44 Danbo Adventure'};
+        var _pfDesc={zhs:'\u6A2A\u7248\u8FC7\u5173\uFF01\u548C\u4F19\u4F34\u4E00\u8D77\u95EF\u5173\uFF01',zht:'\u6A6B\u7248\u904E\u95DC\uFF01\u548C\u5925\u4F34\u4E00\u8D77\u95D6\u95DC\uFF01',ja:'\u6A2A\u30B9\u30AF\u30ED\u30FC\u30EB\uFF01\u4EF2\u9593\u3068\u4E00\u7DD2\u306B\uFF01',en:'Side-scrolling adventure with friends!'};
+        portals.push({mesh:_pfPortalG,ring:_pfRing,inner:_pfInner,
+            name:_pfName[_langCode]||_pfName.en,desc:_pfDesc[_langCode]||_pfDesc.en,
+            raceIndex:-1,x:_pfPX,z:_pfPZ,y:0,color:0xFF6644,_hiddenType:'platformer',_targetStyle:-99});
+        // Sign
+        var _pfSC=document.createElement('canvas');_pfSC.width=512;_pfSC.height=64;
+        var _pfSX=_pfSC.getContext('2d');
+        _pfSX.fillStyle='rgba(0,0,0,0.7)';_pfSX.fillRect(0,0,512,64);
+        _pfSX.fillStyle='#FF8844';_pfSX.textAlign='center';_pfSX.font='bold 26px sans-serif';
+        _pfSX.fillText(_pfName[_langCode]||_pfName.en,256,42);
+        var _pfSTex=new THREE.CanvasTexture(_pfSC);
+        var _pfSign=new THREE.Sprite(new THREE.SpriteMaterial({map:_pfSTex,transparent:true}));
+        _pfSign.scale.set(6,0.8,1);_pfSign.position.y=5;_pfPortalG.add(_pfSign);
+    }
 }
 
 // ---- Collectible coins in city ----
