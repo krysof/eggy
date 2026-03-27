@@ -8,46 +8,53 @@ function createEggMesh(color, accent, charType) {
     var pos = bodyGeo.attributes.position;
     // Species-specific body deformation
     if (charType==='dog') {
+        // Ken — normal build (same as Ryu)
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=0.95+0.2*Math.sin(t*Math.PI)+0.1*(1-t);
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.15);
+            var s=0.9+0.25*Math.sin(t*Math.PI)-0.08*t;
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.05);
         }
     } else if (charType==='monkey') {
+        // Chun-Li — slim feminine build, narrower waist, taller
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=0.85+0.3*Math.sin(t*Math.PI)-0.15*t;
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.08);
+            var s=0.7+0.2*Math.sin(t*Math.PI)-0.1*t;
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.15);
         }
     } else if (charType==='rooster') {
+        // Guile — normal build (same as Ryu)
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=0.88+0.22*Math.sin(t*Math.PI)-0.12*t;
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.18);
+            var s=0.9+0.25*Math.sin(t*Math.PI)-0.08*t;
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.05);
         }
     } else if (charType==='cockroach') {
+        // Dhalsim — very thin and tall
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
             var s=0.45+0.1*Math.sin(t*Math.PI);
             pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.2);
         }
     } else if (charType==='cat') {
+        // Blanka — round ball shape
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=0.9+0.24*Math.sin(t*Math.PI)-0.1*t;
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.12);
+            var s=1.1+0.2*Math.sin(t*Math.PI);
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.9);
         }
     } else if (charType==='pig') {
+        // Honda/Buffalo — round ball shape
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=1.0+0.2*Math.sin(t*Math.PI);
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.0);
+            var s=1.1+0.2*Math.sin(t*Math.PI);
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.9);
         }
     } else if (charType==='frog') {
+        // Zangief/Bear — 1.3x bigger than normal, muscular
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=1.0+0.2*Math.sin(t*Math.PI);
-            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.0);
+            var s=(0.9+0.25*Math.sin(t*Math.PI)-0.08*t)*1.3;
+            pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.05);
         }
     } else {
         for(var i=0;i<pos.count;i++){
