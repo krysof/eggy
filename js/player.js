@@ -49,6 +49,7 @@ function handlePlayerInput(){
         playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
         playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;playerEgg._guileArcLaunched=false;
         playerEgg._hyakuretsuTimer=0;
+        playerEgg._hyakuretsuKickTimer=0;
         playerEgg._yogaFlame=0;
         // Hide attack limbs
         var _iud=playerEgg.mesh.userData;
@@ -280,7 +281,7 @@ function handlePlayerInput(){
     var _throwChargeMax=60; // 1 second max charge
     var _holdingSomething=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     // Normal state check — block all new moves during any special move
-    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling||playerEgg._guileSomersault||playerEgg._yogaFlame);
+    var _inSpecialMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._piledriverTarget||playerEgg._bodySlam||_spinDashing||playerEgg._hyakuretsuTimer||playerEgg._hyakuretsuKickTimer||playerEgg._blankaShock||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling||playerEgg._guileSomersault||playerEgg._yogaFlame);
     // Track F press (blocked during special moves)
     if(keys['KeyF']&&!playerEgg._fWasDown&&playerEgg.grabCD<=0&&!_inSpecialMove){
         // ---- Body Slam (Kirby): holding NPC + in air + holding down + press F ----
@@ -798,8 +799,18 @@ function handlePlayerInput(){
     // Kick (T) — character-specific kick specials
     if(keys['KeyT']&&!playerEgg._tWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isTatsu=playerEgg._tatsuReady;
+        // ---- CHUN-LI: always Hyakuretsu Kick (百裂脚) on normal kick ----
+        if(_ct==='monkey'&&!_isTatsu&&!playerEgg._chargeUpReady){
+            _shoutMove(playerEgg,'Hyakuretsu Kick!');
+            playerEgg._comboCount=0;playerEgg._attackCD=4;
+            if(!playerEgg._hyakuretsuKickTimer)playerEgg._hyakuretsuKickTimer=0;
+            playerEgg._hyakuretsuKickTimer=60;
+            playerEgg._hyakuretsuKickTick=0;
+            playerEgg.vx=0;playerEgg.vz=0;
+            playerEgg.squash=0.88;
+        }
         // RAPID-PRESS KICK SPECIALS FIRST
-        if(playerEgg._rapidTReady&&_ct==='monkey'){
+        else if(playerEgg._rapidTReady&&_ct==='monkey'){
             // 百裂脚 (Chun-Li) — infinite while mashing
             playerEgg._comboCount=0;playerEgg._attackCD=2;playerEgg._rapidT=3;
             var _rlDir=playerEgg.mesh.rotation.y;
@@ -1219,6 +1230,58 @@ function handlePlayerInput(){
             var _hud2=playerEgg.mesh.userData;
             if(_hud2.rightArm){_hud2.rightArm.visible=false;_hud2.rightArm.scale.set(1,1,1);}
             if(_hud2.leftArm){_hud2.leftArm.visible=false;_hud2.leftArm.scale.set(1,1,1);}
+        }
+    }
+    // ---- Chun-Li Hyakuretsu Kick (百裂脚) continuous animation ----
+    if(!playerEgg._hyakuretsuKickTimer)playerEgg._hyakuretsuKickTimer=0;
+    if(playerEgg._hyakuretsuKickTimer>0){
+        playerEgg._hyakuretsuKickTimer--;
+        if(!playerEgg._hyakuretsuKickTick)playerEgg._hyakuretsuKickTick=0;
+        playerEgg._hyakuretsuKickTick++;
+        // Pressing T extends duration
+        if(keys['KeyT']){
+            playerEgg._hyakuretsuKickTimer=Math.max(playerEgg._hyakuretsuKickTimer,30);
+            playerEgg._attackCD=0;
+        }
+        // Animate legs: cycle every 3 frames, upper/mid/lower
+        var _ckSlot=Math.floor(playerEgg._hyakuretsuKickTick/3)%3;
+        var _ckY=[0.3,0.1,-0.1][_ckSlot];
+        var _ckUseRight=(Math.floor(playerEgg._hyakuretsuKickTick/3)%2===0);
+        var _ckLegA=_ckUseRight?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
+        var _ckLegB=_ckUseRight?playerEgg.mesh.userData.leftLeg:playerEgg.mesh.userData.rightLeg;
+        var _ckFrame=playerEgg._hyakuretsuKickTick%3;
+        var _ckExtend=_ckFrame===0?1.8:(_ckFrame===1?1.4:0.6);
+        var _ckZ=_ckFrame===0?1.8:(_ckFrame===1?1.5:0.8);
+        if(_ckLegA){_ckLegA.visible=true;_ckLegA.position.set(_ckUseRight?0.25:-0.25,_ckY,_ckZ);_ckLegA.scale.set(_ckExtend,_ckExtend,_ckExtend);_ckLegA.rotation.x=-Math.PI/3;}
+        if(_ckLegB){_ckLegB.visible=false;}
+        // Slow movement, allow manual forward creep
+        playerEgg.vx*=0.3;playerEgg.vz*=0.3;
+        var _ckFace=playerEgg.mesh.rotation.y;
+        var _ckmx=0,_ckmz=0;
+        if(keys['KeyA']||keys['ArrowLeft'])_ckmx-=1;
+        if(keys['KeyD']||keys['ArrowRight'])_ckmx+=1;
+        if(keys['KeyW']||keys['ArrowUp'])_ckmz-=1;
+        if(keys['KeyS']||keys['ArrowDown'])_ckmz+=1;
+        if(joyActive){_ckmx+=joyVec.x;_ckmz+=joyVec.y;}
+        var _ckDot=_ckmx*Math.sin(_ckFace)+_ckmz*Math.cos(_ckFace);
+        if(_ckDot>0.2){
+            playerEgg.vx+=Math.sin(_ckFace)*MOVE_ACCEL*0.3;
+            playerEgg.vz+=Math.cos(_ckFace)*MOVE_ACCEL*0.3;
+        }
+        // Hit detection every 3 frames
+        if(playerEgg._hyakuretsuKickTick%3===0){
+            for(var _cki=0;_cki<allEggs.length;_cki++){
+                var _cke=allEggs[_cki];if(_cke===playerEgg||!_cke.alive||_cke.heldBy)continue;
+                var _ckdx=_cke.mesh.position.x-playerEgg.mesh.position.x;
+                var _ckdz=_cke.mesh.position.z-playerEgg.mesh.position.z;
+                if(Math.sqrt(_ckdx*_ckdx+_ckdz*_ckdz)<2.5){var _ckd2=Math.sqrt(_ckdx*_ckdx+_ckdz*_ckdz)||1;_cke.vx+=_ckdx/_ckd2*0.5;_cke.vz+=_ckdz/_ckd2*0.5;_cke.vy=0.25;_cke.squash=0.3;_cke.throwTimer=45;_cke._bounces=2;_addStunDamage(_cke,10);_dropNpcStolenCoins(_cke);playHitSound();}
+            }
+        }
+        playerEgg.squash=0.85+Math.sin(playerEgg._hyakuretsuKickTick*0.8)*0.05;
+        if(playerEgg._hyakuretsuKickTimer<=0){
+            var _ckud=playerEgg.mesh.userData;
+            if(_ckud.rightLeg){_ckud.rightLeg.visible=false;_ckud.rightLeg.scale.set(1,1,1);}
+            if(_ckud.leftLeg){_ckud.leftLeg.visible=false;_ckud.leftLeg.scale.set(1,1,1);}
         }
     }
     // ---- Blanka Electric Thunder ----
