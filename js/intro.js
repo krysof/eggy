@@ -681,10 +681,19 @@ function _onTapStart(){
     _introCanvas.removeEventListener('touchstart',_onTapStart);
     document.removeEventListener('keydown',_onTapStartKey);
 }
-function _onTapStartKey(e){_onTapStart();}
+function _onTapStartKey(e){
+    if(_introStart&&!_introSkipped){_skipIntro();return;}
+    _onTapStart();
+}
 if(_introCanvas){
-    _introCanvas.addEventListener('click',_onTapStart);
-    _introCanvas.addEventListener('touchstart',_onTapStart,{passive:true});
+    _introCanvas.addEventListener('click',function(){
+        if(_introStart&&!_introSkipped){_skipIntro();return;}
+        _onTapStart();
+    });
+    _introCanvas.addEventListener('touchstart',function(){
+        if(_introStart&&!_introSkipped){_skipIntro();return;}
+        _onTapStart();
+    },{passive:true});
 }
 document.addEventListener('keydown',_onTapStartKey);
 _showTapStart();

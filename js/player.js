@@ -928,7 +928,7 @@ function handlePlayerInput(){
                     _dropNpcStolenCoins(_she);playHitSound();
                     // Ken fire effect — burning particles on hit enemy
                     if(playerEgg._shoryuIsKen){
-                        _she._onFire=120; // 2 seconds of fire
+                        _she._onFire=90; // 1.5 seconds of fire
                     }
                 }
             }
@@ -1357,8 +1357,8 @@ function handlePlayerInput(){
             var _hddx=_hde.mesh.position.x-playerEgg.mesh.position.x;
             var _hddz=_hde.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_hddx*_hddx+_hddz*_hddz)<2.5){
-                _hde.vx+=playerEgg.vx*0.5;_hde.vz+=playerEgg.vz*0.5;_hde.vy=0.2;
-                _hde.squash=0.4;_hde.throwTimer=30;_hde._bounces=1;_addStunDamage(_hde,15);
+                _hde.vx+=playerEgg.vx*0.8;_hde.vz+=playerEgg.vz*0.8;_hde.vy=0.25;
+                _hde.squash=0.3;_hde.throwTimer=45;_hde._bounces=2;_addStunDamage(_hde,10);
                 _dropNpcStolenCoins(_hde);playHitSound();
                 // Bounce back on hit — reverse, land, recover
                 playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
