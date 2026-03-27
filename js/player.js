@@ -517,8 +517,9 @@ function handlePlayerInput(){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
         playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
-        playerEgg._isLariat=true; // flag to show arms instead of legs
-        // Show both arms extended at head level
+        playerEgg._isLariat=true;
+        playerEgg.vy=0; // NO jump for lariat
+        // Show both arms extended at eye level
         var _lud=playerEgg.mesh.userData;
         if(_lud.rightArm){_lud.rightArm.visible=true;_lud.rightArm.position.set(0.6,0.88,0);_lud.rightArm.scale.set(1.5,1.5,1.5);}
         if(_lud.leftArm){_lud.leftArm.visible=true;_lud.leftArm.position.set(-0.6,0.88,0);_lud.leftArm.scale.set(1.5,1.5,1.5);}
@@ -1069,9 +1070,12 @@ function handlePlayerInput(){
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,2.0); // keep elevated (compensate flip)
         }
         if(!playerEgg._tatsuDir)playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
-        var _tFwd=1.5;var _tVert=0;
-        if(keys['KeyW']||keys['ArrowUp'])_tVert=0.04;
-        if(keys['KeyS']||keys['ArrowDown'])_tVert=-0.03;
+        var _tFwd=playerEgg._isLariat?0:1.5; // lariat: no forward movement
+        var _tVert=0;
+        if(!playerEgg._isLariat){
+            if(keys['KeyW']||keys['ArrowUp'])_tVert=0.04;
+            if(keys['KeyS']||keys['ArrowDown'])_tVert=-0.03;
+        }
         var _tSteer=0;
         if(keys['KeyA']||keys['ArrowLeft'])_tSteer=0.03;
         if(keys['KeyD']||keys['ArrowRight'])_tSteer=-0.03;
