@@ -723,6 +723,59 @@ function updateCity(){
                     playMissileSound();
                 }
             }
+            // ---- Capital ship main cannon beam (SDF1 / Argama) ----
+            if(gm.ms==='sdf1'){
+                if(!gm._beamCD)gm._beamCD=300+Math.floor(Math.random()*200);
+                gm._beamCD--;
+                if(gm._beamCD<=0&&window._moonBeams.length<300){
+                    gm._beamCD=300+Math.floor(Math.random()*200);
+                    var _bcColor=gm.faction==='unSpacy'?0x4488FF:0xFF4444;
+                    var _bcMat=new THREE.MeshBasicMaterial({color:_bcColor,transparent:true,opacity:0.9});
+                    var _bcGeo=new THREE.CylinderGeometry(0.6,0.6,40,8);
+                    var _bcMesh=new THREE.Mesh(_bcGeo,_bcMat);
+                    var _bcFwd=new THREE.Vector3(0,0,1).applyQuaternion(gm.group.quaternion);
+                    _bcMesh.position.set(gx+_bcFwd.x*22,gy+_bcFwd.y*22,gz+_bcFwd.z*22);
+                    _bcMesh.lookAt(gx+_bcFwd.x*60,gy+_bcFwd.y*60,gz+_bcFwd.z*60);
+                    _bcMesh.rotateX(Math.PI/2);
+                    scene.add(_bcMesh);
+                    window._moonBeams.push({mesh:_bcMesh,life:30,vx:_bcFwd.x*2,vy:_bcFwd.y*2,vz:_bcFwd.z*2});
+                    playBeamSound();
+                }
+            }
+            // ---- Red Zaku mega particle cannon ----
+            if(gm.ms==='zaku'&&(gm._color===0xCC2222||gm._color===0x882222)){
+                if(!gm._megaCD)gm._megaCD=400+Math.floor(Math.random()*200);
+                gm._megaCD--;
+                if(gm._megaCD<=0&&window._moonBeams.length<300){
+                    gm._megaCD=400+Math.floor(Math.random()*200);
+                    var _mpMat=new THREE.MeshBasicMaterial({color:0x44FF44,transparent:true,opacity:0.85});
+                    var _mpGeo=new THREE.CylinderGeometry(0.15,0.15,20,6);
+                    var _mpMesh=new THREE.Mesh(_mpGeo,_mpMat);
+                    var _mpFwd=new THREE.Vector3(0,0,1).applyQuaternion(gm.group.quaternion);
+                    _mpMesh.position.set(gx+_mpFwd.x*12,gy+_mpFwd.y*12,gz+_mpFwd.z*12);
+                    _mpMesh.lookAt(gx+_mpFwd.x*40,gy+_mpFwd.y*40,gz+_mpFwd.z*40);
+                    _mpMesh.rotateX(Math.PI/2);
+                    scene.add(_mpMesh);
+                    window._moonBeams.push({mesh:_mpMesh,life:30,vx:_mpFwd.x*3.5,vy:_mpFwd.y*3.5,vz:_mpFwd.z*3.5});
+                    playBeamSound();
+                }
+            }
+            // ---- Valkyrie transformation toggle ----
+            if(gm.ms==='valkyrie'){
+                if(!gm._valkCD)gm._valkCD=200+Math.floor(Math.random()*200);
+                gm._valkCD--;
+                if(gm._valkCD<=0){
+                    gm._valkCD=200+Math.floor(Math.random()*200);
+                    gm._valkMode=gm._valkMode?0:1;
+                    if(gm._valkMode){
+                        gm.group.scale.set(1.0,1.4,1.0);
+                        gm.group.rotation.x=-Math.PI/4;
+                    } else {
+                        gm.group.scale.set(1.4,1.4,1.4);
+                        gm.group.rotation.x=0;
+                    }
+                }
+            }
             // Random explosions near MS (battle damage effects)
             if(Math.random()<0.012&&window._moonBeams.length<300){
                 var exOff=2+Math.random()*4;
