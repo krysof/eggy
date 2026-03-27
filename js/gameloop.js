@@ -1306,7 +1306,8 @@ function updateHeldEggs(){
             // Remove 3D bar if it had one
             if(egg.struggleBar){egg.mesh.remove(egg.struggleBar);egg.struggleBar=null;}
             // Reset upside-down if was held
-            if(egg.mesh.scale.y<0||egg.mesh.rotation.x>1){egg.mesh.scale.set(1,1,1);egg.mesh.rotation.set(0,egg.mesh.rotation.y,0);}
+            var _rb=egg.mesh.userData.body;
+            if(_rb&&_rb.rotation.x>1){_rb.rotation.x=0;_rb.rotation.z=0;egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;egg.mesh.scale.set(1,1,1);}
             continue;
         }
         var holder=egg.heldBy;
@@ -1317,8 +1318,12 @@ function updateHeldEggs(){
         egg.mesh.position.y=holder.mesh.position.y+1.7;
         egg.mesh.position.z=holder.mesh.position.z;
         egg.vx=0;egg.vy=0;egg.vz=0;
-        egg.mesh.rotation.set(Math.PI, holder.mesh.rotation.y+Math.PI, 0); // upside down, face toward holder
-        egg.mesh.scale.set(1,1,1); // reset any squash scale
+        egg.mesh.rotation.y=holder.mesh.rotation.y+Math.PI; // face toward holder
+        egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;
+        egg.mesh.scale.set(1,1,1); // reset squash
+        // Flip body upside down
+        var _hBody=egg.mesh.userData.body;
+        if(_hBody)_hBody.rotation.x=Math.PI;
         // Struggle timer countdown
         egg.struggleTimer--;
         // Player mashing directions speeds up escape
@@ -1383,9 +1388,9 @@ function updateHeldEggs(){
         // Struggle animation — wobble and shake
         var t=Date.now()*0.012;
         egg.mesh.rotation.z=Math.sin(t*3.7)*0.3;
-        egg.mesh.rotation.x=Math.PI+Math.sin(t*2.9)*0.2;
+        egg.mesh.rotation.x=Math.sin(t*2.9)*0.2;
         var body=egg.mesh.userData.body;
-        if(body){body.rotation.z=Math.sin(t*5.1)*0.25;body.rotation.x=Math.cos(t*4.3)*0.2;}
+        if(body){body.rotation.x=Math.PI+Math.cos(t*4.3)*0.2;body.rotation.z=Math.sin(t*5.1)*0.25;}
         var feet=egg.mesh.userData.feet;
         if(feet&&feet.length===2){feet[0].position.z=0.06+Math.sin(t*6)*0.15;feet[1].position.z=0.06-Math.sin(t*6)*0.15;}
     }
