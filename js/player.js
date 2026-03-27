@@ -818,6 +818,10 @@ function handlePlayerInput(){
             playerEgg._guileSomersault=65;
             playerEgg._guileSomFwdX=Math.sin(_gsFaceDir)*0.15;
             playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
+            playerEgg._guileArcFaceY=_gsFaceDir;
+            playerEgg._guileArcStartX=playerEgg.mesh.position.x+Math.sin(_gsFaceDir)*1.5;
+            playerEgg._guileArcStartY=playerEgg.mesh.position.y+0.8;
+            playerEgg._guileArcStartZ=playerEgg.mesh.position.z+Math.cos(_gsFaceDir)*1.5;
             // Create blade arc effect
             if(!window._guileArc){
                 var _gaCvs=document.createElement('canvas');_gaCvs.width=128;_gaCvs.height=128;
@@ -1066,11 +1070,9 @@ function handlePlayerInput(){
             if(!playerEgg._guileArcLaunched&&playerEgg._guileSomersault<40){
                 // Launch when about 1 body height up (~20 frames in)
                 playerEgg._guileArcLaunched=true;
-                var _gaFace3=playerEgg.mesh.rotation.y;
+                var _gaFace3=playerEgg._guileArcFaceY;
                 window._guileArc.visible=true;
-                var _gaOffX=Math.sin(_gaFace3)*1.5;
-                var _gaOffZ=Math.cos(_gaFace3)*1.5;
-                window._guileArc.position.set(playerEgg.mesh.position.x+_gaOffX,playerEgg.mesh.position.y+0.5,playerEgg.mesh.position.z+_gaOffZ);
+                window._guileArc.position.set(playerEgg._guileArcStartX,playerEgg._guileArcStartY,playerEgg._guileArcStartZ);
                 window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,0); // vertical, perpendicular to view
                 window._guileArc.userData._vx=Math.sin(_gaFace3)*0.08;
                 window._guileArc.userData._vz=Math.cos(_gaFace3)*0.08;
