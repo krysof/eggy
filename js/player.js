@@ -8,12 +8,13 @@
 function _addStunDamage(egg,amount){
     if(!egg._stunMeter)egg._stunMeter=0;
     if(!egg._stunThreshold)egg._stunThreshold=100;
+    // If already stunned, getting hit clears the stun
+    if(egg._stunTimer>0){egg._stunTimer=0;egg._stunMeter=0;return false;}
     egg._stunMeter+=amount;
     if(egg._stunMeter>=egg._stunThreshold&&egg._stunTimer<=0){
-        // Stun! Duration based on overflow
         var overflow=egg._stunMeter-egg._stunThreshold;
-        egg._stunTimer=Math.floor(40+overflow*0.8);
-        egg._stunMeter=0; // reset meter
+        egg._stunTimer=Math.floor(60+overflow*0.5);
+        egg._stunMeter=0;
         return true;
     }
     return false;
@@ -177,7 +178,7 @@ function handlePlayerInput(){
                     var sdForce=_spinDashSpeed*2;
                     sde.vx+=sddx/sdd*sdForce;sde.vy+=0.2+sdForce*0.3;sde.vz+=sddz/sdd*sdForce;
                     sde.throwTimer=20;sde._bounces=1;sde.squash=0.4;
-                    _addStunDamage(sde,40);
+                    _addStunDamage(sde,30);
                     playHitSound();
                     _dropNpcStolenCoins(sde);
                 }
@@ -753,7 +754,7 @@ function handlePlayerInput(){
                         _ae.vx+=_adx/_ad*_kf;_ae.vz+=_adz/_ad*_kf;
                         _ae.vy=_isAerial?0.25:0.2;
                         _ae.squash=0.4;_ae.throwTimer=30;_ae._bounces=1;
-                        _addStunDamage(_ae,_isAerial?35:25);
+                        _addStunDamage(_ae,_isAerial?30:10);
                     } else {
                         _ae.vx+=_adx/_ad*0.08;_ae.vz+=_adz/_ad*0.08;
                         _ae.squash=0.78;_ae._hitStun=12;
@@ -875,7 +876,7 @@ function handlePlayerInput(){
                         _ke.vx+=_kdx/_kd*_kkf;_ke.vz+=_kdz/_kd*_kkf;
                         _ke.vy=_kAerial?0.3:0.25;
                         _ke.squash=0.3;_ke.throwTimer=45;_ke._bounces=2;
-                        _addStunDamage(_ke,_kAerial?40:30);
+                        _addStunDamage(_ke,_kAerial?30:10);
                     } else {
                         _ke.vx+=_kdx/_kd*0.12;_ke.vz+=_kdz/_kd*0.12;
                         _ke.squash=0.72;_ke._hitStun=15;
@@ -929,7 +930,7 @@ function handlePlayerInput(){
                 if(_shd<3&&_shd>0.01){
                     _she.vx+=_shdx/_shd*0.4;_she.vz+=_shdz/_shd*0.4;
                     _she.vy=0.3;_she.squash=0.4;_she.throwTimer=35;_she._bounces=1;
-                    _addStunDamage(_she,20);
+                    _addStunDamage(_she,15);
                     _dropNpcStolenCoins(_she);playHitSound();
                     // Ken fire effect — burning particles on hit enemy
                     if(playerEgg._shoryuIsKen){
@@ -1363,7 +1364,7 @@ function handlePlayerInput(){
             var _hddz=_hde.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_hddx*_hddx+_hddz*_hddz)<2.5){
                 _hde.vx+=playerEgg.vx*0.5;_hde.vz+=playerEgg.vz*0.5;_hde.vy=0.2;
-                _hde.squash=0.4;_hde.throwTimer=30;_hde._bounces=1;_addStunDamage(_hde,20);
+                _hde.squash=0.4;_hde.throwTimer=30;_hde._bounces=1;_addStunDamage(_hde,15);
                 _dropNpcStolenCoins(_hde);playHitSound();
                 // Bounce back on hit — reverse, land, recover
                 playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;

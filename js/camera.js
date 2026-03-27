@@ -52,17 +52,48 @@ document.addEventListener('keydown',function(e){
 });
 // Touch orbit disabled — moon now uses flat camera
 var _moonTouchOrbit=false, _moonTouchStartX=0, _moonTouchStartY=0;
+document.addEventListener('touchstart',function(e){
+    if(_spectatorMode&&currentCityStyle===5&&e.touches.length===1){
+        var t=e.touches[0];
+        // Only orbit if touching the right half of screen (not joystick area)
+        if(t.clientX>window.innerWidth*0.4){
+            _moonTouchOrbit=true;_moonTouchStartX=t.clientX;_moonTouchStartY=t.clientY;
+        }
+    }
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+    if(_moonTouchOrbit&&e.touches.length===1){
+        var t=e.touches[0];
+        var dx=t.clientX-_moonTouchStartX,dy=t.clientY-_moonTouchStartY;
+        _moonCamYaw-=dx*0.008;
+        _moonCamPitch+=dy*0.008;
+        if(_moonCamPitch<0.05)_moonCamPitch=0.05;
+        if(_moonCamPitch>1.2)_moonCamPitch=1.2;
+        _moonTouchStartX=t.clientX;_moonTouchStartY=t.clientY;
+    }
+},{passive:true});
+document.addEventListener('touchend',function(e){_moonTouchOrbit=false;},{passive:true});
 function updateCamera(){
     if(!playerEgg)return;
     // Spectator mode — free camera on moon
     if(_spectatorMode&&currentCityStyle===5){
         var _spSpd=2+_cameraZoom*0.5;
+        // Keyboard
         if(keys['KeyW']||keys['ArrowUp']){_specCamX-=Math.sin(_moonCamYaw)*_spSpd;_specCamZ-=Math.cos(_moonCamYaw)*_spSpd;}
         if(keys['KeyS']||keys['ArrowDown']){_specCamX+=Math.sin(_moonCamYaw)*_spSpd;_specCamZ+=Math.cos(_moonCamYaw)*_spSpd;}
         if(keys['KeyA']||keys['ArrowLeft']){_specCamX-=Math.cos(_moonCamYaw)*_spSpd;_specCamZ+=Math.sin(_moonCamYaw)*_spSpd;}
         if(keys['KeyD']||keys['ArrowRight']){_specCamX+=Math.cos(_moonCamYaw)*_spSpd;_specCamZ-=Math.sin(_moonCamYaw)*_spSpd;}
         if(keys['Space']){_specCamY+=_spSpd;}
         if(keys['ShiftLeft']||keys['ShiftRight']){_specCamY-=_spSpd;if(_specCamY<5)_specCamY=5;}
+        // Joystick (mobile)
+        if(joyActive){
+            var _jfwd=-joyVec.y*_spSpd;
+            var _jside=joyVec.x*_spSpd;
+            _specCamX+=Math.sin(_moonCamYaw)*_jfwd+Math.cos(_moonCamYaw)*_jside;
+            _specCamZ+=Math.cos(_moonCamYaw)*_jfwd-Math.sin(_moonCamYaw)*_jside;
+        }
+        // Jump/Grab buttons for up/down on mobile
+        if(keys['KeyF']){_specCamY-=_spSpd;if(_specCamY<5)_specCamY=5;}
         camera.position.set(_specCamX,_specCamY,_specCamZ);
         var _lookDist=100;
         camera.lookAt(_specCamX-Math.sin(_moonCamYaw)*_lookDist,_specCamY-Math.sin(_moonCamPitch)*_lookDist*0.5,_specCamZ-Math.cos(_moonCamYaw)*_lookDist);

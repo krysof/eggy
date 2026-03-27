@@ -65,7 +65,7 @@ function updateCity(){
             var _hd2=Math.sqrt(_hdx*_hdx+_hdz*_hdz);
             if(_hd2<1.5){
                 _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
-                _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,20);
+                _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,15);
                 if(_hk.burns)_he2._onFire=120; // 2 seconds fire
                 _dropNpcStolenCoins(_he2);playHitSound();
                 _hk.life=0;break;
