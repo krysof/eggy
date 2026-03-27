@@ -108,9 +108,9 @@ function handlePlayerInput(){
         var _moveAngle=Math.atan2(mx,mz);
         var _faceDiff=Math.abs(_moveAngle-playerEgg.mesh.rotation.y);
         if(_faceDiff>Math.PI)_faceDiff=Math.PI*2-_faceDiff;
-        if(_faceDiff>Math.PI*0.7){
-            // Only true backward — backstep 0.2s then quick turn
-            if(!playerEgg._backstepTimer||playerEgg._backstepTimer<=0)playerEgg._backstepTimer=12;
+        if(_faceDiff>Math.PI*0.6){
+            // Backward — backstep 0.3s then quick turn
+            if(!playerEgg._backstepTimer||playerEgg._backstepTimer<=0)playerEgg._backstepTimer=18;
             playerEgg.vx*=0.5;playerEgg.vz*=0.5;
         }
     }

@@ -1,8 +1,10 @@
 // intro.js — SF2-style animated title intro
-// Phase 0-1.5s: dark street, two eggs face off
-// Phase 1.5-3s: classic egg punches cockroach, cockroach flies back
-// Phase 3-5s: camera pans up skyscraper, title appears
-// Phase 5s+: title stays, start button fades in
+// Phase 0-1.5s: Black screen, WAWE logo fades in/out
+// Phase 1.5-2.5s: Dark street, lightning flash, two eggs appear
+// Phase 2.5-3.5s: Characters face off with bounce
+// Phase 3.5-5s: Classic egg fires beam, cockroach flies back
+// Phase 5-7s: Camera pans up skyscraper, title appears with shake
+// Phase 7s+: PRESS START blinks, start button fades in
 
 var _introCanvas=document.getElementById('intro-canvas');
 var _introCtx=_introCanvas?_introCanvas.getContext('2d'):null;
@@ -20,17 +22,14 @@ window.addEventListener('resize',_resizeIntroCanvas);
 
 // Draw an egg character (simplified pixel-art style)
 function _drawIntroEgg(ctx,x,y,size,color,accentColor,facingLeft,eyeOpen){
-    // Body
     ctx.fillStyle=color;
     ctx.beginPath();
     ctx.ellipse(x,y,size*0.6,size*0.8,0,0,Math.PI*2);
     ctx.fill();
-    // Accent belly
     ctx.fillStyle=accentColor;
     ctx.beginPath();
     ctx.ellipse(x,y+size*0.15,size*0.4,size*0.45,0,0,Math.PI*2);
     ctx.fill();
-    // Eyes
     var ex=facingLeft?-1:1;
     ctx.fillStyle='#fff';
     ctx.beginPath();
@@ -39,7 +38,6 @@ function _drawIntroEgg(ctx,x,y,size,color,accentColor,facingLeft,eyeOpen){
     ctx.beginPath();
     ctx.ellipse(x+ex*size*0.35,y-size*0.18,size*0.12,size*0.16,0,0,Math.PI*2);
     ctx.fill();
-    // Pupils
     if(eyeOpen){
         ctx.fillStyle='#222';
         ctx.beginPath();
@@ -67,7 +65,6 @@ function _drawFist(ctx,x,y,size,color){
 function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     ctx.fillStyle=color;
     ctx.fillRect(x,y,w,h);
-    // Windows
     ctx.fillStyle=windowColor;
     var ww=w*0.12,wh=h*0.03,gap=w*0.08;
     var cols=Math.floor((w-gap*2)/(ww+gap));
@@ -91,38 +88,39 @@ function _drawFlash(ctx,x,y,size,alpha){
     ctx.fillRect(x-size,y-size,size*2,size*2);
 }
 
-// Main intro render loop
-function _renderIntro(now){
-    if(!_introRunning||!_introCtx)return;
-    if(!_introStart)_introStart=now;
-    var t=(now-_introStart)/1000; // seconds
-    var W=_introCanvas.width,H=_introCanvas.height;
-    var ctx=_introCtx;
-    var scale=H/600; // normalize to 600px height
+// Draw lightning zigzag
+function _drawLightning(ctx,x1,y1,x2,y2,alpha,thickness){
+    ctx.strokeStyle='rgba(255,255,255,'+alpha+')';
+    ctx.lineWidth=thickness;
+    ctx.shadowColor='rgba(200,200,255,'+alpha+')';
+    ctx.shadowBlur=20;
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    var segments=8;
+    var dx=(x2-x1)/segments;
+    var dy=(y2-y1)/segments;
+    for(var i=1;i<segments;i++){
+        var ox=(Math.random()-0.5)*60;
+        var oy=(Math.random()-0.5)*40;
+        ctx.lineTo(x1+dx*i+ox,y1+dy*i+oy);
+    }
+    ctx.lineTo(x2,y2);
+    ctx.stroke();
+    ctx.shadowBlur=0;
+}
 
-    ctx.clearRect(0,0,W,H);
-
-    // ---- Background: dark city street ----
-    // Sky gradient
+// Draw dark city background
+function _drawCityBG(ctx,W,H,panY){
     var skyGrad=ctx.createLinearGradient(0,0,0,H);
-    skyGrad.addColorStop(0,'#0a0a1a');
-    skyGrad.addColorStop(0.6,'#1a1030');
-    skyGrad.addColorStop(1,'#2a1a3a');
+    skyGrad.addColorStop(0,'#050510');
+    skyGrad.addColorStop(0.6,'#0a0820');
+    skyGrad.addColorStop(1,'#151030');
     ctx.fillStyle=skyGrad;
     ctx.fillRect(0,0,W,H);
-
-    // Camera pan offset (phase 3+: pan up)
-    var panY=0;
-    if(t>3&&t<5){
-        panY=(t-3)/2*H*0.8; // pan up 80% of screen height over 2s
-    } else if(t>=5){
-        panY=H*0.8;
-    }
 
     ctx.save();
     ctx.translate(0,panY);
 
-    // Background buildings (silhouettes)
     var bColors=['#0d0d20','#111128','#0f0f22','#131330'];
     var bx=0;
     for(var bi=0;bi<8;bi++){
@@ -130,8 +128,7 @@ function _renderIntro(now){
         var bh=H*0.3+bi*H*0.08+(bi%3)*H*0.05;
         ctx.fillStyle=bColors[bi%bColors.length];
         ctx.fillRect(bx,H-bh-panY*0.3,bw,bh+panY*0.3+H);
-        // Dim windows
-        ctx.fillStyle='rgba(255,200,100,0.15)';
+        ctx.fillStyle='rgba(255,200,100,0.12)';
         for(var wi=0;wi<6;wi++){
             for(var wj=0;wj<Math.floor(bh/(H*0.04));wj++){
                 if(Math.random()>0.4){
@@ -148,64 +145,175 @@ function _renderIntro(now){
     ctx.fillStyle='#222235';
     ctx.fillRect(0,H*0.82,W,H*0.01);
 
-    // ---- Characters ----
-    var cx=W*0.35, cy=H*0.72; // classic egg position
-    var rx=W*0.65, ry=H*0.72; // cockroach position
+    ctx.restore();
+}
+
+// Main intro render loop
+function _renderIntro(now){
+    if(!_introRunning||!_introCtx)return;
+    if(!_introStart)_introStart=now;
+    var t=(now-_introStart)/1000;
+    var W=_introCanvas.width,H=_introCanvas.height;
+    var ctx=_introCtx;
+    var scale=H/600;
+
+    ctx.clearRect(0,0,W,H);
+
+    // ======== PHASE 0: Black screen + WAWE logo (0-1.5s) ========
+    if(t<1.5){
+        ctx.fillStyle='#000';
+        ctx.fillRect(0,0,W,H);
+        var logoAlpha=0;
+        if(t<0.5){
+            logoAlpha=t/0.5;
+        } else if(t<1.0){
+            logoAlpha=1;
+        } else {
+            logoAlpha=1-(t-1.0)/0.5;
+        }
+        if(logoAlpha>0){
+            ctx.globalAlpha=logoAlpha;
+            ctx.fillStyle='#FFFFFF';
+            ctx.font='bold '+Math.floor(72*scale)+'px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+            ctx.textAlign='center';
+            ctx.textBaseline='middle';
+            ctx.fillText('WAWE',W/2,H/2);
+            ctx.globalAlpha=1;
+        }
+        ctx.textBaseline='alphabetic';
+        if(_introRunning) requestAnimationFrame(_renderIntro);
+        return;
+    }
+
+    // Camera pan offset (phase 5+: pan up)
+    var panY=0;
+    if(t>5&&t<7){
+        panY=(t-5)/2*H*0.8;
+    } else if(t>=7){
+        panY=H*0.8;
+    }
+
+    // ======== Background ========
+    _drawCityBG(ctx,W,H,panY);
+
+    // ======== PHASE 1: Lightning + silhouettes appear (1.5-2.5s) ========
+    var cx=W*0.35, cy=H*0.72;
+    var rx=W*0.65, ry=H*0.72;
     var eggSize=50*scale;
 
-    if(t<1.5){
-        // Phase 1: face off — both standing, slight bounce
-        var bounce=Math.sin(t*4)*3*scale;
+    if(t>=1.5&&t<2.5){
+        var pt=t-1.5;
+        ctx.save();
+        ctx.translate(0,panY);
+
+        // Lightning flash
+        if(pt<0.4){
+            var lAlpha=1-pt/0.4;
+            _drawLightning(ctx,W*0.1,H*0.1,W*0.9,H*0.5,lAlpha,3*scale);
+            _drawLightning(ctx,W*0.15,H*0.05,W*0.85,H*0.55,lAlpha*0.6,2*scale);
+            // Screen flash
+            if(pt<0.1){
+                ctx.fillStyle='rgba(255,255,255,'+(0.6-pt*6)+')';
+                ctx.fillRect(0,0,W,H);
+            }
+        }
+
+        // Characters appear as silhouettes then light up
+        var charAlpha=Math.min(1,pt/0.6);
+        var litUp=Math.max(0,(pt-0.4)/0.6);
+        ctx.globalAlpha=charAlpha;
+        if(litUp<1){
+            // Silhouette phase
+            var silColor='rgba(10,10,20,'+(1-litUp)+')';
+            _drawIntroEgg(ctx,cx,cy,eggSize,silColor,silColor,false,false);
+            _drawIntroEgg(ctx,rx,ry,eggSize,silColor,silColor,true,false);
+        }
+        if(litUp>0){
+            ctx.globalAlpha=charAlpha*litUp;
+            _drawIntroEgg(ctx,cx,cy,eggSize,'#FFDD44','#FFAA00',false,litUp>0.5);
+            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,litUp>0.5);
+        }
+        ctx.globalAlpha=1;
+        ctx.restore();
+    }
+
+    // ======== PHASE 2: Face off with bounce (2.5-3.5s) ========
+    if(t>=2.5&&t<3.5){
+        ctx.save();
+        ctx.translate(0,panY);
+        var bounce=Math.sin((t-2.5)*8)*4*scale;
         _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#FFDD44','#FFAA00',false,true);
         _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B4513','#5C2E0A',true,true);
-    } else if(t<3){
-        // Phase 2: punch animation
-        var pt=t-1.5; // 0 to 1.5
+        ctx.restore();
+    }
+
+    // ======== PHASE 3: Beam attack (3.5-5s) ========
+    if(t>=3.5&&t<5){
+        ctx.save();
+        ctx.translate(0,panY);
+        var pt=t-3.5;
+
         if(pt<0.3){
-            // Wind up — egg leans back
-            var lean=pt/0.3;
-            _drawIntroEgg(ctx,cx-lean*15*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
-            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
-        } else if(pt<0.6){
-            // Hadouken pose — crouch, hands pushed forward, energy ball grows
-            var punch=(pt-0.3)/0.3;
-            var bodyX=cx-5*scale; // slight crouch back
-            var bodyY=cy+8*scale; // lower stance
+            // Crouch and wind up
+            var crouch=pt/0.3;
+            var bodyX=cx-crouch*8*scale;
+            var bodyY=cy+crouch*10*scale;
             _drawIntroEgg(ctx,bodyX,bodyY,eggSize*0.95,'#FFDD44','#FFAA00',false,true);
-            // Arms extending forward (both hands pushing)
-            var armEndX=bodyX+eggSize*0.5+punch*eggSize*0.6;
-            ctx.strokeStyle='#FFCC00';ctx.lineWidth=5*scale;
-            ctx.beginPath();ctx.moveTo(bodyX+eggSize*0.35,bodyY-eggSize*0.05);ctx.lineTo(armEndX,bodyY-eggSize*0.1);ctx.stroke();
-            ctx.beginPath();ctx.moveTo(bodyX+eggSize*0.35,bodyY+eggSize*0.1);ctx.lineTo(armEndX,bodyY+eggSize*0.05);ctx.stroke();
+            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
+        } else if(pt<0.8){
+            // Arms extend, beam fires
+            var fire=(pt-0.3)/0.5;
+            var bodyX=cx-5*scale;
+            var bodyY=cy+8*scale;
+            _drawIntroEgg(ctx,bodyX,bodyY,eggSize*0.95,'#FFDD44','#FFAA00',false,true);
+
+            // Arms extending forward
+            var armEndX=bodyX+eggSize*0.5+fire*eggSize*0.6;
+            ctx.strokeStyle='#FFCC00';
+            ctx.lineWidth=5*scale;
+            ctx.beginPath();
+            ctx.moveTo(bodyX+eggSize*0.35,bodyY-eggSize*0.05);
+            ctx.lineTo(armEndX,bodyY-eggSize*0.1);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(bodyX+eggSize*0.35,bodyY+eggSize*0.1);
+            ctx.lineTo(armEndX,bodyY+eggSize*0.05);
+            ctx.stroke();
             // Hands
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY-eggSize*0.1,eggSize*0.18,'#FFDD44');
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY+eggSize*0.05,eggSize*0.18,'#FFDD44');
-            // Energy beam — half circle at hand, rectangular beam forward
-            var _ebX=armEndX+eggSize*0.1;
-            var _beamLen=punch*W*0.7;
-            var _beamH=eggSize*0.5+punch*eggSize*1.0;
-            // Outer glow rectangle
-            var _beamGrad=ctx.createLinearGradient(_ebX,bodyY,_ebX+_beamLen,bodyY);
-            _beamGrad.addColorStop(0,'rgba(255,140,50,'+punch*0.9+')');
-            _beamGrad.addColorStop(0.5,'rgba(255,220,120,'+punch*0.7+')');
-            _beamGrad.addColorStop(1,'rgba(255,240,200,0)');
-            ctx.fillStyle=_beamGrad;
-            ctx.fillRect(_ebX,bodyY-_beamH*0.5,_beamLen,_beamH);
-            // Half circle at hand end
-            ctx.fillStyle='rgba(255,140,50,'+punch*0.9+')';
-            ctx.beginPath();ctx.arc(_ebX,bodyY,_beamH*0.55,Math.PI*0.5,Math.PI*1.5);ctx.fill();
+
+            // Half-circle at hands + rectangular beam
+            var ebX=armEndX+eggSize*0.1;
+            var beamLen=fire*W*0.7;
+            var beamH=eggSize*0.5+fire*eggSize*1.0;
+            // Outer glow beam
+            var beamGrad=ctx.createLinearGradient(ebX,bodyY,ebX+beamLen,bodyY);
+            beamGrad.addColorStop(0,'rgba(255,140,50,'+fire*0.9+')');
+            beamGrad.addColorStop(0.5,'rgba(255,220,120,'+fire*0.7+')');
+            beamGrad.addColorStop(1,'rgba(255,240,200,0)');
+            ctx.fillStyle=beamGrad;
+            ctx.fillRect(ebX,bodyY-beamH*0.5,beamLen,beamH);
+            // Half circle at hand
+            ctx.fillStyle='rgba(255,140,50,'+fire*0.9+')';
+            ctx.beginPath();
+            ctx.arc(ebX,bodyY,beamH*0.55,Math.PI*0.5,Math.PI*1.5);
+            ctx.fill();
             // Core beam (brighter)
-            ctx.fillStyle='rgba(255,240,200,'+punch*0.7+')';
-            ctx.fillRect(_ebX,bodyY-_beamH*0.25,_beamLen*0.8,_beamH*0.5);
-            ctx.beginPath();ctx.arc(_ebX,bodyY,_beamH*0.3,Math.PI*0.5,Math.PI*1.5);ctx.fill();
+            ctx.fillStyle='rgba(255,240,200,'+fire*0.7+')';
+            ctx.fillRect(ebX,bodyY-beamH*0.25,beamLen*0.8,beamH*0.5);
+            ctx.beginPath();
+            ctx.arc(ebX,bodyY,beamH*0.3,Math.PI*0.5,Math.PI*1.5);
+            ctx.fill();
+
             _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else {
-            // Impact + cockroach flies back
-            var hit=(pt-0.6)/0.9;
+            // Impact — cockroach flies back spinning
+            var hit=(pt-0.8)/0.7;
             var flashAlpha=Math.max(0,1-hit*3);
             if(flashAlpha>0) _drawFlash(ctx,rx-eggSize*0.5,ry-eggSize*0.2,eggSize*3,flashAlpha);
             _drawIntroEgg(ctx,cx+20*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
-            // Cockroach flies back and up
+            // Cockroach flies back and up spinning
             var flyX=rx+hit*W*0.3;
             var flyY=ry-Math.sin(hit*Math.PI)*H*0.3;
             var spin=hit*Math.PI*4;
@@ -226,58 +334,75 @@ function _renderIntro(now){
                 }
             }
         }
+        ctx.restore();
     }
 
-    ctx.restore();
-
-    // ---- Phase 3+: Skyscraper with title ----
-    if(t>3){
-        var titleAlpha=Math.min(1,(t-3.5)/1.0);
+    // ======== PHASE 4: Pan up skyscraper + title (5-7s) ========
+    if(t>5){
+        var titleAlpha=Math.min(1,(t-5.5)/1.0);
         // Main skyscraper (center)
         var bldW=W*0.35,bldH=H*1.8;
         var bldX=(W-bldW)/2;
         var bldY=H-bldH+panY;
         _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#1a1a3a','rgba(255,220,100,0.3)');
-        // Building top accent
         ctx.fillStyle='#2a2a5a';
         ctx.fillRect(bldX+bldW*0.1,bldY,bldW*0.8,bldH*0.02);
-        // Neon glow on building
-        ctx.shadowColor='rgba(255,215,0,0.5)';ctx.shadowBlur=30*scale;
+        ctx.shadowColor='rgba(255,215,0,0.5)';
+        ctx.shadowBlur=30*scale;
         ctx.fillStyle='rgba(255,215,0,0.08)';
         ctx.fillRect(bldX,bldY,bldW,bldH);
         ctx.shadowBlur=0;
 
-        // Title text on building
+        // Title with screen shake
         if(titleAlpha>0){
+            var shakeX=0,shakeY=0;
+            if(t>5.5&&t<6.0){
+                var shakeT=(t-5.5)/0.5;
+                var shakeAmp=(1-shakeT)*8*scale;
+                shakeX=Math.sin(shakeT*40)*shakeAmp;
+                shakeY=Math.cos(shakeT*35)*shakeAmp;
+            }
+            ctx.save();
+            ctx.translate(shakeX,shakeY);
             ctx.globalAlpha=titleAlpha;
-            // Main title
-            ctx.fillStyle='#FFD700';
-            ctx.shadowColor='#FF8800';ctx.shadowBlur=20*scale;
-            ctx.font='bold '+Math.floor(48*scale)+'px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+
+            // Title shadow
+            ctx.fillStyle='rgba(0,0,0,0.7)';
+            ctx.font='bold '+Math.floor(52*scale)+'px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
             ctx.textAlign='center';
+            ctx.fillText(L('title'),W/2+3*scale,H*0.35+3*scale);
+
+            // Main title — gold metallic
+            ctx.fillStyle='#FFD700';
+            ctx.shadowColor='#FF8800';
+            ctx.shadowBlur=25*scale;
             ctx.fillText(L('title'),W/2,H*0.35);
             ctx.shadowBlur=0;
+
             // Subtitle
-            ctx.fillStyle='rgba(255,255,255,0.8)';
+            ctx.fillStyle='rgba(255,255,255,0.85)';
             ctx.font=Math.floor(16*scale)+'px "Segoe UI","PingFang SC",sans-serif';
-            ctx.fillText('D A N B O   W O R L D',W/2,H*0.35+40*scale);
+            ctx.fillText('D A N B O   W O R L D',W/2,H*0.35+45*scale);
+
             // Slogan
             ctx.fillStyle='rgba(255,255,255,0.5)';
             ctx.font='italic '+Math.floor(12*scale)+'px "Segoe UI","PingFang SC",sans-serif';
-            ctx.fillText(L('slogan'),W/2,H*0.35+65*scale);
-            // Author
+            ctx.fillText(L('slogan'),W/2,H*0.35+70*scale);
+
+            // Version
             ctx.fillStyle='rgba(255,255,255,0.4)';
             ctx.font=Math.floor(11*scale)+'px "Segoe UI",sans-serif';
-            ctx.fillText(L('version'),W/2,H*0.35+90*scale);
+            ctx.fillText(L('version'),W/2,H*0.35+95*scale);
+
             ctx.globalAlpha=1;
+            ctx.restore();
         }
     }
 
-    // ---- Start button fade in ----
-    if(t>5){
+    // ======== PHASE 5: PRESS START + button (7s+) ========
+    if(t>7){
         var btn=document.getElementById('start-btn');
         if(btn)btn.style.opacity='1';
-        // Blinking "PRESS START"
         if(Math.floor(t*2)%2===0){
             ctx.fillStyle='rgba(255,255,255,0.9)';
             ctx.font='bold '+Math.floor(18*scale)+'px "Segoe UI",sans-serif';
@@ -301,10 +426,9 @@ function _startIntro(){
 function _skipIntro(){
     if(_introSkipped)return;
     _introSkipped=true;
-    _introStart=performance.now()-5500; // jump to end
+    _introStart=performance.now()-7500;
     var btn=document.getElementById('start-btn');
     if(btn)btn.style.opacity='1';
-    // After skip, let clicks pass through to the start button
     if(_introCanvas)_introCanvas.style.pointerEvents='none';
 }
 
@@ -313,7 +437,6 @@ if(_introCanvas){
         if(!_introSkipped){
             _skipIntro();
         } else {
-            // Intro already done — trigger start
             var btn=document.getElementById('start-btn');
             if(btn)btn.click();
         }

@@ -729,7 +729,7 @@ function updateCity(){
                 gm._beamCD--;
                 if(gm._beamCD<=0&&window._moonBeams.length<300){
                     gm._beamCD=300+Math.floor(Math.random()*200);
-                    var _bcColor=gm.faction==='unSpacy'?0x4488FF:0xFF4444;
+                    var _bcColor=0xFFDD44;
                     var _bcMat=new THREE.MeshBasicMaterial({color:_bcColor,transparent:true,opacity:0.9});
                     var _bcGeo=new THREE.CylinderGeometry(0.6,0.6,40,8);
                     var _bcMesh=new THREE.Mesh(_bcGeo,_bcMat);
@@ -748,7 +748,7 @@ function updateCity(){
                 gm._megaCD--;
                 if(gm._megaCD<=0&&window._moonBeams.length<300){
                     gm._megaCD=400+Math.floor(Math.random()*200);
-                    var _mpMat=new THREE.MeshBasicMaterial({color:0x44FF44,transparent:true,opacity:0.85});
+                    var _mpMat=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85});
                     var _mpGeo=new THREE.CylinderGeometry(0.15,0.15,20,6);
                     var _mpMesh=new THREE.Mesh(_mpGeo,_mpMat);
                     var _mpFwd=new THREE.Vector3(0,0,1).applyQuaternion(gm.group.quaternion);
