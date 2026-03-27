@@ -58,6 +58,8 @@ function handlePlayerInput(){
         if(_iud.rightLeg)_iud.rightLeg.visible=false;
         if(_iud.leftLeg)_iud.leftLeg.visible=false;
         playerEgg._atkAnim=0;
+        // Reset Chun-Li flip if interrupted
+        if(playerEgg.mesh.scale.y<0){playerEgg.mesh.scale.y=1;playerEgg.squash=1;}
         if(playerEgg.throwTimer>0)return;
     }
     // Hitstun flinch — can't act but no stun stars; also cancel special moves
@@ -1117,7 +1119,7 @@ function handlePlayerInput(){
             playerEgg.vx*=0.3;playerEgg.vz*=0.3;playerEgg._tatsuDir=0;
             if(window._tatsuDragon)for(var _ttk=0;_ttk<window._tatsuDragon.length;_ttk++)window._tatsuDragon[_ttk].visible=false;
             // Reset Chun-Li upside-down
-            if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;}
+            if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;playerEgg.squash=1;}
         }
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
