@@ -28,7 +28,13 @@ function drawPortrait(ch) {
     var bg=portraitCtx.createLinearGradient(0,0,0,H);
     bg.addColorStop(0,'#1a1a4a');bg.addColorStop(1,'#0a0a2e');
     portraitCtx.fillStyle=bg;portraitCtx.fillRect(0,0,W,H);
-    var cx=W/2,cy=H*0.52,rx=55,ry=70;
+    var cx=W/2,cy=H*0.52;
+    // Body shape varies by character type
+    var rx=55,ry=70;
+    if(ch.type==='monkey'){rx=42;ry=75;} // Chun-Li: slim
+    else if(ch.type==='cat'||ch.type==='pig'){rx=65;ry=60;} // Blanka/Honda: round
+    else if(ch.type==='frog'){rx=72;ry=72;} // Zangief: 1.5x big
+    else if(ch.type==='cockroach'){rx=30;ry=78;} // Dhalsim: thin tall
     // Body
     portraitCtx.beginPath();portraitCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
     portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();

@@ -50,10 +50,10 @@ function createEggMesh(color, accent, charType) {
             pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.9);
         }
     } else if (charType==='frog') {
-        // Zangief/Bear — 1.3x bigger than normal, muscular
+        // Zangief/Bear — 1.5x bigger than normal, muscular
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
-            var s=(0.9+0.25*Math.sin(t*Math.PI)-0.08*t)*1.3;
+            var s=(0.9+0.25*Math.sin(t*Math.PI)-0.08*t)*1.5;
             pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*1.05);
         }
     } else {
