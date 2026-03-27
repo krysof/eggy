@@ -850,6 +850,18 @@ function handlePlayerInput(){
             playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
+            // Phoenix cry sound
+            if(sfxEnabled){var _sbkCtx=ensureAudio();if(_sbkCtx){var _sbkt=_sbkCtx.currentTime;
+                var _sbko1=_sbkCtx.createOscillator();var _sbkg1=_sbkCtx.createGain();
+                _sbko1.type='sine';_sbko1.frequency.setValueAtTime(1200,_sbkt);_sbko1.frequency.exponentialRampToValueAtTime(2000,_sbkt+0.1);_sbko1.frequency.exponentialRampToValueAtTime(800,_sbkt+0.3);_sbko1.frequency.exponentialRampToValueAtTime(1800,_sbkt+0.5);_sbko1.frequency.exponentialRampToValueAtTime(600,_sbkt+0.8);
+                _sbkg1.gain.setValueAtTime(0.1,_sbkt);_sbkg1.gain.linearRampToValueAtTime(0.15,_sbkt+0.15);_sbkg1.gain.exponentialRampToValueAtTime(0.001,_sbkt+0.9);
+                _sbko1.connect(_sbkg1);_sbkg1.connect(_sbkCtx.destination);_sbko1.start(_sbkt);_sbko1.stop(_sbkt+0.9);
+                // Harmonic overtone for bird-like quality
+                var _sbko2=_sbkCtx.createOscillator();var _sbkg2=_sbkCtx.createGain();
+                _sbko2.type='triangle';_sbko2.frequency.setValueAtTime(2400,_sbkt);_sbko2.frequency.exponentialRampToValueAtTime(3500,_sbkt+0.1);_sbko2.frequency.exponentialRampToValueAtTime(1500,_sbkt+0.5);
+                _sbkg2.gain.setValueAtTime(0.04,_sbkt);_sbkg2.gain.exponentialRampToValueAtTime(0.001,_sbkt+0.6);
+                _sbko2.connect(_sbkg2);_sbkg2.connect(_sbkCtx.destination);_sbko2.start(_sbkt);_sbko2.stop(_sbkt+0.6);
+            }}
         } else if(_isTatsu&&(_ct==='rooster')){
             // SOMERSAULT KICK (Guile) — backflip with blade arc
             _shoutMove(playerEgg,'Somersault Kick!');
@@ -1095,8 +1107,9 @@ function handlePlayerInput(){
             var _tdz=_te.mesh.position.z-playerEgg.mesh.position.z;
             var _td=Math.sqrt(_tdx*_tdx+_tdz*_tdz);
             if(_td<3&&_td>0.01){
-                _te.vx+=_tdx/_td*0.25;_te.vz+=_tdz/_td*0.25;_te.vy=0.12;
-                _te.squash=0.55;_te._hitStun=8;_te._tatsuHitCD=8;
+                _te.vx+=_tdx/_td*0.5;_te.vz+=_tdz/_td*0.5;_te.vy=0.3;
+                _te.squash=0.35;_te.throwTimer=40;_te._bounces=2;_te._tatsuHitCD=12;
+                _addStunDamage(_te,15);
                 _dropNpcStolenCoins(_te);playHitSound();
             }
         }
