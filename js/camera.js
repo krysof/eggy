@@ -78,26 +78,39 @@ function updateCamera(){
     if(!playerEgg)return;
     // Spectator mode — free camera on moon
     if(_spectatorMode&&currentCityStyle===5){
-        var _spSpd=2+_cameraZoom*0.5;
-        // Keyboard
+        var _spSpd=1.5;
+        // Punch = speed boost
+        if(keys['KeyR'])_spSpd=3.0;
+        // Grab toggles joystick mode (move vs angle)
+        if(keys['KeyF']&&!window._specGrabWas){window._specAngleMode=!window._specAngleMode;}
+        window._specGrabWas=!!keys['KeyF'];
+        // Keyboard move
         if(keys['KeyW']||keys['ArrowUp']){_specCamX-=Math.sin(_moonCamYaw)*_spSpd;_specCamZ-=Math.cos(_moonCamYaw)*_spSpd;}
         if(keys['KeyS']||keys['ArrowDown']){_specCamX+=Math.sin(_moonCamYaw)*_spSpd;_specCamZ+=Math.cos(_moonCamYaw)*_spSpd;}
         if(keys['KeyA']||keys['ArrowLeft']){_specCamX-=Math.cos(_moonCamYaw)*_spSpd;_specCamZ+=Math.sin(_moonCamYaw)*_spSpd;}
         if(keys['KeyD']||keys['ArrowRight']){_specCamX+=Math.cos(_moonCamYaw)*_spSpd;_specCamZ-=Math.sin(_moonCamYaw)*_spSpd;}
         if(keys['Space']){_specCamY+=_spSpd;}
         if(keys['ShiftLeft']||keys['ShiftRight']){_specCamY-=_spSpd;if(_specCamY<5)_specCamY=5;}
-        // Joystick (mobile)
+        // Joystick (mobile) — move or angle depending on mode
         if(joyActive){
-            var _jfwd=-joyVec.y*_spSpd;
-            var _jside=joyVec.x*_spSpd;
-            _specCamX+=Math.sin(_moonCamYaw)*_jfwd+Math.cos(_moonCamYaw)*_jside;
-            _specCamZ+=Math.cos(_moonCamYaw)*_jfwd-Math.sin(_moonCamYaw)*_jside;
+            if(window._specAngleMode){
+                // Angle mode: joystick rotates camera
+                _moonCamYaw-=joyVec.x*0.04;
+                _moonCamPitch+=joyVec.y*0.03;
+                if(_moonCamPitch<0.05)_moonCamPitch=0.05;
+                if(_moonCamPitch>1.2)_moonCamPitch=1.2;
+            } else {
+                // Move mode: joystick moves camera
+                var _jfwd=-joyVec.y*_spSpd;
+                var _jside=joyVec.x*_spSpd;
+                _specCamX+=Math.sin(_moonCamYaw)*_jfwd+Math.cos(_moonCamYaw)*_jside;
+                _specCamZ+=Math.cos(_moonCamYaw)*_jfwd-Math.sin(_moonCamYaw)*_jside;
+            }
         }
-        // Jump/Grab buttons for up/down on mobile
-        if(keys['KeyF']){_specCamY-=_spSpd;if(_specCamY<5)_specCamY=5;}
-        // Apply pinch zoom to camera height in spectator
-        var _specZoomY=_specCamY*Math.max(0.2,Math.min(5,_cameraZoom));
-        camera.position.set(_specCamX,_specZoomY,_specCamZ);
+        // Pinch zoom = FOV/distance zoom (not height)
+        camera.fov=45*Math.max(0.3,Math.min(3,_cameraZoom));
+        camera.updateProjectionMatrix();
+        camera.position.set(_specCamX,_specCamY,_specCamZ);
         var _lookDist=100;
         camera.lookAt(_specCamX-Math.sin(_moonCamYaw)*_lookDist,_specCamY-Math.sin(_moonCamPitch)*_lookDist*0.5,_specCamZ-Math.cos(_moonCamYaw)*_lookDist);
         sun.position.set(_specCamX+60,80,_specCamZ+40);

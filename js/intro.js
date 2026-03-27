@@ -236,11 +236,22 @@ function _renderIntro(now){
         ctx.save();
         ctx.translate(0,panY);
 
-        // Lightning flash
+        // Lightning flash + thunder sound
         if(pt<0.4){
             var lAlpha=1-pt/0.4;
             _drawLightning(ctx,W*0.1,H*0.1,W*0.9,H*0.5,lAlpha,3*scale);
             _drawLightning(ctx,W*0.15,H*0.05,W*0.85,H*0.55,lAlpha*0.6,2*scale);
+            if(!window._introThunderPlayed){
+                window._introThunderPlayed=true;
+                try{var _thCtx=ensureAudio();if(_thCtx&&sfxEnabled){var _tht=_thCtx.currentTime;
+                    var _thb=_thCtx.createBuffer(1,Math.floor(_thCtx.sampleRate*0.5),_thCtx.sampleRate);
+                    var _thd=_thb.getChannelData(0);
+                    for(var _thi=0;_thi<_thd.length;_thi++){var _thp=_thi/_thd.length;_thd[_thi]=(Math.random()-0.5)*0.5*Math.exp(-_thp*3)*Math.sin(_thp*Math.PI*8);}
+                    var _ths=_thCtx.createBufferSource();_ths.buffer=_thb;
+                    var _thg=_thCtx.createGain();_thg.gain.value=0.2;
+                    _ths.connect(_thg);_thg.connect(_thCtx.destination);_ths.start(_tht);_ths.stop(_tht+0.5);
+                }}catch(e){}
+            }
             // Screen flash
             if(pt<0.1){
                 ctx.fillStyle='rgba(255,255,255,'+(0.6-pt*6)+')';
