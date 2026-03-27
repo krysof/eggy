@@ -503,8 +503,8 @@ function handlePlayerInput(){
             var _ud=playerEgg.mesh.userData;
             if(_ud.rightArm){_ud.rightArm.visible=false;_ud.rightArm.scale.set(1,1,1);_ud.rightArm.position.set(0.4,0.2,0.7);}
             if(_ud.leftArm){_ud.leftArm.visible=false;_ud.leftArm.scale.set(1,1,1);_ud.leftArm.position.set(-0.4,0.2,0.7);}
-            if(_ud.rightLeg){_ud.rightLeg.visible=false;_ud.rightLeg.position.set(0.22,0.1,0.5);_ud.rightLeg.rotation.x=-Math.PI/3;}
-            if(_ud.leftLeg){_ud.leftLeg.visible=false;_ud.leftLeg.position.set(-0.22,0.1,0.5);_ud.leftLeg.rotation.x=-Math.PI/3;}
+            if(_ud.rightLeg){_ud.rightLeg.visible=false;_ud.rightLeg.scale.set(1,1,1);_ud.rightLeg.position.set(0.22,0.1,0.5);_ud.rightLeg.rotation.x=-Math.PI/3;}
+            if(_ud.leftLeg){_ud.leftLeg.visible=false;_ud.leftLeg.scale.set(1,1,1);_ud.leftLeg.position.set(-0.22,0.1,0.5);_ud.leftLeg.rotation.x=-Math.PI/3;}
             if(_ud.body)_ud.body.rotation.x=0; // reset headbutt
         }
     }
@@ -721,10 +721,12 @@ function handlePlayerInput(){
             }}
         } else {
         // Normal punch combo
-        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=8;
+        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=(_ct==='cockroach')?16:8;
         var _punchArm=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
-        if(_punchArm){_punchArm.visible=true;_punchArm.position.set(_punchArm===playerEgg.mesh.userData.rightArm?0.3:-0.3,0.2,0.9);_punchArm.scale.set(1.3,1.3,1.3);}
-        playerEgg._atkAnim=8;
+        var _pArmZ=(_ct==='cockroach')?3.0:0.9;
+        var _pArmS=(_ct==='cockroach')?new THREE.Vector3(1.0,1.0,4.0):new THREE.Vector3(1.3,1.3,1.3);
+        if(_punchArm){_punchArm.visible=true;_punchArm.position.set(_punchArm===playerEgg.mesh.userData.rightArm?0.3:-0.3,0.2,_pArmZ);_punchArm.scale.copy(_pArmS);}
+        playerEgg._atkAnim=(_ct==='cockroach')?14:8;
         var _atkDir=playerEgg.mesh.rotation.y;
         var _isFinisher=(playerEgg._comboCount>=3)&&_ct!=='pig'&&_ct!=='cat'; // Honda/Blanka skip finisher (use rapid-press instead)
         var _isAerial=!playerEgg.onGround;
@@ -856,10 +858,11 @@ function handlePlayerInput(){
             playJumpSound();
         } else {
         // Normal kick
-        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=12;
+        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=(_ct==='cockroach')?18:12;
         var _kickLeg=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
-        if(_kickLeg){_kickLeg.visible=true;_kickLeg.position.z=0.7;_kickLeg.rotation.x=-Math.PI/2.5;}
-        playerEgg._atkAnim=10;
+        var _kLegZ=(_ct==='cockroach')?2.5:0.7;
+        if(_kickLeg){_kickLeg.visible=true;_kickLeg.position.z=_kLegZ;_kickLeg.rotation.x=-Math.PI/2.5;if(_ct==='cockroach')_kickLeg.scale.set(1,1,3.5);}
+        playerEgg._atkAnim=(_ct==='cockroach')?14:10;
         var _kDir=playerEgg.mesh.rotation.y;
         var _kFinisher=(playerEgg._comboCount>=3)&&_ct!=='monkey'; // Chun-Li skips finisher (use rapid-press instead)
         var _kAerial=!playerEgg.onGround;
@@ -1555,7 +1558,7 @@ function handlePlayerInput(){
     // Rapid T ready (3+ presses in 60 frames) — Chun-Li 百裂脚
     playerEgg._rapidTReady=(playerEgg._rapidT>=3);
     // ---- Dhalsim passive: extended attack range ----
-    playerEgg._extendedRange=(_ct==='cockroach')?1.5:1.0;
+    playerEgg._extendedRange=(_ct==='cockroach')?2.5:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
     playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='frog');
     // ---- Piledriver input sequence tracker (left-right-left) ----
