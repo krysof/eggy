@@ -95,7 +95,9 @@ function updateCamera(){
         }
         // Jump/Grab buttons for up/down on mobile
         if(keys['KeyF']){_specCamY-=_spSpd;if(_specCamY<5)_specCamY=5;}
-        camera.position.set(_specCamX,_specCamY,_specCamZ);
+        // Apply pinch zoom to camera height in spectator
+        var _specZoomY=_specCamY*Math.max(0.2,Math.min(5,_cameraZoom));
+        camera.position.set(_specCamX,_specZoomY,_specCamZ);
         var _lookDist=100;
         camera.lookAt(_specCamX-Math.sin(_moonCamYaw)*_lookDist,_specCamY-Math.sin(_moonCamPitch)*_lookDist*0.5,_specCamZ-Math.cos(_moonCamYaw)*_lookDist);
         sun.position.set(_specCamX+60,80,_specCamZ+40);
