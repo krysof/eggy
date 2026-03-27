@@ -147,14 +147,14 @@ function _drawCityBG(ctx,W,H,panY){
     ctx.save();
     ctx.translate(0,panY);
 
-    var bColors=['#0d0d20','#111128','#0f0f22','#131330'];
+    var bColors=['#E8D0B0','#D4B896','#F0DCC0','#C8B090'];
     var bx=0;
     for(var bi=0;bi<8;bi++){
         var bw=W*0.12+bi*W*0.02;
         var bh=H*0.3+bi*H*0.08+(bi%3)*H*0.05;
         ctx.fillStyle=bColors[bi%bColors.length];
         ctx.fillRect(bx,H-bh-panY*0.3,bw,bh+panY*0.3+H);
-        ctx.fillStyle='rgba(255,200,100,0.12)';
+        ctx.fillStyle='rgba(135,206,235,0.3)';
         for(var wi=0;wi<6;wi++){
             for(var wj=0;wj<Math.floor(bh/(H*0.04));wj++){
                 if(Math.random()>0.4){
@@ -165,10 +165,10 @@ function _drawCityBG(ctx,W,H,panY){
         bx+=bw+W*0.01;
     }
 
-    // Ground
-    ctx.fillStyle='#1a1a2a';
+    // Ground — bright green grass
+    ctx.fillStyle='#7BC67E';
     ctx.fillRect(0,H*0.82,W,H*0.2);
-    ctx.fillStyle='#222235';
+    ctx.fillStyle='#6AB86D';
     ctx.fillRect(0,H*0.82,W,H*0.01);
 
     ctx.restore();
@@ -235,16 +235,16 @@ function _renderIntro(now){
 
     // Camera pan offset (phase 5+: pan up)
     var panY=0;
-    if(t>5&&t<7){
-        panY=(t-5)/2*H*0.8;
-    } else if(t>=7){
+    if(t>6.5&&t<8.5){
+        panY=(t-6.5)/2*H*0.8;
+    } else if(t>=8.5){
         panY=H*0.8;
     }
 
     // ======== Background ========
     _drawCityBG(ctx,W,H,panY);
     // Wind rain effect during street scene
-    if(t>=1.5&&t<7){
+    if(t>=1.5&&t<8.5){
         var _rainAlpha=1;
         if(t<2)_rainAlpha=(t-1.5)/0.5;
         if(t>6.5)_rainAlpha=1-(t-6.5)/0.5;
@@ -303,22 +303,22 @@ function _renderIntro(now){
         ctx.restore();
     }
 
-    // ======== PHASE 2: Face off with bounce (2.5-3.5s) ========
-    if(t>=2.5&&t<3.5){
+    // ======== PHASE 2: Face off with bounce (2.5-5s) ========
+    if(t>=2.5&&t<5){
         ctx.save();
         ctx.translate(0,panY);
         var bounce=Math.sin((t-2.5)*8)*4*scale;
         _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#FFDD44','#FFAA00',false,true);
         _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B4513','#5C2E0A',true,true);
         // White cat strolls across — walk, stop to watch, then run away
-        var _catT=(t-2.5)/1.5; // 0 to 1 over 1.5 seconds (longer)
-        // Movement: walk 0-0.25, stop 0.25-0.55 (watching), run 0.55-1.0
+        var _catT=(t-2.5)/2.5; // 0 to 1 over 2.5 seconds
+        // Movement: walk 0-0.3, stop 0.3-0.6 (watching), run 0.6-1.0
         var _catProgress;
         var _catStopped=false;
         var _catRunning=false;
-        if(_catT<0.25){_catProgress=_catT/0.25*0.3;}
+        if(_catT<0.3){_catProgress=_catT/0.3*0.3;}
         // Cat meow when stopping
-        if(_catT>=0.25&&_catT<0.3&&!window._introCatMeowed){
+        if(_catT>=0.3&&_catT<0.35&&!window._introCatMeowed){
             window._introCatMeowed=true;
             try{var _mCtx=ensureAudio();if(_mCtx&&sfxEnabled){var _mt=_mCtx.currentTime;
                 var _mo=_mCtx.createOscillator();var _mg=_mCtx.createGain();
@@ -374,11 +374,11 @@ function _renderIntro(now){
         ctx.restore();
     }
 
-    // ======== PHASE 3: Beam attack (3.5-5s) ========
-    if(t>=3.5&&t<5){
+    // ======== PHASE 3: Beam attack (5-6.5s) ========
+    if(t>=5&&t<6.5){
         ctx.save();
         ctx.translate(0,panY);
-        var pt=t-3.5;
+        var pt=t-5;
 
         if(pt<0.3){
             // Crouch and wind up — charge sound
@@ -538,15 +538,15 @@ function _renderIntro(now){
         ctx.restore();
     }
 
-    // ======== PHASE 4: Pan up skyscraper + title (5-7s) ========
-    if(t>5){
-        var titleAlpha=Math.min(1,(t-5.5)/1.0);
+    // ======== PHASE 4: Pan up skyscraper + title (6.5-8.5s) ========
+    if(t>6.5){
+        var titleAlpha=Math.min(1,(t-7)/1.0);
         // Main skyscraper (center)
         var bldW=W*0.35,bldH=H*1.8;
         var bldX=(W-bldW)/2;
         var bldY=H-bldH+panY;
-        _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#1a1a3a','rgba(255,220,100,0.3)');
-        ctx.fillStyle='#2a2a5a';
+        _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#D4C0A0','rgba(135,206,235,0.3)');
+        ctx.fillStyle='#C8B496';
         ctx.fillRect(bldX+bldW*0.1,bldY,bldW*0.8,bldH*0.02);
         ctx.shadowColor='rgba(255,215,0,0.5)';
         ctx.shadowBlur=30*scale;
@@ -557,8 +557,8 @@ function _renderIntro(now){
         // Title with screen shake
         if(titleAlpha>0){
             var shakeX=0,shakeY=0;
-            if(t>5.5&&t<6.0){
-                var shakeT=(t-5.5)/0.5;
+            if(t>7&&t<7.5){
+                var shakeT=(t-7)/0.5;
                 var shakeAmp=(1-shakeT)*8*scale;
                 shakeX=Math.sin(shakeT*40)*shakeAmp;
                 shakeY=Math.cos(shakeT*35)*shakeAmp;
@@ -600,8 +600,8 @@ function _renderIntro(now){
         }
     }
 
-    // ======== PHASE 5: PRESS START + button (7s+) ========
-    if(t>7){
+    // ======== PHASE 5: PRESS START + button (8.5s+) ========
+    if(t>8.5){
         if(!_introSkipped){_introSkipped=true;if(_introCanvas)_introCanvas.style.pointerEvents='none';}
         var btn=document.getElementById('start-btn');
         if(btn)btn.style.opacity='1';

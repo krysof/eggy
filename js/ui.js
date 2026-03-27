@@ -4,16 +4,16 @@ function _drawSF2Map(highlightX,highlightY){
     var mc=document.getElementById('sf2-map-canvas');if(!mc)return;
     var ctx=mc.getContext('2d');var W=mc.width,H=mc.height;
     ctx.clearRect(0,0,W,H);
-    // Ocean gradient
+    // Ocean gradient — bright cute blue
     var _og=ctx.createLinearGradient(0,0,0,H);
-    _og.addColorStop(0,'#061428');_og.addColorStop(0.5,'#0a1a3a');_og.addColorStop(1,'#081530');
+    _og.addColorStop(0,'#88CCEE');_og.addColorStop(0.5,'#77BBDD');_og.addColorStop(1,'#99DDFF');
     ctx.fillStyle=_og;ctx.fillRect(0,0,W,H);
     // Draw continent with path
     function _land(pts,color){
-        ctx.fillStyle=color||'#1a5a2a';ctx.beginPath();ctx.moveTo(pts[0],pts[1]);
+        ctx.fillStyle=color||'#7BC67E';ctx.beginPath();ctx.moveTo(pts[0],pts[1]);
         for(var i=2;i<pts.length;i+=2)ctx.lineTo(pts[i],pts[i+1]);
         ctx.closePath();ctx.fill();
-        ctx.strokeStyle='#2a7a3a';ctx.lineWidth=0.8;ctx.stroke();
+        ctx.strokeStyle='#6AB86D';ctx.lineWidth=0.8;ctx.stroke();
     }
     // North America
     _land([40,18, 55,12, 75,10, 95,15, 105,25, 110,40, 105,55, 95,65, 85,75, 75,85, 65,90, 55,88, 45,80, 35,65, 30,50, 32,35]);
