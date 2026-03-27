@@ -1046,9 +1046,8 @@ function handlePlayerInput(){
         // Chun-Li Spinning Bird Kick: upside-down (倒立)
         var _tCT=playerEgg.mesh.userData._charType;
         if(_tCT==='monkey'){
-            var _sbBody=playerEgg.mesh.userData.body;
-            if(_sbBody)_sbBody.rotation.x=Math.PI; // flip body upside down
-            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5); // keep elevated
+            playerEgg.mesh.scale.y=-1; // flip upside down via scale
+            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,2.0); // keep elevated (compensate flip)
         }
         if(!playerEgg._tatsuDir)playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         var _tFwd=1.5;var _tVert=0;
@@ -1105,7 +1104,7 @@ function handlePlayerInput(){
             playerEgg.vx*=0.3;playerEgg.vz*=0.3;playerEgg._tatsuDir=0;
             if(window._tatsuDragon)for(var _ttk=0;_ttk<window._tatsuDragon.length;_ttk++)window._tatsuDragon[_ttk].visible=false;
             // Reset Chun-Li upside-down
-            if(_tCT==='monkey'){var _sbB2=playerEgg.mesh.userData.body;if(_sbB2)_sbB2.rotation.x=0;}
+            if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;}
         }
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
