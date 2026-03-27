@@ -345,14 +345,39 @@ function _renderIntro(now){
         var pt=t-3.5;
 
         if(pt<0.3){
-            // Crouch and wind up
+            // Crouch and wind up — charge sound
+            if(!window._introChargePlayed){
+                window._introChargePlayed=true;
+                try{var _chCtx=ensureAudio();if(_chCtx&&sfxEnabled){var _cht=_chCtx.currentTime;
+                    var _cho=_chCtx.createOscillator();var _chg=_chCtx.createGain();
+                    _cho.type='sine';_cho.frequency.setValueAtTime(100,_cht);_cho.frequency.exponentialRampToValueAtTime(800,_cht+0.4);
+                    _chg.gain.setValueAtTime(0.08,_cht);_chg.gain.linearRampToValueAtTime(0.15,_cht+0.3);_chg.gain.exponentialRampToValueAtTime(0.001,_cht+0.5);
+                    _cho.connect(_chg);_chg.connect(_chCtx.destination);_cho.start(_cht);_cho.stop(_cht+0.5);
+                }}catch(e){}
+            }
             var crouch=pt/0.3;
             var bodyX=cx-crouch*8*scale;
             var bodyY=cy+crouch*10*scale;
             _drawIntroEgg(ctx,bodyX,bodyY,eggSize*0.95,'#FFDD44','#FFAA00',false,true);
             _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
         } else if(pt<0.8){
-            // Arms extend, beam fires
+            // Arms extend, beam fires — release sound
+            if(!window._introFirePlayed){
+                window._introFirePlayed=true;
+                try{var _frCtx=ensureAudio();if(_frCtx&&sfxEnabled){var _frt=_frCtx.currentTime;
+                    // Whoosh + bass boom
+                    var _frb=_frCtx.createBuffer(1,Math.floor(_frCtx.sampleRate*0.4),_frCtx.sampleRate);
+                    var _frd=_frb.getChannelData(0);
+                    for(var _fri=0;_fri<_frd.length;_fri++){var _frp=_fri/_frd.length;_frd[_fri]=(Math.random()-0.5)*0.6*Math.exp(-_frp*4);}
+                    var _frs=_frCtx.createBufferSource();_frs.buffer=_frb;
+                    var _frg=_frCtx.createGain();_frg.gain.value=0.2;
+                    _frs.connect(_frg);_frg.connect(_frCtx.destination);_frs.start(_frt);_frs.stop(_frt+0.4);
+                    var _fro=_frCtx.createOscillator();var _frog=_frCtx.createGain();
+                    _fro.type='sine';_fro.frequency.setValueAtTime(200,_frt);_fro.frequency.exponentialRampToValueAtTime(60,_frt+0.3);
+                    _frog.gain.setValueAtTime(0.15,_frt);_frog.gain.exponentialRampToValueAtTime(0.001,_frt+0.35);
+                    _fro.connect(_frog);_frog.connect(_frCtx.destination);_fro.start(_frt);_fro.stop(_frt+0.35);
+                }}catch(e){}
+            }
             var fire=(pt-0.3)/0.5;
             var bodyX=cx-5*scale;
             var bodyY=cy+8*scale;
@@ -392,8 +417,28 @@ function _renderIntro(now){
             ctx.fillRect(ebX,bodyY-beamH*0.25,beamLen*0.8,beamH*0.5);
             ctx.beginPath();ctx.arc(ebX,bodyY,beamH*0.3,Math.PI*0.5,Math.PI*1.5);ctx.fill();
         } else {
-            // Impact — cockroach flies back spinning
+            // Impact — explosion + cockroach flies back
+            if(!window._introExpPlayed){
+                window._introExpPlayed=true;
+                try{var _exCtx=ensureAudio();if(_exCtx&&sfxEnabled){var _ext=_exCtx.currentTime;
+                    var _exb=_exCtx.createBuffer(1,Math.floor(_exCtx.sampleRate*0.3),_exCtx.sampleRate);
+                    var _exd=_exb.getChannelData(0);
+                    for(var _exi=0;_exi<_exd.length;_exi++){var _exp2=_exi/_exd.length;_exd[_exi]=(Math.random()-0.5)*0.8*Math.exp(-_exp2*5)*Math.sin(_exp2*Math.PI*15);}
+                    var _exs=_exCtx.createBufferSource();_exs.buffer=_exb;
+                    var _exg=_exCtx.createGain();_exg.gain.value=0.25;
+                    _exs.connect(_exg);_exg.connect(_exCtx.destination);_exs.start(_ext);_exs.stop(_ext+0.3);
+                }}catch(e){}
+            }
             var hit=(pt-0.8)/0.7;
+            // Explosion ring effect
+            if(hit<0.5){
+                var _expR=hit*eggSize*6;
+                var _expA=1-hit*2;
+                ctx.strokeStyle='rgba(255,200,50,'+_expA+')';ctx.lineWidth=4*scale;
+                ctx.beginPath();ctx.arc(rx,ry,_expR,0,Math.PI*2);ctx.stroke();
+                ctx.strokeStyle='rgba(255,100,30,'+_expA*0.7+')';ctx.lineWidth=2*scale;
+                ctx.beginPath();ctx.arc(rx,ry,_expR*0.7,0,Math.PI*2);ctx.stroke();
+            }
             var flashAlpha=Math.max(0,1-hit*3);
             if(flashAlpha>0) _drawFlash(ctx,rx-eggSize*0.5,ry-eggSize*0.2,eggSize*3,flashAlpha);
             _drawIntroEgg(ctx,cx+20*scale,cy,eggSize,'#FFDD44','#FFAA00',false,true);
