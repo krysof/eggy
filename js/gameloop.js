@@ -1198,7 +1198,7 @@ var _moveNames={
     'Yoga Fire!':{zhs:'\u745C\u4F3D\u706B\u7130\uFF01',zht:'\u745C\u4F3D\u706B\u7130\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
     'ELECTRIC!':{zhs:'\u55F7\u55F7\u55F7\uFF01',zht:'\u55F7\u55F7\u55F7\uFF01',ja:'\u30AC\u30A6\u30AC\u30A6\uFF01',en:'GRAAAH!'},
     'GRAAAH!':{zhs:'\u55F7\u55F7\u55F7\uFF01',zht:'\u55F7\u55F7\u55F7\uFF01',ja:'\u30AC\u30A6\u30AC\u30A6\uFF01',en:'GRAAAH!'},
-    'Dosukoi!':{zhs:'\u76F8\u6251\u5934\u9524\uFF01',zht:'\u76F8\u64B2\u982D\u9318\uFF01',ja:'\u3069\u3059\u3053\u3044\uFF01',en:'Dosukoi!'},
+    'Dosukoi!':{zhs:'\u8BEF\u4F1A\uFF01',zht:'\u8AA4\u6703\uFF01',ja:'\u3069\u3059\u3053\u3044\uFF01',en:'Dosukoi!'},
     'Hohoho!':{zhs:'\u55EC\u55EC\u55EC\uFF01',zht:'\u55EC\u55EC\u55EC\uFF01',ja:'\u30DB\u30DB\u30DB\uFF01',en:'Hohoho!'},
     'Double Lariat!':{zhs:'\u53CC\u56DE\u65CB\u81C2\uFF01',zht:'\u96D9\u56DE\u65CB\u81C2\uFF01',ja:'\u30C0\u30D6\u30EB\u30E9\u30EA\u30A2\u30C3\u30C8\uFF01',en:'Double Lariat!'},
     'Piledriver!':{zhs:'\u87BA\u65CB\u6253\u6869\uFF01',zht:'\u87BA\u65CB\u6253\u6A01\uFF01',ja:'\u30D1\u30A4\u30EB\u30C9\u30E9\u30A4\u30D0\u30FC\uFF01',en:'Piledriver!'},
