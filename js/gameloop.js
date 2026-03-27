@@ -2067,6 +2067,48 @@ function _gameUpdate(){
                 playerEgg._stunTimer=40;playerEgg._slamImmune=0;playerEgg._elecFlyDir=null;
             }
         }
+        // Player fire effect
+        if(playerEgg&&playerEgg._onFire>0){
+            playerEgg._onFire--;
+            if(!playerEgg._fireParticles){
+                playerEgg._fireParticles=[];
+                for(var _pfpi=0;_pfpi<14;_pfpi++){
+                    var _pfpSize=_pfpi<4?0.3:0.2;
+                    var _pfp=new THREE.Mesh(new THREE.SphereGeometry(_pfpSize,5,4),new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.85}));
+                    _pfp.visible=false;playerEgg.mesh.add(_pfp);
+                    playerEgg._fireParticles.push(_pfp);
+                }
+            }
+            for(var _pfpj=0;_pfpj<playerEgg._fireParticles.length;_pfpj++){
+                var _pfpp=playerEgg._fireParticles[_pfpj];
+                _pfpp.visible=true;
+                var _pfpa=_pfpj*Math.PI*2/playerEgg._fireParticles.length+playerEgg._onFire*0.25;
+                var _pfpR=0.4+Math.sin(_pfpa*2)*0.2;
+                var _pfpY=0.3+_pfpj*0.12+Math.random()*0.3;
+                _pfpp.position.set(Math.sin(_pfpa)*_pfpR,_pfpY,Math.cos(_pfpa)*_pfpR);
+                var _pfRnd=Math.random();
+                _pfpp.material.color.setHex(_pfRnd>0.6?0xFFCC00:(_pfRnd>0.3?0xFF6600:0xFF2200));
+                _pfpp.material.opacity=0.6+Math.random()*0.35;
+                _pfpp.scale.setScalar(0.6+Math.random()*1.0);
+            }
+            var _pfbody=playerEgg.mesh.userData.body;
+            if(_pfbody&&playerEgg._onFire>0){_pfbody.material.emissive=new THREE.Color(0xFF4400);_pfbody.material.emissiveIntensity=0.3+Math.sin(playerEgg._onFire*0.3)*0.15;}
+            if(playerEgg._onFire<=0){
+                for(var _pfpk=0;_pfpk<playerEgg._fireParticles.length;_pfpk++)playerEgg._fireParticles[_pfpk].visible=false;
+                if(_pfbody){_pfbody.material.emissiveIntensity=0;}
+            }
+            if(playerEgg._fireStun>0){
+                playerEgg._fireStun--;
+                playerEgg.vx=0;playerEgg.vz=0;playerEgg.vy=0;playerEgg.throwTimer=0;playerEgg._hitStun=5;
+                playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.05)*0.15;
+                if(playerEgg._fireStun<=0){
+                    var _pfkDir=playerEgg._fireStunDir||0;
+                    playerEgg.vx=Math.sin(_pfkDir)*0.3;playerEgg.vz=Math.cos(_pfkDir)*0.3;playerEgg.vy=0.1;
+                    playerEgg.throwTimer=30;playerEgg._bounces=1;playerEgg.squash=0.5;
+                    playerEgg.mesh.rotation.z=0;
+                }
+            }
+        }
         updateCity();
         const cityEggList = [playerEgg, ...cityNPCs].filter(e=>e&&e.alive);
         resolveEggCollisions(cityEggList);

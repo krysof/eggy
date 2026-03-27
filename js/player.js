@@ -721,12 +721,12 @@ function handlePlayerInput(){
             }}
         } else {
         // Normal punch combo
-        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=(_ct==='cockroach')?16:8;
+        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=(_ct==='cockroach')?32:8;
         var _punchArm=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
         var _pArmZ=(_ct==='cockroach')?3.0:0.9;
         var _pArmS=(_ct==='cockroach')?new THREE.Vector3(1.0,1.0,4.0):new THREE.Vector3(1.3,1.3,1.3);
         if(_punchArm){_punchArm.visible=true;_punchArm.position.set(_punchArm===playerEgg.mesh.userData.rightArm?0.3:-0.3,0.2,_pArmZ);_punchArm.scale.copy(_pArmS);}
-        playerEgg._atkAnim=(_ct==='cockroach')?14:8;
+        playerEgg._atkAnim=(_ct==='cockroach')?28:8;
         var _atkDir=playerEgg.mesh.rotation.y;
         var _isFinisher=(playerEgg._comboCount>=3)&&_ct!=='pig'&&_ct!=='cat'; // Honda/Blanka skip finisher (use rapid-press instead)
         var _isAerial=!playerEgg.onGround;
@@ -858,11 +858,11 @@ function handlePlayerInput(){
             playJumpSound();
         } else {
         // Normal kick
-        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=(_ct==='cockroach')?18:12;
+        playerEgg._comboCount++;playerEgg._comboTimer=25;playerEgg._attackCD=(_ct==='cockroach')?36:12;
         var _kickLeg=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
         var _kLegZ=(_ct==='cockroach')?2.5:0.7;
         if(_kickLeg){_kickLeg.visible=true;_kickLeg.position.z=_kLegZ;_kickLeg.rotation.x=-Math.PI/2.5;if(_ct==='cockroach')_kickLeg.scale.set(1,1,3.5);}
-        playerEgg._atkAnim=(_ct==='cockroach')?14:10;
+        playerEgg._atkAnim=(_ct==='cockroach')?28:10;
         var _kDir=playerEgg.mesh.rotation.y;
         var _kFinisher=(playerEgg._comboCount>=3)&&_ct!=='monkey'; // Chun-Li skips finisher (use rapid-press instead)
         var _kAerial=!playerEgg.onGround;
