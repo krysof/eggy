@@ -520,7 +520,7 @@ function handlePlayerInput(){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         var _isShoryu=playerEgg._shoryuReady;
         // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
-        if(_ct==='pig'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
+        if(_ct==='pig'&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,'Hohoho!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             // Start continuous slap state
@@ -531,7 +531,7 @@ function handlePlayerInput(){
             playerEgg.squash=0.88;
         }
         // ---- BLANKA: always Electric Thunder on punch ----
-        else if(_ct==='cat'&&!_isHadou&&!_isShoryu&&!playerEgg._bfReady){
+        else if(_ct==='cat'&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,'ELECTRIC!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             playerEgg._blankaShock=60;
@@ -569,7 +569,7 @@ function handlePlayerInput(){
         else if(_isHadou&&(_ct==='egg'||_ct==='dog')){
             // HADOUKEN (Ryu red, Ken red)
             _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
-            playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _hDir=playerEgg.mesh.rotation.y;
             var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
             var _hz=playerEgg.mesh.position.z+Math.cos(_hDir)*1.5;
@@ -586,7 +586,7 @@ function handlePlayerInput(){
         } else if(_isHadou&&_ct==='cockroach'){
             // YOGA FIRE (Dhalsim) — slow fireball
             _shoutMove(playerEgg,'Yoga Fire!');
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _yfDir=playerEgg.mesh.rotation.y;
             var _yfBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.9}));
             _yfBall.position.set(playerEgg.mesh.position.x+Math.sin(_yfDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_yfDir)*1.5);scene.add(_yfBall);
@@ -597,7 +597,7 @@ function handlePlayerInput(){
         } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
             _shoutMove(playerEgg,'Sonic Boom!');
-            playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _sbDir=playerEgg.mesh.rotation.y;
             // Draw crescent on a canvas texture
             var _sbCvs=document.createElement('canvas');_sbCvs.width=64;_sbCvs.height=64;
@@ -1444,14 +1444,24 @@ function handlePlayerInput(){
     }
     if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
     playerEgg._prevBfBack=_inputBack;playerEgg._prevBfFwd=_inputFwd;
+    // ---- Forward-Forward detection (→→) for hadouken/sonic boom/yoga fire/kikouken ----
+    if(!playerEgg._ffSeq)playerEgg._ffSeq=0;
+    if(!playerEgg._ffTimer)playerEgg._ffTimer=0;
+    playerEgg._ffTimer--;
+    if(_inputFwdPress&&playerEgg._ffSeq===0){
+        playerEgg._ffSeq=1;playerEgg._ffTimer=20;
+    } else if(_inputFwdPress&&playerEgg._ffSeq===1){
+        playerEgg._ffSeq=2;playerEgg._ffTimer=20;playerEgg._ffReady=true;
+    }
+    if(playerEgg._ffTimer<=0){playerEgg._ffSeq=0;playerEgg._ffReady=false;}
     // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) ----
     playerEgg._tatsuReady=playerEgg._bfReady;
-    // ---- Hadouken (波動拳): 後+前+R (back-forward-punch) ----
-    playerEgg._hadouReady=playerEgg._bfReady;
+    // ---- Hadouken (波動拳): 前前+R (forward-forward-punch) ----
+    playerEgg._hadouReady=playerEgg._ffReady;
     playerEgg._prevHLeft=_hLeft;playerEgg._prevHRight=_hRight;playerEgg._prevHDown=_hDown;playerEgg._prevHUp=_hUp;
     // ---- Simple command inputs for charge characters (no actual charging needed) ----
-    // Sonic Boom / 気功拳: use ←→+R (same as hadouken = bf)
-    playerEgg._chargeForwardReady=playerEgg._bfReady;
+    // Sonic Boom / 気功拳: use →→+R (forward-forward, same as hadouken)
+    playerEgg._chargeForwardReady=playerEgg._ffReady;
     // Somersault / Spinning Bird: use ←→+T (same as tatsumaki = bf)
     playerEgg._chargeUpReady=playerEgg._bfReady;
     // ---- Rapid press detection (Chun-Li/Honda/Blanka) ----
