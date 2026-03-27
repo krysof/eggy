@@ -1306,7 +1306,7 @@ function updateHeldEggs(){
             // Remove 3D bar if it had one
             if(egg.struggleBar){egg.mesh.remove(egg.struggleBar);egg.struggleBar=null;}
             // Reset upside-down rotation if was held
-            if(egg.mesh.rotation.x>Math.PI*0.5)egg.mesh.rotation.x=0;
+            if(Math.abs(egg.mesh.rotation.z)>Math.PI*0.5){egg.mesh.rotation.z=0;egg.mesh.rotation.x=0;}
             continue;
         }
         var holder=egg.heldBy;
@@ -1318,7 +1318,8 @@ function updateHeldEggs(){
         egg.mesh.position.z=holder.mesh.position.z;
         egg.vx=0;egg.vy=0;egg.vz=0;
         egg.mesh.rotation.y=holder.mesh.rotation.y+Math.PI; // face toward holder
-        egg.mesh.rotation.x=Math.PI; // upside down (held by head)
+        egg.mesh.rotation.x=0;
+        egg.mesh.rotation.z=Math.PI; // upside down (flip via Z axis)
         // Struggle timer countdown
         egg.struggleTimer--;
         // Player mashing directions speeds up escape
@@ -1382,8 +1383,8 @@ function updateHeldEggs(){
         }
         // Struggle animation — wobble and shake (add to upside-down base rotation)
         var t=Date.now()*0.012;
-        egg.mesh.rotation.z=Math.sin(t*3.7)*0.4;
-        egg.mesh.rotation.x=Math.PI+Math.sin(t*2.9)*0.3;
+        egg.mesh.rotation.z=Math.PI+Math.sin(t*3.7)*0.4;
+        egg.mesh.rotation.x=Math.sin(t*2.9)*0.3;
         var body=egg.mesh.userData.body;
         if(body){body.rotation.z=Math.sin(t*5.1)*0.25;body.rotation.x=Math.cos(t*4.3)*0.2;}
         var feet=egg.mesh.userData.feet;
