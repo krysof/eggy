@@ -102,10 +102,10 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
     if(_mapEl){
         var _mapRect=_mapEl.getBoundingClientRect();
         var _pcRect=pc.parentElement.getBoundingClientRect();
-        var _dpr=Math.min(devicePixelRatio,2);
-        // Convert map coords (400x220) to screen pixel position relative to plane canvas
-        ex=(_mapRect.left-_pcRect.left+toX/400*_mapRect.width)*_dpr;
-        ey=(_mapRect.top-_pcRect.top+toY/220*_mapRect.height)*_dpr;
+        // Convert map coords (400x220) to CSS pixel position relative to plane canvas
+        // No DPR needed — plane canvas matches CSS size (offsetWidth/Height)
+        ex=_mapRect.left-_pcRect.left+toX/400*_mapRect.width;
+        ey=_mapRect.top-_pcRect.top+toY/220*_mapRect.height;
     } else {
         ex=toX/400*pc.width;ey=toY/220*pc.height*0.6+pc.height*0.15;
     }

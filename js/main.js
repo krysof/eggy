@@ -94,7 +94,7 @@ document.getElementById('confirm-btn').addEventListener('click',()=>{
         showScreen(null);
         spawnCityNPCs();
         enterCity();
-        _selectConfirmed=false; // reset for next time
+        _selectConfirmed=false;_startTriggered=false; // reset for next time
     });
 });
 
