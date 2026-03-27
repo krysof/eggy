@@ -363,30 +363,23 @@ function _renderIntro(now){
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY-eggSize*0.1,eggSize*0.18,'#FFDD44');
             _drawFist(ctx,armEndX+eggSize*0.1,bodyY+eggSize*0.05,eggSize*0.18,'#FFDD44');
 
-            // Half-circle at hands + rectangular beam
+            // Draw cockroach FIRST (behind beam)
+            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
+            // Half-circle at hands + rectangular beam (on top of enemy)
             var ebX=armEndX+eggSize*0.1;
             var beamLen=fire*W*0.7;
             var beamH=eggSize*0.5+fire*eggSize*1.0;
-            // Outer glow beam
             var beamGrad=ctx.createLinearGradient(ebX,bodyY,ebX+beamLen,bodyY);
             beamGrad.addColorStop(0,'rgba(255,140,50,'+fire*0.9+')');
             beamGrad.addColorStop(0.5,'rgba(255,220,120,'+fire*0.7+')');
             beamGrad.addColorStop(1,'rgba(255,240,200,0)');
             ctx.fillStyle=beamGrad;
             ctx.fillRect(ebX,bodyY-beamH*0.5,beamLen,beamH);
-            // Half circle at hand
             ctx.fillStyle='rgba(255,140,50,'+fire*0.9+')';
-            ctx.beginPath();
-            ctx.arc(ebX,bodyY,beamH*0.55,Math.PI*0.5,Math.PI*1.5);
-            ctx.fill();
-            // Core beam (brighter)
+            ctx.beginPath();ctx.arc(ebX,bodyY,beamH*0.55,Math.PI*0.5,Math.PI*1.5);ctx.fill();
             ctx.fillStyle='rgba(255,240,200,'+fire*0.7+')';
             ctx.fillRect(ebX,bodyY-beamH*0.25,beamLen*0.8,beamH*0.5);
-            ctx.beginPath();
-            ctx.arc(ebX,bodyY,beamH*0.3,Math.PI*0.5,Math.PI*1.5);
-            ctx.fill();
-
-            _drawIntroEgg(ctx,rx,ry,eggSize,'#8B4513','#5C2E0A',true,true);
+            ctx.beginPath();ctx.arc(ebX,bodyY,beamH*0.3,Math.PI*0.5,Math.PI*1.5);ctx.fill();
         } else {
             // Impact — cockroach flies back spinning
             var hit=(pt-0.8)/0.7;
