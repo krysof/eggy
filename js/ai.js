@@ -517,6 +517,13 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 if(cd2<4&&Math.random()<0.008&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0;
                 }
+                // NPC piledriver (very close)
+                if(cd2<2.5&&egg.onGround&&!egg.holding&&Math.random()<0.008&&!closest.heldBy&&!closest._piledriverLocked&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                    egg._npcSpecialCD=80;
+                    egg._npcPiledriver=closest;closest._piledriverLocked=true;
+                    egg._npcPdPhase=0;egg._npcPdStartX=egg.mesh.position.x;egg._npcPdStartZ=egg.mesh.position.z;
+                    egg.grabCD=40;
+                }
             }
             // Dhalsim: yoga fire(burns), yoga flame(close)
             else if(_nCT==='cockroach'){
@@ -534,11 +541,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     if(cd2<4){closest._onFire=120;closest._fireStun=90;closest._fireStunDir=Math.atan2(cdx2,cdz2);closest.vx=0;closest.vz=0;_addStunDamage(closest,20);if(closest.isPlayer)playHitSound();}
                 }
             }
-            // NPC piledriver: when very close
-            if(cd2<2&&egg.onGround&&!egg.holding&&Math.random()<0.01&&!closest.heldBy){
-                egg._npcPiledriver=closest;egg._npcPdPhase=0;
-                closest.heldBy=egg;egg.holding=closest;egg.grabCD=40;
-            }
+            // NPC piledriver: Zangief only (already handled above)
             // NPC body slam: if holding someone and in air
             if(egg.holding&&!egg.onGround&&egg.vy<0&&Math.random()<0.02){
                 var _nbst=egg.holding;

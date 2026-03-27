@@ -1102,7 +1102,7 @@ function handlePlayerInput(){
             _ttSeg.visible=true;
             var _ttAngle=_ttPhase-_ttj*0.5;
             var _ttR=1.2+_ttj*0.08;
-            var _ttY=playerEgg.mesh.position.y-0.2+Math.sin(_ttAngle*0.5+_ttj*0.4)*0.4;
+            var _ttY=playerEgg.mesh.position.y+(playerEgg._isLariat?0.9:-0.2)+Math.sin(_ttAngle*0.5+_ttj*0.4)*0.4;
             _ttSeg.position.set(
                 playerEgg.mesh.position.x+Math.sin(_ttAngle)*_ttR,
                 _ttY,
