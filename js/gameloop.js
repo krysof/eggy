@@ -65,7 +65,8 @@ function updateCity(){
             _hk.ball.children[1].scale.setScalar(0.9+Math.sin(_hk.life*0.3)*0.2); // outer flame pulse
         }
         _hk.life--;
-        _hk.ball.material.opacity=Math.min(0.9,_hk.life/30);
+        if(_hk.ball.material){_hk.ball.material.opacity=Math.min(0.9,_hk.life/30);}
+        else if(_hk.isYogaFire&&_hk.ball.children[0]){_hk.ball.children[0].material.opacity=Math.min(0.95,_hk.life/30);}
         _hk.ring.material.opacity=Math.min(0.6,_hk.life/30);
         // Hit eggs
         for(var _hei=0;_hei<allEggs.length;_hei++){
