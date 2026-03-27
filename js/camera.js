@@ -34,10 +34,20 @@ document.addEventListener('mouseup',function(e){
     if(e.button===2||e.button===1)_moonCamDragging=false;
 });
 document.addEventListener('contextmenu',function(e){if(currentCityStyle===5)e.preventDefault();});
+// Spectator button for mobile
+var _specBtn=document.getElementById('spectator-btn');
+if(_specBtn){_specBtn.addEventListener('click',function(){
+    if(currentCityStyle===5&&gameState==='city'){
+        _spectatorMode=!_spectatorMode;
+        if(_spectatorMode&&playerEgg){_specCamX=camera.position.x;_specCamY=camera.position.y;_specCamZ=camera.position.z;}
+        _specBtn.textContent=_spectatorMode?'\uD83C\uDFAE Player':'\uD83D\uDC41 Spectator';
+    }
+});}
 document.addEventListener('keydown',function(e){
     if(e.code==='KeyV'&&currentCityStyle===5&&gameState==='city'){
         _spectatorMode=!_spectatorMode;
         if(_spectatorMode&&playerEgg){_specCamX=camera.position.x;_specCamY=camera.position.y;_specCamZ=camera.position.z;}
+        if(_specBtn)_specBtn.textContent=_spectatorMode?'\uD83C\uDFAE Player':'\uD83D\uDC41 Spectator';
     }
 });
 // Touch orbit disabled — moon now uses flat camera
@@ -81,6 +91,8 @@ function updateCamera(){
     camera.lookAt(p.x, p.y+1, p.z-4);
     sun.position.set(p.x+60,80,p.z+40);
     sun.target.position.set(p.x,0,p.z);
+    // Show spectator button on moon
+    if(_specBtn){_specBtn.style.display=(currentCityStyle===5&&gameState==='city')?'inline-block':'none';}
     // Sun mesh follows directional light direction (far away visual)
     _sunMesh.position.set(p.x+180,240,p.z+120);
     _sunGlow.position.copy(_sunMesh.position);
