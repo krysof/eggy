@@ -1086,10 +1086,10 @@ function handlePlayerInput(){
                 playerEgg.vx*=0.8;playerEgg.vz*=0.8;
             }
             playerEgg.vy=0;
-            // R+T held extends duration
-            if(keys['KeyR']&&keys['KeyT']){
-                playerEgg._tatsuActive=Math.max(playerEgg._tatsuActive,30);
-                playerEgg._attackCD=0;
+            if(playerEgg.mesh.position.y>0.1)playerEgg.mesh.position.y=0.01; // force ground
+            // R+T pressed again near end → queue next lariat
+            if(keys['KeyR']&&keys['KeyT']&&playerEgg._tatsuActive<15&&playerEgg._tatsuActive>0){
+                playerEgg._lariatQueued=true;
             }
         } else {
             var _tFwd=1.5;var _tVert=0;
@@ -1154,7 +1154,15 @@ function handlePlayerInput(){
             // Reset Chun-Li upside-down
             if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;playerEgg.squash=1;}
             // Reset Zangief lariat arms
-            if(playerEgg._isLariat){playerEgg._isLariat=false;var _lud2=playerEgg.mesh.userData;if(_lud2.rightArm){_lud2.rightArm.visible=false;_lud2.rightArm.scale.set(1,1,1);}if(_lud2.leftArm){_lud2.leftArm.visible=false;_lud2.leftArm.scale.set(1,1,1);}}
+            if(playerEgg._isLariat){
+                // Check for queued next lariat
+                if(playerEgg._lariatQueued){
+                    playerEgg._lariatQueued=false;
+                    playerEgg._tatsuActive=60;playerEgg._attackCD=0;
+                } else {
+                    playerEgg._isLariat=false;var _lud2=playerEgg.mesh.userData;if(_lud2.rightArm){_lud2.rightArm.visible=false;_lud2.rightArm.scale.set(1,1,1);}if(_lud2.leftArm){_lud2.leftArm.visible=false;_lud2.leftArm.scale.set(1,1,1);}
+                }
+            }
         }
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
