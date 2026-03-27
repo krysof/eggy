@@ -1337,6 +1337,8 @@ function updateHeldEggs(){
             // Reset upside-down rotation if was held
             if(egg.mesh.rotation.x>Math.PI*0.5){egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;}
             var _rb=egg.mesh.userData.body;if(_rb&&_rb.rotation.x!==0)_rb.rotation.x=0;
+            // Hide arms if this egg was a holder
+            if(!egg.holding){var _ra=egg.mesh.userData;if(_ra.rightArm&&_ra.rightArm.rotation.x<-1){_ra.rightArm.visible=false;_ra.rightArm.rotation.x=0;_ra.rightArm.position.set(0.4,0.2,0.7);_ra.rightArm.scale.set(1,1,1);}if(_ra.leftArm&&_ra.leftArm.rotation.x<-1){_ra.leftArm.visible=false;_ra.leftArm.rotation.x=0;_ra.leftArm.position.set(-0.4,0.2,0.7);_ra.leftArm.scale.set(1,1,1);}}
             continue;
         }
         var holder=egg.heldBy;
@@ -1349,6 +1351,10 @@ function updateHeldEggs(){
         egg.vx=0;egg.vy=0;egg.vz=0;
         egg.mesh.rotation.y=holder.mesh.rotation.y+Math.PI; // face toward holder
         egg.mesh.rotation.x=Math.PI; // upside down (held by head)
+        // Show holder's arms raised up
+        var _hArms=holder.mesh.userData;
+        if(_hArms.rightArm){_hArms.rightArm.visible=true;_hArms.rightArm.position.set(0.25,1.0,0);_hArms.rightArm.scale.set(1,1,1.5);_hArms.rightArm.rotation.x=-Math.PI/2;}
+        if(_hArms.leftArm){_hArms.leftArm.visible=true;_hArms.leftArm.position.set(-0.25,1.0,0);_hArms.leftArm.scale.set(1,1,1.5);_hArms.leftArm.rotation.x=-Math.PI/2;}
         // Struggle timer countdown
         egg.struggleTimer--;
         // Player mashing directions speeds up escape
@@ -1398,7 +1404,7 @@ function updateHeldEggs(){
                 var barFill=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.08,0.07),new THREE.MeshBasicMaterial({color:0xFF4444}));
                 barFill.position.z=0.01;
                 bg.add(barFill);
-                bg.position.y=2.2;
+                bg.position.y=-2.2; // negative because egg is upside down
                 egg.mesh.add(bg);
                 egg.struggleBar=bg;
                 egg.struggleBar.userData.fill=barFill;
