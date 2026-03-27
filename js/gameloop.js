@@ -776,6 +776,96 @@ function updateCity(){
                     }
                 }
             }
+            // ---- Valkyrie Missile Barrage ----
+            if(gm.ms==='valkyrie'){
+                if(!gm._barrageCD)gm._barrageCD=500+Math.floor(Math.random()*300);
+                gm._barrageCD--;
+                if(gm._barrageCD<=0){
+                    gm._barrageCD=500+Math.floor(Math.random()*300);
+                    if(!window._moonMissiles)window._moonMissiles=[];
+                    var _bmCount=8+Math.floor(Math.random()*5);
+                    var _bmFwd=new THREE.Vector3(0,0,1).applyQuaternion(gm.group.quaternion);
+                    for(var _bmi=0;_bmi<_bmCount;_bmi++){
+                        var _bmMesh=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.3,4),new THREE.MeshBasicMaterial({color:0xDDDDDD}));
+                        _bmMesh.position.set(gx,gy,gz);scene.add(_bmMesh);
+                        var _bmVx=_bmFwd.x+(Math.random()-0.5)*0.8;
+                        var _bmVy=_bmFwd.y+(Math.random()-0.5)*0.8;
+                        var _bmVz=_bmFwd.z+(Math.random()-0.5)*0.8;
+                        var _bmSpd=1.5+Math.random();
+                        var _bmLen=Math.sqrt(_bmVx*_bmVx+_bmVy*_bmVy+_bmVz*_bmVz)||1;
+                        window._moonMissiles.push({group:_bmMesh,life:60,vx:_bmVx/_bmLen*_bmSpd,vy:_bmVy/_bmLen*_bmSpd,vz:_bmVz/_bmLen*_bmSpd,trail:[],_isBarrage:true});
+                    }
+                    playMissileSound();
+                }
+            }
+            // ---- Funnel Weapons targeted beams ----
+            if(gm.funnels&&gm.funnels.length>0){
+                if(!gm._funnelCD)gm._funnelCD=200+Math.floor(Math.random()*200);
+                gm._funnelCD--;
+                if(gm._funnelCD<=0){
+                    gm._funnelCD=200+Math.floor(Math.random()*200);
+                    var _fnTarget=null,_fnDist=9999;
+                    for(var _fni=0;_fni<window._moonGundams.length;_fni++){
+                        var _fnE=window._moonGundams[_fni];
+                        if(_fnE._dead||_fnE.faction===gm.faction)continue;
+                        var _fdx=_fnE.group.position.x-gx,_fdy=_fnE.group.position.y-gy,_fdz=_fnE.group.position.z-gz;
+                        var _fdd=Math.sqrt(_fdx*_fdx+_fdy*_fdy+_fdz*_fdz);
+                        if(_fdd<_fnDist){_fnDist=_fdd;_fnTarget=_fnE;}
+                    }
+                    if(_fnTarget&&_fnDist<200){
+                        for(var _ffi2=0;_ffi2<gm.funnels.length;_ffi2++){
+                            var _ffW=new THREE.Vector3();gm.funnels[_ffi2].mesh.getWorldPosition(_ffW);
+                            var _ftPos=_fnTarget.group.position;
+                            var _fbDx=_ftPos.x-_ffW.x,_fbDy=_ftPos.y-_ffW.y,_fbDz=_ftPos.z-_ffW.z;
+                            var _fbLen=Math.sqrt(_fbDx*_fbDx+_fbDy*_fbDy+_fbDz*_fbDz)||1;
+                            var _fbMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,_fbLen,4),new THREE.MeshBasicMaterial({color:0xFF44FF,transparent:true,opacity:0.9}));
+                            _fbMesh.position.set((_ffW.x+_ftPos.x)/2,(_ffW.y+_ftPos.y)/2,(_ffW.z+_ftPos.z)/2);
+                            _fbMesh.lookAt(_ftPos.x,_ftPos.y,_ftPos.z);_fbMesh.rotateX(Math.PI/2);
+                            scene.add(_fbMesh);
+                            window._moonBeams.push({mesh:_fbMesh,life:15,vx:0,vy:0,vz:0});
+                            if(_ffi2%3===0)playBeamSound();
+                        }
+                    }
+                }
+            }
+            // ---- Beam Saber Duels ----
+            if(gm.type==='saber'&&gm.duelPartner&&!gm.duelPartner._dead){
+                var _dpPos=gm.duelPartner.group.position;
+                var _ddx=_dpPos.x-gx,_ddy=_dpPos.y-gy,_ddz=_dpPos.z-gz;
+                var _ddd=Math.sqrt(_ddx*_ddx+_ddy*_ddy+_ddz*_ddz)||1;
+                if(_ddd<80){
+                    gm.group.position.x+=_ddx/_ddd*spd*0.5;
+                    gm.group.position.y+=_ddy/_ddd*spd*0.5;
+                    gm.group.position.z+=_ddz/_ddd*spd*0.5;
+                }
+                if(_ddd<8){
+                    if(!gm._duelAngle)gm._duelAngle=Math.random()*Math.PI*2;
+                    gm._duelAngle+=0.08;
+                    var _orbR=4+Math.sin(gm._duelAngle*0.3);
+                    gm.group.position.x=_dpPos.x+Math.cos(gm._duelAngle)*_orbR;
+                    gm.group.position.z=_dpPos.z+Math.sin(gm._duelAngle)*_orbR;
+                    gm.group.lookAt(_dpPos.x,_dpPos.y,_dpPos.z);
+                    if(!gm._swingCD)gm._swingCD=15+Math.floor(Math.random()*10);
+                    gm._swingCD--;
+                    if(gm._swingCD<=0){
+                        gm._swingCD=15+Math.floor(Math.random()*10);
+                        gm._swingFlash=5;
+                        var _spMesh=new THREE.Mesh(new THREE.SphereGeometry(0.4,4,3),new THREE.MeshBasicMaterial({color:0xFFFF44,transparent:true,opacity:1.0}));
+                        _spMesh.position.set((gx+_dpPos.x)/2,(gy+_dpPos.y)/2,(gz+_dpPos.z)/2);
+                        scene.add(_spMesh);
+                        window._moonBeams.push({mesh:_spMesh,life:8,vx:0,vy:0.2,vz:0});
+                    }
+                    if(gm._swingFlash>0){
+                        gm._swingFlash--;
+                        if(gm.saberMesh)gm.saberMesh.material.emissive.setHex(0xFFFFFF);
+                    } else {
+                        if(gm.saberMesh)gm.saberMesh.material.emissive.setHex(0x000000);
+                    }
+                    if(!gm._clashCD)gm._clashCD=30+Math.floor(Math.random()*20);
+                    gm._clashCD--;
+                    if(gm._clashCD<=0){gm._clashCD=30+Math.floor(Math.random()*20);playHitSound();}
+                }
+            }
             // Random explosions near MS (battle damage effects)
             if(Math.random()<0.012&&window._moonBeams.length<300){
                 var exOff=2+Math.random()*4;
@@ -935,8 +1025,8 @@ function updateCity(){
             mm.life--;
             mm.group.visible=!_playerInShield;
             // Smoke trail puff
-            if(mm.life%3===0&&mm.trail.length<12){
-                var puff=new THREE.Mesh(new THREE.SphereGeometry(0.15+Math.random()*0.15,4,3),new THREE.MeshBasicMaterial({color:0xAAAAAA,transparent:true,opacity:0.5}));
+            if(mm.life%3===0&&mm.trail.length<(mm._isBarrage?15:12)){
+                var _puffColor=mm._isBarrage?0xFF8833:0xAAAAAA;var _puffR=mm._isBarrage?0.05:0.15+Math.random()*0.15;var puff=new THREE.Mesh(new THREE.SphereGeometry(_puffR,4,3),new THREE.MeshBasicMaterial({color:_puffColor,transparent:true,opacity:0.5}));
                 puff.position.copy(mm.group.position);
                 scene.add(puff);
                 mm.trail.push({mesh:puff,life:20});
