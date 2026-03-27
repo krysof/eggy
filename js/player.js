@@ -1059,7 +1059,7 @@ function handlePlayerInput(){
         }
         // Full 360 backflip — rotate BODY in local space (follows facing direction)
         var _gsB=playerEgg.mesh.userData.body;
-        if(_gsB)_gsB.rotation.x-=Math.PI*2/65;
+        if(_gsB)_gsB.rotation.x-=Math.PI*2/30;
         playerEgg._dashBounceTimer=5;
         // Blade arc — release at peak height, flies forward ~1 body length
         if(window._guileArc){
