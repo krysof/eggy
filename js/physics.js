@@ -336,7 +336,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     }
 
     var sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
-    egg.mesh.scale.set(1+(1-sq)*0.3,sq,1+(1-sq)*0.3);
+    var _sqSign=(egg.mesh.scale.y<0)?-1:1;
+    egg.mesh.scale.set(1+(1-sq)*0.3,sq*_sqSign,1+(1-sq)*0.3);
     if(egg._slamImmune>0)egg._slamImmune--;
 
     // Egg randomly wobbles (not always — random trigger)
