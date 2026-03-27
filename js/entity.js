@@ -344,17 +344,17 @@ function createEggMesh(color, accent, charType) {
         body.scale.y=1.1;
     } else if (charType==='pig') {
         // Buffalo (野牛) — Honda moveset
-        // Big bull horns (牛魔王 style) — thick, curved outward and upward
+        // Big bull horns (牛魔王 style) — horizontal outward then curve up
         [-1,1].forEach(function(s){
-            // Horn base — thick cylinder angled outward
-            var hornBase=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.25,8),toon(0x444444));
-            hornBase.position.set(s*0.28,1.1,0.0);hornBase.rotation.z=s*0.6;body.add(hornBase);
-            // Horn mid — curves upward
-            var hornMid=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.25,8),toon(0x555555));
-            hornMid.position.set(s*0.42,1.2,0.0);hornMid.rotation.z=s*1.0;body.add(hornMid);
-            // Horn tip — pointed, curves up
+            // Horn root — thick, horizontal outward from head sides
+            var hornRoot=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.25,8),toon(0x333333));
+            hornRoot.position.set(s*0.35,1.0,0.0);hornRoot.rotation.z=s*Math.PI/2;body.add(hornRoot);
+            // Horn mid — angled upward
+            var hornMid=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,0.25,8),toon(0x444444));
+            hornMid.position.set(s*0.55,1.1,0.0);hornMid.rotation.z=s*Math.PI/3;body.add(hornMid);
+            // Horn tip — pointed upward
             var hornTip=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.2,6),toon(0xCCBB88));
-            hornTip.position.set(s*0.48,1.35,0.0);hornTip.rotation.z=s*1.4;body.add(hornTip);
+            hornTip.position.set(s*0.62,1.3,0.0);hornTip.rotation.z=s*Math.PI/6;body.add(hornTip);
         });
         // Nose ring
         var ringG=new THREE.TorusGeometry(0.06,0.015,6,12,Math.PI);
