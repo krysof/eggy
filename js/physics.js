@@ -251,13 +251,12 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
                 var wp=warpPipeMeshes[wpi];
                 var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
                 var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                if(wdist<PORTAL_CONFIG.triggerDist&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing&&!_portalConfirmOpen){
-                    if(wdist<PORTAL_CONFIG.confirmDist){
-                        var _tgtName=CITY_STYLES[wp.targetStyle]?CITY_STYLES[wp.targetStyle].name:'???';
-                        showPortalConfirm({name:_tgtName,desc:L('warpDesc')||'Travel to another city!',_targetStyle:wp.targetStyle,_isWarpPipe:true,_pipeX:wp.x,_pipeZ:wp.z});
-                    }
+                if(wdist<PORTAL_CONFIG.confirmDist&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing&&!_portalConfirmOpen){
+                    wp._cooldown=true;
+                    var _tgtName=CITY_STYLES[wp.targetStyle]?CITY_STYLES[wp.targetStyle].name:'???';
+                    showPortalConfirm({name:_tgtName,desc:L('warpDesc')||'Travel to another city!',_targetStyle:wp.targetStyle,_isWarpPipe:true,_pipeX:wp.x,_pipeZ:wp.z});
                 }
-                if(wdist>8)wp._cooldown=false;
+                if(wdist>PORTAL_CONFIG.triggerDist)wp._cooldown=false;
             }
             // Cloud world moon pipe — proximity prompt
             if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen&&!_spinDashing){
