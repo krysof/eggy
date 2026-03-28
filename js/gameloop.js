@@ -89,6 +89,16 @@ function updateCity(){
         }
     }
 
+    // Independent blade arc flight (after Guile interrupted)
+    if(window._guileArcFly&&window._guileArc&&window._guileArc.visible){
+        var _gaf=window._guileArcFly;
+        _gaf.life--;
+        window._guileArc.position.x+=Math.sin(_gaf.faceY)*0.03;
+        window._guileArc.position.z+=Math.cos(_gaf.faceY)*0.03;
+        window._guileArc.material.opacity=Math.max(0,_gaf.life/40)*0.85;
+        if(_gaf.life<=0){window._guileArc.visible=false;window._guileArcFly=null;}
+    }
+
     // Animate portals
     const t=Date.now()*0.001;
     for(const p of portals){

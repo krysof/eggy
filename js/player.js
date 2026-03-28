@@ -49,8 +49,10 @@ function handlePlayerInput(){
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
         playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
         playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;playerEgg._guileArcLaunched=false;
-        playerEgg._guileArcPosX=undefined;playerEgg._guileArcPosY=undefined;playerEgg._guileArcPosZ=undefined;
-        if(window._guileArc)window._guileArc.visible=false;
+        // Don't hide blade arc — let it continue flying independently
+        if(window._guileArc&&window._guileArc.visible){
+            window._guileArcFly={faceY:playerEgg._guileArcFaceY||0,life:40};
+        }
         playerEgg._hyakuretsuTimer=0;
         playerEgg._hyakuretsuKickTimer=0;
         playerEgg._yogaFlame=0;
@@ -1210,10 +1212,12 @@ function handlePlayerInput(){
         if(playerEgg._guileSomersault<=0){
             var _gsB2=playerEgg.mesh.userData.body;if(_gsB2)_gsB2.rotation.x=0;
             playerEgg.mesh.rotation.x=0;
-            if(window._guileArc)window._guileArc.visible=false;
+            // Let blade arc continue flying forward after somersault ends
+            if(window._guileArc&&window._guileArc.visible){
+                window._guileArcFly={faceY:playerEgg._guileArcFaceY||0,life:40};
+            }
             playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
             playerEgg._guileArcLaunched=false;
-            playerEgg._guileArcPosX=undefined;playerEgg._guileArcPosY=undefined;playerEgg._guileArcPosZ=undefined;
         }
     } else {
         if(window._guileArc&&(!window._guileArc.userData._life||window._guileArc.userData._life<=0))window._guileArc.visible=false;
