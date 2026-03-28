@@ -109,7 +109,10 @@ function handlePlayerInput(){
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){
         mx/=len;mz/=len;
-        playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
+        // Stop movement during attack animation (punch/kick)
+        if(!playerEgg._atkAnim){
+            playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
+        }
     }
     if(playerEgg._dashBounceTimer>0)playerEgg._dashBounceTimer--;
     // Sprint smoke + ground dust

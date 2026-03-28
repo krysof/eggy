@@ -336,8 +336,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
             egg.mesh.scale.set(1,1,1);
             // Visual handled by player.js quaternion
         } else if(egg._blankaSpinTimer>0){
-            // Blanka roll: fast forward spin
-            body.rotation.x+=0.8;
+            // Blanka roll: fast forward spin — rotate whole mesh
+            body.rotation.x+=2.0;
+            egg.mesh.rotation.x+=0.5; // visible tumble
         } else if(egg._guileSomersault>0){
             // Guile somersault: handled elsewhere
         } else {
