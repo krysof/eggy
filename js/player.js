@@ -1166,8 +1166,8 @@ function handlePlayerInput(){
                 playerEgg.mesh.position.x+Math.sin(_gaFace3)*_footOffFwd,
                 playerEgg.mesh.position.y+1.0+_footOffY,
                 playerEgg.mesh.position.z+Math.cos(_gaFace3)*_footOffFwd);
-            // Always vertical, perpendicular to facing direction
-            window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,0);
+            // Always vertical, facing same direction as player (visible from behind)
+            window._guileArc.rotation.set(0,_gaFace3,0);
             window._guileArc.material.opacity=0.85;
             // Play sound once at start
             if(!playerEgg._guileArcLaunched){
