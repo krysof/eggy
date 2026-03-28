@@ -1320,9 +1320,9 @@ function updateHeldEggs(){
         if(!egg.heldBy){
             // Remove 3D bar if it had one
             if(egg.struggleBar){egg.mesh.remove(egg.struggleBar);egg.struggleBar=null;}
-            // Reset upside-down rotation if was held
-            if(egg.mesh.rotation.x>Math.PI*0.5){egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;}
-            var _rb=egg.mesh.userData.body;if(_rb&&_rb.rotation.x!==0)_rb.rotation.x=0;
+            // Reset upside-down rotation if was held (skip during Blanka spin)
+            if(egg.mesh.rotation.x>Math.PI*0.5&&!egg._blankaSpinTimer&&!egg._blankaSpinFalling){egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;}
+            var _rb=egg.mesh.userData.body;if(_rb&&_rb.rotation.x!==0&&!egg._blankaSpinTimer&&!egg._blankaSpinFalling)_rb.rotation.x=0;
             // Hide arms if this egg was a holder
             if(!egg.holding){var _ra=egg.mesh.userData;if(_ra.rightArm&&_ra.rightArm.rotation.x<-1){_ra.rightArm.visible=false;_ra.rightArm.rotation.x=0;_ra.rightArm.position.set(0.4,0.2,0.7);_ra.rightArm.scale.set(1,1,1);}if(_ra.leftArm&&_ra.leftArm.rotation.x<-1){_ra.leftArm.visible=false;_ra.leftArm.rotation.x=0;_ra.leftArm.position.set(-0.4,0.2,0.7);_ra.leftArm.scale.set(1,1,1);}}
             continue;
