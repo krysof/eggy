@@ -1499,6 +1499,7 @@ function handlePlayerInput(){
         if(playerEgg._blankaSpinTimer<=0&&!playerEgg._blankaSpinFalling){
             playerEgg._blankaSpinFalling=true;
             playerEgg.mesh.rotation.order='XYZ';playerEgg.mesh.rotation.x=0;
+            playerEgg._blankaSpinAngle=0;
             playerEgg.vx*=0.2;playerEgg.vz*=0.2;
         }
         if(playerEgg._blankaSpinTimer<=0){
@@ -1507,16 +1508,24 @@ function handlePlayerInput(){
     }
     // Blanka spin falling — keep spinning at same speed until landing
     if(playerEgg._blankaSpinFalling){
-        var _bsFBody=playerEgg.mesh.userData.body;
-        if(_bsFBody)_bsFBody.rotation.x+=80.0;
-        playerEgg.mesh.scale.set(0.8,0.8,0.8);
+        // Keep spinning during fall
+        if(!playerEgg._blankaSpinAngle)playerEgg._blankaSpinAngle=0;
+        playerEgg._blankaSpinAngle+=0.5;
+        playerEgg.mesh.rotation.order='YXZ';
+        if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
+        playerEgg.mesh.rotation.x=playerEgg._blankaSpinAngle;
+        playerEgg.mesh.scale.set(0.85,0.85,0.85);
         if(playerEgg.onGround){
             playerEgg._blankaSpinFalling=false;
+            playerEgg._blankaSpinAngle=0;
+            playerEgg.mesh.rotation.order='XYZ';
+            playerEgg.mesh.rotation.x=0;
+            var _bsFBody=playerEgg.mesh.userData.body;
             if(_bsFBody)_bsFBody.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1);
             if(playerEgg._dashFaceY!==undefined){
                 playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
-                playerEgg._dashBounceTimer=15; // prevent physics from overriding facing
+                playerEgg._dashBounceTimer=15;
             }
             playerEgg.vx*=0.2;playerEgg.vz*=0.2;
         }
