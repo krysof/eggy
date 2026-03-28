@@ -1498,6 +1498,7 @@ function handlePlayerInput(){
         }
         if(playerEgg._blankaSpinTimer<=0&&!playerEgg._blankaSpinFalling){
             playerEgg._blankaSpinFalling=true;
+            playerEgg.mesh.rotation.order='XYZ';playerEgg.mesh.rotation.x=0;
             playerEgg.vx*=0.2;playerEgg.vz*=0.2;
         }
         if(playerEgg._blankaSpinTimer<=0){

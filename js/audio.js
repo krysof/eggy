@@ -9,11 +9,18 @@ document.addEventListener('visibilitychange',function(){
         if(audioCtx&&audioCtx.state==='running')audioCtx.suspend();
     } else {
         if(audioCtx&&audioCtx.state==='suspended'&&soundEnabled){
-            // Mute SFX briefly to prevent burst of accumulated sounds
+            // Mute SFX briefly, stop all BGM before resume to prevent overlap
             window._sfxMuted=true;
+            stopBGM();stopSelectBGM();stopTitleBGM();if(typeof stopRaceBGM==='function')stopRaceBGM();
             setTimeout(function(){
                 if(audioCtx)audioCtx.resume();
-                setTimeout(function(){window._sfxMuted=false;},500);
+                // Restart appropriate BGM after resume
+                setTimeout(function(){
+                    window._sfxMuted=false;
+                    if(gameState==='city')startBGM();
+                    else if(gameState==='menu')startTitleBGM();
+                    else if(gameState==='select')startSelectBGM();
+                },500);
             },300);
         }
     }
@@ -679,9 +686,10 @@ function _sfxVolume(worldX,worldZ){
     if(!playerEgg||!playerEgg.mesh)return 1;
     var dx=worldX-playerEgg.mesh.position.x,dz=worldZ-playerEgg.mesh.position.z;
     var dist=Math.sqrt(dx*dx+dz*dz);
-    if(dist<5)return 1;
-    if(dist>80)return 0;
-    return Math.max(0,1-dist/80);
+    if(dist<3)return 1;        // very close = full volume
+    if(dist>60)return 0;       // 2x screen distance = silent
+    if(dist>30)return 0.5*(1-(dist-30)/30); // beyond screen = fade to 0
+    return 1-(dist-3)*0.5/27;  // within screen = 1.0 to 0.5
 }
 
 // Jump sound
