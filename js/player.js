@@ -1606,6 +1606,7 @@ function handlePlayerInput(){
             }
         }
         if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;
+            playerEgg.mesh.rotation.order='XYZ';playerEgg.mesh.rotation.x=0;
             var _hdEndB=playerEgg.mesh.userData.body;if(_hdEndB){_hdEndB.rotation.x=0;_hdEndB.position.z=0;}
             // Restore original facing direction after bounce
             if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
