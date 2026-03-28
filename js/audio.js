@@ -9,8 +9,12 @@ document.addEventListener('visibilitychange',function(){
         if(audioCtx&&audioCtx.state==='running')audioCtx.suspend();
     } else {
         if(audioCtx&&audioCtx.state==='suspended'&&soundEnabled){
-            // Small delay to prevent audio overlap on resume
-            setTimeout(function(){if(audioCtx)audioCtx.resume();},300);
+            // Mute SFX briefly to prevent burst of accumulated sounds
+            window._sfxMuted=true;
+            setTimeout(function(){
+                if(audioCtx)audioCtx.resume();
+                setTimeout(function(){window._sfxMuted=false;},500);
+            },300);
         }
     }
 });
@@ -682,7 +686,7 @@ function _sfxVolume(worldX,worldZ){
 
 // Jump sound
 function playJumpSound(srcX,srcZ){
-    if(!sfxEnabled) return;
+    if(!sfxEnabled||window._sfxMuted) return;
     var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
     if(_vol<=0)return;
     const ctx=ensureAudio();
@@ -731,7 +735,7 @@ function playSplashSound(){
     src.start();src.stop(ctx.currentTime+0.15);
 }
 function playHitSound(srcX,srcZ){
-    if(!sfxEnabled) return;
+    if(!sfxEnabled||window._sfxMuted) return;
     var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
     if(_vol<=0)return;
     const ctx=ensureAudio();
@@ -746,7 +750,7 @@ function playHitSound(srcX,srcZ){
 
 // Grab sound — short "boop"
 function playGrabSound(srcX,srcZ){
-    if(!sfxEnabled) return;
+    if(!sfxEnabled||window._sfxMuted) return;
     var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
     if(_vol<=0)return;
     const ctx=ensureAudio(); const t=ctx.currentTime;
@@ -758,7 +762,7 @@ function playGrabSound(srcX,srcZ){
 
 // Throw sound — whoosh
 function playThrowSound(srcX,srcZ){
-    if(!sfxEnabled) return;
+    if(!sfxEnabled||window._sfxMuted) return;
     var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
     if(_vol<=0)return;
     const ctx=ensureAudio(); const t=ctx.currentTime;
