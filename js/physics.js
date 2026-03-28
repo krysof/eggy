@@ -335,17 +335,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         if(egg._hondaDash>0){
             egg.mesh.scale.set(1,1,1);
             // Visual handled by player.js quaternion
-        } else if(egg._blankaSpinTimer>0){
-            // Blanka roll: continuous 360 forward tumble (ball rolling forward)
-            if(egg._blankaSpinDirX!==undefined){
-                egg.mesh.rotation.order='YXZ';
-                egg.mesh.rotation.y=Math.atan2(egg._blankaSpinDirX,egg._blankaSpinDirZ);
-            }
-            // Continuous fast rotation — never stops until landing
-            if(!egg._blankaSpinAngle)egg._blankaSpinAngle=0;
-            egg._blankaSpinAngle+=0.5; // ~5 full rotations per second at 60fps
-            egg.mesh.rotation.x=egg._blankaSpinAngle;
-            egg.mesh.scale.set(0.85,0.85,0.85);
+        } else if(egg._blankaSpinTimer>0||egg._blankaSpinFalling){
+            // Rotation handled in FINAL block at end of function
         } else if(egg._guileSomersault>0){
             // Guile somersault: handled elsewhere
         } else {
@@ -421,6 +412,20 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg.mesh.rotation.y=_hdF;
         egg.mesh.rotation.x=_hdA;
         egg.mesh.rotation.z=0;
+    }
+    // ---- FINAL: Blanka roll spin (MUST be last to override everything) ----
+    if((egg._blankaSpinTimer>0||egg._blankaSpinFalling)&&!egg._hondaDash){
+        if(!egg._blankaSpinAngle)egg._blankaSpinAngle=0;
+        egg._blankaSpinAngle+=0.5;
+        egg.mesh.rotation.order='YXZ';
+        if(egg._blankaSpinDirX!==undefined){
+            egg.mesh.rotation.y=Math.atan2(egg._blankaSpinDirX,egg._blankaSpinDirZ);
+        } else if(egg._dashFaceY!==undefined){
+            egg.mesh.rotation.y=egg._dashFaceY;
+        }
+        egg.mesh.rotation.x=egg._blankaSpinAngle;
+        egg.mesh.rotation.z=0;
+        egg.mesh.scale.set(1,1,1);
     }
 }
 
