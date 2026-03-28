@@ -1557,11 +1557,7 @@ function handlePlayerInput(){
         if(!playerEgg._blankaRoll){
             if(playerEgg._dashDirX!==undefined){
                 playerEgg.mesh.rotation.y=Math.atan2(playerEgg._dashDirX,playerEgg._dashDirZ);
-                playerEgg.mesh.rotation.x=0;playerEgg.mesh.rotation.z=0;
-                // Torpedo: stretch forward + tilt face down
-                playerEgg.mesh.scale.set(1,0.5,2.0);
-                var _htB=playerEgg.mesh.userData.body;
-                if(_htB)_htB.rotation.x=Math.PI/2.5; // tilt face toward ground
+                // rotation.x and scale set by physics.js
             }
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         }
