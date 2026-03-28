@@ -337,16 +337,18 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
 
     var sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     var _sqSign=(egg.mesh.scale.y<0)?-1:1;
-    // Skip squash scale during Honda dash (torpedo stretch) or Blanka spin
+    // Skip squash scale during Honda dash or Blanka spin
     if(egg._hondaDash>0){
-        // Honda torpedo: stretch forward + tilt face down
+        // Honda torpedo: body tilts forward (head-first charge)
         if(!egg._blankaRoll&&egg._dashDirX!==undefined){
-            egg.mesh.scale.set(1,0.5,2.0);
+            egg.mesh.scale.set(1,1,1); // normal size, no stretch
             var _htB2=egg.mesh.userData.body;
-            if(_htB2)_htB2.rotation.x=Math.PI/2.5;
+            if(_htB2)_htB2.rotation.x=-0.8; // tilt head forward
         }
     } else if(egg._blankaSpinTimer>0){
-        egg.mesh.scale.set(0.8,0.8,0.8);
+        var _bsB2=egg.mesh.userData.body;
+        if(_bsB2)_bsB2.rotation.x+=0.8; // fast forward roll
+        egg.mesh.scale.set(0.9,0.9,0.9);
     } else{egg.mesh.scale.set(1+(1-sq)*0.3,sq*_sqSign,1+(1-sq)*0.3);}
     if(egg._slamImmune>0)egg._slamImmune--;
 
