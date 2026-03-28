@@ -1164,8 +1164,8 @@ function handlePlayerInput(){
                 playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.5,
                 playerEgg.mesh.position.y+1.0,
                 playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.5);
-            // Vertical half-circle facing forward, same direction for all orientations
-            window._guileArc.rotation.set(0,_gaFace3,0);
+            // Rotate ∩ into ) shape: curved part faces forward, opening faces Guile
+            window._guileArc.rotation.set(0,_gaFace3,-Math.PI/2);
             window._guileArc.material.opacity=0.85;
             // Play sound once at start
             if(!playerEgg._guileArcLaunched){
