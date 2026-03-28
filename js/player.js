@@ -20,6 +20,7 @@ function _addStunDamage(egg,amount){
     return false;
 }
 function handlePlayerInput(){
+    try{
     if(!playerEgg||!playerEgg.alive)return;
     if(_portalConfirmOpen)return;
     if(playerEgg.finished&&gameState==='racing')return;
@@ -1817,5 +1818,6 @@ function handlePlayerInput(){
         } // end safety else
     }
     playerEgg._fWasDown=!!keys['KeyF'];
+    }catch(e){console.error('handlePlayerInput error:',e.message,e.stack);}
 }
 
