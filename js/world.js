@@ -524,7 +524,10 @@ function spawnCityNPCs() {
                 nz2=(Math.random()-0.5)*400;
             }
         } else {
-            nx2=(Math.random()-0.5)*50;nz2=(Math.random()-0.5)*50;
+            // Avoid fountain area (center, radius 10)
+            do{
+                nx2=(Math.random()-0.5)*80;nz2=10+(Math.random())*60;
+            }while(Math.sqrt(nx2*nx2+nz2*nz2)<12);
         }
         const col=AI_COLORS[i%AI_COLORS.length];
         const npc=createEgg(nx2,nz2,col,AI_COLORS[(i+4)%AI_COLORS.length],false,undefined,CHARACTERS[i%CHARACTERS.length].type);

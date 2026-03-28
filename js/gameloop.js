@@ -1836,7 +1836,7 @@ function enterCity(spawnX,spawnZ){
 
     // Create player in city
     var sx=(spawnX!==undefined)?spawnX:0;
-    var sz=(spawnZ!==undefined)?spawnZ:5;
+    var sz=(spawnZ!==undefined)?spawnZ:15;
     const skin=CHARACTERS[selectedChar];
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
