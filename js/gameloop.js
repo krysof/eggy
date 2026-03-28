@@ -1224,33 +1224,21 @@ function _processChatCommand(msg){
     if(msg.charAt(0)==='/') return true;
     return false;
 }
-// Move name translations
-var _moveNames={
-    'HADOUKEN!':{zhs:'\u6CE2\u52A8\u62F3\uFF01',zht:'\u6CE2\u52D5\u62F3\uFF01',ja:'\u6CE2\u52D5\u62F3\uFF01',en:'HADOUKEN!'},
-    'Hadouken!':{zhs:'\u6CE2\u52A8\u62F3\uFF01',zht:'\u6CE2\u52D5\u62F3\uFF01',ja:'\u6CE2\u52D5\u62F3\uFF01',en:'Hadouken!'},
-    'SHORYUKEN!':{zhs:'\u5347\u9F99\u62F3\uFF01',zht:'\u6607\u9F8D\u62F3\uFF01',ja:'\u6607\u9F8D\u62F3\uFF01',en:'SHORYUKEN!'},
-    'Shoryuken!':{zhs:'\u5347\u9F99\u62F3\uFF01',zht:'\u6607\u9F8D\u62F3\uFF01',ja:'\u6607\u9F8D\u62F3\uFF01',en:'Shoryuken!'},
-    'Tatsumaki Senpukyaku!':{zhs:'\u9F99\u5377\u65CB\u98CE\u811A\uFF01',zht:'\u9F8D\u5377\u65CB\u98A8\u8173\uFF01',ja:'\u7AC7\u5DFB\u65CB\u98A8\u811A\uFF01',en:'Tatsumaki!'},
-    'Sonic Boom!':{zhs:'\u97F3\u901F\u624B\u5200\uFF01',zht:'\u97F3\u901F\u624B\u5200\uFF01',ja:'\u30BD\u30CB\u30C3\u30AF\u30D6\u30FC\u30E0\uFF01',en:'Sonic Boom!'},
-    'Somersault Kick!':{zhs:'\u95EA\u5149\u98DE\u8E22\uFF01',zht:'\u9583\u5149\u98DB\u8E22\uFF01',ja:'\u30B5\u30DE\u30FC\u30BD\u30EB\u30C8\uFF01',en:'Somersault!'},
-    'Kikouken!':{zhs:'\u6C14\u529F\u62F3\uFF01',zht:'\u6C23\u529F\u62F3\uFF01',ja:'\u6C17\u529F\u62F3\uFF01',en:'Kikouken!'},
-    'Spinning Bird Kick!':{zhs:'\u56DE\u65CB\u9E1F\u8E22\uFF01',zht:'\u56DE\u65CB\u9CE5\u8E22\uFF01',ja:'\u30B9\u30D4\u30CB\u30F3\u30B0\u30D0\u30FC\u30C9\uFF01',en:'Spinning Bird!'},
-    'Yoga Fire!':{zhs:'\u745C\u4F3D\u706B\u7403\uFF01',zht:'\u745C\u4F3D\u706B\u7403\uFF01',ja:'\u30E8\u30AC\u30D5\u30A1\u30A4\u30E4\u30FC\uFF01',en:'Yoga Fire!'},
-    'Yoga Flame!':{zhs:'\u745C\u4F3D\u706B\u7130\uFF01',zht:'\u745C\u4F3D\u706B\u7130\uFF01',ja:'\u30E8\u30AC\u30D5\u30EC\u30A4\u30E0\uFF01',en:'Yoga Flame!'},
-    'ELECTRIC!':{zhs:'\u55F7\u55F7\u55F7\uFF01',zht:'\u55F7\u55F7\u55F7\uFF01',ja:'\u30AC\u30A6\u30AC\u30A6\uFF01',en:'GRAAAH!'},
-    'GRAAAH!':{zhs:'\u55F7\u55F7\u55F7\uFF01',zht:'\u55F7\u55F7\u55F7\uFF01',ja:'\u30AC\u30A6\u30AC\u30A6\uFF01',en:'GRAAAH!'},
-    'Dosukoi!':{zhs:'\u8BEF\u4F1A\uFF01',zht:'\u8AA4\u6703\uFF01',ja:'\u3069\u3059\u3053\u3044\uFF01',en:'Dosukoi!'},
-    'Hohoho!':{zhs:'\u55EC\u55EC\u55EC\uFF01',zht:'\u55EC\u55EC\u55EC\uFF01',ja:'\u30DB\u30DB\u30DB\uFF01',en:'Hohoho!'},
-    'Double Lariat!':{zhs:'\u53CC\u56DE\u65CB\u81C2\uFF01',zht:'\u96D9\u56DE\u65CB\u81C2\uFF01',ja:'\u30C0\u30D6\u30EB\u30E9\u30EA\u30A2\u30C3\u30C8\uFF01',en:'Double Lariat!'},
-    'Piledriver!':{zhs:'\u87BA\u65CB\u6253\u6869\uFF01',zht:'\u87BA\u65CB\u6253\u6A01\uFF01',ja:'\u30D1\u30A4\u30EB\u30C9\u30E9\u30A4\u30D0\u30FC\uFF01',en:'Piledriver!'},
-    'Rolling Attack!':{zhs:'\u6EDA\u52A8\u7A81\u51FB\uFF01',zht:'\u6EFE\u52D5\u7A81\u64CA\uFF01',ja:'\u30ED\u30FC\u30EA\u30F3\u30B0\u30A2\u30BF\u30C3\u30AF\uFF01',en:'Rolling Attack!'},
-    'Electric Thunder!':{zhs:'\u7535\u51FB\u96F7\u9E23\uFF01',zht:'\u96FB\u64CA\u96F7\u9CF4\uFF01',ja:'\u30A8\u30EC\u30AF\u30C8\u30EA\u30C3\u30AF\u30B5\u30F3\u30C0\u30FC\uFF01',en:'Electric Thunder!'},
-    'Hyakuretsu Kick!':{zhs:'\u767E\u88C2\u811A\uFF01',zht:'\u767E\u88C2\u8173\uFF01',ja:'\u767E\u88C2\u811A\uFF01',en:'Lightning Kick!'}
-};
+// Move name translations — now reads from MOVE_PARAMS.text, fallback to legacy table
+var _moveNames={};
+// Build from MOVE_PARAMS
+(function(){
+    for(var ct in MOVE_PARAMS){
+        for(var mk in MOVE_PARAMS[ct]){
+            var m=MOVE_PARAMS[ct][mk];
+            if(m&&m.shout&&m.text)_moveNames[m.shout]=m.text;
+        }
+    }
+})();
 function _shoutMove(egg,key){
     var t=_moveNames[key];
     var txt=t?t[_langCode]||t.en||key:key;
-    _showChatBubble(egg,txt,60); // 1 second
+    _showChatBubble(egg,txt,60);
 }
 function _showChatBubble(egg,msg,duration){
     if(!egg||!egg.mesh)return;
