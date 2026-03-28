@@ -2046,6 +2046,13 @@ function animate(now){
 function _gameUpdate(){
     const dt=1/60;
 
+    // Platformer mode — separate update, skip everything else
+    if(gameState==='platformer'){
+        if(typeof _pfGameUpdate==='function')_pfGameUpdate();
+        R.render(scene,camera);
+        return;
+    }
+
     if(gameState==='city'){
         if(_pipeTraveling){
             updatePipeTravel();
@@ -2172,10 +2179,5 @@ function _gameUpdate(){
     _updateChargeParticles();
     // Update grab button text
     if(grabBtn&&playerEgg){if(playerEgg.holding){grabBtn.textContent=L('throwT');grabBtn.classList.add('holding');}else{grabBtn.textContent=L('grab');grabBtn.classList.remove('holding');}}
-
-    // ---- Platformer mode ----
-    if(gameState==='platformer'&&typeof _pfGameUpdate==='function'){
-        _pfGameUpdate();
-    }
 }
 

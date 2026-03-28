@@ -432,30 +432,36 @@ function _pfStart(){
     _pfLevel=_pfGenLevel();
     _pfItems=[];_pfFireballs=[];_pfCoins=0;_pfTime=300;_pfTimeCnt=0;
     _pfWinTimer=0;_pfDeathTimer=0;
-    // Clear existing city
-    if(typeof cleanupCity==='function')cleanupCity();
+    var T=_pfTileSize;
+    // Remove ALL existing objects from scene except camera/lights
+    var toRemove=[];
+    scene.children.forEach(function(c){if(c.type!=='AmbientLight'&&c.type!=='DirectionalLight'&&c.type!=='HemisphereLight'&&c!==camera)toRemove.push(c);});
+    toRemove.forEach(function(c){scene.remove(c);});
     // Build platformer scene
     _pfBuildScene();
     _pfSpawnEnemies();
     // Place player at start
-    var T=_pfTileSize;
+    var ch=CHARACTERS[selectedChar];
+    var pColor=ch.color||0xF5F5F0;
+    var pAccent=ch.accent||0xFFCC00;
+    var pType=ch.type||'egg';
+    playerEgg.mesh=createEggMesh(pColor,pAccent,pType);
     playerEgg.mesh.position.set(_pfPlayerStartX*T,4*T,0);
     playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
     playerEgg._pfOnGround=false;playerEgg._pfBig=false;playerEgg._pfStar=false;playerEgg._pfStarTimer=0;playerEgg._pfWon=false;playerEgg._pfFireCD=0;
-    playerEgg.alive=true;
+    playerEgg.alive=true;playerEgg.facing=1;
     scene.add(playerEgg.mesh);
     // Spawn NPC companions
     _pfNPCList=[];
     var npcColors=[0xFF8844,0x44AAFF,0xFFDD44,0xFF44AA];
+    var npcAccents=[0xFFCC00,0xFFAA44,0xFF8800,0xFFDD00];
     for(var i=0;i<4;i++){
-        var npcMesh=createEggMesh(npcColors[i],0xFFCC00,'egg');
-        npcMesh.position.set((3+i*1.5)*T,4*T,0);
-        scene.add(npcMesh);
-        var npc=createEgg((3+i*1.5)*T,0,npcColors[i],0xFFCC00,false,scene,'egg');
-        npc.mesh.position.set((3+i*1.5)*T,4*T,0);
-        npc.vx=0;npc.vy=0;npc.vz=0;
-        npc._pfOnGround=false;npc._pfBig=false;npc._pfStar=false;npc._pfStarTimer=0;npc._pfWon=false;
-        npc.facing=1;
+        var nMesh=createEggMesh(npcColors[i],npcAccents[i],'egg');
+        nMesh.position.set((2+i*1.5)*T,4*T,0);
+        scene.add(nMesh);
+        var npc={mesh:nMesh,vx:0,vy:0,vz:0,alive:true,isPlayer:false,facing:1,
+            _pfOnGround:false,_pfBig:false,_pfStar:false,_pfStarTimer:0,_pfWon:false,
+            onGround:false,squash:1,throwTimer:0,_stunTimer:0,heldBy:null,holding:null};
         _pfNPCList.push(npc);
     }
     _pfActive=true;
@@ -463,6 +469,7 @@ function _pfStart(){
     // Hide city UI
     var hud=document.getElementById('city-hud');if(hud)hud.style.display='none';
     document.getElementById('portal-prompt').style.display='none';
+    var tc=document.getElementById('touch-controls');if(tc)tc.classList.remove('hidden');
 }
 
 // ---- End platformer ----
