@@ -78,7 +78,7 @@ function updateCity(){
                 _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
                 _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,15);
                 if(_hk.burns)_he2._onFire=120; // 2 seconds fire
-                _dropNpcStolenCoins(_he2);playHitSound();
+                _dropNpcStolenCoins(_he2);playHitSound(_he2.mesh.position.x,_he2.mesh.position.z);
                 _hk.life=0;break;
             }
         }
@@ -925,7 +925,7 @@ function updateCity(){
                     }
                     if(!gm._clashCD)gm._clashCD=30+Math.floor(Math.random()*20);
                     gm._clashCD--;
-                    if(gm._clashCD<=0){gm._clashCD=30+Math.floor(Math.random()*20);playHitSound();}
+                    if(gm._clashCD<=0){gm._clashCD=30+Math.floor(Math.random()*20);playHitSound(gm.group.position.x,gm.group.position.z);}
                 }
             }
             // Random explosions near MS (battle damage effects)
@@ -1072,7 +1072,7 @@ function updateCity(){
                         var _bImp=0.15;
                         _be.vx+=bb.vx*_bImp;_be.vy+=bb.vy*_bImp+0.1;_be.vz+=bb.vz*_bImp;
                         _be.throwTimer=15;_be._bounces=1;_be.squash=0.5;
-                        if(_be.isPlayer)playHitSound();
+                        if(_be.isPlayer)playHitSound(_be.mesh.position.x,_be.mesh.position.z);
                         _dropNpcStolenCoins(_be);
                         bb._hitEgg=true;bb.life=Math.min(bb.life,3);break;
                     }
@@ -1122,7 +1122,7 @@ function updateCity(){
                 if(_md<3.0){
                     var _mImp=0.2;if(_md>0.1){_me.vx+=_mdx/_md*_mImp;_me.vy+=_mdy/_md*_mImp+0.15;_me.vz+=_mdz/_md*_mImp;}
                     _me.throwTimer=20;_me._bounces=1;_me.squash=0.4;
-                    if(_me.isPlayer)playHitSound();
+                    if(_me.isPlayer)playHitSound(_me.mesh.position.x,_me.mesh.position.z);
                     _dropNpcStolenCoins(_me);
                     mm._hitEgg=true;mm.life=0;break;
                 }
@@ -1532,7 +1532,7 @@ function updateHeldEggs(){
                 var _tpoz=_tpc.hd+1.5-Math.abs(_tpdz);
                 if(_tpox<_tpoz){tp.group.position.x+=(_tpdx>=0?1:-1)*_tpox;tp.throwVx*=-0.3;}
                 else{tp.group.position.z+=(_tpdz>=0?1:-1)*_tpoz;tp.throwVz*=-0.3;}
-                tp.throwTimer=1;playHitSound();break;
+                tp.throwTimer=1;playHitSound(tp.group.position.x,tp.group.position.z);break;
             }
         }
         // City boundary air wall bounce for props
@@ -1542,7 +1542,7 @@ function updateHeldEggs(){
         if(tp.group.position.z>_pb){tp.group.position.z=_pb;tp.throwVz=-Math.abs(tp.throwVz)*0.4;}
         if(tp.group.position.z<-_pb){tp.group.position.z=-_pb;tp.throwVz=Math.abs(tp.throwVz)*0.4;}
         if(tp.group.position.y<0.01&&tp.throwVy<0){
-            if(tp._bounces>0){tp._bounces--;tp.throwVy=Math.abs(tp.throwVy)*0.45;tp.throwVx*=0.7;tp.throwVz*=0.7;tp.group.position.y=0.01;playHitSound();}
+            if(tp._bounces>0){tp._bounces--;tp.throwVy=Math.abs(tp.throwVy)*0.45;tp.throwVx*=0.7;tp.throwVz*=0.7;tp.group.position.y=0.01;playHitSound(tp.group.position.x,tp.group.position.z);}
             else{tp.group.position.y=0.01;tp.throwTimer=0;tp.grabbed=false;tp.group.rotation.set(Math.PI/2*(Math.random()*0.4+0.8)*(Math.random()<0.5?1:-1),Math.random()*Math.PI*2,0);tp.x=tp.group.position.x;tp.z=tp.group.position.z;}
         }
         // Hit eggs
@@ -1554,7 +1554,7 @@ function updateHeldEggs(){
             var tpd=Math.sqrt(tpdx*tpdx+tpdz*tpdz);
             if(tpd<tp.radius+0.8){
                 var impW=tp.weight||1;tpeg.vx+=tpdx/tpd*0.4*impW;tpeg.vz+=tpdz/tpd*0.4*impW;tpeg.vy=0.3+0.12*impW;tpeg.squash=0.4;tpeg.throwTimer=15;tpeg._bounces=1;
-                if(tpeg.isPlayer)playHitSound();
+                if(tpeg.isPlayer)playHitSound(tpeg.mesh.position.x,tpeg.mesh.position.z);
                 _dropNpcStolenCoins(tpeg);
             }
         }
@@ -1591,7 +1591,7 @@ function updateHeldEggs(){
         var _obDrag=tob._chargeDrag||0.96;
         tob._throwVx*=_obDrag; tob._throwVz*=_obDrag;
         if(tob.mesh.position.y<(tob.data.fy||0)+0.5&&tob._throwVy<0){
-            if(tob._bounces>0){tob._bounces--;tob._throwVy=Math.abs(tob._throwVy)*0.45;tob._throwVx*=0.7;tob._throwVz*=0.7;tob.mesh.position.y=(tob.data.fy||0)+0.5;playHitSound();}
+            if(tob._bounces>0){tob._bounces--;tob._throwVy=Math.abs(tob._throwVy)*0.45;tob._throwVx*=0.7;tob._throwVz*=0.7;tob.mesh.position.y=(tob.data.fy||0)+0.5;playHitSound(tob.mesh.position.x,tob.mesh.position.z);}
             else{tob.mesh.position.y=(tob.data.fy||0)+0.5;tob._throwTimer=0;tob._grabbed=false;}
         }
         // Hit other eggs with thrown obstacle
@@ -1601,7 +1601,7 @@ function updateHeldEggs(){
             var tdx=teg.mesh.position.x-tob.mesh.position.x;
             var tdz=teg.mesh.position.z-tob.mesh.position.z;
             if(Math.sqrt(tdx*tdx+tdz*tdz)<1.5){
-                var oiw=tob._weight||2;teg.vx+=tdx*0.35*oiw;teg.vz+=tdz*0.35*oiw;teg.vy=0.3+0.12*oiw;teg.squash=0.4;teg.throwTimer=15;teg._bounces=1;if(teg.isPlayer)playHitSound();
+                var oiw=tob._weight||2;teg.vx+=tdx*0.35*oiw;teg.vz+=tdz*0.35*oiw;teg.vy=0.3+0.12*oiw;teg.squash=0.4;teg.throwTimer=15;teg._bounces=1;if(teg.isPlayer)playHitSound(teg.mesh.position.x,teg.mesh.position.z);
                 _dropNpcStolenCoins(teg);
             }
         }

@@ -22,7 +22,7 @@ function updateObstacles(){
                         if(dist<egg.radius+0.45){
                             const str=0.22+t*0.08;
                             egg.vx+=(dx/dist)*str;egg.vz+=(ddz/dist)*str;egg.vy=0.1;egg.squash=0.65;
-                            if(egg.isPlayer)playHitSound();
+                            if(egg.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                             break; // one hit per arm half is enough
                         }
                     }
@@ -177,7 +177,7 @@ function updateObstacles(){
                         // Hit from side — knockback
                         egg.vx+=(dx/(dist||1))*0.25;egg.vz+=(dz/(dist||1))*0.25;
                         egg.vy=0.12;egg.squash=0.65;
-                        if(egg.isPlayer)playHitSound();
+                        if(egg.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                     }
                 }
             }
@@ -645,7 +645,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     sde2.vx+=sddx2/sdd2*0.4;sde2.vy+=0.2;sde2.vz+=sddz2/sdd2*0.4;
                     sde2.throwTimer=15;sde2._bounces=1;sde2.squash=0.5;
                     sde2._stunTimer=Math.floor(30+Math.random()*40);
-                    if(sde2.isPlayer)playHitSound();
+                    if(sde2.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                     _dropNpcStolenCoins(sde2);
                 }
             }
@@ -684,7 +684,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             _npdt.vx=Math.sin(_npdDir)*0.4;_npdt.vy=0.25;_npdt.vz=Math.cos(_npdDir)*0.4;
             _npdt.throwTimer=40;_npdt._bounces=1;_addStunDamage(_npdt,50);
             _dropNpcStolenCoins(_npdt);
-            if(_npdt.isPlayer)playHitSound();
+            if(_npdt.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
             egg.vy=0.15;egg.grabCD=40;egg._npcPiledriver=null;egg._npcPdPhase=0;
         }
     }
@@ -698,7 +698,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             _nbst2.vx=Math.sin(_nbDir)*0.4;_nbst2.vy=0.3;_nbst2.vz=Math.cos(_nbDir)*0.4;
             _nbst2.throwTimer=40;_nbst2._bounces=2;_nbst2._stunTimer=80;
             _dropNpcStolenCoins(_nbst2);
-            if(_nbst2.isPlayer)playHitSound();
+            if(_nbst2.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
             egg.vy=0.2;egg.squash=0.5;
         }
         egg._npcBodySlam=null;
@@ -725,7 +725,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(Math.sqrt(_ntdx*_ntdx+_ntdz*_ntdz)<2.5){
                 _nte.vx+=_ntdx*0.15;_nte.vz+=_ntdz*0.15;_nte.vy=0.1;
                 _nte.squash=0.6;_nte._hitStun=8;_nte._npcTatsuHitCD=10;
-                _dropNpcStolenCoins(_nte);if(_nte.isPlayer)playHitSound();
+                _dropNpcStolenCoins(_nte);if(_nte.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
             }
         }
         if(egg._npcTatsuActive<=0){egg.vx*=0.3;egg.vz*=0.3;}
