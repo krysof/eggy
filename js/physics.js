@@ -333,13 +333,16 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     var _attackAnim=!!(egg._hondaDash||egg._blankaSpinTimer||egg._guileSomersault);
     if(body){
         if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
-            // Honda headbutt: tilt forward 45 degrees
+            // Honda headbutt: STRONG tilt forward
             var _hdTotal2=egg._hondaDashTotal||60;
             var _hdPhase2=_hdTotal2-egg._hondaDash;
-            if(_hdPhase2<8){body.rotation.x=(_hdPhase2/8)*0.78;}
-            else if(egg._hondaDash>5){body.rotation.x=0.78;}
-            else{var _lt=(5-egg._hondaDash)/5;body.rotation.x=egg._hondaBounced?-0.78*(1-_lt):0.78*(1-_lt);}
-            body.rotation.z=0;
+            var _hb=egg.mesh.userData.body;
+            if(_hb){
+                if(_hdPhase2<8){_hb.rotation.x=(_hdPhase2/8)*1.5;}
+                else if(egg._hondaDash>5){_hb.rotation.x=1.5;}
+                else{var _lt=(5-egg._hondaDash)/5;_hb.rotation.x=egg._hondaBounced?-1.5*(1-_lt):1.5*(1-_lt);}
+                _hb.rotation.z=0;
+            }
         } else if(egg._blankaSpinTimer>0){
             // Blanka roll: fast forward spin
             body.rotation.x+=0.8;
