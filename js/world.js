@@ -458,10 +458,10 @@ function updatePipeTravel(){
             camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
         } else {
-            playerEgg.mesh.position.set(0,3,0);
+            playerEgg.mesh.position.set(0,5,12);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
-            camera.position.set(0,12,19);camera.lookAt(0,0,5);
+            camera.position.set(0,12,26);camera.lookAt(0,0,12);
             camera.up.set(0,1,0);
         }
         for(var i=0;i<warpPipeMeshes.length;i++)warpPipeMeshes[i]._cooldown=true;
@@ -490,7 +490,7 @@ function switchCity(targetStyle){
     // Spawn player at center
     if(playerEgg){scene.remove(playerEgg.mesh);var idx=allEggs.indexOf(playerEgg);if(idx!==-1)allEggs.splice(idx,1);playerEgg=null;}
     var skin=CHARACTERS[selectedChar];
-    playerEgg=createEgg(0,5,skin.color,skin.accent,true,undefined,skin.type);
+    playerEgg=createEgg(0,12,skin.color,skin.accent,true,undefined,skin.type);
     playerEgg.finished=false;playerEgg.alive=true;
     if(currentCityStyle===5){
         // Moon flat: spawn in battlefield area
@@ -498,7 +498,8 @@ function switchCity(targetStyle){
         camera.position.set(50,12,19);camera.lookAt(50,0,0);
         camera.up.set(0,1,0);
     } else {
-        camera.position.set(0,12,19);camera.lookAt(0,0,5);
+        playerEgg.mesh.position.set(0,5,12);
+        camera.position.set(0,12,26);camera.lookAt(0,0,12);
         camera.up.set(0,1,0);
     }
     // SOTN area name reveal
