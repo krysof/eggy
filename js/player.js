@@ -1553,17 +1553,7 @@ function handlePlayerInput(){
         // Honda headbutt: face-down head-forward torpedo (consistent in all directions)
         if(!playerEgg._blankaRoll){
             if(playerEgg._dashDirX!==undefined){
-                // Honda headbutt: tilt forward using quaternion
-                var _hdTotal3=playerEgg._hondaDashTotal||60;
-                var _hdPhase3=_hdTotal3-playerEgg._hondaDash;
-                var _hdAngle3=0;
-                if(_hdPhase3<8){_hdAngle3=(_hdPhase3/8)*0.8;}
-                else if(playerEgg._hondaDash>5){_hdAngle3=0.8;}
-                else{var _lt3=(5-playerEgg._hondaDash)/5;_hdAngle3=playerEgg._hondaBounced?-0.8*(1-_lt3):0.8*(1-_lt3);}
-                var _hdFaceY3=Math.atan2(playerEgg._dashDirX,playerEgg._dashDirZ);
-                var _qY3=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),_hdFaceY3);
-                var _qX3=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),_hdAngle3);
-                playerEgg.mesh.quaternion.copy(_qY3.multiply(_qX3));
+                // Visual tilt handled by physics.js (last step)
             }
             playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         }

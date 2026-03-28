@@ -398,6 +398,19 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     // Clamp max height to prevent flying off screen
     if(egg.mesh.position.y>50&&!egg._piledriverLocked){egg.mesh.position.y=50;egg.vy=Math.min(egg.vy,0);}
     if(egg.arrow)egg.arrow.position.y=2.0+Math.sin(Date.now()*0.005)*0.15;
+    // ---- FINAL: Honda headbutt tilt (MUST be last to override everything) ----
+    if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
+        var _hdT=egg._hondaDashTotal||60;
+        var _hdP=_hdT-egg._hondaDash;
+        var _hdA=0;
+        if(_hdP<8){_hdA=(_hdP/8)*0.8;}
+        else if(egg._hondaDash>5){_hdA=0.8;}
+        else{var _l2=(5-egg._hondaDash)/5;_hdA=egg._hondaBounced?-0.8*(1-_l2):0.8*(1-_l2);}
+        var _hdF=Math.atan2(egg._dashDirX,egg._dashDirZ);
+        var _q1=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),_hdF);
+        var _q2=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),_hdA);
+        egg.mesh.quaternion.copy(_q1.multiply(_q2));
+    }
 }
 
 // ---- Egg-to-egg collision ----
