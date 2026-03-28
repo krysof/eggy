@@ -109,20 +109,7 @@ function handlePlayerInput(){
     if(len>0.1){
         mx/=len;mz/=len;
         playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
-        // Backstep: if moving opposite to facing, don't turn for 30 frames
-        var _moveAngle=Math.atan2(mx,mz);
-        var _faceDiff=Math.abs(_moveAngle-playerEgg.mesh.rotation.y);
-        if(_faceDiff>Math.PI)_faceDiff=Math.PI*2-_faceDiff;
-        if(_faceDiff>Math.PI*0.6){
-            // Backward — backstep 0.3s then quick turn
-            if(!playerEgg._backstepTimer||playerEgg._backstepTimer<=0)playerEgg._backstepTimer=18;
-            playerEgg.vx*=0.5;playerEgg.vz*=0.5;
-        } else {
-            // Forward — cancel any backstep
-            if(playerEgg._backstepTimer>0&&_faceDiff<Math.PI*0.3)playerEgg._backstepTimer=0;
-        }
     }
-    if(playerEgg._backstepTimer>0)playerEgg._backstepTimer--;
     if(playerEgg._dashBounceTimer>0)playerEgg._dashBounceTimer--;
     // Sprint smoke + ground dust
     if(sprintPct>0.15&&playerEgg.onGround&&len>0.1){
@@ -1573,7 +1560,9 @@ function handlePlayerInput(){
                 _hde.vx+=playerEgg.vx*0.8;_hde.vz+=playerEgg.vz*0.8;_hde.vy=0.25;
                 _hde.squash=0.3;_hde.throwTimer=45;_hde._bounces=2;_addStunDamage(_hde,10);
                 _dropNpcStolenCoins(_hde);playHitSound();
-                // Bounce back on hit — reverse, land, recover
+                // Push back 2 units along dash direction
+                playerEgg.mesh.position.x-=playerEgg._dashDirX/2;
+                playerEgg.mesh.position.z-=playerEgg._dashDirZ/2;
                 playerEgg.vx=-playerEgg._dashDirX*0.4;playerEgg.vz=-playerEgg._dashDirZ*0.4;
                 if(playerEgg._blankaRoll){
                     playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);

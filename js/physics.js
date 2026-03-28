@@ -388,7 +388,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
 
     if(speed>0.01){
         // Skip facing update during backstep or post-dash bounce or Dhalsim attack
-        if(!(egg.isPlayer&&(egg._backstepTimer>0||egg._dashBounceTimer>0||egg._hondaDash>0||(egg._atkAnim>0&&egg.mesh.userData._charType==='cockroach')))){
+        if(!(egg.isPlayer&&(egg._dashBounceTimer>0||egg._hondaDash>0||(egg._atkAnim>0&&egg.mesh.userData._charType==='cockroach')))){
         const ta=Math.atan2(egg.vx,egg.vz);
         let diff=ta-egg.mesh.rotation.y;
         while(diff>Math.PI)diff-=Math.PI*2; while(diff<-Math.PI)diff+=Math.PI*2;
