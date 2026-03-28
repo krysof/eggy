@@ -403,9 +403,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         var _hdT=egg._hondaDashTotal||60;
         var _hdP=_hdT-egg._hondaDash;
         var _hdA=0;
-        if(_hdP<8){_hdA=-(_hdP/8)*1.57;}
-        else if(egg._hondaDash>5){_hdA=-1.57;}
-        else{var _l2=(5-egg._hondaDash)/5;_hdA=egg._hondaBounced?1.57*(1-_l2):-1.57*(1-_l2);}
+        if(_hdP<8){_hdA=(_hdP/8)*1.57;}
+        else if(egg._hondaDash>5){_hdA=1.57;}
+        else{var _l2=(5-egg._hondaDash)/5;_hdA=egg._hondaBounced?-1.57*(1-_l2):1.57*(1-_l2);}
         // Tilt axis = local right axis (perpendicular to facing)
         var _hdF=Math.atan2(egg._dashDirX,egg._dashDirZ);
         var _tiltAxis=new THREE.Vector3(Math.cos(_hdF),0,-Math.sin(_hdF)).normalize();

@@ -1574,15 +1574,14 @@ function handlePlayerInput(){
                 _hde.squash=0.3;_hde.throwTimer=45;_hde._bounces=2;_addStunDamage(_hde,10);
                 _dropNpcStolenCoins(_hde);playHitSound();
                 // Bounce back on hit — reverse, land, recover
-                playerEgg._dashDirX*=-0.6;playerEgg._dashDirZ*=-0.6;
-                playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
+                playerEgg.vx=-playerEgg._dashDirX*0.4;playerEgg.vz=-playerEgg._dashDirZ*0.4;
                 if(playerEgg._blankaRoll){
                     playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
                 } else {
-                    playerEgg._hondaDash=5;playerEgg._hondaBounced=true;
+                    playerEgg._hondaDash=0;playerEgg._hondaBounced=true;
                 }
                 playerEgg._dashBounceTimer=30;
-                playerEgg.vy=0.1;
+                playerEgg.vy=0.15;
             }
         }
         // Building collision bounce during dash
@@ -1590,14 +1589,16 @@ function handlePlayerInput(){
             var _dc=cityColliders[_dci];
             var _ddx=playerEgg.mesh.position.x-_dc.x,_ddz=playerEgg.mesh.position.z-_dc.z;
             if(Math.abs(_ddx)<_dc.hw+1&&Math.abs(_ddz)<_dc.hd+1&&playerEgg.mesh.position.y<(_dc.h||6)){
-                playerEgg._dashDirX*=-0.6;playerEgg._dashDirZ*=-0.6;
-                playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
-                if(playerEgg._blankaRoll){
-                    playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
-                } else {
-                    playerEgg._hondaDash=5;playerEgg._hondaBounced=true;
-                }
-                playerEgg.vy=0.1;playerEgg._dashBounceTimer=30;
+                // Push out of collider
+                var _pushDist=Math.abs(_ddx)<Math.abs(_ddz)?(_dc.hw+1.5)*(_ddx>0?1:-1):0;
+                var _pushDistz=Math.abs(_ddz)<=Math.abs(_ddx)?(_dc.hd+1.5)*(_ddz>0?1:-1):0;
+                playerEgg.mesh.position.x=_dc.x+_pushDist;
+                playerEgg.mesh.position.z=_dc.z+_pushDistz;
+                // Bounce back
+                playerEgg.vx=-playerEgg._dashDirX*0.4;playerEgg.vz=-playerEgg._dashDirZ*0.4;
+                playerEgg.vy=0.15;
+                playerEgg._hondaDash=0;playerEgg._hondaBounced=true;
+                playerEgg._dashBounceTimer=30;
                 playHitSound();break;
             }
         }
