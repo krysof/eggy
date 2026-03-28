@@ -21,7 +21,7 @@ function spawnSlashEffect(egg,faceY){
     _halfL.position.copy(_slLine.position);_halfR.position.copy(_slLine.position);
     _halfL.rotation.y=faceY;_halfR.rotation.y=faceY;
     scene.add(_halfL);scene.add(_halfR);
-    window._slashEffects.push({line:_slLine,halfL:_halfL,halfR:_halfR,life:20,faceY:faceY});
+    window._slashEffects.push({line:_slLine,halfL:_halfL,halfR:_halfR,life:90,maxLife:90,faceY:faceY});
     // Flash enemy white briefly
     egg._slashFlash=8;
 }
@@ -29,15 +29,14 @@ function updateSlashEffects(){
     for(var si=window._slashEffects.length-1;si>=0;si--){
         var s=window._slashEffects[si];
         s.life--;
-        var t=s.life/20;
+        var t=s.life/s.maxLife;
         // Slash line fades
         s.line.material.opacity=t;
         s.line.scale.x=1+((1-t)*2);
-        // Halves drift apart then fade
-        var sep=(1-t)*0.8;
-        var perpX=Math.cos(s.faceY)*sep,perpZ=-Math.sin(s.faceY)*sep;
-        s.halfL.position.x+=perpX*0.04;s.halfL.position.z+=perpZ*0.04;
-        s.halfR.position.x-=perpX*0.04;s.halfR.position.z-=perpZ*0.04;
+        // Halves drift apart slowly then fade
+        var perpX=Math.cos(s.faceY),perpZ=-Math.sin(s.faceY);
+        s.halfL.position.x+=perpX*0.008;s.halfL.position.z+=perpZ*0.008;
+        s.halfR.position.x-=perpX*0.008;s.halfR.position.z-=perpZ*0.008;
         s.halfL.material.opacity=t*0.7;s.halfR.material.opacity=t*0.7;
         if(s.life<=0){
             scene.remove(s.line);scene.remove(s.halfL);scene.remove(s.halfR);
