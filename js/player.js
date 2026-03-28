@@ -1641,27 +1641,21 @@ function handlePlayerInput(){
     if(!playerEgg._bfSeq)playerEgg._bfSeq=0;
     if(!playerEgg._bfTimer)playerEgg._bfTimer=0;
     playerEgg._bfTimer--;
-    // Detect any direction press
-    var _anyDirX=(_hLeft?-1:0)+(_hRight?1:0);
-    var _anyDirZ=(_hDown?1:0)+(keys['KeyW']||keys['ArrowUp']?-1:0);
-    var _anyDirLen=Math.sqrt(_anyDirX*_anyDirX+_anyDirZ*_anyDirZ);
-    var _dirPress=_anyDirLen>0.3&&!playerEgg._prevBfDir;
-    if(_dirPress&&playerEgg._bfSeq===0){
+    // Detect any direction press (absolute, not relative to facing)
+    var _anyDX=(_hLeft?-1:0)+(_hRight?1:0);
+    var _anyDZ=(_hDown?1:0)+((keys['KeyW']||keys['ArrowUp'])?-1:0);
+    var _anyDL=Math.sqrt(_anyDX*_anyDX+_anyDZ*_anyDZ);
+    var _newDP=(_anyDL>0.3)&&!(playerEgg._prevDA);
+    if(_newDP&&playerEgg._bfSeq===0){
         playerEgg._bfSeq=1;playerEgg._bfTimer=25;
-        playerEgg._bfFirstX=_anyDirX;playerEgg._bfFirstZ=_anyDirZ;
-    } else if(_dirPress&&playerEgg._bfSeq===1){
-        // Check if second direction is roughly opposite to first
-        var _dot2=_anyDirX*playerEgg._bfFirstX+_anyDirZ*playerEgg._bfFirstZ;
-        if(_dot2<-0.3){
-            playerEgg._bfSeq=2;playerEgg._bfTimer=25;playerEgg._bfReady=true;
-        } else {
-            // Not opposite — restart with this as first
-            playerEgg._bfSeq=1;playerEgg._bfTimer=25;
-            playerEgg._bfFirstX=_anyDirX;playerEgg._bfFirstZ=_anyDirZ;
-        }
+        playerEgg._bfDX=_anyDX;playerEgg._bfDZ=_anyDZ;
+    } else if(_newDP&&playerEgg._bfSeq===1){
+        var _bfD2=_anyDX*(playerEgg._bfDX||0)+_anyDZ*(playerEgg._bfDZ||0);
+        if(_bfD2<-0.3){playerEgg._bfSeq=2;playerEgg._bfTimer=25;playerEgg._bfReady=true;}
+        else{playerEgg._bfSeq=1;playerEgg._bfTimer=25;playerEgg._bfDX=_anyDX;playerEgg._bfDZ=_anyDZ;}
     }
     if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
-    playerEgg._prevBfDir=(_anyDirLen>0.3);
+    playerEgg._prevDA=(_anyDL>0.3);
     // Forward/back press for other uses
     var _inputBack=(_inputDot<-0.3);
     var _inputFwd=(_inputDot>0.3);
@@ -1672,16 +1666,16 @@ function handlePlayerInput(){
     if(!playerEgg._ffSeq)playerEgg._ffSeq=0;
     if(!playerEgg._ffTimer)playerEgg._ffTimer=0;
     playerEgg._ffTimer--;
-    if(_dirPress&&playerEgg._ffSeq===0&&!playerEgg._bfReady){
+    if(_newDP&&playerEgg._ffSeq===0&&!playerEgg._bfReady){
         playerEgg._ffSeq=1;playerEgg._ffTimer=20;
-        playerEgg._ffFirstX=_anyDirX;playerEgg._ffFirstZ=_anyDirZ;
-    } else if(_dirPress&&playerEgg._ffSeq===1&&!playerEgg._bfReady){
-        var _ffDot=_anyDirX*playerEgg._ffFirstX+_anyDirZ*playerEgg._ffFirstZ;
+        playerEgg._ffDX=_anyDX;playerEgg._ffDZ=_anyDZ;
+    } else if(_newDP&&playerEgg._ffSeq===1&&!playerEgg._bfReady){
+        var _ffDot=_anyDX*(playerEgg._ffDX||0)+_anyDZ*(playerEgg._ffDZ||0);
         if(_ffDot>0.3){
             playerEgg._ffSeq=2;playerEgg._ffTimer=20;playerEgg._ffReady=true;
         } else {
             playerEgg._ffSeq=1;playerEgg._ffTimer=20;
-            playerEgg._ffFirstX=_anyDirX;playerEgg._ffFirstZ=_anyDirZ;
+            playerEgg._ffDX=_anyDX;playerEgg._ffDZ=_anyDZ;
         }
     }
     if(playerEgg._ffTimer<=0){playerEgg._ffSeq=0;playerEgg._ffReady=false;}
