@@ -137,7 +137,7 @@ function updateCity(){
             if(_fishProp)fish.grabbed=_fishProp.grabbed;
             if(fish.grabbed)continue;
             // Skip animation while being thrown — let prop physics handle it
-            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=180;continue;}
+            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=180+Math.floor(Math.random()*300);continue;}
             // Post-throw recovery: lie still then flop back
             if(fish._thrownRecovery>0){
                 fish._thrownRecovery--;

@@ -43,7 +43,7 @@ var MOVE_PARAMS={
     // ================================================================
     egg:{
         hadouken:{
-            input:'→→+R',        // forward-forward + punch
+            trigger:'ffR',input:'→→+R',        // forward-forward + punch
             name:'HADOUKEN!',shout:'HADOUKEN!',
             speed:0.35,life:120,color:0xFF4422,ringColor:0xFF8866,
             burns:true,           // hit causes fire
@@ -51,14 +51,14 @@ var MOVE_PARAMS={
             cd:25                 // cooldown frames
         },
         shoryuken:{
-            input:'↓↑+R',        // down-up + punch
+            trigger:'duR',input:'↓↑+R',        // down-up + punch
             name:'SHORYUKEN!',shout:'SHORYUKEN!',
             jumpMul:1.6,fwdSpeed:0.15,duration:65,
             damage:20,stunDmg:15,
             cd:30
         },
         tatsumaki:{
-            input:'←→+T',        // back-forward + kick
+            trigger:'bfT',input:'←→+T',        // back-forward + kick
             name:'Tatsumaki Senpukyaku!',shout:'Tatsumaki Senpukyaku!',
             duration:94,hitForce:0.5,hitVy:0.3,
             damage:12,stunDmg:15,hitCD:12,
@@ -70,7 +70,7 @@ var MOVE_PARAMS={
     // ================================================================
     dog:{
         hadouken:{
-            input:'→→+R',
+            trigger:'ffR',input:'→→+R',
             name:'Hadouken!',shout:'Hadouken!',
             speed:0.35,life:120,color:0x4488FF,ringColor:0x88AAFF,
             burns:false,
@@ -78,7 +78,7 @@ var MOVE_PARAMS={
             cd:25
         },
         shoryuken:{
-            input:'↓↑+R',
+            trigger:'duR',input:'↓↑+R',
             name:'Shoryuken!',shout:'Shoryuken!',
             jumpMul:1.7,fwdSpeed:0.35,duration:75,
             fire:true,            // Ken shoryuken sets target on fire
@@ -86,7 +86,7 @@ var MOVE_PARAMS={
             cd:30
         },
         tatsumaki:{
-            input:'←→+T',
+            trigger:'bfT',input:'←→+T',
             name:'Tatsumaki Senpukyaku!',shout:'Tatsumaki Senpukyaku!',
             duration:94,hitForce:0.5,hitVy:0.3,
             damage:12,stunDmg:15,hitCD:12,
@@ -98,13 +98,13 @@ var MOVE_PARAMS={
     // ================================================================
     bull:{
         hyakuretsu:{
-            input:'R (always)',   // normal punch = hyakuretsu
+            trigger:'alwaysR',input:'R (always)',   // normal punch = hyakuretsu
             name:'Hohoho!',shout:'Hohoho!',
             cd:4,range:2.5,hitForce:0.5,hitVy:0.25,
             damage:8,stunDmg:10
         },
         headbutt:{
-            input:'←→+R',        // back-forward + punch
+            trigger:'bfR',input:'←→+R',        // back-forward + punch
             name:'Dosukoi!',shout:'Dosukoi!',
             speed:2,duration:60,cd:70,
             damage:15,stunDmg:20
@@ -115,14 +115,14 @@ var MOVE_PARAMS={
     // ================================================================
     cat:{
         electric:{
-            input:'R (always)',   // normal punch = electric
+            trigger:'alwaysR',input:'R (always)',   // normal punch = electric
             name:'ELECTRIC!',shout:'ELECTRIC!',
             duration:60,range:2.5,
             damage:8,stunDmg:15,
             electrocuteDuration:90 // frames target is electrocuted
         },
         roll:{
-            input:'←→+R',        // back-forward + punch
+            trigger:'bfR',input:'←→+R',        // back-forward + punch
             name:'GRAAAH!',shout:'GRAAAH!',
             speed:3,duration:60,cd:35,
             damage:15,stunDmg:20
@@ -133,14 +133,14 @@ var MOVE_PARAMS={
     // ================================================================
     rooster:{
         sonicBoom:{
-            input:'→→+R',        // forward-forward + punch
+            trigger:'ffR',input:'→→+R',        // forward-forward + punch
             name:'Sonic Boom!',shout:'Sonic Boom!',
             speed:0.5,life:100,color:0xFFDD44,ringColor:0xFFFF88,
             damage:10,stunDmg:15,
             cd:20
         },
         somersault:{
-            input:'←→+T',        // back-forward + kick
+            trigger:'bfT',input:'←→+T',        // back-forward + kick
             name:'Somersault Kick!',shout:'Somersault Kick!',
             jumpMul:1.6,duration:65,arcSpeed:0.2,arcLife:30,
             damage:18,stunDmg:20,
@@ -152,20 +152,20 @@ var MOVE_PARAMS={
     // ================================================================
     monkey:{
         kikouken:{
-            input:'→→+R',        // forward-forward + punch
+            trigger:'ffR',input:'→→+R',        // forward-forward + punch
             name:'Kikouken!',shout:'Kikouken!',
             speed:0.5,life:100,color:0x88BBFF,ringColor:0x88FF88,
             damage:10,stunDmg:15,
             cd:20
         },
         hyakuretsuKick:{
-            input:'T (always)',   // normal kick = hyakuretsu kick
+            trigger:'alwaysT',input:'T (always)',   // normal kick = hyakuretsu kick
             name:'Hyakuretsu Kick!',shout:'Hyakuretsu Kick!',
             cd:4,range:2.5,hitForce:0.5,hitVy:0.25,
             damage:8,stunDmg:10
         },
         spinningBird:{
-            input:'←→+T',        // back-forward + kick
+            trigger:'bfT',input:'←→+T',        // back-forward + kick
             name:'Spinning Bird Kick!',shout:'Spinning Bird Kick!',
             jumpMul:1.2,duration:60,
             damage:15,stunDmg:15,
@@ -177,14 +177,14 @@ var MOVE_PARAMS={
     // ================================================================
     bear:{
         lariat:{
-            input:'R+T (hold)',   // punch + kick held together
+            trigger:'RT',input:'R+T (hold)',   // punch + kick held together
             name:'Double Lariat!',shout:'Double Lariat!',
             duration:60,hitForce:0.5,hitVy:0.3,
             damage:12,stunDmg:15,hitCD:12,
             cd:40
         },
         piledriver:{
-            input:'→←→+F',       // forward-back-forward + grab
+            trigger:'fbfF',input:'→←→+F',       // forward-back-forward + grab
             name:'Piledriver!',shout:'Piledriver!',
             range:5.0,riseFrames:40,pauseFrames:8,slamFrames:12,maxHeight:15,
             damage:35,stunDmg:50, // devastating
@@ -196,7 +196,7 @@ var MOVE_PARAMS={
     // ================================================================
     cockroach:{
         yogaFire:{
-            input:'→→+R',        // forward-forward + punch
+            trigger:'ffR',input:'→→+R',        // forward-forward + punch
             name:'Yoga Fire!',shout:'Yoga Fire!',
             speed:0.2,life:180,color:0xFF6600,ringColor:0xFFAA00,
             burns:true,
@@ -204,7 +204,7 @@ var MOVE_PARAMS={
             cd:30
         },
         yogaFlame:{
-            input:'←→+R',        // back-forward + punch
+            trigger:'bfR',input:'←→+R',        // back-forward + punch
             name:'Yoga Flame!',shout:'Yoga Flame!',
             duration:60,range:4,
             damage:15,stunDmg:20,
