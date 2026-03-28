@@ -1589,11 +1589,10 @@ function handlePlayerInput(){
             var _dc=cityColliders[_dci];
             var _ddx=playerEgg.mesh.position.x-_dc.x,_ddz=playerEgg.mesh.position.z-_dc.z;
             if(Math.abs(_ddx)<_dc.hw+1&&Math.abs(_ddz)<_dc.hd+1&&playerEgg.mesh.position.y<(_dc.h||6)){
-                // Push out of collider
-                var _pushDist=Math.abs(_ddx)<Math.abs(_ddz)?(_dc.hw+1.5)*(_ddx>0?1:-1):0;
-                var _pushDistz=Math.abs(_ddz)<=Math.abs(_ddx)?(_dc.hd+1.5)*(_ddz>0?1:-1):0;
-                playerEgg.mesh.position.x=_dc.x+_pushDist;
-                playerEgg.mesh.position.z=_dc.z+_pushDistz;
+                // Push out along dash direction (back to where we came from)
+                var _pushBack=2.0;
+                playerEgg.mesh.position.x-=playerEgg._dashDirX/_pushBack;
+                playerEgg.mesh.position.z-=playerEgg._dashDirZ/_pushBack;
                 // Bounce back
                 playerEgg.vx=-playerEgg._dashDirX*0.4;playerEgg.vz=-playerEgg._dashDirZ*0.4;
                 playerEgg.vy=0.15;
