@@ -534,7 +534,7 @@ function handlePlayerInput(){
         var _bfR=_findMove(_ct,'bfR');
         var _duR=_findMove(_ct,'duR');
         // ---- Always-on punch special (Honda hyakuretsu, Blanka electric) ----
-        if(_alwaysR&&!_isShoryu&&!playerEgg._bfReady){
+        if(_alwaysR&&_alwaysR.type==='hyakuretsu'&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=_alwaysR.cd||4;
             // Start continuous slap state
@@ -545,7 +545,7 @@ function handlePlayerInput(){
             playerEgg.squash=0.88;
         }
         // ---- BLANKA: always Electric Thunder on punch ----
-        else if(_ct==='cat'&&_alwaysR&&!_isShoryu&&!playerEgg._bfReady){
+        else if(_alwaysR&&_alwaysR.type==='electric'&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             playerEgg._blankaShock=60;
@@ -814,7 +814,7 @@ function handlePlayerInput(){
         var _alwaysT=_findMove(_ct,'alwaysT');
         var _bfT=_findMove(_ct,'bfT');
         // ---- Always-on kick special (Chun-Li hyakuretsu kick) ----
-        if(_alwaysT&&!_isTatsu&&!playerEgg._chargeUpReady){
+        if(_alwaysT&&_alwaysT.type==='hyakuretsuKick'&&!_isTatsu&&!playerEgg._chargeUpReady){
             _shoutMove(playerEgg,'Hyakuretsu Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             if(!playerEgg._hyakuretsuKickTimer)playerEgg._hyakuretsuKickTimer=0;

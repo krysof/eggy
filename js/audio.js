@@ -193,6 +193,11 @@ function _applyLang(){
     }
     // Portal signs are canvas textures - rebuild them would need full portal rebuild
     // Just update the portal object names (prompt text uses these)
+    // Rebuild move name translations from MOVE_PARAMS
+    if(typeof _moveNames!=='undefined'&&typeof MOVE_PARAMS!=='undefined'){
+        for(var _mk in _moveNames)delete _moveNames[_mk];
+        for(var _ct2 in MOVE_PARAMS){for(var _mk2 in MOVE_PARAMS[_ct2]){var _m2=MOVE_PARAMS[_ct2][_mk2];if(_m2&&_m2.shout&&_m2.text)_moveNames[_m2.shout]=_m2.text;}}
+    }
     // Update select grid cell labels
     var _cells=document.querySelectorAll('.char-cell .char-label');
     for(var ci2=0;ci2<_cells.length&&ci2<CHARACTERS.length;ci2++){_cells[ci2].textContent=CHARACTERS[ci2].name;}
