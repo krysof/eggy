@@ -128,19 +128,26 @@ function updateCity(){
     if(window._cityFish){
         for(var _fi2=0;_fi2<window._cityFish.length;_fi2++){
             var fish=window._cityFish[_fi2];
-            if(fish.grabbed)continue;
-            // Find matching prop to check if being thrown
+            // Find matching prop
             var _fishProp=null;
             for(var _fpi=0;_fpi<cityProps.length;_fpi++){
                 if(cityProps[_fpi]._fishRef===fish){_fishProp=cityProps[_fpi];break;}
             }
+            // Sync grabbed state from prop
+            if(_fishProp)fish.grabbed=_fishProp.grabbed;
+            if(fish.grabbed)continue;
             // Skip animation while being thrown — let prop physics handle it
-            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=60;continue;}
-            if(_fishProp&&_fishProp.grabbed){fish._thrownRecovery=60;continue;}
-            // Post-throw recovery: flop back to water immediately
+            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=180;continue;}
+            // Post-throw recovery: lie still then flop back
             if(fish._thrownRecovery>0){
                 fish._thrownRecovery--;
                 if(fish.group.position.y>0.2){fish.group.position.y-=0.05;if(fish.group.position.y<0.2)fish.group.position.y=0.2;}
+                if(fish._thrownRecovery>60){
+                    // Lying still on ground (stunned)
+                    fish.group.rotation.z=Math.PI/2*0.8;
+                    fish.group.position.y=0.15+Math.abs(Math.sin(Date.now()*0.008))*0.05;
+                    continue;
+                }
                 // Flop toward nearest water (center pool)
                 var _ftpx=-fish.group.position.x;var _ftpz=-fish.group.position.z;
                 var _ftpd=Math.sqrt(_ftpx*_ftpx+_ftpz*_ftpz)||1;
