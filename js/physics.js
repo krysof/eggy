@@ -327,48 +327,49 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         feet[0].position.y=0.05+Math.max(0,Math.sin(egg.walkPhase))*0.07;
         feet[1].position.y=0.05+Math.max(0,-Math.sin(egg.walkPhase))*0.07;
     }
+    // ============================================================
+    // BODY ROTATION — single source of truth, attack > walk
+    // ============================================================
+    var _attackAnim=!!(egg._hondaDash||egg._blankaSpinTimer||egg._guileSomersault);
     if(body){
-        // Skip walk body tilt during spin dash — let the whole mesh spin freely
-        var _isSpinning=(egg.isPlayer&&_spinDashing)||(egg._npcSpinTimer&&egg._npcSpinTimer>=30&&egg._npcSpinTimer<90);
-        if(!_isSpinning&&!egg._hondaDash&&!egg._blankaSpinTimer){
-            var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;if(!egg._guileSomersault)body.rotation.x+=(tx-body.rotation.x)*0.1;
+        if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
+            // Honda headbutt: tilt forward 45 degrees
+            var _hdTotal2=egg._hondaDashTotal||60;
+            var _hdPhase2=_hdTotal2-egg._hondaDash;
+            if(_hdPhase2<8){body.rotation.x=(_hdPhase2/8)*0.78;}
+            else if(egg._hondaDash>5){body.rotation.x=0.78;}
+            else{var _lt=(5-egg._hondaDash)/5;body.rotation.x=egg._hondaBounced?-0.78*(1-_lt):0.78*(1-_lt);}
+            body.rotation.z=0;
+        } else if(egg._blankaSpinTimer>0){
+            // Blanka roll: fast forward spin
+            body.rotation.x+=0.8;
+        } else if(egg._guileSomersault>0){
+            // Guile somersault: handled elsewhere
+        } else {
+            // Normal walk lean
+            var _isSpinning2=(egg.isPlayer&&_spinDashing)||(egg._npcSpinTimer&&egg._npcSpinTimer>=30&&egg._npcSpinTimer<90);
+            if(!_isSpinning2){
+                var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;
+                body.rotation.z+=(tz-body.rotation.z)*0.1;
+                body.rotation.x+=(tx-body.rotation.x)*0.1;
+            }
         }
     }
 
     var sq=egg.squash; egg.squash+=(1-egg.squash)*0.15;
     var _sqSign=(egg.mesh.scale.y<0)?-1:1;
-    // Skip squash scale during Honda dash or Blanka spin
+    // Scale: attack animations override squash
     if(egg._hondaDash>0){
-        if(!egg._blankaRoll&&egg._dashDirX!==undefined){
-            var _hdTotal=egg._hondaDashTotal||60;
-            var _hdPhase=_hdTotal-egg._hondaDash;
-            var _htB2=egg.mesh.userData.body;
-            egg.mesh.scale.set(1,1,1);
-            egg.mesh.rotation.y=Math.atan2(egg._dashDirX,egg._dashDirZ);
-            egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;
-            if(_hdPhase<8){
-                // Phase 1: jump up + tilt head forward to 45 degrees
-                var _tiltT=_hdPhase/8;
-                if(_htB2)_htB2.rotation.x=_tiltT*0.78; // 0 to ~45 degrees
-                egg.vy=0.08; // small upward
-                egg.vx=egg._dashDirX*0.3;egg.vz=egg._dashDirZ*0.3; // slow start
-            } else if(egg._hondaDash>5){
-                // Phase 2: flying forward at 45 degree tilt
-                if(_htB2)_htB2.rotation.x=0.78; // hold 45 degrees
-                egg.vx=egg._dashDirX;egg.vz=egg._dashDirZ;
-                egg.mesh.position.y=Math.max(egg.mesh.position.y,0.8);
-            } else {
-                // Phase 3: landing — tilt back to normal
-                var _landT=(5-egg._hondaDash)/5;
-                var _tiltBack=egg._hondaBounced?-0.78*(1-_landT):0.78*(1-_landT);
-                if(_htB2)_htB2.rotation.x=_tiltBack;
-                egg.vx*=0.7;egg.vz*=0.7;
-            }
-            if(egg._hondaDash<=0&&_htB2){_htB2.rotation.x=0;_htB2.position.z=0;}
-        }
+        egg.mesh.scale.set(1,1,1);
+        egg.mesh.rotation.y=Math.atan2(egg._dashDirX||0,egg._dashDirZ||0);
+        egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;
+        // Phase-based velocity
+        var _hdP3=(_hdTotal2||60)-egg._hondaDash;
+        if(_hdP3<8){egg.vy=0.08;egg.vx=(egg._dashDirX||0)*0.3;egg.vz=(egg._dashDirZ||0)*0.3;}
+        else if(egg._hondaDash>5){egg.vx=egg._dashDirX;egg.vz=egg._dashDirZ;egg.mesh.position.y=Math.max(egg.mesh.position.y,0.8);}
+        else{egg.vx*=0.7;egg.vz*=0.7;}
+        if(egg._hondaDash<=0&&body){body.rotation.x=0;}
     } else if(egg._blankaSpinTimer>0){
-        var _bsB2=egg.mesh.userData.body;
-        if(_bsB2)_bsB2.rotation.x+=0.8; // fast forward roll
         egg.mesh.scale.set(0.9,0.9,0.9);
     } else{egg.mesh.scale.set(1+(1-sq)*0.3,sq*_sqSign,1+(1-sq)*0.3);}
     if(egg._slamImmune>0)egg._slamImmune--;
@@ -385,7 +386,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         var wob=Math.sin(egg.walkPhase*1.5)*egg._wobbleAmt*egg._wobbleDir;
         egg.mesh.rotation.z+=(wob-egg.mesh.rotation.z)*0.1;
         egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
-    } else if(!egg._hondaDash){
+    } else if(!_attackAnim){
         egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
         egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.12;
     }

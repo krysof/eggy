@@ -511,7 +511,7 @@ function handlePlayerInput(){
             if(_ud.leftArm){_ud.leftArm.visible=false;_ud.leftArm.scale.set(1,1,1);_ud.leftArm.position.set(-0.4,0.2,0.7);}
             if(_ud.rightLeg){_ud.rightLeg.visible=false;_ud.rightLeg.scale.set(1,1,1);_ud.rightLeg.position.set(0.22,0.1,0.5);_ud.rightLeg.rotation.x=-Math.PI/3;}
             if(_ud.leftLeg){_ud.leftLeg.visible=false;_ud.leftLeg.scale.set(1,1,1);_ud.leftLeg.position.set(-0.22,0.1,0.5);_ud.leftLeg.rotation.x=-Math.PI/3;}
-            if(_ud.body)_ud.body.rotation.x=0; // reset headbutt
+            // body.rotation.x managed by physics.js
         }
     }
     // Zangief Double Lariat — R+T held together (checked before normal R press)
