@@ -454,7 +454,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
             }
             // Honda: hyakuretsu(always punch), headbutt
-            else if(_nCT==='pig'){
+            else if(_nCT==='bull'){
                 if(cd2<2.5&&Math.random()<0.02&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=30;
                     if(cd2<2.5){closest.vx+=(cdx2/(cd2||1))*0.5;closest.vz+=(cdz2/(cd2||1))*0.5;closest.vy=0.25;closest.squash=0.3;closest.throwTimer=45;closest._bounces=2;_addStunDamage(closest,10);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound();}
@@ -513,7 +513,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
             }
             // Zangief: double lariat(close), piledriver(very close)
-            else if(_nCT==='frog'){
+            else if(_nCT==='bear'){
                 if(cd2<4&&Math.random()<0.008&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0;
                 }

@@ -20,7 +20,7 @@ var STUN_CONFIG={
 var CHAR_DEFS=[
     {name:'egg',sf2:'Ryu',color:0xF5F5F0,accent:0xCC2222,icon:'\uD83E\uDD5A',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52,
      bodyShape:'normal',portraitRx:55,portraitRy:70,miniRx:0.32,miniRy:0.38},
-    {name:'pig',sf2:'E.Honda',color:0x4A3728,accent:0x2244AA,icon:'\uD83D\uDC03',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52,
+    {name:'bull',sf2:'E.Honda',color:0x4A3728,accent:0x2244AA,icon:'\uD83D\uDC03',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52,
      bodyShape:'round',portraitRx:65,portraitRy:60,miniRx:0.38,miniRy:0.34},
     {name:'cat',sf2:'Blanka',color:0x33AA33,accent:0xFF8800,icon:'\uD83D\uDC31',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:95,mapY:155,
      bodyShape:'round',portraitRx:65,portraitRy:60,miniRx:0.38,miniRy:0.34},
@@ -30,7 +30,7 @@ var CHAR_DEFS=[
      bodyShape:'normal',portraitRx:55,portraitRy:70,miniRx:0.32,miniRy:0.38},
     {name:'monkey',sf2:'Chun-Li',color:0x2255CC,accent:0xFFFFFF,icon:'\uD83D\uDC35',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:55,
      bodyShape:'slim',portraitRx:42,portraitRy:75,miniRx:0.25,miniRy:0.42},
-    {name:'frog',sf2:'Zangief',color:0x8B6B4A,accent:0x8B4513,icon:'\uD83D\uDC3B',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:290,mapY:18,
+    {name:'bear',sf2:'Zangief',color:0x8B6B4A,accent:0x8B4513,icon:'\uD83D\uDC3B',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:290,mapY:18,
      bodyShape:'big',portraitRx:72,portraitRy:72,miniRx:0.42,miniRy:0.40},
     {name:'cockroach',sf2:'Dhalsim',color:0x8B6914,accent:0xFFFFFF,icon:'\uD83E\uDEB3',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:278,mapY:88,
      bodyShape:'thin',portraitRx:30,portraitRy:78,miniRx:0.20,miniRy:0.42}
@@ -94,9 +94,9 @@ var MOVE_PARAMS={
         }
     },
     // ================================================================
-    // Honda/Buffalo (pig) — 百裂掌, 头锤
+    // Honda/Buffalo (bull) — 百裂掌, 头锤
     // ================================================================
-    pig:{
+    bull:{
         hyakuretsu:{
             input:'R (always)',   // normal punch = hyakuretsu
             name:'Hohoho!',shout:'Hohoho!',
@@ -173,9 +173,9 @@ var MOVE_PARAMS={
         }
     },
     // ================================================================
-    // Zangief/Bear (frog) — 回旋双臂, 螺旋打桩
+    // Zangief/Bear (bear) — 回旋双臂, 螺旋打桩
     // ================================================================
-    frog:{
+    bear:{
         lariat:{
             input:'R+T (hold)',   // punch + kick held together
             name:'Double Lariat!',shout:'Double Lariat!',

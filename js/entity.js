@@ -42,14 +42,14 @@ function createEggMesh(color, accent, charType) {
             var s=1.1+0.2*Math.sin(t*Math.PI);
             pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.9);
         }
-    } else if (charType==='pig') {
+    } else if (charType==='bull') {
         // Honda/Buffalo — round ball shape
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
             var s=1.1+0.2*Math.sin(t*Math.PI);
             pos.setX(i,pos.getX(i)*s); pos.setZ(i,pos.getZ(i)*s); pos.setY(i,y*0.9);
         }
-    } else if (charType==='frog') {
+    } else if (charType==='bear') {
         // Zangief/Bear — 1.5x bigger than normal, muscular
         for(var i=0;i<pos.count;i++){
             var y=pos.getY(i); var t=(y+0.6)/1.2;
@@ -349,7 +349,7 @@ function createEggMesh(color, accent, charType) {
         }
         // Elongate body slightly more
         body.scale.y=1.1;
-    } else if (charType==='pig') {
+    } else if (charType==='bull') {
         // Buffalo (野牛) — Honda moveset
         // Big bull horns (牛魔王 style) — horizontal outward then curve up
         [-1,1].forEach(function(s){
@@ -387,7 +387,7 @@ function createEggMesh(color, accent, charType) {
         bufTail.position.set(0,0.65,-0.55);bufTail.rotation.x=0.5;body.add(bufTail);
         var tailTuft=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0x222222));
         tailTuft.position.set(0,0.58,-0.63);body.add(tailTuft);
-    } else if (charType==='frog') {
+    } else if (charType==='bear') {
         // Bear with boar mask (Inosuke style) — Zangief moveset
         // Round bear ears
         [-1,1].forEach(function(s){

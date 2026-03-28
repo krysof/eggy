@@ -515,7 +515,7 @@ function handlePlayerInput(){
     var _ct=playerEgg.mesh.userData._charType||'egg';
     if(playerEgg._lariatReady&&playerEgg._attackCD<=0&&!playerEgg.holding&&!playerEgg._tatsuActive){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
-        playerEgg._tatsuActive=MOVE_PARAMS.frog.lariat.duration;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+        playerEgg._tatsuActive=MOVE_PARAMS.bear.lariat.duration;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
         playerEgg._isLariat=true;
         playerEgg.vy=0; // NO jump for lariat
@@ -530,7 +530,7 @@ function handlePlayerInput(){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         var _isShoryu=playerEgg._shoryuReady;
         // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
-        if(_ct==='pig'&&!_isShoryu&&!playerEgg._bfReady){
+        if(_ct==='bull'&&!_isShoryu&&!playerEgg._bfReady){
             _shoutMove(playerEgg,'Hohoho!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             // Start continuous slap state
@@ -549,7 +549,7 @@ function handlePlayerInput(){
             if(sfxEnabled){var _beCtx3=ensureAudio();if(_beCtx3){var _bet3=_beCtx3.currentTime;var _beo3=_beCtx3.createOscillator();var _beg3=_beCtx3.createGain();_beo3.type='square';_beo3.frequency.setValueAtTime(800,_bet3);_beo3.frequency.linearRampToValueAtTime(2000,_bet3+0.1);_beg3.gain.setValueAtTime(0.08,_bet3);_beg3.gain.exponentialRampToValueAtTime(0.001,_bet3+0.3);_beo3.connect(_beg3);_beg3.connect(_beCtx3.destination);_beo3.start(_bet3);_beo3.stop(_bet3+0.3);}}
         }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
-        else if(playerEgg._rapidRReady&&_ct==='pig'){
+        else if(playerEgg._rapidRReady&&_ct==='bull'){
             playerEgg._comboCount=0;playerEgg._attackCD=1;playerEgg._rapidR=2;
             if(!playerEgg._slapSide)playerEgg._slapSide=0;
             playerEgg._slapSide=(playerEgg._slapSide+1)%3;
@@ -657,15 +657,15 @@ function handlePlayerInput(){
                 _sbo.connect(_sbog);_sbog.connect(_sbSCtx.destination);_sbo.start(_sbt);_sbo.stop(_sbt+0.25);
             }}
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
-        } else if(playerEgg._bfReady&&_ct==='pig'){
+        } else if(playerEgg._bfReady&&_ct==='bull'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
             _shoutMove(playerEgg,'Dosukoi!');
-            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.pig.headbutt.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.bull.headbutt.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _shDir=playerEgg.mesh.rotation.y;
-            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*MOVE_PARAMS.pig.headbutt.speed;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*MOVE_PARAMS.pig.headbutt.speed;
+            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;
             playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
             playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
-            playerEgg._hondaDash=MOVE_PARAMS.pig.headbutt.duration;playerEgg._atkAnim=62;playerEgg.squash=0.55;
+            playerEgg._hondaDash=MOVE_PARAMS.bull.headbutt.duration;playerEgg._atkAnim=62;playerEgg.squash=0.55;
             // Head tilt forward
             var _hBody=playerEgg.mesh.userData.body;
             if(_hBody)_hBody.rotation.x=-0.6;
@@ -749,7 +749,7 @@ function handlePlayerInput(){
         if(_punchArm){_punchArm.visible=true;_punchArm.position.set(_punchArm===playerEgg.mesh.userData.rightArm?0.3:-0.3,0.2,_pArmZ);_punchArm.scale.copy(_pArmS);}
         playerEgg._atkAnim=(_ct==='cockroach')?MOVE_PARAMS.cockroach.punchAnim:8;
         var _atkDir=playerEgg.mesh.rotation.y;
-        var _isFinisher=(playerEgg._comboCount>=3)&&_ct!=='pig'&&_ct!=='cat'; // Honda/Blanka skip finisher (use rapid-press instead)
+        var _isFinisher=(playerEgg._comboCount>=3)&&_ct!=='bull'&&_ct!=='cat'; // Honda/Blanka skip finisher (use rapid-press instead)
         var _isAerial=!playerEgg.onGround;
         // Finisher visual: show both arms or headbutt
         if(_isFinisher){
@@ -1696,7 +1696,7 @@ function handlePlayerInput(){
     // ---- Dhalsim passive: extended attack range ----
     playerEgg._extendedRange=(_ct==='cockroach')?MOVE_PARAMS.cockroach.extendedRange:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
-    playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='frog');
+    playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='bear');
     // ---- Piledriver input sequence tracker (forward-back-forward relative to facing) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
     if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
