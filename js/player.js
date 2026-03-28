@@ -1155,21 +1155,17 @@ function handlePlayerInput(){
         var _gsB=playerEgg.mesh.userData.body;
         if(_gsB)_gsB.rotation.x-=Math.PI*2/30;
         playerEgg._dashBounceTimer=5;
-        // Blade arc — follows player's foot position during backflip
+        // Blade arc — vertical half-circle in front of Guile, curved part faces forward
         if(window._guileArc){
             var _gaFace3=playerEgg._guileArcFaceY;
-            var _gsBAngle=_gsB?_gsB.rotation.x:0;
-            // Foot position: radius 1.5 around body center, rotates with backflip
-            var _footR=1.5;
-            var _footOffY=Math.sin(_gsBAngle)*_footR;
-            var _footOffFwd=-Math.cos(_gsBAngle)*_footR;
             window._guileArc.visible=true;
+            // Position in front of Guile at body center height
             window._guileArc.position.set(
-                playerEgg.mesh.position.x+Math.sin(_gaFace3)*_footOffFwd,
-                playerEgg.mesh.position.y+1.0+_footOffY,
-                playerEgg.mesh.position.z+Math.cos(_gaFace3)*_footOffFwd);
-            // Vertical plane perpendicular to facing (splits left/right), torus visible from any angle
-            window._guileArc.rotation.set(Math.PI/2,_gaFace3,0);
+                playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.5,
+                playerEgg.mesh.position.y+1.0,
+                playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.5);
+            // Vertical half-circle: opening faces Guile, arc faces forward
+            window._guileArc.rotation.set(0,_gaFace3+Math.PI,Math.PI/2);
             window._guileArc.material.opacity=0.85;
             // Play sound once at start
             if(!playerEgg._guileArcLaunched){
