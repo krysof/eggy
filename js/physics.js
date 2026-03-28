@@ -333,14 +333,15 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     var _attackAnim=!!(egg._hondaDash||egg._blankaSpinTimer||egg._guileSomersault);
     if(body){
         if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
-            // Honda headbutt: tilt whole mesh forward
+            // Honda headbutt: tilt whole mesh — eyes face ground
             var _hdTotal2=egg._hondaDashTotal||60;
             var _hdPhase2=_hdTotal2-egg._hondaDash;
-            egg.mesh.rotation.order='YXZ'; // prevent gimbal lock
+            egg.mesh.rotation.order='YXZ';
             egg.mesh.rotation.y=Math.atan2(egg._dashDirX,egg._dashDirZ);
-            if(_hdPhase2<8){egg.mesh.rotation.x=-(_hdPhase2/8)*0.78;}
-            else if(egg._hondaDash>5){egg.mesh.rotation.x=-0.78;}
-            else{var _lt=(5-egg._hondaDash)/5;egg.mesh.rotation.x=egg._hondaBounced?0.78*(1-_lt):-0.78*(1-_lt);}
+            // Positive X rotation = eyes (Z+ face) tilts DOWN toward ground
+            if(_hdPhase2<8){egg.mesh.rotation.x=(_hdPhase2/8)*0.9;}
+            else if(egg._hondaDash>5){egg.mesh.rotation.x=0.9;}
+            else{var _lt=(5-egg._hondaDash)/5;egg.mesh.rotation.x=egg._hondaBounced?-0.9*(1-_lt):0.9*(1-_lt);}
             egg.mesh.rotation.z=0;
         } else if(egg._blankaSpinTimer>0){
             // Blanka roll: fast forward spin
