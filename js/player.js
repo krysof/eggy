@@ -870,17 +870,19 @@ function handlePlayerInput(){
             playerEgg._guileArcStartX=playerEgg.mesh.position.x+Math.sin(_gsFaceDir)*1.5;
             playerEgg._guileArcStartY=playerEgg.mesh.position.y+0.8;
             playerEgg._guileArcStartZ=playerEgg.mesh.position.z+Math.cos(_gsFaceDir)*1.5;
-            // Create blade arc effect
+            // Create blade arc effect — 3D torus arc visible from any angle
             if(!window._guileArc){
-                var _gaCvs=document.createElement('canvas');_gaCvs.width=128;_gaCvs.height=128;
-                var _gaCtx=_gaCvs.getContext('2d');
-                // Thick bright arc — like a kick trail
-                _gaCtx.strokeStyle='#88FFFF';_gaCtx.lineWidth=12;_gaCtx.lineCap='round';
-                _gaCtx.beginPath();_gaCtx.arc(64,64,50,0.3,Math.PI-0.3);_gaCtx.stroke();
-                _gaCtx.strokeStyle='#FFFFFF';_gaCtx.lineWidth=6;
-                _gaCtx.beginPath();_gaCtx.arc(64,64,50,0.4,Math.PI-0.4);_gaCtx.stroke();
-                var _gaTex=new THREE.CanvasTexture(_gaCvs);
-                window._guileArc=new THREE.Mesh(new THREE.PlaneGeometry(2.5,2.5),new THREE.MeshBasicMaterial({map:_gaTex,transparent:true,side:THREE.DoubleSide}));
+                // Half-ring (arc from 0 to PI) using TorusGeometry
+                window._guileArc=new THREE.Mesh(
+                    new THREE.TorusGeometry(1.2,0.12,6,24,Math.PI),
+                    new THREE.MeshBasicMaterial({color:0x88FFFF,transparent:true,opacity:0.9})
+                );
+                // Inner brighter glow ring
+                var _gaInner=new THREE.Mesh(
+                    new THREE.TorusGeometry(1.2,0.06,4,24,Math.PI),
+                    new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.8})
+                );
+                window._guileArc.add(_gaInner);
                 scene.add(window._guileArc);
             }
             window._guileArc.visible=false;
@@ -1166,8 +1168,8 @@ function handlePlayerInput(){
                 playerEgg.mesh.position.x+Math.sin(_gaFace3)*_footOffFwd,
                 playerEgg.mesh.position.y+1.0+_footOffY,
                 playerEgg.mesh.position.z+Math.cos(_gaFace3)*_footOffFwd);
-            // Always vertical, facing same direction as player (visible from behind)
-            window._guileArc.rotation.set(0,_gaFace3,0);
+            // Vertical plane perpendicular to facing (splits left/right), torus visible from any angle
+            window._guileArc.rotation.set(Math.PI/2,_gaFace3,0);
             window._guileArc.material.opacity=0.85;
             // Play sound once at start
             if(!playerEgg._guileArcLaunched){
