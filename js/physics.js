@@ -416,19 +416,29 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg.mesh.rotation.x=_hdA;
         egg.mesh.rotation.z=0;
     }
-    // ---- FINAL: Blanka roll spin — same height as Honda, no scale change ----
+    // ---- FINAL: Blanka roll spin — body self-rotation (pivot at body center, no sway) ----
     if(_isBlankaSpinning){
         if(egg._blankaSpinAngle===undefined)egg._blankaSpinAngle=0;
         egg._blankaSpinAngle+=0.6;
-        egg.mesh.rotation.order='YXZ';
+        // Mesh only handles facing direction — no X/Z rotation on mesh
         if(egg._blankaSpinDirX!==undefined){
             egg.mesh.rotation.y=Math.atan2(egg._blankaSpinDirX,egg._blankaSpinDirZ);
         } else if(egg._dashFaceY!==undefined){
             egg.mesh.rotation.y=egg._dashFaceY;
         }
-        egg.mesh.rotation.x=egg._blankaSpinAngle;
+        egg.mesh.rotation.x=0;
         egg.mesh.rotation.z=0;
+        // Spin the body child around its own center (no wobble/sway)
+        var _brB=egg.mesh.userData.body;
+        if(_brB)_brB.rotation.x=egg._blankaSpinAngle;
+        // Also spin eyes/smile/features by hiding feet
+        var _brFeet=egg.mesh.userData.feet;
+        if(_brFeet){_brFeet[0].visible=false;_brFeet[1].visible=false;}
         egg.mesh.scale.set(1,1,1);
+    } else {
+        // Restore feet visibility
+        var _brFeet2=egg.mesh.userData.feet;
+        if(_brFeet2&&_brFeet2[0]&&!_brFeet2[0].visible){_brFeet2[0].visible=true;_brFeet2[1].visible=true;}
     }
 }
 
