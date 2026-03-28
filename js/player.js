@@ -874,12 +874,12 @@ function handlePlayerInput(){
             if(!window._guileArc){
                 // Half-ring (arc from 0 to PI) using TorusGeometry
                 window._guileArc=new THREE.Mesh(
-                    new THREE.TorusGeometry(1.2,0.12,6,24,Math.PI),
+                    new THREE.TorusGeometry(1.8,0.18,6,24,Math.PI),
                     new THREE.MeshBasicMaterial({color:0x88FFFF,transparent:true,opacity:0.9})
                 );
                 // Inner brighter glow ring
                 var _gaInner=new THREE.Mesh(
-                    new THREE.TorusGeometry(1.2,0.06,4,24,Math.PI),
+                    new THREE.TorusGeometry(1.8,0.09,4,24,Math.PI),
                     new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.8})
                 );
                 window._guileArc.add(_gaInner);
@@ -1159,11 +1159,14 @@ function handlePlayerInput(){
         if(window._guileArc){
             var _gaFace3=playerEgg._guileArcFaceY;
             window._guileArc.visible=true;
-            // Position in front of Guile at body center height
+            // Position in front of Guile, slowly drifts forward (~0.5 units over duration)
+            var _gaElapsed=(MOVE_PARAMS.rooster.somersault.duration-playerEgg._guileSomersault);
+            var _gaDrift=_gaElapsed*0.008;
+            var _gaFwdDist=1.5+_gaDrift;
             window._guileArc.position.set(
-                playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.5,
+                playerEgg.mesh.position.x+Math.sin(_gaFace3)*_gaFwdDist,
                 playerEgg.mesh.position.y+1.0,
-                playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.5);
+                playerEgg.mesh.position.z+Math.cos(_gaFace3)*_gaFwdDist);
             // Arc in sagittal plane, opening faces back toward Guile, curve faces forward
             window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,Math.PI/2);
             window._guileArc.material.opacity=0.85;
