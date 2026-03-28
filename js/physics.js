@@ -339,19 +339,32 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     var _sqSign=(egg.mesh.scale.y<0)?-1:1;
     // Skip squash scale during Honda dash or Blanka spin
     if(egg._hondaDash>0){
-        // Honda torpedo: body tilts forward head-first
         if(!egg._blankaRoll&&egg._dashDirX!==undefined){
+            var _hdTotal=egg._hondaDashTotal||60;
+            var _hdPhase=_hdTotal-egg._hondaDash;
+            var _htB2=egg.mesh.userData.body;
             egg.mesh.scale.set(1,1,1);
-            // Face dash direction
             egg.mesh.rotation.y=Math.atan2(egg._dashDirX,egg._dashDirZ);
             egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;
-            // Tilt body forward inside mesh (avoids gimbal lock)
-            var _htB2=egg.mesh.userData.body;
-            if(_htB2){
-                _htB2.rotation.x=1.2; // strong forward tilt (head down)
-                _htB2.position.z=0.3; // shift body forward
+            if(_hdPhase<8){
+                // Phase 1: jump up + tilt head forward to 45 degrees
+                var _tiltT=_hdPhase/8;
+                if(_htB2)_htB2.rotation.x=_tiltT*0.78; // 0 to ~45 degrees
+                egg.vy=0.08; // small upward
+                egg.vx=egg._dashDirX*0.3;egg.vz=egg._dashDirZ*0.3; // slow start
+            } else if(egg._hondaDash>5){
+                // Phase 2: flying forward at 45 degree tilt
+                if(_htB2)_htB2.rotation.x=0.78; // hold 45 degrees
+                egg.vx=egg._dashDirX;egg.vz=egg._dashDirZ;
+                egg.mesh.position.y=Math.max(egg.mesh.position.y,0.8);
+            } else {
+                // Phase 3: landing — tilt back to normal
+                var _landT=(5-egg._hondaDash)/5;
+                var _tiltBack=egg._hondaBounced?-0.78*(1-_landT):0.78*(1-_landT);
+                if(_htB2)_htB2.rotation.x=_tiltBack;
+                egg.vx*=0.7;egg.vz*=0.7;
             }
-            egg.mesh.position.y=Math.max(egg.mesh.position.y,0.8);
+            if(egg._hondaDash<=0&&_htB2){_htB2.rotation.x=0;_htB2.position.z=0;}
         }
     } else if(egg._blankaSpinTimer>0){
         var _bsB2=egg.mesh.userData.body;

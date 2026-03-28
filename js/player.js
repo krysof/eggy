@@ -672,10 +672,7 @@ function handlePlayerInput(){
             playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;
             playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
             playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
-            playerEgg._hondaDash=MOVE_PARAMS.bull.headbutt.duration;playerEgg._atkAnim=62;playerEgg.squash=0.55;
-            // Head tilt forward
-            var _hBody=playerEgg.mesh.userData.body;
-            if(_hBody)_hBody.rotation.x=-0.6;
+            playerEgg._hondaDash=MOVE_PARAMS.bull.headbutt.duration;playerEgg._hondaDashTotal=MOVE_PARAMS.bull.headbutt.duration;playerEgg._hondaBounced=false;playerEgg._atkAnim=62;playerEgg.squash=0.55;
         } else if(_isShoryu&&_duR&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken) — Ryu: diagonal up-forward, Ken: flies further
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
@@ -1584,13 +1581,12 @@ function handlePlayerInput(){
                 playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
                 playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
                 if(playerEgg._blankaRoll){
-                    // Blanka keeps rolling during bounce-back
                     playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
                 } else {
-                    playerEgg._hondaDash=0;
+                    playerEgg._hondaDash=5;playerEgg._hondaBounced=true;
                 }
                 playerEgg._dashBounceTimer=30;
-                playerEgg.vy=0.1; // small hop on bounce
+                playerEgg.vy=0.1;
             }
         }
         // Building collision bounce during dash
@@ -1603,13 +1599,14 @@ function handlePlayerInput(){
                 if(playerEgg._blankaRoll){
                     playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
                 } else {
-                    playerEgg._hondaDash=0;
+                    playerEgg._hondaDash=5;playerEgg._hondaBounced=true;
                 }
                 playerEgg.vy=0.1;playerEgg._dashBounceTimer=30;
                 playHitSound();break;
             }
         }
         if(playerEgg._hondaDash<=0){playerEgg.vx*=0.2;playerEgg.vz*=0.2;playerEgg._blankaRoll=false;
+            var _hdEndB=playerEgg.mesh.userData.body;if(_hdEndB){_hdEndB.rotation.x=0;_hdEndB.position.z=0;}
             // Restore original facing direction after bounce
             if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;
