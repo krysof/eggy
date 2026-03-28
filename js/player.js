@@ -122,6 +122,9 @@ function handlePlayerInput(){
             // Backward — backstep 0.3s then quick turn
             if(!playerEgg._backstepTimer||playerEgg._backstepTimer<=0)playerEgg._backstepTimer=18;
             playerEgg.vx*=0.5;playerEgg.vz*=0.5;
+        } else {
+            // Forward — cancel any backstep
+            if(playerEgg._backstepTimer>0&&_faceDiff<Math.PI*0.3)playerEgg._backstepTimer=0;
         }
     }
     if(playerEgg._backstepTimer>0)playerEgg._backstepTimer--;

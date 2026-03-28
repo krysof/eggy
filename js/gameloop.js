@@ -135,7 +135,7 @@ function updateCity(){
                 if(cityProps[_fpi]._fishRef===fish){_fishProp=cityProps[_fpi];break;}
             }
             // Skip animation while being thrown — let prop physics handle it
-            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=300;continue;} // 5 sec recovery after landing
+            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=90;continue;} // 1.5 sec recovery after landing
             if(_fishProp&&_fishProp.grabbed){fish._thrownRecovery=300;continue;}
             // Post-throw recovery: wait then crawl back
             if(fish._thrownRecovery>0){
@@ -170,7 +170,7 @@ function updateCity(){
             var _onCanalX=Math.abs(fish.group.position.z)<2&&Math.abs(fish.group.position.x)>8;
             var _onCanalZ=Math.abs(fish.group.position.x)<2&&Math.abs(fish.group.position.z)>8;
             if(_onCanalX||_onCanalZ)_inWater=true;
-            if(!_inWater&&fish.group.position.y<1&&!fish.jumping){
+            if(!_inWater&&!fish.jumping){
                 // Fish is on land — flop back to nearest water
                 var fToPoolX=-fish.group.position.x;var fToPoolZ=-fish.group.position.z;
                 var fToPoolD=Math.sqrt(fToPoolX*fToPoolX+fToPoolZ*fToPoolZ)||1;
