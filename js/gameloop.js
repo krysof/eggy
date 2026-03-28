@@ -1917,8 +1917,8 @@ function enterCity(spawnX,spawnZ){
         camera.position.set(sx,12,sz+14);camera.lookAt(sx,0,sz);
         camera.up.set(0,1,0);
     } else {
-        // Spawn south of fountain (avoid pillars), fall down
-        if(sx===0&&sz===0){sx=0;sz=12;playerEgg.mesh.position.set(0,15,12);}
+        // Spawn above fountain pillar (h=8), fall onto top
+        if(sx===0&&sz===0)playerEgg.mesh.position.set(0,15,0);
         camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
         camera.up.set(0,1,0);
     }
