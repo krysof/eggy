@@ -59,39 +59,62 @@ function buildCity() {
     cityGroup.add(ground);
     }
 
-    // Paths (not on moon)
+    // Paths (not on moon) — organized grid street system
     if(currentCityStyle!==5){
     const pathM = toon(st.path);
-    [{w:CITY_SIZE*2,d:5,x:0,z:0},{w:5,d:CITY_SIZE*2,x:0,z:0},
-     {w:CITY_SIZE*1.2,d:4,x:15,z:25},{w:4,d:CITY_SIZE*1.2,x:-25,z:-10}].forEach(p=>{
+    // Main cross avenues (wide)
+    [{w:CITY_SIZE*2,d:8,x:0,z:0},{w:8,d:CITY_SIZE*2,x:0,z:0},
+    // Inner ring road (radius ~45)
+     {w:90,d:6,x:0,z:45},{w:90,d:6,x:0,z:-45},{w:6,d:90,x:45,z:0},{w:6,d:90,x:-45,z:0},
+    // Outer ring road (radius ~100)
+     {w:200,d:5,x:0,z:100},{w:200,d:5,x:0,z:-100},{w:5,d:200,x:100,z:0},{w:5,d:200,x:-100,z:0},
+    // Diagonal boulevards
+     {w:4,d:70,x:30,z:30},{w:4,d:70,x:-30,z:-30},{w:70,d:4,x:-30,z:30},{w:70,d:4,x:30,z:-30}
+    ].forEach(p=>{
         const path=new THREE.Mesh(new THREE.BoxGeometry(p.w,0.06,p.d),pathM);
         path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
     });
     }
 
-    // ---- Buildings (not on moon) ----
+    // ---- Buildings (not on moon) — organized blocks along streets ----
     if(currentCityStyle!==5){
     const bColors = st.bColors;
     const buildings = [
-        // Inner ring (original, scaled up positions)
-        {x:-30,z:-30,w:10,d:10,h:12},{x:-30,z:10,w:12,d:10,h:16},{x:30,z:-30,w:10,d:12,h:14},
-        {x:30,z:25,w:12,d:10,h:18},{x:-15,z:-50,w:14,d:8,h:10},{x:20,z:-50,w:10,d:10,h:13},
-        {x:-50,z:-15,w:10,d:14,h:15},{x:50,z:0,w:10,d:12,h:12},{x:-50,z:30,w:12,d:10,h:11},
-        {x:50,z:35,w:10,d:10,h:17},{x:0,z:-55,w:16,d:8,h:9},{x:0,z:55,w:14,d:10,h:13},
-        {x:-45,z:-45,w:9,d:9,h:10},{x:45,z:-45,w:11,d:9,h:14},{x:-20,z:40,w:10,d:12,h:12},
-        {x:15,z:45,w:12,d:8,h:10},
-        // Outer ring (new buildings for doubled city)
-        {x:-90,z:-60,w:10,d:10,h:11},{x:-90,z:20,w:12,d:8,h:14},{x:90,z:-40,w:10,d:10,h:12},
-        {x:90,z:30,w:8,d:12,h:16},{x:-60,z:-90,w:10,d:10,h:10},{x:60,z:-90,w:12,d:8,h:13},
-        {x:-100,z:60,w:10,d:10,h:9},{x:100,z:-10,w:8,d:14,h:15},{x:-70,z:80,w:12,d:10,h:11},
-        {x:70,z:80,w:10,d:10,h:14},{x:0,z:-100,w:14,d:8,h:8},{x:0,z:100,w:12,d:10,h:12},
-        // Far corners
-        {x:-110,z:-100,w:10,d:10,h:10},{x:110,z:-100,w:10,d:8,h:13},{x:-110,z:100,w:8,d:10,h:11},
-        {x:110,z:100,w:10,d:10,h:15},{x:-130,z:0,w:10,d:12,h:12},{x:130,z:0,w:12,d:10,h:10},
-        {x:0,z:-130,w:10,d:10,h:9},{x:0,z:130,w:10,d:8,h:11},
-        // Mid-distance fill
-        {x:-70,z:-20,w:8,d:8,h:13},{x:70,z:-60,w:10,d:8,h:11},{x:-40,z:70,w:8,d:10,h:10},
-        {x:40,z:-80,w:10,d:8,h:12},{x:-80,z:-80,w:8,d:8,h:9},{x:80,z:60,w:10,d:10,h:14},
+        // ===== Inner commercial district (tall, near center) =====
+        // NE block
+        {x:22,z:-22,w:10,d:10,h:16},{x:35,z:-22,w:8,d:10,h:20},{x:22,z:-35,w:10,d:8,h:14},
+        // NW block
+        {x:-22,z:-22,w:10,d:10,h:18},{x:-35,z:-22,w:8,d:10,h:15},{x:-22,z:-35,w:10,d:8,h:13},
+        // SE block
+        {x:22,z:22,w:10,d:10,h:17},{x:35,z:22,w:8,d:10,h:14},{x:22,z:35,w:10,d:8,h:19},
+        // SW block
+        {x:-22,z:22,w:10,d:10,h:15},{x:-35,z:22,w:8,d:10,h:21},{x:-22,z:35,w:10,d:8,h:12},
+
+        // ===== Mid-ring residential (medium height) =====
+        // North street
+        {x:-25,z:-60,w:12,d:8,h:10},{x:-8,z:-60,w:10,d:8,h:12},{x:10,z:-60,w:10,d:8,h:9},{x:28,z:-60,w:12,d:8,h:11},
+        // South street
+        {x:-25,z:60,w:12,d:8,h:11},{x:-8,z:60,w:10,d:8,h:9},{x:10,z:60,w:10,d:8,h:13},{x:28,z:60,w:12,d:8,h:10},
+        // West street
+        {x:-60,z:-25,w:8,d:12,h:12},{x:-60,z:-8,w:8,d:10,h:10},{x:-60,z:10,w:8,d:10,h:14},{x:-60,z:28,w:8,d:12,h:11},
+        // East street
+        {x:60,z:-25,w:8,d:12,h:11},{x:60,z:-8,w:8,d:10,h:13},{x:60,z:10,w:8,d:10,h:10},{x:60,z:28,w:8,d:12,h:15},
+
+        // ===== Outer suburbs (shorter, spread out) =====
+        // NE quarter
+        {x:80,z:-60,w:10,d:8,h:8},{x:80,z:-80,w:8,d:10,h:7},{x:60,z:-80,w:10,d:8,h:9},
+        // NW quarter
+        {x:-80,z:-60,w:10,d:8,h:7},{x:-80,z:-80,w:8,d:10,h:9},{x:-60,z:-80,w:10,d:8,h:8},
+        // SE quarter
+        {x:80,z:60,w:10,d:8,h:9},{x:80,z:80,w:8,d:10,h:8},{x:60,z:80,w:10,d:8,h:7},
+        // SW quarter
+        {x:-80,z:60,w:10,d:8,h:8},{x:-80,z:80,w:8,d:10,h:7},{x:-60,z:80,w:10,d:8,h:9},
+
+        // ===== Landmark towers (corners & axis endpoints) =====
+        {x:-120,z:-120,w:10,d:10,h:22},{x:120,z:-120,w:10,d:10,h:18},
+        {x:-120,z:120,w:10,d:10,h:16},{x:120,z:120,w:10,d:10,h:24},
+        {x:-130,z:0,w:8,d:8,h:14},{x:130,z:0,w:8,d:8,h:12},
+        {x:0,z:-130,w:8,d:8,h:11},{x:0,z:130,w:8,d:8,h:13},
     ];
     buildings.forEach((b,i)=>{
         const col = bColors[i%bColors.length];
