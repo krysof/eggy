@@ -1362,7 +1362,7 @@ function updateHeldEggs(){
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
             var ntw=egg.weight||1.0;var ntf=0.3/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=60;egg.throwTimer=60;egg._bounces=2;
             if(currentCityStyle===5&&gameState==='city'){egg.vx*=0.3;egg.vy*=0.3;egg.vz*=0.3;egg._throwTotal=60;egg.throwTimer=60;}
-            egg.squash=0.5; playThrowSound();
+            egg.squash=0.5; playThrowSound(holder.mesh.position.x,holder.mesh.position.z);
             egg._dropCoinsOnLand=true;egg._coinsDropped=false;
             continue;
         }
@@ -1442,7 +1442,7 @@ function updateHeldEggs(){
             npc.grabCD=30;
             best.struggleMax=240+Math.floor(Math.random()*240);
             best.struggleTimer=best.struggleMax;
-            playGrabSound();
+            playGrabSound(npc.mesh.position.x,npc.mesh.position.z);
         } else if(gameState==='city'){
             // NPC grab city prop if no egg nearby
             var bestProp=null,bestPD=2.5;
@@ -1461,7 +1461,7 @@ function updateHeldEggs(){
                 bestProp.group.rotation.set(0,0,0);
                 npc.grabCD=30;
                 npc._npcPropHoldTimer=90+Math.floor(Math.random()*120);
-                playGrabSound();
+                playGrabSound(npc.mesh.position.x,npc.mesh.position.z);
             }
         }
     }
@@ -1493,7 +1493,7 @@ function updateHeldEggs(){
             hp._bounces=2;hp.throwTimer=25;
             hp.group.position.set(npc2.mesh.position.x+Math.sin(throwDir2)*1.5,npc2.mesh.position.y+0.5,npc2.mesh.position.z+Math.cos(throwDir2)*1.5);
             npc2.grabCD=40;
-            playThrowSound();
+            playThrowSound(npc2.mesh.position.x,npc2.mesh.position.z);
         }
     }
     // Update held city prop position
@@ -1999,7 +1999,7 @@ function checkThrownEggImpact(eggList){
                 // Thrower slows down
                 a.vx*=0.3;a.vz*=0.3;
                 a.throwTimer=Math.min(a.throwTimer,5);
-                playHitSound();
+                playHitSound(a.mesh.position.x,a.mesh.position.z);
                 _dropNpcStolenCoins(b);
             }
         }

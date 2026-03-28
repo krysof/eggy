@@ -21,10 +21,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         var _bFloor=0.01;
         if(!isCity){var _bgz=-egg.mesh.position.z;_bFloor=getFloorY(_bgz)+0.01;}
         if(egg.mesh.position.y<=_bFloor){
-            if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound();
+            if(egg._bounces>0){egg._bounces--;egg.vy=Math.abs(egg.vy)*0.5;egg.mesh.position.y=_bFloor;egg.squash=0.6;egg.vx*=0.75;egg.vz*=0.75;playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                 // Drop coins on first impact
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
-            } else {var _impSpd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;if(_impSpd2>0.15){egg._stunTimer=Math.floor(20+_impSpd2*200);}playHitSound();
+            } else {var _impSpd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);egg.vy=0;egg.mesh.position.y=_bFloor;egg.vx*=0.3;egg.vz*=0.3;egg.throwTimer=0;if(_impSpd2>0.15){egg._stunTimer=Math.floor(20+_impSpd2*200);}playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                 if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                 egg._dropCoinsOnLand=false;egg._coinsDropped=false;
             }
@@ -128,7 +128,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
                     if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                     var _wallImpSpd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
                     egg.throwTimer=1;if(_wallImpSpd>0.2){egg._stunTimer=Math.floor(20+_wallImpSpd*250);}
-                    egg.squash=0.6;playHitSound();
+                    egg.squash=0.6;playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                     break;
                 }
             }
@@ -151,7 +151,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
                     // Also drop coins from hit NPC
                     _dropNpcStolenCoins(te);
                     egg.vx*=0.3;egg.vz*=0.3;
-                    egg.squash=0.6;playHitSound();
+                    egg.squash=0.6;playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                     break;
                 }
             }
@@ -416,7 +416,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     // ---- FINAL: Blanka roll spin (MUST be last to override everything) ----
     if((egg._blankaSpinTimer>0||egg._blankaSpinFalling)&&!egg._hondaDash){
         if(!egg._blankaSpinAngle)egg._blankaSpinAngle=0;
-        egg._blankaSpinAngle+=0.5;
+        egg._blankaSpinAngle+=0.8;
         egg.mesh.rotation.order='YXZ';
         if(egg._blankaSpinDirX!==undefined){
             egg.mesh.rotation.y=Math.atan2(egg._blankaSpinDirX,egg._blankaSpinDirZ);
@@ -425,7 +425,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         }
         egg.mesh.rotation.x=egg._blankaSpinAngle;
         egg.mesh.rotation.z=0;
-        egg.mesh.scale.set(1,1,1);
+        egg.mesh.scale.set(0.8,0.8,0.8);
     }
 }
 

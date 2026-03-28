@@ -1458,8 +1458,7 @@ function handlePlayerInput(){
         }
         playerEgg.vy=0;
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
-        var _bsBody=playerEgg.mesh.userData.body;
-        if(_bsBody)_bsBody.rotation.x+=80.0;
+        // Spin handled by physics.js (_blankaSpinAngle); keep ball shape
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg._blankaSpinTimer%4===0){
             for(var _bri=0;_bri<allEggs.length;_bri++){
@@ -1468,8 +1467,9 @@ function handlePlayerInput(){
                 var _brdz=_bre.mesh.position.z-playerEgg.mesh.position.z;
                 var _brd=Math.sqrt(_brdx*_brdx+_brdz*_brdz);
                 if(_brd<2.5&&_brd>0.01){
-                    _bre.vx+=_brdx/_brd*0.3;_bre.vz+=_brdz/_brd*0.3;_bre.vy=0.2;
-                    _bre.squash=0.5;_bre._hitStun=10;
+                    // Knock opponent flying like Honda headbutt
+                    _bre.vx+=playerEgg.vx*0.8;_bre.vz+=playerEgg.vz*0.8;_bre.vy=0.25;
+                    _bre.squash=0.3;_bre.throwTimer=45;_bre._bounces=2;_addStunDamage(_bre,10);
                     _dropNpcStolenCoins(_bre);playHitSound();
                     // Bounce back — reverse direction, enter falling phase (still spinning)
                     playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
