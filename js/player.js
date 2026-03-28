@@ -1153,36 +1153,30 @@ function handlePlayerInput(){
         var _gsB=playerEgg.mesh.userData.body;
         if(_gsB)_gsB.rotation.x-=Math.PI*2/30;
         playerEgg._dashBounceTimer=5;
-        // Blade arc — release at peak height, flies forward ~1 body length
+        // Blade arc — follows player's foot position during backflip
         if(window._guileArc){
-            if(!playerEgg._guileArcLaunched&&playerEgg._guileSomersault<55){
-                // Launch when about 1 body height up (~10 frames in)
+            var _gaFace3=playerEgg._guileArcFaceY;
+            var _gsBAngle=_gsB?_gsB.rotation.x:0;
+            // Foot position: radius 1.5 around body center, rotates with backflip
+            var _footR=1.5;
+            var _footOffY=Math.sin(_gsBAngle)*_footR;
+            var _footOffFwd=-Math.cos(_gsBAngle)*_footR;
+            window._guileArc.visible=true;
+            window._guileArc.position.set(
+                playerEgg.mesh.position.x+Math.sin(_gaFace3)*_footOffFwd,
+                playerEgg.mesh.position.y+1.0+_footOffY,
+                playerEgg.mesh.position.z+Math.cos(_gaFace3)*_footOffFwd);
+            window._guileArc.rotation.set(_gsBAngle,_gaFace3,0);
+            window._guileArc.material.opacity=0.85;
+            // Play sound once at start
+            if(!playerEgg._guileArcLaunched){
                 playerEgg._guileArcLaunched=true;
-                var _gaFace3=playerEgg._guileArcFaceY;
-                window._guileArc.visible=true;
-                window._guileArc.position.set(
-                    playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.0,
-                    playerEgg.mesh.position.y+0.3,
-                    playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.0);
-                window._guileArc.rotation.set(0,_gaFace3,-Math.PI); // arc opening upward
-                window._guileArc.userData._vx=Math.sin(_gaFace3)*0.2;
-                window._guileArc.userData._vz=Math.cos(_gaFace3)*0.2;
-                window._guileArc.userData._life=30; // ~1 body length at 0.08/frame
-                window._guileArc.material.opacity=0.9;
-                // Cutting sound
                 if(sfxEnabled){var _gcCtx=ensureAudio();if(_gcCtx){var _gct=_gcCtx.currentTime;
                     var _gco=_gcCtx.createOscillator();var _gcg=_gcCtx.createGain();
                     _gco.type='sawtooth';_gco.frequency.setValueAtTime(1500,_gct);_gco.frequency.exponentialRampToValueAtTime(400,_gct+0.15);
                     _gcg.gain.setValueAtTime(0.12,_gct);_gcg.gain.exponentialRampToValueAtTime(0.001,_gct+0.25);
                     _gco.connect(_gcg);_gcg.connect(_gcCtx.destination);_gco.start(_gct);_gco.stop(_gct+0.25);
                 }}
-            }
-            if(playerEgg._guileArcLaunched&&window._guileArc.userData._life>0){
-                window._guileArc.userData._life--;
-                window._guileArc.position.x+=window._guileArc.userData._vx;
-                window._guileArc.position.z+=window._guileArc.userData._vz;
-                window._guileArc.material.opacity=Math.max(0,window._guileArc.userData._life/12);
-                if(window._guileArc.userData._life<=0)window._guileArc.visible=false;
             }
         }
         // Hit detection
