@@ -49,6 +49,8 @@ function handlePlayerInput(){
         if(playerEgg._elecParticles)for(var _epc=0;_epc<playerEgg._elecParticles.length;_epc++)playerEgg._elecParticles[_epc].visible=false;
         playerEgg._blankaSpinTimer=0;playerEgg._blankaSpinDirX=undefined;playerEgg._blankaSpinDirZ=undefined;playerEgg._blankaSpinFalling=false;
         playerEgg._guileSomersault=0;playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;playerEgg._guileArcLaunched=false;
+        playerEgg._guileArcPosX=undefined;playerEgg._guileArcPosY=undefined;playerEgg._guileArcPosZ=undefined;
+        if(window._guileArc)window._guileArc.visible=false;
         playerEgg._hyakuretsuTimer=0;
         playerEgg._hyakuretsuKickTimer=0;
         playerEgg._yogaFlame=0;
@@ -874,12 +876,12 @@ function handlePlayerInput(){
             if(!window._guileArc){
                 // Half-ring (arc from 0 to PI) using TorusGeometry
                 window._guileArc=new THREE.Mesh(
-                    new THREE.TorusGeometry(1.8,0.18,6,24,Math.PI),
+                    new THREE.TorusGeometry(2.25,0.22,6,24,Math.PI),
                     new THREE.MeshBasicMaterial({color:0x88FFFF,transparent:true,opacity:0.9})
                 );
                 // Inner brighter glow ring
                 var _gaInner=new THREE.Mesh(
-                    new THREE.TorusGeometry(1.8,0.09,4,24,Math.PI),
+                    new THREE.TorusGeometry(2.25,0.11,4,24,Math.PI),
                     new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.8})
                 );
                 window._guileArc.add(_gaInner);
@@ -974,8 +976,8 @@ function handlePlayerInput(){
                 var _shdy=_she.mesh.position.y-playerEgg.mesh.position.y;
                 var _shd=Math.sqrt(_shdx*_shdx+_shdz*_shdz+_shdy*_shdy);
                 if(_shd<3&&_shd>0.01){
-                    _she.vx+=_shdx/_shd*0.4;_she.vz+=_shdz/_shd*0.4;
-                    _she.vy=0.3;_she.squash=0.4;_she.throwTimer=35;_she._bounces=1;
+                    _she.vx+=_shdx/_shd*0.6;_she.vz+=_shdz/_shd*0.6;
+                    _she.vy=0.4;_she.squash=0.3;_she.throwTimer=50;_she._bounces=2;
                     _addStunDamage(_she,15);
                     _dropNpcStolenCoins(_she);playHitSound();
                     // Ken fire effect — burning particles on hit enemy
@@ -1159,14 +1161,16 @@ function handlePlayerInput(){
         if(window._guileArc){
             var _gaFace3=playerEgg._guileArcFaceY;
             window._guileArc.visible=true;
-            // Position in front of Guile, slowly drifts forward (~0.5 units over duration)
-            var _gaElapsed=(MOVE_PARAMS.rooster.somersault.duration-playerEgg._guileSomersault);
-            var _gaDrift=_gaElapsed*0.008;
-            var _gaFwdDist=1.5+_gaDrift;
-            window._guileArc.position.set(
-                playerEgg.mesh.position.x+Math.sin(_gaFace3)*_gaFwdDist,
-                playerEgg.mesh.position.y+1.0,
-                playerEgg.mesh.position.z+Math.cos(_gaFace3)*_gaFwdDist);
+            // First frame: record start position in front of Guile
+            if(!playerEgg._guileArcPosX){
+                playerEgg._guileArcPosX=playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.5;
+                playerEgg._guileArcPosY=playerEgg.mesh.position.y+1.0;
+                playerEgg._guileArcPosZ=playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.5;
+            }
+            // Move forward independently (~1/3 body per duration = ~0.7 units over 65 frames)
+            playerEgg._guileArcPosX+=Math.sin(_gaFace3)*0.012;
+            playerEgg._guileArcPosZ+=Math.cos(_gaFace3)*0.012;
+            window._guileArc.position.set(playerEgg._guileArcPosX,playerEgg._guileArcPosY,playerEgg._guileArcPosZ);
             // Arc in sagittal plane, opening faces back toward Guile, curve faces forward
             window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,Math.PI/2);
             window._guileArc.material.opacity=0.85;
@@ -1190,9 +1194,10 @@ function handlePlayerInput(){
                 var _gsdz=_gse.mesh.position.z-playerEgg.mesh.position.z;
                 var _gsdy=_gse.mesh.position.y-playerEgg.mesh.position.y;
                 var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdz*_gsdz+_gsdy*_gsdy);
-                if(_gsd<3&&_gsd>0.01){
-                    _gse.vx+=_gsdx/_gsd*0.4;_gse.vz+=_gsdz/_gsd*0.4;_gse.vy=0.3;
-                    _gse.squash=0.4;_gse.throwTimer=35;_gse._bounces=1;
+                if(_gsd<3.5&&_gsd>0.01){
+                    // Blow away like Honda headbutt
+                    _gse.vx+=_gsdx/_gsd*0.6;_gse.vz+=_gsdz/_gsd*0.6;_gse.vy=0.35;
+                    _gse.squash=0.3;_gse.throwTimer=50;_gse._bounces=2;
                     _addStunDamage(_gse,20);
                     _dropNpcStolenCoins(_gse);playHitSound();
                 }
@@ -1210,6 +1215,7 @@ function handlePlayerInput(){
             if(window._guileArc)window._guileArc.visible=false;
             playerEgg._guileSomFwdX=undefined;playerEgg._guileSomFwdZ=undefined;
             playerEgg._guileArcLaunched=false;
+            playerEgg._guileArcPosX=undefined;playerEgg._guileArcPosY=undefined;playerEgg._guileArcPosZ=undefined;
         }
     } else {
         if(window._guileArc&&(!window._guileArc.userData._life||window._guileArc.userData._life<=0))window._guileArc.visible=false;
