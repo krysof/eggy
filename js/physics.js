@@ -339,13 +339,19 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     var _sqSign=(egg.mesh.scale.y<0)?-1:1;
     // Skip squash scale during Honda dash or Blanka spin
     if(egg._hondaDash>0){
-        // Honda torpedo: whole egg tilts forward head-first
+        // Honda torpedo: body tilts forward head-first
         if(!egg._blankaRoll&&egg._dashDirX!==undefined){
-            egg.mesh.scale.set(1,0.8,1.3); // slightly elongated forward
+            egg.mesh.scale.set(1,1,1);
+            // Face dash direction
             egg.mesh.rotation.y=Math.atan2(egg._dashDirX,egg._dashDirZ);
-            egg.mesh.rotation.x=-0.6; // tilt whole egg forward
+            egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;
+            // Tilt body forward inside mesh (avoids gimbal lock)
             var _htB2=egg.mesh.userData.body;
-            if(_htB2)_htB2.rotation.x=-0.4; // extra head tilt
+            if(_htB2){
+                _htB2.rotation.x=1.2; // strong forward tilt (head down)
+                _htB2.position.z=0.3; // shift body forward
+            }
+            egg.mesh.position.y=Math.max(egg.mesh.position.y,0.8);
         }
     } else if(egg._blankaSpinTimer>0){
         var _bsB2=egg.mesh.userData.body;
