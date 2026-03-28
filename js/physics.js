@@ -385,7 +385,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         var wob=Math.sin(egg.walkPhase*1.5)*egg._wobbleAmt*egg._wobbleDir;
         egg.mesh.rotation.z+=(wob-egg.mesh.rotation.z)*0.1;
         egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
-    } else {
+    } else if(!egg._hondaDash){
         egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
         egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.12;
     }
