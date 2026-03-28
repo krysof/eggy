@@ -670,16 +670,28 @@ function playStepSound(){
     ns.start(t+0.01); ns.stop(t+0.04);
 }
 
+// ---- Distance-based volume attenuation ----
+function _sfxVolume(worldX,worldZ){
+    if(!playerEgg||!playerEgg.mesh)return 1;
+    var dx=worldX-playerEgg.mesh.position.x,dz=worldZ-playerEgg.mesh.position.z;
+    var dist=Math.sqrt(dx*dx+dz*dz);
+    if(dist<5)return 1;
+    if(dist>80)return 0;
+    return Math.max(0,1-dist/80);
+}
+
 // Jump sound
-function playJumpSound(){
+function playJumpSound(srcX,srcZ){
     if(!sfxEnabled) return;
+    var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
+    if(_vol<=0)return;
     const ctx=ensureAudio();
     const osc=ctx.createOscillator();
     const g=ctx.createGain();
     osc.type='sine';
     osc.frequency.setValueAtTime(300,ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(600,ctx.currentTime+0.12);
-    g.gain.setValueAtTime(0.1,ctx.currentTime);
+    g.gain.setValueAtTime(0.1*_vol,ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.15);
     osc.connect(g); g.connect(ctx.destination);
     osc.start(); osc.stop(ctx.currentTime+0.15);
@@ -718,21 +730,25 @@ function playSplashSound(){
     src.connect(filt);filt.connect(g);g.connect(ctx.destination);
     src.start();src.stop(ctx.currentTime+0.15);
 }
-function playHitSound(){
+function playHitSound(srcX,srcZ){
     if(!sfxEnabled) return;
+    var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
+    if(_vol<=0)return;
     const ctx=ensureAudio();
     const osc=ctx.createOscillator();
     const g=ctx.createGain();
     osc.type='sawtooth'; osc.frequency.value=120;
-    g.gain.setValueAtTime(0.08,ctx.currentTime);
+    g.gain.setValueAtTime(0.08*_vol,ctx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.1);
     osc.connect(g); g.connect(ctx.destination);
     osc.start(); osc.stop(ctx.currentTime+0.1);
 }
 
 // Grab sound — short "boop"
-function playGrabSound(){
+function playGrabSound(srcX,srcZ){
     if(!sfxEnabled) return;
+    var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
+    if(_vol<=0)return;
     const ctx=ensureAudio(); const t=ctx.currentTime;
     const osc=ctx.createOscillator(); const g=ctx.createGain();
     osc.type='sine'; osc.frequency.setValueAtTime(500,t); osc.frequency.exponentialRampToValueAtTime(350,t+0.1);
@@ -741,8 +757,10 @@ function playGrabSound(){
 }
 
 // Throw sound — whoosh
-function playThrowSound(){
+function playThrowSound(srcX,srcZ){
     if(!sfxEnabled) return;
+    var _vol=(srcX!==undefined)?_sfxVolume(srcX,srcZ):1;
+    if(_vol<=0)return;
     const ctx=ensureAudio(); const t=ctx.currentTime;
     const buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.15),ctx.sampleRate);
     const d=buf.getChannelData(0);
