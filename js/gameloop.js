@@ -1684,7 +1684,7 @@ function confirmPortalEnter(){
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
         startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
     }
-    else if(ht==='platformer'){if(typeof _pfStart==='function'){gameState='platformer';_pfStart();}}
+    else if(ht==='platformer'){if(typeof _pfStart==='function'){_pfStart();}}
     else if(ts>=0){ switchCity(ts); }
 }
 document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else if(_moonPipePromptOpen){_confirmMoonPipeEnter();}else{confirmPortalEnter();}});
@@ -2046,12 +2046,6 @@ function animate(now){
 function _gameUpdate(){
     const dt=1/60;
 
-    // Platformer mode — separate update, skip everything else
-    if(gameState==='platformer'){
-        if(typeof _pfGameUpdate==='function')_pfGameUpdate();
-        return;
-    }
-
     if(gameState==='city'){
         if(_pipeTraveling){
             updatePipeTravel();
@@ -2141,7 +2135,7 @@ function _gameUpdate(){
         updateHeldEggs();
         _updateChatBubbles();
         for(var _nci=0;_nci<allEggs.length;_nci++){if(!allEggs[_nci].isPlayer)_npcRandomChat(allEggs[_nci]);}
-        updateCamera();
+        if(_pfActive&&typeof _pfUpdateCamera==='function'){_pfUpdateCamera();}else{updateCamera();}
     } else if(gameState==='racing'){
         handlePlayerInput();
         const raceEggs=allEggs.filter(e=>!e.cityNPC);
