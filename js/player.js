@@ -515,7 +515,7 @@ function handlePlayerInput(){
     var _ct=playerEgg.mesh.userData._charType||'egg';
     if(playerEgg._lariatReady&&playerEgg._attackCD<=0&&!playerEgg.holding&&!playerEgg._tatsuActive){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
-        playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+        playerEgg._tatsuActive=MOVE_PARAMS.frog.lariat.duration;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
         playerEgg._isLariat=true;
         playerEgg.vy=0; // NO jump for lariat
@@ -590,7 +590,7 @@ function handlePlayerInput(){
             var _hRingColor=_ct==='egg'?0xFFAA66:0x88DDFF;
             var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:_hRingColor,transparent:true,opacity:0.6}));
             _hRing.position.copy(_hBall.position);scene.add(_hRing);
-            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*0.35,vz:Math.cos(_hDir)*0.35,life:120,owner:playerEgg,burns:(_ct==='egg')};
+            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*MOVE_PARAMS[_ct].hadouken.speed,vz:Math.cos(_hDir)*MOVE_PARAMS[_ct].hadouken.speed,life:MOVE_PARAMS[_ct].hadouken.life,owner:playerEgg,burns:MOVE_PARAMS[_ct].hadouken.burns};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ct==='cockroach'){
@@ -614,7 +614,7 @@ function handlePlayerInput(){
             scene.add(_yfGroup);
             var _yfRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.4}));
             _yfRing.position.copy(_yfGroup.position);scene.add(_yfRing);
-            window._playerHadouken={ball:_yfGroup,ring:_yfRing,vx:Math.sin(_yfDir)*0.2,vz:Math.cos(_yfDir)*0.2,life:180,owner:playerEgg,burns:true,isYogaFire:true};
+            window._playerHadouken={ball:_yfGroup,ring:_yfRing,vx:Math.sin(_yfDir)*MOVE_PARAMS.cockroach.yogaFire.speed,vz:Math.cos(_yfDir)*MOVE_PARAMS.cockroach.yogaFire.speed,life:MOVE_PARAMS.cockroach.yogaFire.life,owner:playerEgg,burns:MOVE_PARAMS.cockroach.yogaFire.burns,isYogaFire:true};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
@@ -639,7 +639,7 @@ function handlePlayerInput(){
             // Small glow sphere
             var _sbGlow=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.3}));
             _sbGlow.position.copy(_sbPlane.position);scene.add(_sbGlow);
-            window._playerHadouken={ball:_sbPlane,ring:_sbGlow,vx:Math.sin(_sbDir)*0.5,vz:Math.cos(_sbDir)*0.5,life:100,owner:playerEgg,isSonicBoom:true};
+            window._playerHadouken={ball:_sbPlane,ring:_sbGlow,vx:Math.sin(_sbDir)*MOVE_PARAMS.rooster.sonicBoom.speed,vz:Math.cos(_sbDir)*MOVE_PARAMS.rooster.sonicBoom.speed,life:MOVE_PARAMS.rooster.sonicBoom.life,owner:playerEgg,isSonicBoom:true};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
             // Sonic boom sound — loud crack
             if(sfxEnabled){var _sbSCtx=ensureAudio();if(_sbSCtx){var _sbt=_sbSCtx.currentTime;
@@ -660,12 +660,12 @@ function handlePlayerInput(){
         } else if(playerEgg._bfReady&&_ct==='pig'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
             _shoutMove(playerEgg,'Dosukoi!');
-            playerEgg._comboCount=0;playerEgg._attackCD=70;playerEgg._bfReady=false;playerEgg._bfSeq=0; // 70 frames = ~1.2s total cooldown
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.pig.headbutt.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _shDir=playerEgg.mesh.rotation.y;
-            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*2;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*2;
+            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*MOVE_PARAMS.pig.headbutt.speed;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*MOVE_PARAMS.pig.headbutt.speed;
             playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
             playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
-            playerEgg._hondaDash=60;playerEgg._atkAnim=62;playerEgg.squash=0.55;
+            playerEgg._hondaDash=MOVE_PARAMS.pig.headbutt.duration;playerEgg._atkAnim=62;playerEgg.squash=0.55;
             // Head tilt forward
             var _hBody=playerEgg.mesh.userData.body;
             if(_hBody)_hBody.rotation.x=-0.6;
@@ -674,12 +674,12 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             var _shFaceDir=playerEgg.mesh.rotation.y;
-            var _shFwd=_ct==='dog'?0.35:0.15; // Ken: 3 body-lengths further, same speed feel
-            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?1.7:1.6); // Ken only slightly higher
+            var _shFwd=_ct==='dog'?MOVE_PARAMS.dog.shoryuken.fwdSpeed:MOVE_PARAMS.egg.shoryuken.fwdSpeed;
+            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?MOVE_PARAMS.dog.shoryuken.jumpMul:MOVE_PARAMS.egg.shoryuken.jumpMul);
             playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
             playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
             playerEgg.squash=0.5;
-            playerEgg._shoryuActive=_ct==='dog'?75:65;
+            playerEgg._shoryuActive=_ct==='dog'?MOVE_PARAMS.dog.shoryuken.duration:MOVE_PARAMS.egg.shoryuken.duration;
             playerEgg._shoryuIsKen=(_ct==='dog');
             // Ken: store forward direction to maintain momentum during rise
             if(_ct==='dog'){
@@ -712,16 +712,16 @@ function handlePlayerInput(){
             _sbBall2.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir2)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir2)*1.5);scene.add(_sbBall2);
             var _sbRing2=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
             _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
-            window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*0.5,vz:Math.cos(_sbDir2)*0.5,life:100,owner:playerEgg};
+            window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*MOVE_PARAMS.monkey.kikouken.speed,vz:Math.cos(_sbDir2)*MOVE_PARAMS.monkey.kikouken.speed,life:MOVE_PARAMS.monkey.kikouken.life,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&(_ct==='cat')){
             // ROLLING ATTACK (Blanka) — ←→+R, forward roll same speed/distance as Honda
             _shoutMove(playerEgg,'GRAAAH!');
-            playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._bfReady=false;playerEgg._bfSeq=0;
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.cat.roll.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _brDir=playerEgg.mesh.rotation.y;
-            playerEgg._blankaSpinTimer=60;
-            playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*3;
-            playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*3;
+            playerEgg._blankaSpinTimer=MOVE_PARAMS.cat.roll.duration;
+            playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
+            playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
             playerEgg._dashFaceY=_brDir; // remember facing for landing
             playerEgg._blankaSpinFalling=false;
             playerEgg.squash=0.8;
@@ -729,7 +729,7 @@ function handlePlayerInput(){
             // YOGA FLAME (Dhalsim) — ←→+R, short range fire breath
             _shoutMove(playerEgg,'Yoga Flame!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
-            playerEgg._yogaFlame=60; // 1 second flame duration
+            playerEgg._yogaFlame=MOVE_PARAMS.cockroach.yogaFlame.duration;
             playerEgg._yogaFlameDir=playerEgg.mesh.rotation.y;
             playerEgg.squash=0.85;
             // Fire breath sound
@@ -837,7 +837,7 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Tatsumaki Senpukyaku!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
             playerEgg.vy=0.1; // slight hop
-            playerEgg._tatsuActive=94; // 12 full rotations at 0.8 rad/frame
+            playerEgg._tatsuActive=MOVE_PARAMS.egg.tatsumaki.duration;
             playerEgg._tatsuDir=playerEgg.mesh.rotation.y; // store facing direction
             // Show both legs extended
             var _tud=playerEgg.mesh.userData;
@@ -854,8 +854,8 @@ function handlePlayerInput(){
         } else if(_isTatsu&&_ct==='monkey'){
             // SPINNING BIRD KICK (Chun-Li) — ↓←+T
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
-            playerEgg.vy=JUMP_FORCE*1.2;
-            playerEgg._tatsuActive=60;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+            playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.monkey.spinningBird.jumpMul;
+            playerEgg._tatsuActive=MOVE_PARAMS.monkey.spinningBird.duration;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
             // Phoenix cry sound
@@ -875,11 +875,11 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             var _gsFaceDir=playerEgg.mesh.rotation.y;
-            playerEgg.vy=JUMP_FORCE*1.6;
+            playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.rooster.somersault.jumpMul;
             playerEgg.vx=Math.sin(_gsFaceDir)*0.15;
             playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
             playerEgg.squash=0.5;
-            playerEgg._guileSomersault=65;
+            playerEgg._guileSomersault=MOVE_PARAMS.rooster.somersault.duration;
             playerEgg._guileSomFwdX=Math.sin(_gsFaceDir)*0.15;
             playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
             playerEgg._guileArcFaceY=_gsFaceDir;
@@ -1138,9 +1138,9 @@ function handlePlayerInput(){
             var _tdz=_te.mesh.position.z-playerEgg.mesh.position.z;
             var _td=Math.sqrt(_tdx*_tdx+_tdz*_tdz);
             if(_td<3&&_td>0.01){
-                _te.vx+=_tdx/_td*0.5;_te.vz+=_tdz/_td*0.5;_te.vy=0.3;
+                _te.vx+=_tdx/_td*MOVE_PARAMS.egg.tatsumaki.hitForce;_te.vz+=_tdz/_td*MOVE_PARAMS.egg.tatsumaki.hitForce;_te.vy=MOVE_PARAMS.egg.tatsumaki.hitVy;
                 _te.squash=0.35;_te.throwTimer=40;_te._bounces=2;_te._tatsuHitCD=12;
-                _addStunDamage(_te,15);
+                _addStunDamage(_te,MOVE_PARAMS.egg.tatsumaki.stunDmg);
                 _dropNpcStolenCoins(_te);playHitSound();
             }
         }
@@ -1441,8 +1441,8 @@ function handlePlayerInput(){
                     var _yfDot=(_yfdx*Math.sin(_yfFace)+_yfdz*Math.cos(_yfFace))/_yfd;
                     if(_yfDot>0.3){
                         // Set on fire — like Blanka electric but fire
-                        _yfe._onFire=120; // 2 seconds
-                        _yfe._fireStun=90; // freeze 1.5s then knockback
+                        _yfe._onFire=MOVE_PARAMS.cockroach.yogaFlame.fireDuration;
+                        _yfe._fireStun=MOVE_PARAMS.cockroach.yogaFlame.fireStun;
                         _yfe._fireStunDir=_yfFace;
                         _yfe.vx=0;_yfe.vz=0;_yfe.vy=0;
                         _addStunDamage(_yfe,20);
