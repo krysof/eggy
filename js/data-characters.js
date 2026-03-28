@@ -52,7 +52,7 @@ var MOVE_PARAMS={
             cd:25                 // cooldown frames
         },
         shoryuken:{
-            trigger:'duR',input:'↓↑+R',        // down-up + punch
+            trigger:'bfR',input:'↓↑+R',        // down-up + punch
             name:'SHORYUKEN!',type:'shoryuken',shout:'SHORYUKEN!',
             text:{zhs:'升龙拳！',zht:'昇龍拳！',ja:'昇龍拳！',en:'SHORYUKEN!'},
             jumpMul:1.6,fwdSpeed:0.15,duration:65,
@@ -82,7 +82,7 @@ var MOVE_PARAMS={
             cd:25
         },
         shoryuken:{
-            trigger:'duR',input:'↓↑+R',
+            trigger:'bfR',input:'↓↑+R',
             name:'Shoryuken!',type:'shoryuken',shout:'Shoryuken!',
             text:{zhs:'升龙拳！',zht:'昇龍拳！',ja:'昇龍拳！',en:'Shoryuken!'},
             jumpMul:1.7,fwdSpeed:0.35,duration:75,

@@ -519,13 +519,11 @@ function handlePlayerInput(){
     // Punch (R) — character-specific special moves on command input
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
-        var _isShoryu=playerEgg._shoryuReady;
         var _alwaysR=_findMove(_ct,'alwaysR');
         var _ffR=_findMove(_ct,'ffR');
         var _bfR=_findMove(_ct,'bfR');
-        var _duR=_findMove(_ct,'duR');
         // ---- Always-on punch special (Honda hyakuretsu, Blanka electric) ----
-        if(_alwaysR&&_alwaysR.type==='hyakuretsu'&&!_isShoryu&&!playerEgg._bfReady){
+        if(_alwaysR&&_alwaysR.type==='hyakuretsu'&&!playerEgg._bfReady){
             _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=_alwaysR.cd||4;
             // Start continuous slap state
@@ -536,7 +534,7 @@ function handlePlayerInput(){
             playerEgg.squash=0.88;
         }
         // ---- BLANKA: always Electric Thunder on punch ----
-        else if(_alwaysR&&_alwaysR.type==='electric'&&!_isShoryu&&!playerEgg._bfReady){
+        else if(_alwaysR&&_alwaysR.type==='electric'&&!playerEgg._bfReady){
             _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             playerEgg._blankaShock=60;
@@ -661,10 +659,10 @@ function handlePlayerInput(){
             playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
             playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
             playerEgg._hondaDash=MOVE_PARAMS.bull.headbutt.duration;playerEgg._hondaDashTotal=MOVE_PARAMS.bull.headbutt.duration;playerEgg._hondaBounced=false;playerEgg._atkAnim=62;playerEgg.squash=0.55;
-        } else if(_isShoryu&&_duR&&(_ct==='egg'||_ct==='dog')){
-            // SHORYUKEN (Ryu/Ken) — Ryu: diagonal up-forward, Ken: flies further
+        } else if(playerEgg._bfReady&&_bfR&&_bfR.type==='shoryuken'&&(_ct==='egg'||_ct==='dog')){
+            // SHORYUKEN (Ryu/Ken) — ←→+R
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _shFaceDir=playerEgg.mesh.rotation.y;
             var _shFwd=_ct==='dog'?MOVE_PARAMS.dog.shoryuken.fwdSpeed:MOVE_PARAMS.egg.shoryuken.fwdSpeed;
             playerEgg.vy=JUMP_FORCE*(_ct==='dog'?MOVE_PARAMS.dog.shoryuken.jumpMul:MOVE_PARAMS.egg.shoryuken.jumpMul);
@@ -682,18 +680,6 @@ function handlePlayerInput(){
                 playerEgg._shoryuFwdZ=Math.cos(_shFaceDir)*_shFwd*0.5;
             }
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
-            playJumpSound();
-        } else if(_isShoryu&&_ct==='cat'){
-            // ELECTRIC THUNDER (Blanka) — shock nearby enemies
-            _shoutMove(playerEgg,'ELECTRIC!');
-            playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._shoryuReady=false;
-            playerEgg._blankaShock=30;playerEgg.squash=0.6;
-            if(sfxEnabled){var _bsCtx2=ensureAudio();if(_bsCtx2){var _bst3=_bsCtx2.currentTime;var _bso2=_bsCtx2.createOscillator();var _bsg2=_bsCtx2.createGain();_bso2.type='square';_bso2.frequency.setValueAtTime(800,_bst3);_bso2.frequency.linearRampToValueAtTime(2000,_bst3+0.1);_bso2.frequency.linearRampToValueAtTime(400,_bst3+0.3);_bsg2.gain.setValueAtTime(0.08,_bst3);_bsg2.gain.exponentialRampToValueAtTime(0.001,_bst3+0.35);_bso2.connect(_bsg2);_bsg2.connect(_bsCtx2.destination);_bso2.start(_bst3);_bso2.stop(_bst3+0.35);}}
-        } else if(_isShoryu&&_duR&&(_ct==='egg'||_ct==='dog')){
-            // Fallback Shoryuken — Ryu/Ken only
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
-            playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
-            playerEgg._shoryuActive=60;
             playJumpSound();
         } else if(_isHadou&&_ffR&&_ct==='monkey'&&!window._playerHadouken){
             // 気功拳 (Chun-Li)
@@ -1617,16 +1603,7 @@ function handlePlayerInput(){
     var _joyU=joyActive&&joyVec.y<-0.3;
     var _hUp=(keys['KeyW']||keys['ArrowUp']||_joyU);
     var _hUpPress=_hUp&&!playerEgg._prevHUp;
-    // ---- Shoryuken: 下+上+R (down then up + punch) ----
-    if(!playerEgg._shoryuSeq)playerEgg._shoryuSeq=0;
-    if(!playerEgg._shoryuTimer)playerEgg._shoryuTimer=0;
-    playerEgg._shoryuTimer--;
-    if(_hDownPress&&playerEgg._shoryuSeq===0){
-        playerEgg._shoryuSeq=1;playerEgg._shoryuTimer=30;
-    } else if(_hUpPress&&playerEgg._shoryuSeq===1){
-        playerEgg._shoryuSeq=2;playerEgg._shoryuTimer=30;playerEgg._shoryuReady=true;
-    }
-    if(playerEgg._shoryuTimer<=0){playerEgg._shoryuSeq=0;playerEgg._shoryuReady=false;}
+    // ---- Shoryuken detection removed — now uses bfR ----
     // Determine "forward" and "back" based on facing direction
     var _faceY=playerEgg.mesh.rotation.y;
     var _faceSinY=Math.sin(_faceY),_faceCosY=Math.cos(_faceY);
