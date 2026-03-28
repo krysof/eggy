@@ -415,7 +415,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     }
     // ---- FINAL: Blanka roll spin (MUST be last to override everything) ----
     if((egg._blankaSpinTimer>0||egg._blankaSpinFalling)&&!egg._hondaDash){
-        if(!egg._blankaSpinAngle)egg._blankaSpinAngle=0;
+        if(egg._blankaSpinAngle===undefined)egg._blankaSpinAngle=0;
         egg._blankaSpinAngle+=0.8;
         egg.mesh.rotation.order='YXZ';
         if(egg._blankaSpinDirX!==undefined){

@@ -705,6 +705,7 @@ function handlePlayerInput(){
             playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
             playerEgg._dashFaceY=_brDir; // remember facing for landing
             playerEgg._blankaSpinFalling=false;
+            playerEgg._blankaSpinAngle=0; // reset spin angle for fresh roll
             playerEgg.squash=0.8;
         } else if(playerEgg._bfReady&&_bfR&&_ct==='cockroach'){
             // YOGA FLAME (Dhalsim) — ←→+R, short range fire breath
@@ -1458,7 +1459,13 @@ function handlePlayerInput(){
         }
         playerEgg.vy=0;
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
-        // Spin handled by physics.js (_blankaSpinAngle); keep ball shape
+        // Direct spin rotation — ball rolling forward
+        if(!playerEgg._blankaSpinAngle)playerEgg._blankaSpinAngle=0;
+        playerEgg._blankaSpinAngle+=0.8;
+        playerEgg.mesh.rotation.order='YXZ';
+        playerEgg.mesh.rotation.y=playerEgg._dashFaceY!==undefined?playerEgg._dashFaceY:Math.atan2(playerEgg._blankaSpinDirX||0,playerEgg._blankaSpinDirZ||0);
+        playerEgg.mesh.rotation.x=playerEgg._blankaSpinAngle;
+        playerEgg.mesh.rotation.z=0;
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg._blankaSpinTimer%4===0){
             for(var _bri=0;_bri<allEggs.length;_bri++){
@@ -1509,8 +1516,8 @@ function handlePlayerInput(){
     // Blanka spin falling — keep spinning at same speed until landing
     if(playerEgg._blankaSpinFalling){
         // Keep spinning during fall
-        if(!playerEgg._blankaSpinAngle)playerEgg._blankaSpinAngle=0;
-        playerEgg._blankaSpinAngle+=0.5;
+        if(playerEgg._blankaSpinAngle===undefined)playerEgg._blankaSpinAngle=0;
+        playerEgg._blankaSpinAngle+=0.8;
         playerEgg.mesh.rotation.order='YXZ';
         if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
         playerEgg.mesh.rotation.x=playerEgg._blankaSpinAngle;
