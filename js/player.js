@@ -1459,8 +1459,6 @@ function handlePlayerInput(){
         }
         playerEgg.vy=0;
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
-        // Scale only — rotation handled by physics.js FINAL block (wobble/facing skipped there)
-        playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg._blankaSpinTimer%4===0){
             for(var _bri=0;_bri<allEggs.length;_bri++){
                 var _bre=allEggs[_bri];if(_bre===playerEgg||!_bre.alive||_bre.heldBy)continue;
@@ -1509,8 +1507,7 @@ function handlePlayerInput(){
     }
     // Blanka spin falling — keep spinning at same speed until landing
     if(playerEgg._blankaSpinFalling){
-        // Scale only during fall — rotation handled by physics.js FINAL block
-        playerEgg.mesh.scale.set(0.85,0.85,0.85);
+        // Rotation handled by physics.js FINAL block, no scale change
         if(playerEgg.onGround){
             playerEgg._blankaSpinFalling=false;
             playerEgg._blankaSpinAngle=0;

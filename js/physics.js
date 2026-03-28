@@ -416,7 +416,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg.mesh.rotation.x=_hdA;
         egg.mesh.rotation.z=0;
     }
-    // ---- FINAL: Blanka roll spin (Euler, wobble/facing skipped above) ----
+    // ---- FINAL: Blanka roll spin — same height as Honda, no scale change ----
     if(_isBlankaSpinning){
         if(egg._blankaSpinAngle===undefined)egg._blankaSpinAngle=0;
         egg._blankaSpinAngle+=0.6;
@@ -428,7 +428,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         }
         egg.mesh.rotation.x=egg._blankaSpinAngle;
         egg.mesh.rotation.z=0;
-        egg.mesh.scale.set(0.8,0.8,0.8);
+        egg.mesh.scale.set(1,1,1);
     }
 }
 
