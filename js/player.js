@@ -1459,13 +1459,7 @@ function handlePlayerInput(){
         }
         playerEgg.vy=0;
         playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
-        // Direct spin rotation — ball rolling forward
-        if(!playerEgg._blankaSpinAngle)playerEgg._blankaSpinAngle=0;
-        playerEgg._blankaSpinAngle+=0.8;
-        playerEgg.mesh.rotation.order='YXZ';
-        playerEgg.mesh.rotation.y=playerEgg._dashFaceY!==undefined?playerEgg._dashFaceY:Math.atan2(playerEgg._blankaSpinDirX||0,playerEgg._blankaSpinDirZ||0);
-        playerEgg.mesh.rotation.x=playerEgg._blankaSpinAngle;
-        playerEgg.mesh.rotation.z=0;
+        // Scale only — rotation handled by physics.js FINAL block (wobble/facing skipped there)
         playerEgg.mesh.scale.set(0.8,0.8,0.8);
         if(playerEgg._blankaSpinTimer%4===0){
             for(var _bri=0;_bri<allEggs.length;_bri++){
@@ -1515,18 +1509,14 @@ function handlePlayerInput(){
     }
     // Blanka spin falling — keep spinning at same speed until landing
     if(playerEgg._blankaSpinFalling){
-        // Keep spinning during fall
-        if(playerEgg._blankaSpinAngle===undefined)playerEgg._blankaSpinAngle=0;
-        playerEgg._blankaSpinAngle+=0.8;
-        playerEgg.mesh.rotation.order='YXZ';
-        if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
-        playerEgg.mesh.rotation.x=playerEgg._blankaSpinAngle;
+        // Scale only during fall — rotation handled by physics.js FINAL block
         playerEgg.mesh.scale.set(0.85,0.85,0.85);
         if(playerEgg.onGround){
             playerEgg._blankaSpinFalling=false;
             playerEgg._blankaSpinAngle=0;
             playerEgg.mesh.rotation.order='XYZ';
             playerEgg.mesh.rotation.x=0;
+            playerEgg.mesh.rotation.z=0;
             var _bsFBody=playerEgg.mesh.userData.body;
             if(_bsFBody)_bsFBody.rotation.x=0;
             playerEgg.mesh.scale.set(1,1,1);

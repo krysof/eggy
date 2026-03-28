@@ -375,17 +375,20 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg._wobbleAmt=0.15+Math.random()*0.25;
         egg._wobbleDir=Math.random()<0.5?1:-1;
     }
-    if(egg._wobbleTimer>0){
-        egg._wobbleTimer--;
-        var wob=Math.sin(egg.walkPhase*1.5)*egg._wobbleAmt*egg._wobbleDir;
-        egg.mesh.rotation.z+=(wob-egg.mesh.rotation.z)*0.1;
-        egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
-    } else if(!_attackAnim){
-        egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
-        egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.12;
+    var _isBlankaSpinning=(egg._blankaSpinTimer>0||egg._blankaSpinFalling)&&!egg._hondaDash;
+    if(!_isBlankaSpinning){
+        if(egg._wobbleTimer>0){
+            egg._wobbleTimer--;
+            var wob=Math.sin(egg.walkPhase*1.5)*egg._wobbleAmt*egg._wobbleDir;
+            egg.mesh.rotation.z+=(wob-egg.mesh.rotation.z)*0.1;
+            egg.mesh.rotation.x+=(wob*0.5-egg.mesh.rotation.x)*0.1;
+        } else if(!_attackAnim){
+            egg.mesh.rotation.x+=(0-egg.mesh.rotation.x)*0.12;
+            egg.mesh.rotation.z+=(0-egg.mesh.rotation.z)*0.12;
+        }
     }
 
-    if(speed>0.01){
+    if(speed>0.01&&!_isBlankaSpinning){
         // Skip facing update during backstep or post-dash bounce or Dhalsim attack
         if(!(egg.isPlayer&&(egg._dashBounceTimer>0||egg._hondaDash>0||(egg._atkAnim>0&&egg.mesh.userData._charType==='cockroach')))){
         const ta=Math.atan2(egg.vx,egg.vz);
@@ -413,10 +416,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg.mesh.rotation.x=_hdA;
         egg.mesh.rotation.z=0;
     }
-    // ---- FINAL: Blanka roll spin (MUST be last to override everything) ----
-    if((egg._blankaSpinTimer>0||egg._blankaSpinFalling)&&!egg._hondaDash){
+    // ---- FINAL: Blanka roll spin (Euler, wobble/facing skipped above) ----
+    if(_isBlankaSpinning){
         if(egg._blankaSpinAngle===undefined)egg._blankaSpinAngle=0;
-        egg._blankaSpinAngle+=0.8;
+        egg._blankaSpinAngle+=0.6;
         egg.mesh.rotation.order='YXZ';
         if(egg._blankaSpinDirX!==undefined){
             egg.mesh.rotation.y=Math.atan2(egg._blankaSpinDirX,egg._blankaSpinDirZ);
