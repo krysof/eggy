@@ -330,7 +330,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     if(body){
         // Skip walk body tilt during spin dash — let the whole mesh spin freely
         var _isSpinning=(egg.isPlayer&&_spinDashing)||(egg._npcSpinTimer&&egg._npcSpinTimer>=30&&egg._npcSpinTimer<90);
-        if(!_isSpinning){
+        if(!_isSpinning&&!egg._hondaDash&&!egg._blankaSpinTimer){
             var tz=Math.sin(egg.walkPhase)*speed*0.25;var tx=-speed*0.35;body.rotation.z+=(tz-body.rotation.z)*0.1;if(!egg._guileSomersault)body.rotation.x+=(tx-body.rotation.x)*0.1;
         }
     }
