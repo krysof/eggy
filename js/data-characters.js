@@ -245,3 +245,30 @@ var NPC_MOVE_CHANCE={
     lariat:0.008,piledriver:0.008,
     yogaFire:0.02,yogaFlame:0.006
 };
+
+// ---- Trigger helpers ----
+function _findMove(charType,trigger){
+    var moves=MOVE_PARAMS[charType];if(!moves)return null;
+    for(var key in moves){var m=moves[key];if(m&&m.trigger===trigger)return m;}
+    return null;
+}
+function _getMoves(charType){
+    var moves=MOVE_PARAMS[charType];if(!moves)return [];
+    var r=[];for(var key in moves){var m=moves[key];if(m&&m.trigger)r.push(m);}return r;
+}
+function _hasMove(charType,trigger){return !!_findMove(charType,trigger);}
+function _playMoveSFX(md){
+    if(!md||!md.sfx||!sfxEnabled)return;
+    try{var c=ensureAudio();if(!c)return;var t=c.currentTime;var s=md.sfx;
+        var o=c.createOscillator();var g=c.createGain();
+        o.type=s.type||'sine';o.frequency.setValueAtTime(s.freqStart||300,t);
+        o.frequency.exponentialRampToValueAtTime(Math.max(s.freqEnd||150,1),t+(s.dur||0.3)*0.8);
+        g.gain.setValueAtTime(s.gain||0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+(s.dur||0.3));
+        o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+(s.dur||0.3));
+    }catch(e){}
+}
+function _shoutMoveData(egg,md){
+    if(!md||!egg)return;var txt=md.shout||'';
+    if(md.text){txt=md.text[_langCode]||md.text.en||txt;}
+    if(typeof _showChatBubble==='function')_showChatBubble(egg,txt,60);
+}

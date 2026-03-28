@@ -135,32 +135,22 @@ function updateCity(){
                 if(cityProps[_fpi]._fishRef===fish){_fishProp=cityProps[_fpi];break;}
             }
             // Skip animation while being thrown — let prop physics handle it
-            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=90;continue;} // 1.5 sec recovery after landing
-            if(_fishProp&&_fishProp.grabbed){fish._thrownRecovery=300;continue;}
-            // Post-throw recovery: wait then crawl back
+            if(_fishProp&&_fishProp.throwTimer>0){fish._thrownRecovery=60;continue;}
+            if(_fishProp&&_fishProp.grabbed){fish._thrownRecovery=60;continue;}
+            // Post-throw recovery: flop back to water immediately
             if(fish._thrownRecovery>0){
                 fish._thrownRecovery--;
-                // Apply gravity if fish is in the air
-                if(fish.group.position.y>0.2){
-                    fish.group.position.y-=0.05;
-                    if(fish.group.position.y<0.2)fish.group.position.y=0.2;
-                }
-                if(fish._thrownRecovery>180){
-                    // First 2 sec: lie still (stunned)
-                    fish.group.rotation.z=Math.PI/2*(Math.random()<0.5?1:-1)*0.8;
-                    continue;
-                }
-                // Then flop back to water
+                if(fish.group.position.y>0.2){fish.group.position.y-=0.05;if(fish.group.position.y<0.2)fish.group.position.y=0.2;}
+                // Flop toward nearest water (center pool)
                 var _ftpx=-fish.group.position.x;var _ftpz=-fish.group.position.z;
                 var _ftpd=Math.sqrt(_ftpx*_ftpx+_ftpz*_ftpz)||1;
-                fish.group.position.x+=_ftpx/_ftpd*0.04;
-                fish.group.position.z+=_ftpz/_ftpd*0.04;
+                fish.group.position.x+=_ftpx/_ftpd*0.12;
+                fish.group.position.z+=_ftpz/_ftpd*0.12;
                 fish.group.position.y=0.15+Math.abs(Math.sin(Date.now()*0.015))*0.15;
                 fish.group.rotation.y=Math.atan2(_ftpx,_ftpz);
                 fish.group.rotation.z=Math.sin(Date.now()*0.02)*0.5;
-                // Once back in water, reset
                 var _ftDist=Math.sqrt(fish.group.position.x*fish.group.position.x+fish.group.position.z*fish.group.position.z);
-                if(_ftDist<7){fish._thrownRecovery=0;fish.angle=Math.atan2(fish.group.position.z,fish.group.position.x);fish.radius=_ftDist||3;}
+                if(_ftDist<8||Math.abs(_ftDist-25)<4||Math.abs(_ftDist-55)<4){fish._thrownRecovery=0;fish.angle=Math.atan2(fish.group.position.z,fish.group.position.x);fish.radius=_ftDist||3;}
                 continue;
             }
             // Check if fish was thrown and landed outside water — crawl back

@@ -2,11 +2,6 @@
 // ============================================================
 //  PLAYER INPUT
 // ============================================================
-// ---- Move lookup helpers (fallback if data-characters.js didn't define them) ----
-if(typeof _findMove==='undefined'){
-    function _findMove(ct,trigger){var m=MOVE_PARAMS[ct];if(!m)return null;for(var k in m){if(m[k]&&m[k].trigger===trigger)return m[k];}return null;}
-    function _hasMove(ct,trigger){return !!_findMove(ct,trigger);}
-}
 // Stun meter system: accumulate damage, stun when threshold exceeded
 // stunAmount: light=8, medium=15, heavy=25, slam=40, special=20
 // Returns true if the target gets stunned
