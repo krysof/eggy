@@ -1163,7 +1163,7 @@ function handlePlayerInput(){
             window._guileArc.visible=true;
             // Follow player + drift forward a bit (~1/3 body over duration)
             var _gaElapsed=(MOVE_PARAMS.rooster.somersault.duration-playerEgg._guileSomersault);
-            var _gaDrift=1.5+_gaElapsed*0.015;
+            var _gaDrift=1.5+_gaElapsed*0.03;
             window._guileArc.position.set(
                 playerEgg.mesh.position.x+Math.sin(_gaFace3)*_gaDrift,
                 playerEgg.mesh.position.y+1.0,
