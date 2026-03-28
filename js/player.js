@@ -529,10 +529,14 @@ function handlePlayerInput(){
     if(keys['KeyR']&&!playerEgg._rWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isHadou=playerEgg._hadouReady&&!window._playerHadouken;
         var _isShoryu=playerEgg._shoryuReady;
-        // ---- HONDA: always Hyakuretsu (百裂掌) on normal punch ----
-        if(_ct==='bull'&&!_isShoryu&&!playerEgg._bfReady){
-            _shoutMove(playerEgg,'Hohoho!');
-            playerEgg._comboCount=0;playerEgg._attackCD=4;
+        var _alwaysR=_findMove(_ct,'alwaysR');
+        var _ffR=_findMove(_ct,'ffR');
+        var _bfR=_findMove(_ct,'bfR');
+        var _duR=_findMove(_ct,'duR');
+        // ---- Always-on punch special (Honda hyakuretsu, Blanka electric) ----
+        if(_alwaysR&&!_isShoryu&&!playerEgg._bfReady){
+            _shoutMove(playerEgg,_alwaysR.shout);
+            playerEgg._comboCount=0;playerEgg._attackCD=_alwaysR.cd||4;
             // Start continuous slap state
             if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
             playerEgg._hyakuretsuTimer=60;
@@ -541,8 +545,8 @@ function handlePlayerInput(){
             playerEgg.squash=0.88;
         }
         // ---- BLANKA: always Electric Thunder on punch ----
-        else if(_ct==='cat'&&!_isShoryu&&!playerEgg._bfReady){
-            _shoutMove(playerEgg,'ELECTRIC!');
+        else if(_ct==='cat'&&_alwaysR&&!_isShoryu&&!playerEgg._bfReady){
+            _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             playerEgg._blankaShock=60;
             playerEgg.squash=0.6;
@@ -576,7 +580,7 @@ function handlePlayerInput(){
             if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
         }
         // ---- COMMAND INPUT SPECIALS ----
-        else if(_isHadou&&(_ct==='egg'||_ct==='dog')){
+        else if(_isHadou&&_ffR&&(_ct==='egg'||_ct==='dog')){
             // HADOUKEN (Ryu red, Ken red)
             _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
@@ -593,7 +597,7 @@ function handlePlayerInput(){
             window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*MOVE_PARAMS[_ct].hadouken.speed,vz:Math.cos(_hDir)*MOVE_PARAMS[_ct].hadouken.speed,life:MOVE_PARAMS[_ct].hadouken.life,owner:playerEgg,burns:MOVE_PARAMS[_ct].hadouken.burns};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
-        } else if(_isHadou&&_ct==='cockroach'){
+        } else if(_isHadou&&_ffR&&_ct==='cockroach'){
             // YOGA FIRE (Dhalsim) — slow fireball, burns on hit
             _shoutMove(playerEgg,'Yoga Fire!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
@@ -616,7 +620,7 @@ function handlePlayerInput(){
             _yfRing.position.copy(_yfGroup.position);scene.add(_yfRing);
             window._playerHadouken={ball:_yfGroup,ring:_yfRing,vx:Math.sin(_yfDir)*MOVE_PARAMS.cockroach.yogaFire.speed,vz:Math.cos(_yfDir)*MOVE_PARAMS.cockroach.yogaFire.speed,life:MOVE_PARAMS.cockroach.yogaFire.life,owner:playerEgg,burns:MOVE_PARAMS.cockroach.yogaFire.burns,isYogaFire:true};
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
-        } else if(_isHadou&&(_ct==='rooster')&&!window._playerHadouken){
+        } else if(_isHadou&&_ffR&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
             _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
@@ -657,7 +661,7 @@ function handlePlayerInput(){
                 _sbo.connect(_sbog);_sbog.connect(_sbSCtx.destination);_sbo.start(_sbt);_sbo.stop(_sbt+0.25);
             }}
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
-        } else if(playerEgg._bfReady&&_ct==='bull'){
+        } else if(playerEgg._bfReady&&_bfR&&_ct==='bull'){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
             _shoutMove(playerEgg,'Dosukoi!');
             playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.bull.headbutt.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
@@ -669,7 +673,7 @@ function handlePlayerInput(){
             // Head tilt forward
             var _hBody=playerEgg.mesh.userData.body;
             if(_hBody)_hBody.rotation.x=-0.6;
-        } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
+        } else if(_isShoryu&&_duR&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken) — Ryu: diagonal up-forward, Ken: flies further
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
@@ -697,13 +701,13 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._shoryuReady=false;
             playerEgg._blankaShock=30;playerEgg.squash=0.6;
             if(sfxEnabled){var _bsCtx2=ensureAudio();if(_bsCtx2){var _bst3=_bsCtx2.currentTime;var _bso2=_bsCtx2.createOscillator();var _bsg2=_bsCtx2.createGain();_bso2.type='square';_bso2.frequency.setValueAtTime(800,_bst3);_bso2.frequency.linearRampToValueAtTime(2000,_bst3+0.1);_bso2.frequency.linearRampToValueAtTime(400,_bst3+0.3);_bsg2.gain.setValueAtTime(0.08,_bst3);_bsg2.gain.exponentialRampToValueAtTime(0.001,_bst3+0.35);_bso2.connect(_bsg2);_bsg2.connect(_bsCtx2.destination);_bso2.start(_bst3);_bso2.stop(_bst3+0.35);}}
-        } else if(_isShoryu&&(_ct==='egg'||_ct==='dog')){
+        } else if(_isShoryu&&_duR&&(_ct==='egg'||_ct==='dog')){
             // Fallback Shoryuken — Ryu/Ken only
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._shoryuReady=false;
             playerEgg.vy=JUMP_FORCE*1.5;playerEgg.squash=0.5;
             playerEgg._shoryuActive=60;
             playJumpSound();
-        } else if(_isHadou&&_ct==='monkey'&&!window._playerHadouken){
+        } else if(_isHadou&&_ffR&&_ct==='monkey'&&!window._playerHadouken){
             // 気功拳 (Chun-Li)
             _shoutMove(playerEgg,'Kikouken!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
@@ -714,7 +718,7 @@ function handlePlayerInput(){
             _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
             window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*MOVE_PARAMS.monkey.kikouken.speed,vz:Math.cos(_sbDir2)*MOVE_PARAMS.monkey.kikouken.speed,life:MOVE_PARAMS.monkey.kikouken.life,owner:playerEgg};
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
-        } else if(playerEgg._bfReady&&(_ct==='cat')){
+        } else if(playerEgg._bfReady&&_bfR&&(_ct==='cat')){
             // ROLLING ATTACK (Blanka) — ←→+R, forward roll same speed/distance as Honda
             _shoutMove(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.cat.roll.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
@@ -725,7 +729,7 @@ function handlePlayerInput(){
             playerEgg._dashFaceY=_brDir; // remember facing for landing
             playerEgg._blankaSpinFalling=false;
             playerEgg.squash=0.8;
-        } else if(playerEgg._bfReady&&_ct==='cockroach'){
+        } else if(playerEgg._bfReady&&_bfR&&_ct==='cockroach'){
             // YOGA FLAME (Dhalsim) — ←→+R, short range fire breath
             _shoutMove(playerEgg,'Yoga Flame!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
@@ -807,8 +811,10 @@ function handlePlayerInput(){
     // Kick (T) — character-specific kick specials
     if(keys['KeyT']&&!playerEgg._tWasDown&&playerEgg._attackCD<=0&&!playerEgg.holding){
         var _isTatsu=playerEgg._tatsuReady;
-        // ---- CHUN-LI: always Hyakuretsu Kick (百裂脚) on normal kick ----
-        if(_ct==='monkey'&&!_isTatsu&&!playerEgg._chargeUpReady){
+        var _alwaysT=_findMove(_ct,'alwaysT');
+        var _bfT=_findMove(_ct,'bfT');
+        // ---- Always-on kick special (Chun-Li hyakuretsu kick) ----
+        if(_alwaysT&&!_isTatsu&&!playerEgg._chargeUpReady){
             _shoutMove(playerEgg,'Hyakuretsu Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
             if(!playerEgg._hyakuretsuKickTimer)playerEgg._hyakuretsuKickTimer=0;
@@ -832,7 +838,7 @@ function handlePlayerInput(){
             playerEgg.squash=0.85;playerEgg._atkAnim=6;
         }
         // Character-specific kick specials
-        else if(_isTatsu&&(_ct==='egg'||_ct==='dog')){
+        else if(_isTatsu&&_bfT&&(_ct==='egg'||_ct==='dog')){
             // TATSUMAKI (Ryu/Ken)
             _shoutMove(playerEgg,'Tatsumaki Senpukyaku!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
@@ -851,7 +857,7 @@ function handlePlayerInput(){
                 _tg2.gain.setValueAtTime(0.08,_tt);_tg2.gain.linearRampToValueAtTime(0.12,_tt+0.3);_tg2.gain.exponentialRampToValueAtTime(0.001,_tt+1.5);
                 _to.connect(_tg2);_tg2.connect(_tCtx.destination);_to.start(_tt);_to.stop(_tt+1.5);
             }}
-        } else if(_isTatsu&&_ct==='monkey'){
+        } else if(_isTatsu&&_bfT&&_ct==='monkey'){
             // SPINNING BIRD KICK (Chun-Li) — ↓←+T
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.monkey.spinningBird.jumpMul;
@@ -870,7 +876,7 @@ function handlePlayerInput(){
                 _sbkg2.gain.setValueAtTime(0.04,_sbkt);_sbkg2.gain.exponentialRampToValueAtTime(0.001,_sbkt+0.6);
                 _sbko2.connect(_sbkg2);_sbkg2.connect(_sbkCtx.destination);_sbko2.start(_sbkt);_sbko2.stop(_sbkt+0.6);
             }}
-        } else if(_isTatsu&&(_ct==='rooster')){
+        } else if(_isTatsu&&_bfT&&(_ct==='rooster')){
             // SOMERSAULT KICK (Guile) — backflip with blade arc
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
@@ -1696,7 +1702,7 @@ function handlePlayerInput(){
     // ---- Dhalsim passive: extended attack range ----
     playerEgg._extendedRange=(_ct==='cockroach')?MOVE_PARAMS.cockroach.extendedRange:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
-    playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='bear');
+    playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_hasMove(_ct,'RT'));
     // ---- Piledriver input sequence tracker (forward-back-forward relative to facing) ----
     if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
     if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
