@@ -396,7 +396,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         }
     }
     // Clamp max height to prevent flying off screen
-    if(egg.mesh.position.y>200&&!egg._piledriverLocked){egg.mesh.position.y=200;egg.vy=Math.min(egg.vy,0);}
+    // No height limit — let eggs fly freely
     if(egg.arrow)egg.arrow.position.y=2.0+Math.sin(Date.now()*0.005)*0.15;
     // ---- FINAL: Honda headbutt tilt (MUST be last to override everything) ----
     if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
