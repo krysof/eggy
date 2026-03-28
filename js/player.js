@@ -1597,7 +1597,8 @@ function handlePlayerInput(){
             if(playerEgg._dashFaceY!==undefined)playerEgg.mesh.rotation.y=playerEgg._dashFaceY;
             playerEgg._dashDirX=undefined;playerEgg._dashDirZ=undefined;playerEgg._dashFaceY=undefined;
             playerEgg.mesh.rotation.x=0;
-            playerEgg.mesh.scale.set(1,1,1); // reset torpedo shape
+            playerEgg.mesh.rotation.order='XYZ';playerEgg.mesh.rotation.x=0;playerEgg.mesh.rotation.z=0;
+            playerEgg.mesh.scale.set(1,1,1);
             var _hdBody=playerEgg.mesh.userData.body;if(_hdBody)_hdBody.rotation.x=0;
         }
     }
@@ -1671,10 +1672,10 @@ function handlePlayerInput(){
     if(!playerEgg._ffSeq)playerEgg._ffSeq=0;
     if(!playerEgg._ffTimer)playerEgg._ffTimer=0;
     playerEgg._ffTimer--;
-    if(_dirPress&&playerEgg._ffSeq===0){
+    if(_dirPress&&playerEgg._ffSeq===0&&!playerEgg._bfReady){
         playerEgg._ffSeq=1;playerEgg._ffTimer=20;
         playerEgg._ffFirstX=_anyDirX;playerEgg._ffFirstZ=_anyDirZ;
-    } else if(_dirPress&&playerEgg._ffSeq===1){
+    } else if(_dirPress&&playerEgg._ffSeq===1&&!playerEgg._bfReady){
         var _ffDot=_anyDirX*playerEgg._ffFirstX+_anyDirZ*playerEgg._ffFirstZ;
         if(_ffDot>0.3){
             playerEgg._ffSeq=2;playerEgg._ffTimer=20;playerEgg._ffReady=true;
