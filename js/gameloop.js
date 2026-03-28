@@ -1660,6 +1660,7 @@ function showPortalConfirm(portal){
     _portalConfirmRace=portal.raceIndex;
     _portalConfirmTarget=portal._targetStyle||(-1);
     _portalConfirmHidden=portal._hiddenType||null;
+    _portalConfirmWarpPipe=portal._isWarpPipe?{x:portal._pipeX,z:portal._pipeZ,target:portal._targetStyle}:null;
     _portalDismissed=null;
     var box=document.getElementById('portal-confirm');
     document.getElementById('portal-confirm-name').textContent=portal.name;
@@ -1672,17 +1673,22 @@ function hidePortalConfirm(){
     _portalConfirmRace=-1;
     _portalConfirmTarget=-1;
     _portalConfirmHidden=null;
+    _portalConfirmWarpPipe=null;
     document.getElementById('portal-confirm').style.display='none';
 }
 function confirmPortalEnter(){
     var ri=_portalConfirmRace;
     var ts=_portalConfirmTarget;
     var ht=_portalConfirmHidden;
+    var wp=_portalConfirmWarpPipe;
     hidePortalConfirm();
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0){ enterRace(ri); }
+    else if(wp&&playerEgg){
+        // Warp pipe travel with fly animation
+        startPipeTravel(wp.x,wp.z,wp.target);
+    }
     else if(ht==='earthReturn'&&playerEgg){
-        // Return to Earth with pipe travel effect — go back to previous city
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
         startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
     }

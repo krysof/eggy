@@ -245,18 +245,19 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
             else egg.mesh.position.z+=delta;
         }
         if(!egg.onGround)egg._onCloud=null;
-        // Warp pipe teleport — player only
+        // Warp pipe teleport — player only, now with confirm dialog
         if(egg.isPlayer){
             for(var wpi=0;wpi<warpPipeMeshes.length;wpi++){
                 var wp=warpPipeMeshes[wpi];
                 var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
                 var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                if(wdist<3.5&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing){
-                    wp._cooldown=true;
-                    startPipeTravel(wp.x,wp.z,wp.targetStyle);
-                    return; // player is now in pipe travel mode
+                if(wdist<PORTAL_CONFIG.triggerDist&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing&&!_portalConfirmOpen){
+                    if(wdist<PORTAL_CONFIG.confirmDist){
+                        var _tgtName=CITY_STYLES[wp.targetStyle]?CITY_STYLES[wp.targetStyle].name:'???';
+                        showPortalConfirm({name:_tgtName,desc:L('warpDesc')||'Travel to another city!',_targetStyle:wp.targetStyle,_isWarpPipe:true,_pipeX:wp.x,_pipeZ:wp.z});
+                    }
                 }
-                if(wdist>5)wp._cooldown=false;
+                if(wdist>8)wp._cooldown=false;
             }
             // Cloud world moon pipe — proximity prompt
             if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen&&!_spinDashing){

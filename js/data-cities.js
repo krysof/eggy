@@ -48,10 +48,10 @@ var CITY_THEME_DATA=[
 // ---- Portal positions per city ----
 var PORTAL_POSITIONS={
     warpPipes:[
-        {x:0,z:-65,targetOffset:0},
-        {x:65,z:0,targetOffset:1},
-        {x:0,z:65,targetOffset:2},
-        {x:-65,z:0,targetOffset:3}
+        {x:0,z:-145,targetOffset:0},
+        {x:145,z:0,targetOffset:1},
+        {x:0,z:145,targetOffset:2},
+        {x:-145,z:0,targetOffset:3}
     ],
     platformerPortal:{x:0,z:-8}
 };
