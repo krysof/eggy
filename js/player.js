@@ -1125,9 +1125,9 @@ function handlePlayerInput(){
             var _tdx=_te.mesh.position.x-playerEgg.mesh.position.x;
             var _tdz=_te.mesh.position.z-playerEgg.mesh.position.z;
             var _td=Math.sqrt(_tdx*_tdx+_tdz*_tdz);
-            if(_td<3&&_td>0.01){
-                _te.vx+=_tdx/_td*MOVE_PARAMS.egg.tatsumaki.hitForce;_te.vz+=_tdz/_td*MOVE_PARAMS.egg.tatsumaki.hitForce;_te.vy=MOVE_PARAMS.egg.tatsumaki.hitVy;
-                _te.squash=0.35;_te.throwTimer=40;_te._bounces=2;_te._tatsuHitCD=12;
+            if(_td<3.5&&_td>0.01){
+                _te.vx+=_tdx/_td*0.6;_te.vz+=_tdz/_td*0.6;_te.vy=0.35;
+                _te.squash=0.3;_te.throwTimer=50;_te._bounces=2;_te._tatsuHitCD=12;
                 _addStunDamage(_te,MOVE_PARAMS.egg.tatsumaki.stunDmg);
                 _dropNpcStolenCoins(_te);playHitSound();
             }
