@@ -44,7 +44,8 @@ var MOVE_PARAMS={
     egg:{
         hadouken:{
             trigger:'ffR',input:'→→+R',        // forward-forward + punch
-            name:'HADOUKEN!',shout:'HADOUKEN!',
+            name:'HADOUKEN!',type:'projectile',shout:'HADOUKEN!',
+            text:{zhs:'波动拳！',zht:'波動拳！',ja:'波動拳！',en:'HADOUKEN!'},
             speed:0.35,life:120,color:0xFF4422,ringColor:0xFF8866,
             burns:true,           // hit causes fire
             damage:10,stunDmg:15, // damage & stun
@@ -52,14 +53,16 @@ var MOVE_PARAMS={
         },
         shoryuken:{
             trigger:'duR',input:'↓↑+R',        // down-up + punch
-            name:'SHORYUKEN!',shout:'SHORYUKEN!',
+            name:'SHORYUKEN!',type:'shoryuken',shout:'SHORYUKEN!',
+            text:{zhs:'升龙拳！',zht:'昇龍拳！',ja:'昇龍拳！',en:'SHORYUKEN!'},
             jumpMul:1.6,fwdSpeed:0.15,duration:65,
             damage:20,stunDmg:15,
             cd:30
         },
         tatsumaki:{
             trigger:'bfT',input:'←→+T',        // back-forward + kick
-            name:'Tatsumaki Senpukyaku!',shout:'Tatsumaki Senpukyaku!',
+            name:'Tatsumaki Senpukyaku!',type:'tatsumaki',shout:'Tatsumaki Senpukyaku!',
+            text:{zhs:'龙卷旋风脚！',zht:'龍卷旋風腳！',ja:'竇巻旋風脚！',en:'Tatsumaki!'},
             duration:94,hitForce:0.5,hitVy:0.3,
             damage:12,stunDmg:15,hitCD:12,
             cd:40
@@ -71,7 +74,8 @@ var MOVE_PARAMS={
     dog:{
         hadouken:{
             trigger:'ffR',input:'→→+R',
-            name:'Hadouken!',shout:'Hadouken!',
+            name:'Hadouken!',type:'projectile',shout:'Hadouken!',
+            text:{zhs:'波动拳！',zht:'波動拳！',ja:'波動拳！',en:'Hadouken!'},
             speed:0.35,life:120,color:0x4488FF,ringColor:0x88AAFF,
             burns:false,
             damage:10,stunDmg:15,
@@ -79,7 +83,8 @@ var MOVE_PARAMS={
         },
         shoryuken:{
             trigger:'duR',input:'↓↑+R',
-            name:'Shoryuken!',shout:'Shoryuken!',
+            name:'Shoryuken!',type:'shoryuken',shout:'Shoryuken!',
+            text:{zhs:'升龙拳！',zht:'昇龍拳！',ja:'昇龍拳！',en:'Shoryuken!'},
             jumpMul:1.7,fwdSpeed:0.35,duration:75,
             fire:true,            // Ken shoryuken sets target on fire
             damage:22,stunDmg:15,
@@ -87,7 +92,8 @@ var MOVE_PARAMS={
         },
         tatsumaki:{
             trigger:'bfT',input:'←→+T',
-            name:'Tatsumaki Senpukyaku!',shout:'Tatsumaki Senpukyaku!',
+            name:'Tatsumaki Senpukyaku!',type:'tatsumaki',shout:'Tatsumaki Senpukyaku!',
+            text:{zhs:'龙卷旋风脚！',zht:'龍卷旋風腳！',ja:'竇巻旋風脚！',en:'Tatsumaki!'},
             duration:94,hitForce:0.5,hitVy:0.3,
             damage:12,stunDmg:15,hitCD:12,
             cd:40
@@ -99,13 +105,15 @@ var MOVE_PARAMS={
     bull:{
         hyakuretsu:{
             trigger:'alwaysR',input:'R (always)',   // normal punch = hyakuretsu
-            name:'Hohoho!',shout:'Hohoho!',
+            name:'Hohoho!',type:'hyakuretsu',shout:'Hohoho!',
+            text:{zhs:'嗬嗬嗬！',zht:'嗬嗬嗬！',ja:'ホホホ！',en:'Hohoho!'},
             cd:4,range:2.5,hitForce:0.5,hitVy:0.25,
             damage:8,stunDmg:10
         },
         headbutt:{
             trigger:'bfR',input:'←→+R',        // back-forward + punch
-            name:'Dosukoi!',shout:'Dosukoi!',
+            name:'Dosukoi!',type:'dash',shout:'Dosukoi!',
+            text:{zhs:'误会！',zht:'誤會！',ja:'どすこい！',en:'Dosukoi!'},
             speed:2,duration:60,cd:70,
             damage:15,stunDmg:20
         }
@@ -116,14 +124,16 @@ var MOVE_PARAMS={
     cat:{
         electric:{
             trigger:'alwaysR',input:'R (always)',   // normal punch = electric
-            name:'ELECTRIC!',shout:'ELECTRIC!',
+            name:'ELECTRIC!',type:'electric',shout:'ELECTRIC!',
+            text:{zhs:'嗷嗷嗷！',zht:'嗷嗷嗷！',ja:'ガウガウ！',en:'GRAAAH!'},
             duration:60,range:2.5,
             damage:8,stunDmg:15,
             electrocuteDuration:90 // frames target is electrocuted
         },
         roll:{
             trigger:'bfR',input:'←→+R',        // back-forward + punch
-            name:'GRAAAH!',shout:'GRAAAH!',
+            name:'GRAAAH!',type:'roll',shout:'GRAAAH!',
+            text:{zhs:'嗷嗷嗷！',zht:'嗷嗷嗷！',ja:'ガウガウ！',en:'GRAAAH!'},
             speed:3,duration:60,cd:35,
             damage:15,stunDmg:20
         }
@@ -134,14 +144,16 @@ var MOVE_PARAMS={
     rooster:{
         sonicBoom:{
             trigger:'ffR',input:'→→+R',        // forward-forward + punch
-            name:'Sonic Boom!',shout:'Sonic Boom!',
+            name:'Sonic Boom!',type:'projectile',shout:'Sonic Boom!',
+            text:{zhs:'音速手刀！',zht:'音速手刀！',ja:'ソニックブーム！',en:'Sonic Boom!'},
             speed:0.5,life:100,color:0xFFDD44,ringColor:0xFFFF88,
             damage:10,stunDmg:15,
             cd:20
         },
         somersault:{
             trigger:'bfT',input:'←→+T',        // back-forward + kick
-            name:'Somersault Kick!',shout:'Somersault Kick!',
+            name:'Somersault Kick!',type:'somersault',shout:'Somersault Kick!',
+            text:{zhs:'闪光飞踢！',zht:'閃光飛踢！',ja:'サマーソルト！',en:'Somersault!'},
             jumpMul:1.6,duration:65,arcSpeed:0.2,arcLife:30,
             damage:18,stunDmg:20,
             cd:35
@@ -153,20 +165,23 @@ var MOVE_PARAMS={
     monkey:{
         kikouken:{
             trigger:'ffR',input:'→→+R',        // forward-forward + punch
-            name:'Kikouken!',shout:'Kikouken!',
+            name:'Kikouken!',type:'projectile',shout:'Kikouken!',
+            text:{zhs:'气功拳！',zht:'氣功拳！',ja:'気功拳！',en:'Kikouken!'},
             speed:0.5,life:100,color:0x88BBFF,ringColor:0x88FF88,
             damage:10,stunDmg:15,
             cd:20
         },
         hyakuretsuKick:{
             trigger:'alwaysT',input:'T (always)',   // normal kick = hyakuretsu kick
-            name:'Hyakuretsu Kick!',shout:'Hyakuretsu Kick!',
+            name:'Hyakuretsu Kick!',type:'hyakuretsuKick',shout:'Hyakuretsu Kick!',
+            text:{zhs:'百裂脚！',zht:'百裂腳！',ja:'百裂脚！',en:'Lightning Kick!'},
             cd:4,range:2.5,hitForce:0.5,hitVy:0.25,
             damage:8,stunDmg:10
         },
         spinningBird:{
             trigger:'bfT',input:'←→+T',        // back-forward + kick
-            name:'Spinning Bird Kick!',shout:'Spinning Bird Kick!',
+            name:'Spinning Bird Kick!',type:'spinningBird',shout:'Spinning Bird Kick!',
+            text:{zhs:'回旋鸟踢！',zht:'回旋鳥踢！',ja:'スピニングバード！',en:'Spinning Bird!'},
             jumpMul:1.2,duration:60,
             damage:15,stunDmg:15,
             cd:35
@@ -178,14 +193,16 @@ var MOVE_PARAMS={
     bear:{
         lariat:{
             trigger:'RT',input:'R+T (hold)',   // punch + kick held together
-            name:'Double Lariat!',shout:'Double Lariat!',
+            name:'Double Lariat!',type:'lariat',shout:'Double Lariat!',
+            text:{zhs:'双回旋臂！',zht:'雙回旋臂！',ja:'ダブルラリアット！',en:'Double Lariat!'},
             duration:60,hitForce:0.5,hitVy:0.3,
             damage:12,stunDmg:15,hitCD:12,
             cd:40
         },
         piledriver:{
             trigger:'fbfF',input:'→←→+F',       // forward-back-forward + grab
-            name:'Piledriver!',shout:'Piledriver!',
+            name:'Piledriver!',type:'piledriver',shout:'Piledriver!',
+            text:{zhs:'螺旋打桩！',zht:'螺旋打樁！',ja:'パイルドライバー！',en:'Piledriver!'},
             range:5.0,riseFrames:40,pauseFrames:8,slamFrames:12,maxHeight:15,
             damage:35,stunDmg:50, // devastating
             cd:80
@@ -197,7 +214,8 @@ var MOVE_PARAMS={
     cockroach:{
         yogaFire:{
             trigger:'ffR',input:'→→+R',        // forward-forward + punch
-            name:'Yoga Fire!',shout:'Yoga Fire!',
+            name:'Yoga Fire!',type:'projectile',shout:'Yoga Fire!',
+            text:{zhs:'瑜伽火球！',zht:'瑜伽火球！',ja:'ヨガファイヤー！',en:'Yoga Fire!'},
             speed:0.2,life:180,color:0xFF6600,ringColor:0xFFAA00,
             burns:true,
             damage:10,stunDmg:15,
@@ -205,7 +223,8 @@ var MOVE_PARAMS={
         },
         yogaFlame:{
             trigger:'bfR',input:'←→+R',        // back-forward + punch
-            name:'Yoga Flame!',shout:'Yoga Flame!',
+            name:'Yoga Flame!',type:'yogaFlame',shout:'Yoga Flame!',
+            text:{zhs:'瑜伽火焰！',zht:'瑜伽火焰！',ja:'ヨガフレイム！',en:'Yoga Flame!'},
             duration:60,range:4,
             damage:15,stunDmg:20,
             fireDuration:120,     // 2 seconds on fire
