@@ -213,8 +213,8 @@ function clearCity(){
     window._fountainInnerWater=null;
     window._cityFish=null;
     window._waterWheels=null;
-    if(window._playerHadouken){scene.remove(window._playerHadouken.ball);scene.remove(window._playerHadouken.ring);window._playerHadouken=null;}
-    if(window._npcHadoukens){for(var _nhi2=0;_nhi2<window._npcHadoukens.length;_nhi2++){scene.remove(window._npcHadoukens[_nhi2].ball);scene.remove(window._npcHadoukens[_nhi2].ring);}window._npcHadoukens=null;}
+    if(window._allProjectiles){for(var _api2=0;_api2<window._allProjectiles.length;_api2++){MoveProjectile_cleanup(window._allProjectiles[_api2]);}window._allProjectiles=[];}
+    window._playerHadouken=null;
     // Remove city NPCs
     for(var i=0;i<cityNPCs.length;i++){_removeStunStars(cityNPCs[i]);scene.remove(cityNPCs[i].mesh);}
     cityNPCs.length=0;

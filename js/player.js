@@ -577,69 +577,28 @@ function handlePlayerInput(){
         }
         // ---- COMMAND INPUT SPECIALS ----
         else if(_isHadou&&_ffR&&(_ct==='egg'||_ct==='dog')){
-            // HADOUKEN (Ryu red, Ken red)
+            // HADOUKEN (Ryu red, Ken blue)
             _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
-            playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS[_ct].hadouken.cd;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _hDir=playerEgg._moveDir;
-            var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
-            var _hz=playerEgg.mesh.position.z+Math.cos(_hDir)*1.5;
-            var _hy=playerEgg.mesh.position.y+0.7;
-            var _hColor=_ct==='egg'?0xFF4444:0x44AAFF; // Ryu=red, Ken=blue
-            var _hBall=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),new THREE.MeshBasicMaterial({color:_hColor,transparent:true,opacity:0.85}));
-            _hBall.position.set(_hx,_hy,_hz);scene.add(_hBall);
+            var _hColor=_ct==='egg'?0xFF4444:0x44AAFF;
             var _hRingColor=_ct==='egg'?0xFFAA66:0x88DDFF;
-            var _hRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:_hRingColor,transparent:true,opacity:0.6}));
-            _hRing.position.copy(_hBall.position);scene.add(_hRing);
-            window._playerHadouken={ball:_hBall,ring:_hRing,vx:Math.sin(_hDir)*MOVE_PARAMS[_ct].hadouken.speed,vz:Math.cos(_hDir)*MOVE_PARAMS[_ct].hadouken.speed,life:MOVE_PARAMS[_ct].hadouken.life,owner:playerEgg,burns:MOVE_PARAMS[_ct].hadouken.burns};
+            MoveProjectile_execute(playerEgg,_hDir,{speed:MOVE_PARAMS[_ct].hadouken.speed,life:MOVE_PARAMS[_ct].hadouken.life,color:_hColor,ringColor:_hRingColor,burns:MOVE_PARAMS[_ct].hadouken.burns,isPlayer:true,type:'normal'});
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
             if(sfxEnabled){var _hCtx=ensureAudio();if(_hCtx){var _ht=_hCtx.currentTime;var _ho=_hCtx.createOscillator();var _hg=_hCtx.createGain();_ho.type='sine';_ho.frequency.setValueAtTime(300,_ht);_ho.frequency.exponentialRampToValueAtTime(150,_ht+0.3);_hg.gain.setValueAtTime(0.1,_ht);_hg.gain.exponentialRampToValueAtTime(0.001,_ht+0.35);_ho.connect(_hg);_hg.connect(_hCtx.destination);_ho.start(_ht);_ho.stop(_ht+0.35);}}
         } else if(_isHadou&&_ffR&&_ct==='cockroach'){
             // YOGA FIRE (Dhalsim) — slow fireball, burns on hit
             _shoutMove(playerEgg,'Yoga Fire!');
-            playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.cockroach.yogaFire.cd;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _yfDir=playerEgg._moveDir;
-            // Fireball group: core + outer flame + flickering glow
-            var _yfGroup=new THREE.Group();
-            var _yfCore=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),new THREE.MeshBasicMaterial({color:0xFFDD00,transparent:true,opacity:0.95}));
-            _yfGroup.add(_yfCore);
-            var _yfOuter=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,6),new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.5}));
-            _yfGroup.add(_yfOuter);
-            // Flame trail particles attached to group
-            for(var _yfi2=0;_yfi2<6;_yfi2++){
-                var _yfp=new THREE.Mesh(new THREE.SphereGeometry(0.15+Math.random()*0.15,4,3),new THREE.MeshBasicMaterial({color:[0xFF2200,0xFF6600,0xFFAA00,0xFFDD00][_yfi2%4],transparent:true,opacity:0.7}));
-                _yfp.position.set((Math.random()-0.5)*0.4,(Math.random()-0.5)*0.4,(Math.random()-0.5)*0.4);
-                _yfGroup.add(_yfp);
-            }
-            _yfGroup.position.set(playerEgg.mesh.position.x+Math.sin(_yfDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_yfDir)*1.5);
-            scene.add(_yfGroup);
-            var _yfRing=new THREE.Mesh(new THREE.TorusGeometry(0.5,0.08,6,12),new THREE.MeshBasicMaterial({color:0xFF8800,transparent:true,opacity:0.4}));
-            _yfRing.position.copy(_yfGroup.position);scene.add(_yfRing);
-            window._playerHadouken={ball:_yfGroup,ring:_yfRing,vx:Math.sin(_yfDir)*MOVE_PARAMS.cockroach.yogaFire.speed,vz:Math.cos(_yfDir)*MOVE_PARAMS.cockroach.yogaFire.speed,life:MOVE_PARAMS.cockroach.yogaFire.life,owner:playerEgg,burns:MOVE_PARAMS.cockroach.yogaFire.burns,isYogaFire:true};
+            MoveProjectile_execute(playerEgg,_yfDir,{speed:MOVE_PARAMS.cockroach.yogaFire.speed,life:MOVE_PARAMS.cockroach.yogaFire.life,color:MOVE_PARAMS.cockroach.yogaFire.color,ringColor:MOVE_PARAMS.cockroach.yogaFire.ringColor,burns:MOVE_PARAMS.cockroach.yogaFire.burns,isPlayer:true,type:'yogaFire'});
             playerEgg._atkAnim=15;playerEgg.squash=0.8;
         } else if(_isHadou&&_ffR&&(_ct==='rooster')&&!window._playerHadouken){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
             _shoutMove(playerEgg,'Sonic Boom!');
-            playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.rooster.sonicBoom.cd;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
             var _sbDir=playerEgg._moveDir;
-            // Draw crescent on a canvas texture
-            var _sbCvs=document.createElement('canvas');_sbCvs.width=64;_sbCvs.height=64;
-            var _sbCtx2=_sbCvs.getContext('2d');
-            _sbCtx2.fillStyle='#FFDD44';
-            _sbCtx2.beginPath();_sbCtx2.arc(32,32,28,0,Math.PI*2);_sbCtx2.fill();
-            _sbCtx2.globalCompositeOperation='destination-out';
-            _sbCtx2.beginPath();_sbCtx2.arc(44,32,22,0,Math.PI*2);_sbCtx2.fill();
-            var _sbTex=new THREE.CanvasTexture(_sbCvs);
-            var _sbPlane=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:_sbTex,transparent:true,side:THREE.DoubleSide}));
-            _sbPlane.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir)*1.5);
-            // Flat like a disc — rotate to be parallel to ground, then face travel direction
-            _sbPlane.rotation.x=-Math.PI/2; // lay flat
-            _sbPlane.rotation.order='YXZ';
-            _sbPlane.rotation.y=_sbDir;
-            scene.add(_sbPlane);
-            // Small glow sphere
-            var _sbGlow=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.3}));
-            _sbGlow.position.copy(_sbPlane.position);scene.add(_sbGlow);
-            window._playerHadouken={ball:_sbPlane,ring:_sbGlow,vx:Math.sin(_sbDir)*MOVE_PARAMS.rooster.sonicBoom.speed,vz:Math.cos(_sbDir)*MOVE_PARAMS.rooster.sonicBoom.speed,life:MOVE_PARAMS.rooster.sonicBoom.life,owner:playerEgg,isSonicBoom:true};
+            MoveProjectile_execute(playerEgg,_sbDir,{speed:MOVE_PARAMS.rooster.sonicBoom.speed,life:MOVE_PARAMS.rooster.sonicBoom.life,color:MOVE_PARAMS.rooster.sonicBoom.color,ringColor:MOVE_PARAMS.rooster.sonicBoom.ringColor,isPlayer:true,type:'sonicBoom'});
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
             // Sonic boom sound — loud crack
             if(sfxEnabled){var _sbSCtx=ensureAudio();if(_sbSCtx){var _sbt=_sbSCtx.currentTime;
@@ -691,13 +650,9 @@ function handlePlayerInput(){
         } else if(_isHadou&&_ffR&&_ct==='monkey'&&!window._playerHadouken){
             // 気功拳 (Chun-Li)
             _shoutMove(playerEgg,'Kikouken!');
-            playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
+            playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.monkey.kikouken.cd;playerEgg._chargeBack=0;
             var _sbDir2=playerEgg._moveDir;
-            var _sbBall2=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.85}));
-            _sbBall2.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir2)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir2)*1.5);scene.add(_sbBall2);
-            var _sbRing2=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
-            _sbRing2.position.copy(_sbBall2.position);scene.add(_sbRing2);
-            window._playerHadouken={ball:_sbBall2,ring:_sbRing2,vx:Math.sin(_sbDir2)*MOVE_PARAMS.monkey.kikouken.speed,vz:Math.cos(_sbDir2)*MOVE_PARAMS.monkey.kikouken.speed,life:MOVE_PARAMS.monkey.kikouken.life,owner:playerEgg};
+            MoveProjectile_execute(playerEgg,_sbDir2,{speed:MOVE_PARAMS.monkey.kikouken.speed,life:MOVE_PARAMS.monkey.kikouken.life,color:MOVE_PARAMS.monkey.kikouken.color,ringColor:MOVE_PARAMS.monkey.kikouken.ringColor,isPlayer:true,type:'normal',radius:0.5,npcRadius:0.5});
             playerEgg._atkAnim=12;playerEgg.squash=0.85;
         } else if(playerEgg._bfReady&&_bfR&&(_ct==='cat')){
             // ROLLING ATTACK (Blanka) — ←→+R, forward roll same speed/distance as Honda

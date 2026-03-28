@@ -113,70 +113,14 @@ function updateCity(){
         });
     }
 
-    // ---- Hadouken projectile update ----
-    if(window._playerHadouken){
-        var _hk=window._playerHadouken;
-        _hk.ball.position.x+=_hk.vx;_hk.ball.position.z+=_hk.vz;
-        _hk.ring.position.copy(_hk.ball.position);
-        _hk.ring.rotation.z+=0.2;
-        // Sonic Boom: spin the crescent plane
-        if(_hk.isSonicBoom){
-            _hk.ball.rotation.z+=0.5; // spin like a disc
+    // ---- Unified projectile update (all projectiles via moves.js) ----
+    if(!window._allProjectiles)window._allProjectiles=[];
+    for(var _api=window._allProjectiles.length-1;_api>=0;_api--){
+        var _ap=window._allProjectiles[_api];
+        if(!MoveProjectile_update(_ap)){
+            MoveProjectile_cleanup(_ap);
+            window._allProjectiles.splice(_api,1);
         }
-        // Yoga Fire: flicker flame particles
-        if(_hk.isYogaFire&&_hk.ball.children){
-            for(var _yfc=2;_yfc<_hk.ball.children.length;_yfc++){
-                var _yfch=_hk.ball.children[_yfc];
-                _yfch.position.set((Math.random()-0.5)*0.5,(Math.random()-0.5)*0.5,(Math.random()-0.5)*0.5);
-                _yfch.material.opacity=0.4+Math.random()*0.5;
-                _yfch.scale.setScalar(0.7+Math.random()*0.8);
-            }
-            _hk.ball.children[1].scale.setScalar(0.9+Math.sin(_hk.life*0.3)*0.2); // outer flame pulse
-        }
-        _hk.life--;
-        if(_hk.ball.material){_hk.ball.material.opacity=Math.min(0.9,_hk.life/30);}
-        else if(_hk.isYogaFire&&_hk.ball.children[0]){_hk.ball.children[0].material.opacity=Math.min(0.95,_hk.life/30);}
-        _hk.ring.material.opacity=Math.min(0.6,_hk.life/30);
-        // Hit eggs
-        for(var _hei=0;_hei<allEggs.length;_hei++){
-            var _he2=allEggs[_hei];if(_he2===_hk.owner||!_he2.alive||_he2.heldBy||_he2._piledriverLocked)continue;
-            var _hdx=_he2.mesh.position.x-_hk.ball.position.x;
-            var _hdz=_he2.mesh.position.z-_hk.ball.position.z;
-            var _hd2=Math.sqrt(_hdx*_hdx+_hdz*_hdz);
-            if(_hd2<1.5){
-                _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
-                _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,15);
-                if(_hk.burns)_he2._onFire=120; // 2 seconds fire
-                // Slash cut effect for Sonic Boom / blade projectiles
-                if(_hk.isSonicBoom)spawnSlashEffect(_he2,Math.atan2(_hk.vx,_hk.vz));
-                _dropNpcStolenCoins(_he2);playHitSound(_he2.mesh.position.x,_he2.mesh.position.z);
-                _hk.life=0;break;
-            }
-        }
-        if(_hk.life<=0){scene.remove(_hk.ball);scene.remove(_hk.ring);window._playerHadouken=null;}
-    }
-    // NPC Hadouken projectiles
-    if(!window._npcHadoukens)window._npcHadoukens=[];
-    for(var _nhi=window._npcHadoukens.length-1;_nhi>=0;_nhi--){
-        var _nh=window._npcHadoukens[_nhi];
-        _nh.ball.position.x+=_nh.vx;_nh.ball.position.z+=_nh.vz;
-        _nh.ring.position.copy(_nh.ball.position);_nh.ring.rotation.z+=0.2;
-        _nh.life--;
-        _nh.ball.material.opacity=Math.min(0.85,_nh.life/30);
-        _nh.ring.material.opacity=Math.min(0.6,_nh.life/30);
-        for(var _nhei=0;_nhei<allEggs.length;_nhei++){
-            var _nhe=allEggs[_nhei];if(_nhe===_nh.owner||!_nhe.alive||_nhe.heldBy)continue;
-            var _nhdx=_nhe.mesh.position.x-_nh.ball.position.x;
-            var _nhdz=_nhe.mesh.position.z-_nh.ball.position.z;
-            if(Math.sqrt(_nhdx*_nhdx+_nhdz*_nhdz)<1.5){
-                _nhe.vx+=_nh.vx*0.8;_nhe.vz+=_nh.vz*0.8;_nhe.vy=0.15;
-                _nhe.squash=0.5;_nhe.throwTimer=25;_nhe._bounces=1;_nhe._stunTimer=50;
-                if(_nh.burns)_nhe._onFire=120;
-                _dropNpcStolenCoins(_nhe);if(_nhe.isPlayer)playHitSound(_nh.ball.position.x,_nh.ball.position.z);
-                _nh.life=0;break;
-            }
-        }
-        if(_nh.life<=0){scene.remove(_nh.ball);scene.remove(_nh.ring);window._npcHadoukens.splice(_nhi,1);}
     }
 
     // ---- Fountain water animation ----

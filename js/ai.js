@@ -419,12 +419,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(_nCT==='egg'){
                 if(cd2>3&&cd2<25&&Math.random()<0.06&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
                     egg._npcHadouCD=50;var _nhDir=Math.atan2(cdx2,cdz2);
-                    var _nhBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF4422,transparent:true,opacity:0.85}));
-                    _nhBall.position.set(egg.mesh.position.x+Math.sin(_nhDir)*1.5,egg.mesh.position.y+0.7,egg.mesh.position.z+Math.cos(_nhDir)*1.5);scene.add(_nhBall);
-                    var _nhRing=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.07,6,12),new THREE.MeshBasicMaterial({color:0xFFAA66,transparent:true,opacity:0.6}));
-                    _nhRing.position.copy(_nhBall.position);scene.add(_nhRing);
-                    if(!window._npcHadoukens)window._npcHadoukens=[];
-                    window._npcHadoukens.push({ball:_nhBall,ring:_nhRing,vx:Math.sin(_nhDir)*0.3,vz:Math.cos(_nhDir)*0.3,life:120,owner:egg,burns:true});
+                    MoveProjectile_execute(egg,_nhDir,{speed:0.3,life:MOVE_PARAMS.egg.hadouken.life,color:MOVE_PARAMS.egg.hadouken.color,ringColor:MOVE_PARAMS.egg.hadouken.ringColor,burns:MOVE_PARAMS.egg.hadouken.burns,isPlayer:false,type:'normal'});
                 }
                 if(cd2<2.5&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcShoryuActive=true;egg.vy=JUMP_FORCE*1.5;egg.squash=0.5;
@@ -438,12 +433,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             else if(_nCT==='dog'){
                 if(cd2>3&&cd2<25&&Math.random()<0.06&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
                     egg._npcHadouCD=50;var _nkDir=Math.atan2(cdx2,cdz2);
-                    var _nkBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.85}));
-                    _nkBall.position.set(egg.mesh.position.x+Math.sin(_nkDir)*1.5,egg.mesh.position.y+0.7,egg.mesh.position.z+Math.cos(_nkDir)*1.5);scene.add(_nkBall);
-                    var _nkRing=new THREE.Mesh(new THREE.TorusGeometry(0.45,0.07,6,12),new THREE.MeshBasicMaterial({color:0x88AAFF,transparent:true,opacity:0.6}));
-                    _nkRing.position.copy(_nkBall.position);scene.add(_nkRing);
-                    if(!window._npcHadoukens)window._npcHadoukens=[];
-                    window._npcHadoukens.push({ball:_nkBall,ring:_nkRing,vx:Math.sin(_nkDir)*0.35,vz:Math.cos(_nkDir)*0.35,life:120,owner:egg});
+                    MoveProjectile_execute(egg,_nkDir,{speed:MOVE_PARAMS.dog.hadouken.speed,life:MOVE_PARAMS.dog.hadouken.life,color:MOVE_PARAMS.dog.hadouken.color,ringColor:MOVE_PARAMS.dog.hadouken.ringColor,burns:MOVE_PARAMS.dog.hadouken.burns,isPlayer:false,type:'normal'});
                 }
                 if(cd2<2.5&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcShoryuActive=true;egg.vy=JUMP_FORCE*1.7;egg.squash=0.5;
@@ -481,12 +471,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             else if(_nCT==='rooster'){
                 if(cd2>4&&cd2<20&&Math.random()<0.045&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
                     egg._npcHadouCD=60;var _nsbDir=Math.atan2(cdx2,cdz2);
-                    var _nsbBall=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85}));
-                    _nsbBall.position.set(egg.mesh.position.x+Math.sin(_nsbDir)*1.5,egg.mesh.position.y+0.7,egg.mesh.position.z+Math.cos(_nsbDir)*1.5);scene.add(_nsbBall);
-                    var _nsbRing=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.06,6,12),new THREE.MeshBasicMaterial({color:0xFFFF88,transparent:true,opacity:0.5}));
-                    _nsbRing.position.copy(_nsbBall.position);scene.add(_nsbRing);
-                    if(!window._npcHadoukens)window._npcHadoukens=[];
-                    window._npcHadoukens.push({ball:_nsbBall,ring:_nsbRing,vx:Math.sin(_nsbDir)*0.5,vz:Math.cos(_nsbDir)*0.5,life:100,owner:egg});
+                    MoveProjectile_execute(egg,_nsbDir,{speed:MOVE_PARAMS.rooster.sonicBoom.speed,life:MOVE_PARAMS.rooster.sonicBoom.life,color:MOVE_PARAMS.rooster.sonicBoom.color,ringColor:MOVE_PARAMS.rooster.sonicBoom.ringColor,isPlayer:false,type:'normal'});
                 }
                 if(cd2<3&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcShoryuActive=true;egg.vy=JUMP_FORCE*1.6;egg.squash=0.5;
@@ -497,12 +482,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             else if(_nCT==='monkey'){
                 if(cd2>3&&cd2<20&&Math.random()<0.045&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
                     egg._npcHadouCD=50;var _ncDir=Math.atan2(cdx2,cdz2);
-                    var _ncBall=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.85}));
-                    _ncBall.position.set(egg.mesh.position.x+Math.sin(_ncDir)*1.5,egg.mesh.position.y+0.7,egg.mesh.position.z+Math.cos(_ncDir)*1.5);scene.add(_ncBall);
-                    var _ncRing=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
-                    _ncRing.position.copy(_ncBall.position);scene.add(_ncRing);
-                    if(!window._npcHadoukens)window._npcHadoukens=[];
-                    window._npcHadoukens.push({ball:_ncBall,ring:_ncRing,vx:Math.sin(_ncDir)*0.5,vz:Math.cos(_ncDir)*0.5,life:100,owner:egg});
+                    MoveProjectile_execute(egg,_ncDir,{speed:MOVE_PARAMS.monkey.kikouken.speed,life:MOVE_PARAMS.monkey.kikouken.life,color:MOVE_PARAMS.monkey.kikouken.color,ringColor:MOVE_PARAMS.monkey.kikouken.ringColor,isPlayer:false,type:'normal',npcRadius:0.5});
                 }
                 if(cd2<2.5&&Math.random()<0.045&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=30;
@@ -529,12 +509,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             else if(_nCT==='cockroach'){
                 if(cd2>3&&cd2<25&&Math.random()<0.06&&(!egg._npcHadouCD||egg._npcHadouCD<=0)){
                     egg._npcHadouCD=50;var _ndDir=Math.atan2(cdx2,cdz2);
-                    var _ndBall=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,6),new THREE.MeshBasicMaterial({color:0xFF6600,transparent:true,opacity:0.85}));
-                    _ndBall.position.set(egg.mesh.position.x+Math.sin(_ndDir)*1.5,egg.mesh.position.y+0.7,egg.mesh.position.z+Math.cos(_ndDir)*1.5);scene.add(_ndBall);
-                    var _ndRing=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0xFFAA00,transparent:true,opacity:0.5}));
-                    _ndRing.position.copy(_ndBall.position);scene.add(_ndRing);
-                    if(!window._npcHadoukens)window._npcHadoukens=[];
-                    window._npcHadoukens.push({ball:_ndBall,ring:_ndRing,vx:Math.sin(_ndDir)*0.2,vz:Math.cos(_ndDir)*0.2,life:180,owner:egg,burns:true});
+                    MoveProjectile_execute(egg,_ndDir,{speed:MOVE_PARAMS.cockroach.yogaFire.speed,life:MOVE_PARAMS.cockroach.yogaFire.life,color:MOVE_PARAMS.cockroach.yogaFire.color,ringColor:MOVE_PARAMS.cockroach.yogaFire.ringColor,burns:MOVE_PARAMS.cockroach.yogaFire.burns,isPlayer:false,type:'normal'});
                 }
                 if(cd2<5&&Math.random()<0.018&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=70;
