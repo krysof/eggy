@@ -575,7 +575,7 @@ function handlePlayerInput(){
             // HADOUKEN (Ryu red, Ken red)
             _shoutMove(playerEgg,_ct==='dog'?'Hadouken!':'HADOUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=25;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
-            var _hDir=playerEgg._ffMoveAngle||playerEgg.mesh.rotation.y;
+            var _hDir=playerEgg._moveDir;
             var _hx=playerEgg.mesh.position.x+Math.sin(_hDir)*1.5;
             var _hz=playerEgg.mesh.position.z+Math.cos(_hDir)*1.5;
             var _hy=playerEgg.mesh.position.y+0.7;
@@ -592,7 +592,7 @@ function handlePlayerInput(){
             // YOGA FIRE (Dhalsim) — slow fireball, burns on hit
             _shoutMove(playerEgg,'Yoga Fire!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
-            var _yfDir=playerEgg._ffMoveAngle||playerEgg.mesh.rotation.y;
+            var _yfDir=playerEgg._moveDir;
             // Fireball group: core + outer flame + flickering glow
             var _yfGroup=new THREE.Group();
             var _yfCore=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),new THREE.MeshBasicMaterial({color:0xFFDD00,transparent:true,opacity:0.95}));
@@ -615,7 +615,7 @@ function handlePlayerInput(){
             // SONIC BOOM (Guile) — yellow crescent texture on a spinning plane
             _shoutMove(playerEgg,'Sonic Boom!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._hadouReady=false;playerEgg._ffSeq=0;playerEgg._ffReady=false;
-            var _sbDir=playerEgg._ffMoveAngle||playerEgg.mesh.rotation.y;
+            var _sbDir=playerEgg._moveDir;
             // Draw crescent on a canvas texture
             var _sbCvs=document.createElement('canvas');_sbCvs.width=64;_sbCvs.height=64;
             var _sbCtx2=_sbCvs.getContext('2d');
@@ -656,7 +656,7 @@ function handlePlayerInput(){
             // SUMO HEADBUTT (E.Honda) — ←→+R, half speed, double duration for same distance
             _shoutMove(playerEgg,'Dosukoi!');
             playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.bull.headbutt.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
-            var _shDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
+            var _shDir=playerEgg._moveDir;
             playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;
             playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
             playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
@@ -699,7 +699,7 @@ function handlePlayerInput(){
             // 気功拳 (Chun-Li)
             _shoutMove(playerEgg,'Kikouken!');
             playerEgg._comboCount=0;playerEgg._attackCD=20;playerEgg._chargeBack=0;
-            var _sbDir2=playerEgg._ffMoveAngle||playerEgg.mesh.rotation.y;
+            var _sbDir2=playerEgg._moveDir;
             var _sbBall2=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),new THREE.MeshBasicMaterial({color:0x88BBFF,transparent:true,opacity:0.85}));
             _sbBall2.position.set(playerEgg.mesh.position.x+Math.sin(_sbDir2)*1.5,playerEgg.mesh.position.y+0.7,playerEgg.mesh.position.z+Math.cos(_sbDir2)*1.5);scene.add(_sbBall2);
             var _sbRing2=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.06,6,12),new THREE.MeshBasicMaterial({color:0x88FF88,transparent:true,opacity:0.5}));
@@ -710,7 +710,7 @@ function handlePlayerInput(){
             // ROLLING ATTACK (Blanka) — ←→+R, forward roll same speed/distance as Honda
             _shoutMove(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.cat.roll.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
-            var _brDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
+            var _brDir=playerEgg._moveDir;
             playerEgg._blankaSpinTimer=MOVE_PARAMS.cat.roll.duration;
             playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
             playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
@@ -722,7 +722,7 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Yoga Flame!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             playerEgg._yogaFlame=MOVE_PARAMS.cockroach.yogaFlame.duration;
-            playerEgg._yogaFlameDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
+            playerEgg._yogaFlameDir=playerEgg._moveDir;
             playerEgg.squash=0.85;
             // Fire breath sound
             if(sfxEnabled){var _yfCtx=ensureAudio();if(_yfCtx){var _yft=_yfCtx.currentTime;
@@ -832,7 +832,7 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
             playerEgg.vy=0.1; // slight hop
             playerEgg._tatsuActive=MOVE_PARAMS.egg.tatsumaki.duration;
-            playerEgg._tatsuDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
+            playerEgg._tatsuDir=playerEgg._moveDir;
             // Show both legs extended
             var _tud=playerEgg.mesh.userData;
             if(_tud.rightLeg){_tud.rightLeg.visible=true;_tud.rightLeg.position.set(0.3,0.15,0.6);_tud.rightLeg.rotation.x=-Math.PI/2;}
@@ -849,7 +849,7 @@ function handlePlayerInput(){
             // SPINNING BIRD KICK (Chun-Li) — ↓←+T
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.monkey.spinningBird.jumpMul;
-            playerEgg._tatsuActive=MOVE_PARAMS.monkey.spinningBird.duration;playerEgg._tatsuDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
+            playerEgg._tatsuActive=MOVE_PARAMS.monkey.spinningBird.duration;playerEgg._tatsuDir=playerEgg._moveDir;
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
             // Phoenix cry sound
@@ -868,7 +868,7 @@ function handlePlayerInput(){
             // SOMERSAULT KICK (Guile) — backflip with blade arc
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
-            var _gsFaceDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
+            var _gsFaceDir=playerEgg._moveDir;
             playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.rooster.somersault.jumpMul;
             playerEgg.vx=Math.sin(_gsFaceDir)*0.15;
             playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
@@ -1675,6 +1675,11 @@ function handlePlayerInput(){
         }
     }
     if(playerEgg._ffTimer<=0){playerEgg._ffSeq=0;playerEgg._ffReady=false;}
+    // ---- Unified move direction: used by all directional specials ----
+    // bf moves use second press direction, ff moves use second press direction
+    if(playerEgg._bfReady&&playerEgg._bfMoveAngle!==undefined)playerEgg._moveDir=playerEgg._bfMoveAngle;
+    else if(playerEgg._ffReady&&playerEgg._ffMoveAngle!==undefined)playerEgg._moveDir=playerEgg._ffMoveAngle;
+    else playerEgg._moveDir=playerEgg.mesh.rotation.y;
     // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) ----
     playerEgg._tatsuReady=playerEgg._bfReady;
     // ---- Hadouken (波動拳): 前前+R (forward-forward-punch) ----
