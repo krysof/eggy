@@ -359,7 +359,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         egg.mesh.rotation.y=Math.atan2(egg._dashDirX||0,egg._dashDirZ||0);
         egg.mesh.rotation.x=0;egg.mesh.rotation.z=0;
         // Phase-based velocity
-        var _hdP3=(_hdTotal2||60)-egg._hondaDash;
+        var _hdP3=(egg._hondaDashTotal||60)-egg._hondaDash;
         if(_hdP3<8){egg.vy=0.08;egg.vx=(egg._dashDirX||0)*0.3;egg.vz=(egg._dashDirZ||0)*0.3;}
         else if(egg._hondaDash>5){egg.vx=egg._dashDirX;egg.vz=egg._dashDirZ;egg.mesh.position.y=Math.max(egg.mesh.position.y,0.8);}
         else{egg.vx*=0.7;egg.vz*=0.7;}
