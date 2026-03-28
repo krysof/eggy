@@ -2049,7 +2049,6 @@ function _gameUpdate(){
     // Platformer mode — separate update, skip everything else
     if(gameState==='platformer'){
         if(typeof _pfGameUpdate==='function')_pfGameUpdate();
-        R.render(scene,camera);
         return;
     }
 

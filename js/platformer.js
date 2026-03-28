@@ -367,10 +367,10 @@ function _pfHandleInput(){
     if(keys['KeyA']||keys['ArrowLeft'])moveX-=1;
     if(keys['KeyD']||keys['ArrowRight'])moveX+=1;
     if(joyActive)moveX+=joyVec.x;
-    p.vx+=moveX*0.02;
+    p.vx+=moveX*0.04;
     if(p.vx>_pfMaxSpd)p.vx=_pfMaxSpd;
     if(p.vx<-_pfMaxSpd)p.vx=-_pfMaxSpd;
-    if(Math.abs(moveX)<0.1)p.vx*=0.88;
+    if(Math.abs(moveX)<0.1)p.vx*=0.85;
     p.facing=p.vx>0.01?1:(p.vx<-0.01?-1:p.facing);
     // Jump
     if((keys['Space']||keys['KeyW']||keys['ArrowUp'])&&p._pfOnGround){
@@ -446,7 +446,7 @@ function _pfStart(){
     var pAccent=ch.accent||0xFFCC00;
     var pType=ch.type||'egg';
     playerEgg.mesh=createEggMesh(pColor,pAccent,pType);
-    playerEgg.mesh.position.set(_pfPlayerStartX*T,4*T,0);
+    playerEgg.mesh.position.set(_pfPlayerStartX*T,2*T+1,0);
     playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
     playerEgg._pfOnGround=false;playerEgg._pfBig=false;playerEgg._pfStar=false;playerEgg._pfStarTimer=0;playerEgg._pfWon=false;playerEgg._pfFireCD=0;
     playerEgg.alive=true;playerEgg.facing=1;
