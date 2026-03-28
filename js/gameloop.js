@@ -2,6 +2,50 @@
 // ============================================================
 //  CITY UPDATE (portals, coins, NPCs)
 // ============================================================
+
+// ---- Slash cut effect — vertical bright line + body splits briefly ----
+if(!window._slashEffects)window._slashEffects=[];
+function spawnSlashEffect(egg,faceY){
+    // Bright vertical slash line at egg position
+    var _slG=new THREE.PlaneGeometry(0.15,3.5);
+    var _slM=new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:1,side:THREE.DoubleSide});
+    var _slLine=new THREE.Mesh(_slG,_slM);
+    _slLine.position.set(egg.mesh.position.x,egg.mesh.position.y+1,egg.mesh.position.z);
+    _slLine.rotation.y=faceY;
+    scene.add(_slLine);
+    // Two half-body clones that separate
+    var _slBody=egg.mesh.userData.body;
+    var _slColor=_slBody?_slBody.material.color.getHex():0xFFFFFF;
+    var _halfL=new THREE.Mesh(new THREE.SphereGeometry(0.7,8,8,0,Math.PI),new THREE.MeshBasicMaterial({color:_slColor,transparent:true,opacity:0.7,side:THREE.DoubleSide}));
+    var _halfR=new THREE.Mesh(new THREE.SphereGeometry(0.7,8,8,Math.PI,Math.PI),new THREE.MeshBasicMaterial({color:_slColor,transparent:true,opacity:0.7,side:THREE.DoubleSide}));
+    _halfL.position.copy(_slLine.position);_halfR.position.copy(_slLine.position);
+    _halfL.rotation.y=faceY;_halfR.rotation.y=faceY;
+    scene.add(_halfL);scene.add(_halfR);
+    window._slashEffects.push({line:_slLine,halfL:_halfL,halfR:_halfR,life:20,faceY:faceY});
+    // Flash enemy white briefly
+    egg._slashFlash=8;
+}
+function updateSlashEffects(){
+    for(var si=window._slashEffects.length-1;si>=0;si--){
+        var s=window._slashEffects[si];
+        s.life--;
+        var t=s.life/20;
+        // Slash line fades
+        s.line.material.opacity=t;
+        s.line.scale.x=1+((1-t)*2);
+        // Halves drift apart then fade
+        var sep=(1-t)*0.8;
+        var perpX=Math.cos(s.faceY)*sep,perpZ=-Math.sin(s.faceY)*sep;
+        s.halfL.position.x+=perpX*0.04;s.halfL.position.z+=perpZ*0.04;
+        s.halfR.position.x-=perpX*0.04;s.halfR.position.z-=perpZ*0.04;
+        s.halfL.material.opacity=t*0.7;s.halfR.material.opacity=t*0.7;
+        if(s.life<=0){
+            scene.remove(s.line);scene.remove(s.halfL);scene.remove(s.halfR);
+            window._slashEffects.splice(si,1);
+        }
+    }
+}
+
 // Pain expression — squint eyes and open mouth when hurt
 function _updatePainFace(egg){
     var ud=egg.mesh.userData;
@@ -29,6 +73,22 @@ function _updatePainFace(egg){
 function updateCity(){
     if(!playerEgg)return;
     const px=playerEgg.mesh.position.x, pz=playerEgg.mesh.position.z, py=playerEgg.mesh.position.y;
+
+    // Slash cut effects
+    updateSlashEffects();
+    // Slash flash — briefly flash body white
+    for(var _sfi=0;_sfi<allEggs.length;_sfi++){
+        var _sfe=allEggs[_sfi];
+        if(_sfe._slashFlash>0){
+            _sfe._slashFlash--;
+            var _sfBody=_sfe.mesh.userData.body;
+            if(_sfBody){
+                if(_sfe._slashFlash%2===0)_sfBody.material.emissive=new THREE.Color(0xFFFFFF);
+                else _sfBody.material.emissive=new THREE.Color(0x000000);
+                if(_sfe._slashFlash<=0)_sfBody.material.emissive=new THREE.Color(0x000000);
+            }
+        }
+    }
 
     // Animate portals
     const t=Date.now()*0.001;
@@ -78,6 +138,8 @@ function updateCity(){
                 _he2.vx+=_hk.vx*0.8;_he2.vz+=_hk.vz*0.8;_he2.vy=0.15;
                 _he2.squash=0.5;_he2.throwTimer=25;_he2._bounces=1;_addStunDamage(_he2,15);
                 if(_hk.burns)_he2._onFire=120; // 2 seconds fire
+                // Slash cut effect for Sonic Boom / blade projectiles
+                if(_hk.isSonicBoom)spawnSlashEffect(_he2,Math.atan2(_hk.vx,_hk.vz));
                 _dropNpcStolenCoins(_he2);playHitSound(_he2.mesh.position.x,_he2.mesh.position.z);
                 _hk.life=0;break;
             }

@@ -1195,11 +1195,12 @@ function handlePlayerInput(){
                 var _gsdy=_gse.mesh.position.y-playerEgg.mesh.position.y;
                 var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdz*_gsdz+_gsdy*_gsdy);
                 if(_gsd<3.5&&_gsd>0.01){
-                    // Blow away like Honda headbutt
+                    // Blow away + slash cut effect
                     _gse.vx+=_gsdx/_gsd*0.6;_gse.vz+=_gsdz/_gsd*0.6;_gse.vy=0.35;
                     _gse.squash=0.3;_gse.throwTimer=50;_gse._bounces=2;
                     _addStunDamage(_gse,20);
                     _dropNpcStolenCoins(_gse);playHitSound();
+                    spawnSlashEffect(_gse,playerEgg._guileArcFaceY);
                 }
             }
         }
