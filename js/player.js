@@ -503,7 +503,7 @@ function handlePlayerInput(){
     if(playerEgg._comboTimer<=0)playerEgg._comboCount=0;
     // Attack limb animation timer
     if(!playerEgg._atkAnim)playerEgg._atkAnim=0;
-    if(playerEgg._atkAnim>0&&!playerEgg._shoryuActive&&!playerEgg._tatsuActive){
+    if(playerEgg._atkAnim>0&&!playerEgg._shoryuActive&&!playerEgg._tatsuActive&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer){
         playerEgg._atkAnim--;
         if(playerEgg._atkAnim<=0){
             var _ud=playerEgg.mesh.userData;
