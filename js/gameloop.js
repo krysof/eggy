@@ -2172,5 +2172,10 @@ function _gameUpdate(){
     _updateChargeParticles();
     // Update grab button text
     if(grabBtn&&playerEgg){if(playerEgg.holding){grabBtn.textContent=L('throwT');grabBtn.classList.add('holding');}else{grabBtn.textContent=L('grab');grabBtn.classList.remove('holding');}}
+
+    // ---- Platformer mode ----
+    if(gameState==='platformer'&&typeof _pfGameUpdate==='function'){
+        _pfGameUpdate();
+    }
 }
 
