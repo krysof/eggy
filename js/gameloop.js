@@ -322,7 +322,8 @@ function updateCity(){
     // Check portal proximity — show prompt on base, enter when walk into ring
     // Skip portal triggers while spin dashing
     if(_pipeArrivalCooldown>0)_pipeArrivalCooldown--;
-    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._guileSomersault||playerEgg.throwTimer>0){document.getElementById('portal-prompt').style.display='none';} else {
+    var _notWalking=!!(playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._guileSomersault||playerEgg.throwTimer>0||playerEgg._blankaShock||playerEgg._yogaFlame||playerEgg._hyakuretsuTimer||playerEgg._hyakuretsuKickTimer||!playerEgg.onGround);
+    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_notWalking){document.getElementById('portal-prompt').style.display='none';} else {
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
     var _nearP=null, _nearD=9999;
@@ -1844,8 +1845,8 @@ function enterCity(spawnX,spawnZ){
         camera.position.set(sx,12,sz+14);camera.lookAt(sx,0,sz);
         camera.up.set(0,1,0);
     } else {
-        // Spawn on fountain top (y=7)
-        if(sx===0&&sz===0)playerEgg.mesh.position.y=7;
+        // Spawn high above fountain, fall down
+        if(sx===0&&sz===0)playerEgg.mesh.position.y=15;
         camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
         camera.up.set(0,1,0);
     }

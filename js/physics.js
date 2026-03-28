@@ -333,16 +333,20 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     var _attackAnim=!!(egg._hondaDash||egg._blankaSpinTimer||egg._guileSomersault);
     if(body){
         if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
-            // Honda headbutt: tilt whole mesh — eyes face ground
+            // Honda headbutt: tilt using quaternion to guarantee visible forward lean
             var _hdTotal2=egg._hondaDashTotal||60;
             var _hdPhase2=_hdTotal2-egg._hondaDash;
-            egg.mesh.rotation.order='YXZ';
-            egg.mesh.rotation.y=Math.atan2(egg._dashDirX,egg._dashDirZ);
-            // Positive X rotation = eyes (Z+ face) tilts DOWN toward ground
-            if(_hdPhase2<8){egg.mesh.rotation.x=(_hdPhase2/8)*0.9;}
-            else if(egg._hondaDash>5){egg.mesh.rotation.x=0.9;}
-            else{var _lt=(5-egg._hondaDash)/5;egg.mesh.rotation.x=egg._hondaBounced?-0.9*(1-_lt):0.9*(1-_lt);}
-            egg.mesh.rotation.z=0;
+            var _hdAngle=0;
+            if(_hdPhase2<8){_hdAngle=(_hdPhase2/8)*0.8;}
+            else if(egg._hondaDash>5){_hdAngle=0.8;}
+            else{var _lt=(5-egg._hondaDash)/5;_hdAngle=egg._hondaBounced?-0.8*(1-_lt):0.8*(1-_lt);}
+            // Set facing direction
+            var _hdFaceY=Math.atan2(egg._dashDirX,egg._dashDirZ);
+            // Build quaternion: first Y rotation (facing), then X rotation (tilt)
+            var _qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),_hdFaceY);
+            var _qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),_hdAngle);
+            egg.mesh.quaternion.copy(_qY.multiply(_qX));
+            egg.mesh.scale.set(1,1,1);
         } else if(egg._blankaSpinTimer>0){
             // Blanka roll: fast forward spin
             body.rotation.x+=0.8;
