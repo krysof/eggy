@@ -1161,16 +1161,13 @@ function handlePlayerInput(){
         if(window._guileArc){
             var _gaFace3=playerEgg._guileArcFaceY;
             window._guileArc.visible=true;
-            // First frame: record start position in front of Guile
-            if(!playerEgg._guileArcPosX){
-                playerEgg._guileArcPosX=playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.5;
-                playerEgg._guileArcPosY=playerEgg.mesh.position.y+1.0;
-                playerEgg._guileArcPosZ=playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.5;
-            }
-            // Move forward independently (~1/3 body per duration = ~0.7 units over 65 frames)
-            playerEgg._guileArcPosX+=Math.sin(_gaFace3)*0.012;
-            playerEgg._guileArcPosZ+=Math.cos(_gaFace3)*0.012;
-            window._guileArc.position.set(playerEgg._guileArcPosX,playerEgg._guileArcPosY,playerEgg._guileArcPosZ);
+            // Follow player + drift forward a bit (~1/3 body over duration)
+            var _gaElapsed=(MOVE_PARAMS.rooster.somersault.duration-playerEgg._guileSomersault);
+            var _gaDrift=1.5+_gaElapsed*0.015;
+            window._guileArc.position.set(
+                playerEgg.mesh.position.x+Math.sin(_gaFace3)*_gaDrift,
+                playerEgg.mesh.position.y+1.0,
+                playerEgg.mesh.position.z+Math.cos(_gaFace3)*_gaDrift);
             // Arc in sagittal plane, opening faces back toward Guile, curve faces forward
             window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,Math.PI/2);
             window._guileArc.material.opacity=0.85;
