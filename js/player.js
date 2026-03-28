@@ -1164,8 +1164,8 @@ function handlePlayerInput(){
                 playerEgg.mesh.position.x+Math.sin(_gaFace3)*1.5,
                 playerEgg.mesh.position.y+1.0,
                 playerEgg.mesh.position.z+Math.cos(_gaFace3)*1.5);
-            // Arc in sagittal plane, rotated 90° clockwise so opening faces down
-            window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,-Math.PI/2);
+            // Arc in sagittal plane, opening faces back toward Guile, curve faces forward
+            window._guileArc.rotation.set(0,_gaFace3+Math.PI/2,Math.PI/2);
             window._guileArc.material.opacity=0.85;
             // Play sound once at start
             if(!playerEgg._guileArcLaunched){
