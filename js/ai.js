@@ -422,7 +422,9 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     MoveProjectile_execute(egg,_nhDir,{speed:0.3,life:MOVE_PARAMS.egg.hadouken.life,color:MOVE_PARAMS.egg.hadouken.color,ringColor:MOVE_PARAMS.egg.hadouken.ringColor,burns:MOVE_PARAMS.egg.hadouken.burns,isPlayer:false,type:'normal'});
                 }
                 if(cd2<2.5&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
-                    egg._npcSpecialCD=60;egg._npcShoryuActive=true;egg.vy=JUMP_FORCE*1.5;egg.squash=0.5;
+                    egg._npcSpecialCD=60;egg._npcShoryuActive=true;
+                    MoveUppercut_execute(egg,Math.atan2(cdx2,cdz2),{duration:MOVE_PARAMS.egg.shoryuken.duration,jumpMul:1.5,fwdSpeed:MOVE_PARAMS.egg.shoryuken.fwdSpeed});
+                    // NPC immediate hit on nearby target
                     if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;_addStunDamage(closest,15);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.024&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
@@ -436,7 +438,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     MoveProjectile_execute(egg,_nkDir,{speed:MOVE_PARAMS.dog.hadouken.speed,life:MOVE_PARAMS.dog.hadouken.life,color:MOVE_PARAMS.dog.hadouken.color,ringColor:MOVE_PARAMS.dog.hadouken.ringColor,burns:MOVE_PARAMS.dog.hadouken.burns,isPlayer:false,type:'normal'});
                 }
                 if(cd2<2.5&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
-                    egg._npcSpecialCD=60;egg._npcShoryuActive=true;egg.vy=JUMP_FORCE*1.7;egg.squash=0.5;
+                    egg._npcSpecialCD=60;egg._npcShoryuActive=true;
+                    MoveUppercut_execute(egg,Math.atan2(cdx2,cdz2),{duration:MOVE_PARAMS.dog.shoryuken.duration,jumpMul:1.7,fwdSpeed:MOVE_PARAMS.dog.shoryuken.fwdSpeed});
                     if(cd2<3){closest.vx+=(cdx2/cd2)*0.35;closest.vz+=(cdz2/cd2)*0.35;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;closest._onFire=120;_addStunDamage(closest,15);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.024&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
@@ -451,20 +454,22 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2>3&&cd2<10&&egg.onGround&&Math.random()<0.024&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=80;var _nhbDir=Math.atan2(cdx2,cdz2);
-                    egg.vx=Math.sin(_nhbDir)*MAX_SPEED*2;egg.vz=Math.cos(_nhbDir)*MAX_SPEED*2;
-                    egg._hondaDash=40;egg.squash=0.55;egg.mesh.rotation.y=_nhbDir;
+                    MoveDash_execute(egg,_nhbDir,{isDash:true,speed:2,duration:40});
+                    egg.mesh.rotation.y=_nhbDir;
                 }
             }
             // Blanka: electric, rolling attack
             else if(_nCT==='cat'){
                 if(cd2<2.5&&Math.random()<0.03&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
-                    egg._npcSpecialCD=60;egg._blankaShock=30;egg.squash=0.6;
+                    egg._npcSpecialCD=60;
+                    MoveElectric_execute(egg,{duration:30});
                     if(cd2<2){closest._electrocuted=90;closest._elecKnockDir={x:-cdx2/(cd2||1),z:-cdz2/(cd2||1)};closest.vx=0;closest.vz=0;if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>4&&cd2<12&&egg.onGround&&Math.random()<0.018&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=70;var _nbrDir=Math.atan2(cdx2,cdz2);
-                    egg.vx=Math.sin(_nbrDir)*MAX_SPEED*3;egg.vz=Math.cos(_nbrDir)*MAX_SPEED*3;
-                    egg._blankaSpinTimer=40;egg.squash=0.8;egg.mesh.rotation.y=_nbrDir;
+                    MoveDash_execute(egg,_nbrDir,{isRoll:true,speed:3,duration:40});
+                    egg.vx=egg._blankaSpinDirX;egg.vz=egg._blankaSpinDirZ;
+                    egg.mesh.rotation.y=_nbrDir;
                 }
             }
             // Guile: sonic boom, somersault kick
@@ -513,7 +518,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2<5&&Math.random()<0.018&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=70;
-                    if(cd2<4){closest._onFire=120;closest._fireStun=90;closest._fireStunDir=Math.atan2(cdx2,cdz2);closest.vx=0;closest.vz=0;_addStunDamage(closest,20);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<4){MoveYogaFlame_execute(egg,Math.atan2(cdx2,cdz2),MOVE_PARAMS.cockroach.yogaFlame);closest._onFire=120;closest._fireStun=90;closest._fireStunDir=Math.atan2(cdx2,cdz2);closest.vx=0;closest.vz=0;_addStunDamage(closest,20);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
             }
             // NPC piledriver: Zangief only (already handled above)

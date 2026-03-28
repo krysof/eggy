@@ -513,10 +513,8 @@ function handlePlayerInput(){
     var _ct=playerEgg.mesh.userData._charType||'egg';
     if(playerEgg._lariatReady&&playerEgg._attackCD<=0&&!playerEgg.holding&&!playerEgg._tatsuActive){
         playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._lariatReady=false;
-        playerEgg._tatsuActive=MOVE_PARAMS.bear.lariat.duration;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+        MoveSpin_execute(playerEgg,playerEgg.mesh.rotation.y,{duration:MOVE_PARAMS.bear.lariat.duration,isLariat:true});
         playerEgg._atkAnim=62;playerEgg.squash=0.9;
-        playerEgg._isLariat=true;
-        playerEgg.vy=0; // NO jump for lariat
         // Show both arms extended at eye level
         var _lud=playerEgg.mesh.userData;
         if(_lud.rightArm){_lud.rightArm.visible=true;_lud.rightArm.position.set(0.6,0.88,0);_lud.rightArm.scale.set(1.5,1.5,1.5);}
@@ -533,19 +531,13 @@ function handlePlayerInput(){
         if(_alwaysR&&_alwaysR.type==='hyakuretsu'&&!playerEgg._bfReady){
             _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=_alwaysR.cd||4;
-            // Start continuous slap state
-            if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
-            playerEgg._hyakuretsuTimer=60;
-            playerEgg._hyakuretsuTick=0;
-            playerEgg.vx=0;playerEgg.vz=0;
-            playerEgg.squash=0.88;
+            MoveRapidHit_execute(playerEgg,'punch');
         }
         // ---- BLANKA: always Electric Thunder on punch ----
         else if(_alwaysR&&_alwaysR.type==='electric'&&!playerEgg._bfReady){
             _shoutMove(playerEgg,_alwaysR.shout);
             playerEgg._comboCount=0;playerEgg._attackCD=4;
-            playerEgg._blankaShock=60;
-            playerEgg.squash=0.6;
+            MoveElectric_execute(playerEgg,{duration:60});
             if(sfxEnabled){var _beCtx3=ensureAudio();if(_beCtx3){var _bet3=_beCtx3.currentTime;var _beo3=_beCtx3.createOscillator();var _beg3=_beCtx3.createGain();_beo3.type='square';_beo3.frequency.setValueAtTime(800,_bet3);_beo3.frequency.linearRampToValueAtTime(2000,_bet3+0.1);_beg3.gain.setValueAtTime(0.08,_bet3);_beg3.gain.exponentialRampToValueAtTime(0.001,_bet3+0.3);_beo3.connect(_beg3);_beg3.connect(_beCtx3.destination);_beo3.start(_bet3);_beo3.stop(_bet3+0.3);}}
         }
         // ---- RAPID-PRESS SPECIALS FIRST (priority over command inputs) ----
@@ -572,7 +564,7 @@ function handlePlayerInput(){
             // ELECTRIC THUNDER (Blanka) — infinite while mashing
             _shoutMove(playerEgg,'ELECTRIC!');
             playerEgg._comboCount=0;playerEgg._attackCD=2;playerEgg._rapidR=2;
-            playerEgg._blankaShock=25;playerEgg.squash=0.6;
+            MoveElectric_execute(playerEgg,{duration:25});
             if(sfxEnabled){var _beCtx=ensureAudio();if(_beCtx){var _bet=_beCtx.currentTime;var _beo=_beCtx.createOscillator();var _beg=_beCtx.createGain();_beo.type='square';_beo.frequency.setValueAtTime(800,_bet);_beo.frequency.linearRampToValueAtTime(2000,_bet+0.1);_beg.gain.setValueAtTime(0.08,_bet);_beg.gain.exponentialRampToValueAtTime(0.001,_bet+0.3);_beo.connect(_beg);_beg.connect(_beCtx.destination);_beo.start(_bet);_beo.stop(_bet+0.3);}}
         }
         // ---- COMMAND INPUT SPECIALS ----
@@ -621,30 +613,15 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Dosukoi!');
             playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.bull.headbutt.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _shDir=playerEgg._moveDir;
-            playerEgg.vx=Math.sin(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;playerEgg.vz=Math.cos(_shDir)*MAX_SPEED*MOVE_PARAMS.bull.headbutt.speed;
-            playerEgg._dashDirX=Math.sin(_shDir)*MAX_SPEED*2;playerEgg._dashDirZ=Math.cos(_shDir)*MAX_SPEED*2;
-            playerEgg._dashFaceY=_shDir; // remember original facing for after bounce
-            playerEgg._hondaDash=MOVE_PARAMS.bull.headbutt.duration;playerEgg._hondaDashTotal=MOVE_PARAMS.bull.headbutt.duration;playerEgg._hondaBounced=false;playerEgg._atkAnim=62;playerEgg.squash=0.55;
+            MoveDash_execute(playerEgg,_shDir,{isDash:true,speed:MOVE_PARAMS.bull.headbutt.speed,duration:MOVE_PARAMS.bull.headbutt.duration});
+            playerEgg._atkAnim=62;
         } else if(playerEgg._bfReady&&_bfR&&_bfR.type==='shoryuken'&&(_ct==='egg'||_ct==='dog')){
             // SHORYUKEN (Ryu/Ken) — ←→+R
             _shoutMove(playerEgg,_ct==='dog'?'Shoryuken!':'SHORYUKEN!');
             playerEgg._comboCount=0;playerEgg._attackCD=30;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _shFaceDir=playerEgg.mesh.rotation.y;
-            var _shFwd=_ct==='dog'?MOVE_PARAMS.dog.shoryuken.fwdSpeed:MOVE_PARAMS.egg.shoryuken.fwdSpeed;
-            playerEgg.vy=JUMP_FORCE*(_ct==='dog'?MOVE_PARAMS.dog.shoryuken.jumpMul:MOVE_PARAMS.egg.shoryuken.jumpMul);
-            playerEgg.vx=Math.sin(_shFaceDir)*_shFwd;
-            playerEgg.vz=Math.cos(_shFaceDir)*_shFwd;
-            playerEgg.squash=0.5;
-            playerEgg._shoryuActive=_ct==='dog'?MOVE_PARAMS.dog.shoryuken.duration:MOVE_PARAMS.egg.shoryuken.duration;
-            playerEgg._shoryuIsKen=(_ct==='dog');
-            // Ken: store forward direction to maintain momentum during rise
-            if(_ct==='dog'){
-                playerEgg._shoryuFwdX=Math.sin(_shFaceDir)*_shFwd;
-                playerEgg._shoryuFwdZ=Math.cos(_shFaceDir)*_shFwd;
-            } else {
-                playerEgg._shoryuFwdX=Math.sin(_shFaceDir)*_shFwd*0.5;
-                playerEgg._shoryuFwdZ=Math.cos(_shFaceDir)*_shFwd*0.5;
-            }
+            var _shParams=MOVE_PARAMS[_ct].shoryuken;
+            MoveUppercut_execute(playerEgg,_shFaceDir,{duration:_shParams.duration,jumpMul:_shParams.jumpMul,fwdSpeed:_shParams.fwdSpeed});
             if(sfxEnabled){var _sCtx=ensureAudio();if(_sCtx){var _st=_sCtx.currentTime;var _so=_sCtx.createOscillator();var _sg=_sCtx.createGain();_so.type='sawtooth';_so.frequency.setValueAtTime(200,_st);_so.frequency.exponentialRampToValueAtTime(1200,_st+0.2);_so.frequency.exponentialRampToValueAtTime(800,_st+0.35);_sg.gain.setValueAtTime(0.12,_st);_sg.gain.exponentialRampToValueAtTime(0.001,_st+0.4);_so.connect(_sg);_sg.connect(_sCtx.destination);_so.start(_st);_so.stop(_st+0.4);}}
             playJumpSound();
         } else if(_isHadou&&_ffR&&_ct==='monkey'&&!window._playerHadouken){
@@ -659,20 +636,12 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'GRAAAH!');
             playerEgg._comboCount=0;playerEgg._attackCD=MOVE_PARAMS.cat.roll.cd;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             var _brDir=playerEgg._moveDir;
-            playerEgg._blankaSpinTimer=MOVE_PARAMS.cat.roll.duration;
-            playerEgg._blankaSpinDirX=Math.sin(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
-            playerEgg._blankaSpinDirZ=Math.cos(_brDir)*MAX_SPEED*MOVE_PARAMS.cat.roll.speed;
-            playerEgg._dashFaceY=_brDir; // remember facing for landing
-            playerEgg._blankaSpinFalling=false;
-            playerEgg._blankaSpinAngle=0; // reset spin angle for fresh roll
-            playerEgg.squash=0.8;
+            MoveDash_execute(playerEgg,_brDir,{isRoll:true,speed:MOVE_PARAMS.cat.roll.speed,duration:MOVE_PARAMS.cat.roll.duration});
         } else if(playerEgg._bfReady&&_bfR&&_ct==='cockroach'){
             // YOGA FLAME (Dhalsim) — ←→+R, short range fire breath
             _shoutMove(playerEgg,'Yoga Flame!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
-            playerEgg._yogaFlame=MOVE_PARAMS.cockroach.yogaFlame.duration;
-            playerEgg._yogaFlameDir=playerEgg._moveDir;
-            playerEgg.squash=0.85;
+            MoveYogaFlame_execute(playerEgg,playerEgg._moveDir,MOVE_PARAMS.cockroach.yogaFlame);
             // Fire breath sound
             if(sfxEnabled){var _yfCtx=ensureAudio();if(_yfCtx){var _yft=_yfCtx.currentTime;
                 var _yfo=_yfCtx.createOscillator();var _yfn=_yfCtx.createBufferSource();
@@ -754,11 +723,7 @@ function handlePlayerInput(){
         if(_alwaysT&&_alwaysT.type==='hyakuretsuKick'&&!_isTatsu&&!playerEgg._chargeUpReady){
             _shoutMove(playerEgg,'Hyakuretsu Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=4;
-            if(!playerEgg._hyakuretsuKickTimer)playerEgg._hyakuretsuKickTimer=0;
-            playerEgg._hyakuretsuKickTimer=60;
-            playerEgg._hyakuretsuKickTick=0;
-            playerEgg.vx=0;playerEgg.vz=0;
-            playerEgg.squash=0.88;
+            MoveRapidHit_execute(playerEgg,'kick');
         }
         // RAPID-PRESS KICK SPECIALS FIRST
         else if(playerEgg._rapidTReady&&_ct==='monkey'){
@@ -779,9 +744,7 @@ function handlePlayerInput(){
             // TATSUMAKI (Ryu/Ken)
             _shoutMove(playerEgg,'Tatsumaki Senpukyaku!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
-            playerEgg.vy=0.1; // slight hop
-            playerEgg._tatsuActive=MOVE_PARAMS.egg.tatsumaki.duration;
-            playerEgg._tatsuDir=playerEgg._moveDir;
+            MoveSpin_execute(playerEgg,playerEgg._moveDir,{duration:MOVE_PARAMS.egg.tatsumaki.duration});
             // Show both legs extended
             var _tud=playerEgg.mesh.userData;
             if(_tud.rightLeg){_tud.rightLeg.visible=true;_tud.rightLeg.position.set(0.3,0.15,0.6);_tud.rightLeg.rotation.x=-Math.PI/2;}
@@ -797,8 +760,7 @@ function handlePlayerInput(){
         } else if(_isTatsu&&_bfT&&_ct==='monkey'){
             // SPINNING BIRD KICK (Chun-Li) — ↓←+T
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
-            playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.monkey.spinningBird.jumpMul;
-            playerEgg._tatsuActive=MOVE_PARAMS.monkey.spinningBird.duration;playerEgg._tatsuDir=playerEgg._moveDir;
+            MoveSpin_execute(playerEgg,playerEgg._moveDir,{duration:MOVE_PARAMS.monkey.spinningBird.duration,jumpMul:MOVE_PARAMS.monkey.spinningBird.jumpMul});
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
             // Phoenix cry sound
@@ -818,34 +780,7 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Somersault Kick!');
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             var _gsFaceDir=playerEgg._moveDir;
-            playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.rooster.somersault.jumpMul;
-            playerEgg.vx=Math.sin(_gsFaceDir)*0.15;
-            playerEgg.vz=Math.cos(_gsFaceDir)*0.15;
-            playerEgg.squash=0.5;
-            playerEgg._guileSomersault=MOVE_PARAMS.rooster.somersault.duration;
-            playerEgg._guileSomFwdX=Math.sin(_gsFaceDir)*0.15;
-            playerEgg._guileSomFwdZ=Math.cos(_gsFaceDir)*0.15;
-            playerEgg._guileArcFaceY=_gsFaceDir;
-            playerEgg._guileArcStartX=playerEgg.mesh.position.x+Math.sin(_gsFaceDir)*1.5;
-            playerEgg._guileArcStartY=playerEgg.mesh.position.y+0.8;
-            playerEgg._guileArcStartZ=playerEgg.mesh.position.z+Math.cos(_gsFaceDir)*1.5;
-            // Create blade arc effect — 3D torus arc visible from any angle
-            if(!window._guileArc){
-                // Half-ring (arc from 0 to PI) using TorusGeometry
-                window._guileArc=new THREE.Mesh(
-                    new THREE.TorusGeometry(2.25,0.22,6,24,Math.PI),
-                    new THREE.MeshBasicMaterial({color:0x88FFFF,transparent:true,opacity:0.9})
-                );
-                // Inner brighter glow ring
-                var _gaInner=new THREE.Mesh(
-                    new THREE.TorusGeometry(2.25,0.11,4,24,Math.PI),
-                    new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.8})
-                );
-                window._guileArc.add(_gaInner);
-                scene.add(window._guileArc);
-            }
-            window._guileArc.visible=false;
-            playerEgg._guileArcLaunched=false;
+            MoveSomersault_execute(playerEgg,_gsFaceDir,MOVE_PARAMS.rooster.somersault);
             playJumpSound();
         } else {
         // Normal kick
@@ -904,201 +839,28 @@ function handlePlayerInput(){
     playerEgg._rWasDown=!!keys['KeyR'];
     playerEgg._tWasDown=!!keys['KeyT'];
     } // end combat block (else from _inSpecialMove)
-    // ---- Shoryuken fist (world-space, not child of egg) ----
+    // ---- Shoryuken update (unified) ----
     if(playerEgg._shoryuActive>0){
-        if(!window._shoryuFist){
-            window._shoryuFist=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),toon(0xFFFFFF));
-            scene.add(window._shoryuFist);
-        }
-        window._shoryuFist.visible=true;
-        var _sfDir=playerEgg.mesh.rotation.y;
-        window._shoryuFist.position.set(
-            playerEgg.mesh.position.x+Math.sin(_sfDir)*0.5,
-            playerEgg.mesh.position.y+1.8,
-            playerEgg.mesh.position.z+Math.cos(_sfDir)*0.5
-        );
-        playerEgg.mesh.rotation.y+=0.12;
-        // Maintain forward momentum during shoryuken (override friction)
-        if(playerEgg._shoryuFwdX!==undefined){
-            playerEgg.vx=playerEgg._shoryuFwdX;
-            playerEgg.vz=playerEgg._shoryuFwdZ;
-        }
-        // ---- Shoryuken hit detection (every 4 frames) ----
-        if(playerEgg._shoryuActive%4===0){
-            for(var _shi=0;_shi<allEggs.length;_shi++){
-                var _she=allEggs[_shi];if(_she===playerEgg||!_she.alive||_she.heldBy)continue;
-                if(_she._slamImmune>0)continue;
-                var _shdx=_she.mesh.position.x-playerEgg.mesh.position.x;
-                var _shdz=_she.mesh.position.z-playerEgg.mesh.position.z;
-                var _shdy=_she.mesh.position.y-playerEgg.mesh.position.y;
-                var _shd=Math.sqrt(_shdx*_shdx+_shdz*_shdz+_shdy*_shdy);
-                if(_shd<3&&_shd>0.01){
-                    _she.vx+=_shdx/_shd*0.6;_she.vz+=_shdz/_shd*0.6;
-                    _she.vy=0.4;_she.squash=0.3;_she.throwTimer=50;_she._bounces=2;
-                    _addStunDamage(_she,15);
-                    _dropNpcStolenCoins(_she);playHitSound();
-                    // Ken fire effect — burning particles on hit enemy
-                    if(playerEgg._shoryuIsKen){
-                        _she._onFire=90; // 1.5 seconds of fire
-                    }
-                }
-            }
-        }
-        // ---- Shoryuken Dragon (visual only) ----
-        if(!window._shoryuDragon){
-            window._shoryuDragon=[];
-            // Create both blue (Ryu) and fire (Ken) materials
-            window._shoryuDragonMats={
-                blue:new THREE.MeshBasicMaterial({color:0x44BBFF,transparent:true,opacity:0.8}),
-                blueHead:new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.9}),
-                fire:new THREE.MeshBasicMaterial({color:0xFF4400,transparent:true,opacity:0.8}),
-                fireHead:new THREE.MeshBasicMaterial({color:0xFFCC00,transparent:true,opacity:0.9})
-            };
-            for(var _sdi=0;_sdi<16;_sdi++){
-                var _sdSize=_sdi===0?0.6:0.45-_sdi*0.018;
-                var _sdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_sdSize,0.12),8,6),window._shoryuDragonMats.blueHead);
-                _sdSeg.visible=false;scene.add(_sdSeg);
-                window._shoryuDragon.push(_sdSeg);
-            }
-        }
-        // Set dragon color based on character
-        var _isKenDragon=playerEgg._shoryuIsKen;
-        var _sdMats=window._shoryuDragonMats;
-        for(var _sdm=0;_sdm<window._shoryuDragon.length;_sdm++){
-            window._shoryuDragon[_sdm].material=_sdm===0?(_isKenDragon?_sdMats.fireHead:_sdMats.blueHead):(_isKenDragon?_sdMats.fire:_sdMats.blue);
-        }
-        // Store start position on first frame only
-        if(!playerEgg._shoryuStartSet){
-            playerEgg._shoryuStartSet=true;
-            playerEgg._shoryuStartX=playerEgg.mesh.position.x;
-            playerEgg._shoryuStartY=playerEgg.mesh.position.y;
-            playerEgg._shoryuStartZ=playerEgg.mesh.position.z;
-        }
-        for(var _sdj=0;_sdj<window._shoryuDragon.length;_sdj++){
-            var _sdSeg2=window._shoryuDragon[_sdj];
-            _sdSeg2.visible=true;
-            var _sdAngle=_sfDir+_sdj*0.6+playerEgg._shoryuActive*0.15;
-            var _sdR=1.2+_sdj*0.06;
-            // Lerp between current pos (head) and start pos (tail)
-            var _sdLerp=_sdj/window._shoryuDragon.length;
-            var _sdPx=playerEgg.mesh.position.x*(1-_sdLerp)+playerEgg._shoryuStartX*_sdLerp;
-            var _sdPy=playerEgg.mesh.position.y*(1-_sdLerp)+playerEgg._shoryuStartY*_sdLerp;
-            var _sdPz=playerEgg.mesh.position.z*(1-_sdLerp)+playerEgg._shoryuStartZ*_sdLerp;
-            _sdSeg2.position.set(
-                _sdPx+Math.sin(_sdAngle)*_sdR,
-                _sdPy+0.5,
-                _sdPz+Math.cos(_sdAngle)*_sdR
-            );
-        }
-        if(playerEgg._shoryuActive<55&&(playerEgg.vy<=0||playerEgg.onGround)){
-            playerEgg._shoryuActive=0;
-            playerEgg._shoryuStartSet=false;
-            playerEgg._shoryuFwdX=undefined;playerEgg._shoryuFwdZ=undefined;
-            window._shoryuFist.visible=false;
-            if(window._shoryuDragon)for(var _sdk=0;_sdk<window._shoryuDragon.length;_sdk++)window._shoryuDragon[_sdk].visible=false;
-        } else {
-            playerEgg._shoryuActive--;
-            if(playerEgg._shoryuActive<=0)playerEgg._shoryuActive=0;
-        }
+        MoveUppercut_update(playerEgg);
     } else {
         if(window._shoryuFist)window._shoryuFist.visible=false;
         if(window._shoryuDragon)for(var _sdl=0;_sdl<window._shoryuDragon.length;_sdl++)window._shoryuDragon[_sdl].visible=false;
     }
-    // ---- Tatsumaki animation (runs even during special move) ----
+    // ---- Tatsumaki update (unified) ----
     if(playerEgg._tatsuActive>0){
-        playerEgg._tatsuActive--;
-        playerEgg.mesh.rotation.y+=0.8;
-        // Chun-Li Spinning Bird Kick: upside-down (倒立)
-        var _tCT=playerEgg.mesh.userData._charType;
-        if(_tCT==='monkey'){
-            playerEgg.mesh.scale.y=-1; // flip upside down via scale
-            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,2.0); // keep elevated (compensate flip)
-        }
-        if(!playerEgg._tatsuDir)playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
-        if(playerEgg._isLariat){
-            // Lariat: free movement with WASD, stay on ground
+        MoveSpin_update(playerEgg, function(){
             var _lmx=0,_lmz=0;
             if(keys['KeyA']||keys['ArrowLeft'])_lmx-=1;
             if(keys['KeyD']||keys['ArrowRight'])_lmx+=1;
             if(keys['KeyW']||keys['ArrowUp'])_lmz-=1;
             if(keys['KeyS']||keys['ArrowDown'])_lmz+=1;
             if(joyActive){_lmx+=joyVec.x;_lmz+=joyVec.y;}
-            var _lmLen=Math.sqrt(_lmx*_lmx+_lmz*_lmz);
-            if(_lmLen>0.1){
-                playerEgg.vx=_lmx/_lmLen*MAX_SPEED*0.8;
-                playerEgg.vz=_lmz/_lmLen*MAX_SPEED*0.8;
-            } else {
-                playerEgg.vx*=0.8;playerEgg.vz*=0.8;
-            }
-            playerEgg.vy=0;
-            if(playerEgg.mesh.position.y>0.1)playerEgg.mesh.position.y=0.01; // force ground
-        } else {
-            var _tFwd=1.5;var _tVert=0;
-            if(_tCT==='monkey'){
-                // Chun-Li spinning bird: no manual vertical
-            } else {
-                if(keys['KeyW']||keys['ArrowUp'])_tVert=0.04;
-                if(keys['KeyS']||keys['ArrowDown'])_tVert=-0.03;
-            }
-            var _tSteer=0;
-            if(keys['KeyA']||keys['ArrowLeft'])_tSteer=0.03;
-            if(keys['KeyD']||keys['ArrowRight'])_tSteer=-0.03;
-            playerEgg._tatsuDir+=_tSteer;
-            playerEgg.vx=Math.sin(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
-            playerEgg.vz=Math.cos(playerEgg._tatsuDir)*MAX_SPEED*_tFwd;
-            playerEgg.vy=_tVert;
-        }
-        if(playerEgg.mesh.position.y<0.5)playerEgg.mesh.position.y=0.5;
-        // ---- Tatsumaki Dragon (visual only, wraps around legs) ----
-        if(!window._tatsuDragon){
-            window._tatsuDragon=[];
-            var _tdMat=new THREE.MeshBasicMaterial({color:0xFF6644,transparent:true,opacity:0.6});
-            var _tdMatHead=new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.85});
-            for(var _tdi=0;_tdi<14;_tdi++){
-                var _tdSize=_tdi===0?0.45:0.35-_tdi*0.012;
-                var _tdSeg=new THREE.Mesh(new THREE.SphereGeometry(Math.max(_tdSize,0.1),6,4),_tdi===0?_tdMatHead:_tdMat);
-                _tdSeg.visible=false;scene.add(_tdSeg);
-                window._tatsuDragon.push(_tdSeg);
-            }
-        }
-        var _ttPhase=playerEgg.mesh.rotation.y;
-        for(var _ttj=0;_ttj<window._tatsuDragon.length;_ttj++){
-            var _ttSeg=window._tatsuDragon[_ttj];
-            _ttSeg.visible=true;
-            var _ttAngle=_ttPhase-_ttj*0.5;
-            var _ttR=1.2+_ttj*0.08;
-            var _ttY=playerEgg.mesh.position.y+(playerEgg._isLariat?0.9:-0.2)+Math.sin(_ttAngle*0.5+_ttj*0.4)*0.4;
-            _ttSeg.position.set(
-                playerEgg.mesh.position.x+Math.sin(_ttAngle)*_ttR,
-                _ttY,
-                playerEgg.mesh.position.z+Math.cos(_ttAngle)*_ttR
-            );
-        }
-        for(var _ti=0;_ti<allEggs.length;_ti++){
-            var _te=allEggs[_ti];if(_te===playerEgg||!_te.alive||_te.heldBy)continue;
-            if(_te._slamImmune>0)continue;
-            if(!_te._tatsuHitCD)_te._tatsuHitCD=0;
-            if(_te._tatsuHitCD>0){_te._tatsuHitCD--;continue;}
-            var _tdx=_te.mesh.position.x-playerEgg.mesh.position.x;
-            var _tdz=_te.mesh.position.z-playerEgg.mesh.position.z;
-            var _td=Math.sqrt(_tdx*_tdx+_tdz*_tdz);
-            if(_td<3.5&&_td>0.01){
-                _te.vx+=_tdx/_td*0.6;_te.vz+=_tdz/_td*0.6;_te.vy=0.35;
-                _te.squash=0.3;_te.throwTimer=50;_te._bounces=2;_te._tatsuHitCD=12;
-                _addStunDamage(_te,MOVE_PARAMS.egg.tatsumaki.stunDmg);
-                _dropNpcStolenCoins(_te);playHitSound();
-            }
-        }
-        if(playerEgg._tatsuActive<=0){
-            playerEgg.vx*=0.3;playerEgg.vz*=0.3;playerEgg._tatsuDir=0;
-            if(window._tatsuDragon)for(var _ttk=0;_ttk<window._tatsuDragon.length;_ttk++)window._tatsuDragon[_ttk].visible=false;
-            // Reset Chun-Li upside-down
-            if(_tCT==='monkey'){playerEgg.mesh.scale.y=1;playerEgg.squash=1;}
-            // Reset Zangief lariat arms
-            if(playerEgg._isLariat){
-                playerEgg._isLariat=false;var _lud2=playerEgg.mesh.userData;if(_lud2.rightArm){_lud2.rightArm.visible=false;_lud2.rightArm.scale.set(1,1,1);}if(_lud2.leftArm){_lud2.leftArm.visible=false;_lud2.leftArm.scale.set(1,1,1);}
-            }
-        }
+            return {mx:_lmx,mz:_lmz,
+                up:!!(keys['KeyW']||keys['ArrowUp']),
+                down:!!(keys['KeyS']||keys['ArrowDown']),
+                left:!!(keys['KeyA']||keys['ArrowLeft']),
+                right:!!(keys['KeyD']||keys['ArrowRight'])};
+        });
     } else {
         if(window._tatsuDragon)for(var _ttl=0;_ttl<window._tatsuDragon.length;_ttl++)window._tatsuDragon[_ttl].visible=false;
     }
@@ -1177,111 +939,33 @@ function handlePlayerInput(){
     } else {
         if(window._guileArc&&(!window._guileArc.userData._life||window._guileArc.userData._life<=0))window._guileArc.visible=false;
     }
-    // ---- Honda Hyakuretsu continuous animation ----
+    // ---- Honda Hyakuretsu continuous animation (unified) ----
     if(!playerEgg._hyakuretsuTimer)playerEgg._hyakuretsuTimer=0;
     if(playerEgg._hyakuretsuTimer>0){
-        playerEgg._hyakuretsuTimer--;
-        if(!playerEgg._hyakuretsuTick)playerEgg._hyakuretsuTick=0;
-        playerEgg._hyakuretsuTick++;
-        // Pressing R again extends the duration (no gap)
-        if(keys['KeyR']){
-            playerEgg._hyakuretsuTimer=Math.max(playerEgg._hyakuretsuTimer,30);
-            playerEgg._attackCD=0; // allow immediate re-trigger if timer runs out
-        }
-        // Animate arms: cycle every 3 frames, upper/mid/lower
-        var _hSlot=Math.floor(playerEgg._hyakuretsuTick/3)%3;
-        var _hSlapY=[0.45,0.2,-0.05][_hSlot];
-        var _hUseRight=(Math.floor(playerEgg._hyakuretsuTick/3)%2===0);
-        var _hArmA=_hUseRight?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
-        var _hArmB=_hUseRight?playerEgg.mesh.userData.leftArm:playerEgg.mesh.userData.rightArm;
-        // Smooth extend/retract within 3-frame cycle
-        var _hFrame=playerEgg._hyakuretsuTick%3;
-        var _hExtend=_hFrame===0?1.8:(_hFrame===1?1.4:0.6); // extend, hold, retract
-        var _hZ=_hFrame===0?1.8:(_hFrame===1?1.5:0.8); // z=1.8 at full extend (2/5 of 4.5)
-        if(_hArmA){_hArmA.visible=true;_hArmA.position.set(_hUseRight?0.35:-0.35,_hSlapY,_hZ);_hArmA.scale.set(_hExtend,_hExtend,_hExtend);}
-        if(_hArmB){_hArmB.visible=false;} // hide the other arm
-        // Stop player movement, only allow manual forward creep
-        playerEgg.vx*=0.3;playerEgg.vz*=0.3;
-        var _hFaceDir=playerEgg.mesh.rotation.y;
-        var _hmx=0,_hmz=0;
-        if(keys['KeyA']||keys['ArrowLeft'])_hmx-=1;
-        if(keys['KeyD']||keys['ArrowRight'])_hmx+=1;
-        if(keys['KeyW']||keys['ArrowUp'])_hmz-=1;
-        if(keys['KeyS']||keys['ArrowDown'])_hmz+=1;
-        if(joyActive){_hmx+=joyVec.x;_hmz+=joyVec.y;}
-        var _hInputDot=_hmx*Math.sin(_hFaceDir)+_hmz*Math.cos(_hFaceDir);
-        if(_hInputDot>0.2){
-            playerEgg.vx+=Math.sin(_hFaceDir)*MOVE_ACCEL*0.3;
-            playerEgg.vz+=Math.cos(_hFaceDir)*MOVE_ACCEL*0.3;
-        }
-        // Hit detection
-        if(playerEgg._hyakuretsuTick%3===0){
-            for(var _hhi=0;_hhi<allEggs.length;_hhi++){
-                var _hhe=allEggs[_hhi];if(_hhe===playerEgg||!_hhe.alive||_hhe.heldBy)continue;
-                var _hhdx=_hhe.mesh.position.x-playerEgg.mesh.position.x;
-                var _hhdz=_hhe.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)<2.5){var _hhd2=Math.sqrt(_hhdx*_hhdx+_hhdz*_hhdz)||1;_hhe.vx+=_hhdx/_hhd2*0.5;_hhe.vz+=_hhdz/_hhd2*0.5;_hhe.vy=0.25;_hhe.squash=0.3;_hhe.throwTimer=45;_hhe._bounces=2;_addStunDamage(_hhe,10);_dropNpcStolenCoins(_hhe);playHitSound();}
-            }
-        }
-        playerEgg.squash=0.85+Math.sin(playerEgg._hyakuretsuTick*0.8)*0.05;
-        // End: hide arms
-        if(playerEgg._hyakuretsuTimer<=0){
-            var _hud2=playerEgg.mesh.userData;
-            if(_hud2.rightArm){_hud2.rightArm.visible=false;_hud2.rightArm.scale.set(1,1,1);}
-            if(_hud2.leftArm){_hud2.leftArm.visible=false;_hud2.leftArm.scale.set(1,1,1);}
-        }
+        var _hInputFn=function(){
+            var _hmx=0,_hmz=0;
+            if(keys['KeyA']||keys['ArrowLeft'])_hmx-=1;
+            if(keys['KeyD']||keys['ArrowRight'])_hmx+=1;
+            if(keys['KeyW']||keys['ArrowUp'])_hmz-=1;
+            if(keys['KeyS']||keys['ArrowDown'])_hmz+=1;
+            if(joyActive){_hmx+=joyVec.x;_hmz+=joyVec.y;}
+            return {mx:_hmx,mz:_hmz};
+        };
+        MoveRapidHit_update(playerEgg,'punch',!!keys['KeyR'],_hInputFn);
     }
-    // ---- Chun-Li Hyakuretsu Kick (百裂脚) continuous animation ----
+    // ---- Chun-Li Hyakuretsu Kick (百裂脚) continuous animation (unified) ----
     if(!playerEgg._hyakuretsuKickTimer)playerEgg._hyakuretsuKickTimer=0;
     if(playerEgg._hyakuretsuKickTimer>0){
-        playerEgg._hyakuretsuKickTimer--;
-        if(!playerEgg._hyakuretsuKickTick)playerEgg._hyakuretsuKickTick=0;
-        playerEgg._hyakuretsuKickTick++;
-        // Pressing T extends duration
-        if(keys['KeyT']){
-            playerEgg._hyakuretsuKickTimer=Math.max(playerEgg._hyakuretsuKickTimer,30);
-            playerEgg._attackCD=0;
-        }
-        // Animate legs: cycle every 3 frames, upper/mid/lower
-        var _ckSlot=Math.floor(playerEgg._hyakuretsuKickTick/3)%3;
-        var _ckY=[0.3,0.1,-0.1][_ckSlot];
-        var _ckUseRight=(Math.floor(playerEgg._hyakuretsuKickTick/3)%2===0);
-        var _ckLegA=_ckUseRight?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
-        var _ckLegB=_ckUseRight?playerEgg.mesh.userData.leftLeg:playerEgg.mesh.userData.rightLeg;
-        var _ckFrame=playerEgg._hyakuretsuKickTick%3;
-        var _ckExtend=_ckFrame===0?1.8:(_ckFrame===1?1.4:0.6);
-        var _ckZ=_ckFrame===0?1.8:(_ckFrame===1?1.5:0.8);
-        if(_ckLegA){_ckLegA.visible=true;_ckLegA.position.set(_ckUseRight?0.25:-0.25,_ckY,_ckZ);_ckLegA.scale.set(_ckExtend,_ckExtend,_ckExtend);_ckLegA.rotation.x=-Math.PI/3;}
-        if(_ckLegB){_ckLegB.visible=false;}
-        // Slow movement, allow manual forward creep
-        playerEgg.vx*=0.3;playerEgg.vz*=0.3;
-        var _ckFace=playerEgg.mesh.rotation.y;
-        var _ckmx=0,_ckmz=0;
-        if(keys['KeyA']||keys['ArrowLeft'])_ckmx-=1;
-        if(keys['KeyD']||keys['ArrowRight'])_ckmx+=1;
-        if(keys['KeyW']||keys['ArrowUp'])_ckmz-=1;
-        if(keys['KeyS']||keys['ArrowDown'])_ckmz+=1;
-        if(joyActive){_ckmx+=joyVec.x;_ckmz+=joyVec.y;}
-        var _ckDot=_ckmx*Math.sin(_ckFace)+_ckmz*Math.cos(_ckFace);
-        if(_ckDot>0.2){
-            playerEgg.vx+=Math.sin(_ckFace)*MOVE_ACCEL*0.3;
-            playerEgg.vz+=Math.cos(_ckFace)*MOVE_ACCEL*0.3;
-        }
-        // Hit detection every 3 frames
-        if(playerEgg._hyakuretsuKickTick%3===0){
-            for(var _cki=0;_cki<allEggs.length;_cki++){
-                var _cke=allEggs[_cki];if(_cke===playerEgg||!_cke.alive||_cke.heldBy)continue;
-                var _ckdx=_cke.mesh.position.x-playerEgg.mesh.position.x;
-                var _ckdz=_cke.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_ckdx*_ckdx+_ckdz*_ckdz)<2.5){var _ckd2=Math.sqrt(_ckdx*_ckdx+_ckdz*_ckdz)||1;_cke.vx+=_ckdx/_ckd2*0.5;_cke.vz+=_ckdz/_ckd2*0.5;_cke.vy=0.25;_cke.squash=0.3;_cke.throwTimer=45;_cke._bounces=2;_addStunDamage(_cke,10);_dropNpcStolenCoins(_cke);playHitSound();}
-            }
-        }
-        playerEgg.squash=0.85+Math.sin(playerEgg._hyakuretsuKickTick*0.8)*0.05;
-        if(playerEgg._hyakuretsuKickTimer<=0){
-            var _ckud=playerEgg.mesh.userData;
-            if(_ckud.rightLeg){_ckud.rightLeg.visible=false;_ckud.rightLeg.scale.set(1,1,1);}
-            if(_ckud.leftLeg){_ckud.leftLeg.visible=false;_ckud.leftLeg.scale.set(1,1,1);}
-        }
+        var _ckInputFn=function(){
+            var _ckmx=0,_ckmz=0;
+            if(keys['KeyA']||keys['ArrowLeft'])_ckmx-=1;
+            if(keys['KeyD']||keys['ArrowRight'])_ckmx+=1;
+            if(keys['KeyW']||keys['ArrowUp'])_ckmz-=1;
+            if(keys['KeyS']||keys['ArrowDown'])_ckmz+=1;
+            if(joyActive){_ckmx+=joyVec.x;_ckmz+=joyVec.y;}
+            return {mx:_ckmx,mz:_ckmz};
+        };
+        MoveRapidHit_update(playerEgg,'kick',!!keys['KeyT'],_ckInputFn);
     }
     // ---- Blanka Electric Thunder ----
     if(playerEgg._blankaShock>0){
