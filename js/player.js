@@ -179,8 +179,8 @@ function handlePlayerInput(){
                 if(sdd<2.5&&sdd>0.01){
                     var sdForce=_spinDashSpeed*2;
                     sde.vx+=sddx/sdd*sdForce;sde.vy+=0.2+sdForce*0.3;sde.vz+=sddz/sdd*sdForce;
-                    sde.throwTimer=20;sde._bounces=1;sde.squash=0.4;
-                    _addStunDamage(sde,30);
+                    sde.throwTimer=COMBAT.stomp.throwTimer;sde._bounces=COMBAT.stomp.bounces;sde.squash=COMBAT.stomp.squash;
+                    _addStunDamage(sde,COMBAT.stomp.stunDmg);
                     playHitSound();
                     _dropNpcStolenCoins(sde);
                 }
@@ -693,8 +693,8 @@ function handlePlayerInput(){
                         var _kf=0.4+(_isAerial?0.2:0);
                         _ae.vx+=_adx/_ad*_kf;_ae.vz+=_adz/_ad*_kf;
                         _ae.vy=_isAerial?0.25:0.2;
-                        _ae.squash=0.4;_ae.throwTimer=30;_ae._bounces=1;
-                        _addStunDamage(_ae,_isAerial?30:10);
+                        _ae.squash=COMBAT.punch.squash;_ae.throwTimer=COMBAT.punch.throwTimer;_ae._bounces=COMBAT.punch.bounces;
+                        _addStunDamage(_ae,_isAerial?COMBAT.punch.aerialStunDmg:COMBAT.punch.stunDmg);
                     } else {
                         _ae.vx+=_adx/_ad*0.08;_ae.vz+=_adz/_ad*0.08;
                         _ae.squash=0.78;_ae._hitStun=12;
@@ -815,8 +815,8 @@ function handlePlayerInput(){
                         var _kkf=0.5+(_kAerial?0.25:0);
                         _ke.vx+=_kdx/_kd*_kkf;_ke.vz+=_kdz/_kd*_kkf;
                         _ke.vy=_kAerial?0.3:0.25;
-                        _ke.squash=0.3;_ke.throwTimer=45;_ke._bounces=2;
-                        _addStunDamage(_ke,_kAerial?30:10);
+                        _ke.squash=COMBAT.kick.squash;_ke.throwTimer=COMBAT.kick.throwTimer;_ke._bounces=COMBAT.kick.bounces;
+                        _addStunDamage(_ke,_kAerial?COMBAT.kick.aerialStunDmg:COMBAT.kick.stunDmg);
                     } else {
                         _ke.vx+=_kdx/_kd*0.12;_ke.vz+=_kdz/_kd*0.12;
                         _ke.squash=0.72;_ke._hitStun=15;
@@ -912,9 +912,9 @@ function handlePlayerInput(){
                 var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdz*_gsdz+_gsdy*_gsdy);
                 if(_gsd<3.5&&_gsd>0.01){
                     // Blow away + slash cut effect
-                    _gse.vx+=_gsdx/_gsd*0.6;_gse.vz+=_gsdz/_gsd*0.6;_gse.vy=0.35;
-                    _gse.squash=0.3;_gse.throwTimer=50;_gse._bounces=2;
-                    _addStunDamage(_gse,20);
+                    _gse.vx+=_gsdx/_gsd*COMBAT.somersault.force;_gse.vz+=_gsdz/_gsd*COMBAT.somersault.force;_gse.vy=COMBAT.somersault.vy;
+                    _gse.squash=COMBAT.somersault.squash;_gse.throwTimer=COMBAT.somersault.throwTimer;_gse._bounces=COMBAT.somersault.bounces;
+                    _addStunDamage(_gse,COMBAT.somersault.stunDmg);
                     _dropNpcStolenCoins(_gse);playHitSound();
                     spawnSlashEffect(_gse,playerEgg._guileArcFaceY);
                 }
@@ -1019,7 +1019,7 @@ function handlePlayerInput(){
             var _bsdz=_bse.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<4){
                 if(!_bse._electrocuted&&!_bse._elecFlying){
-                    _bse._electrocuted=90;
+                    _bse._electrocuted=COMBAT.electric.electrocuteDuration;
                     _bse._slamImmune=200;
                     var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
                     if(_elDist<0.1)_elDist=0.1;
@@ -1072,7 +1072,7 @@ function handlePlayerInput(){
                         _yfe._fireStun=MOVE_PARAMS.cockroach.yogaFlame.fireStun;
                         _yfe._fireStunDir=_yfFace;
                         _yfe.vx=0;_yfe.vz=0;_yfe.vy=0;
-                        _addStunDamage(_yfe,20);
+                        _addStunDamage(_yfe,COMBAT.yogaFlame.stunDmg);
                         _dropNpcStolenCoins(_yfe);playHitSound();
                     }
                 }
@@ -1111,7 +1111,7 @@ function handlePlayerInput(){
                 if(_brd<2.5&&_brd>0.01){
                     // Knock opponent flying like Honda headbutt
                     _bre.vx+=playerEgg.vx*0.8;_bre.vz+=playerEgg.vz*0.8;_bre.vy=0.25;
-                    _bre.squash=0.3;_bre.throwTimer=45;_bre._bounces=2;_addStunDamage(_bre,10);
+                    _bre.squash=COMBAT.kick.squash;_bre.throwTimer=COMBAT.blankaRoll.throwTimer;_bre._bounces=COMBAT.blankaRoll.bounces;_addStunDamage(_bre,COMBAT.blankaRoll.stunDmg);
                     _dropNpcStolenCoins(_bre);playHitSound();
                     // Bounce back — reverse direction, enter falling phase (still spinning)
                     playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
@@ -1197,7 +1197,7 @@ function handlePlayerInput(){
             var _hddz=_hde.mesh.position.z-playerEgg.mesh.position.z;
             if(Math.sqrt(_hddx*_hddx+_hddz*_hddz)<2.5){
                 _hde.vx+=playerEgg.vx*0.8;_hde.vz+=playerEgg.vz*0.8;_hde.vy=0.25;
-                _hde.squash=0.3;_hde.throwTimer=45;_hde._bounces=2;_addStunDamage(_hde,10);
+                _hde.squash=COMBAT.kick.squash;_hde.throwTimer=COMBAT.hondaDash.throwTimer;_hde._bounces=COMBAT.hondaDash.bounces;_addStunDamage(_hde,COMBAT.hondaDash.stunDmg);
                 _dropNpcStolenCoins(_hde);playHitSound();
                 // Push back 2 units along dash direction
                 playerEgg.mesh.position.x-=playerEgg._dashDirX/2;
@@ -1363,8 +1363,8 @@ function handlePlayerInput(){
             var _bsDir=playerEgg.mesh.rotation.y+Math.PI*(Math.random()-0.5);
             var _bsForce=0.4+_slamPower*0.3;
             _bst.vx=Math.sin(_bsDir)*_bsForce;_bst.vy=0.3+_slamPower*0.2;_bst.vz=Math.cos(_bsDir)*_bsForce;
-            _bst.throwTimer=40+Math.floor(_slamPower*20);_bst._bounces=2;
-            _addStunDamage(_bst,50);
+            _bst.throwTimer=COMBAT.bodySlam.baseThrowTimer+Math.floor(_slamPower*20);_bst._bounces=COMBAT.bodySlam.bounces;
+            _addStunDamage(_bst,COMBAT.bodySlam.stunDmg);
             _dropNpcStolenCoins(_bst);
             playHitSound();
             // Screen shake effect (camera wobble)
@@ -1435,7 +1435,7 @@ function handlePlayerInput(){
             _pdt.mesh.rotation.z=0;_pdt.squash=0.1;
             var _pdBounceDir=Math.random()*Math.PI*2;
             _pdt.vx=Math.sin(_pdBounceDir)*0.8;_pdt.vy=0.5;_pdt.vz=Math.cos(_pdBounceDir)*0.8;
-            _pdt.throwTimer=80;_pdt._bounces=3;_pdt._stunTimer=180;
+            _pdt.throwTimer=COMBAT.piledriver.throwTimer;_pdt._bounces=COMBAT.piledriver.bounces;_pdt._stunTimer=COMBAT.piledriver.stunTimer;
             _dropNpcStolenCoins(_pdt);playHitSound();
             if(sfxEnabled){var _pdCtx=ensureAudio();if(_pdCtx){var _pdt2=_pdCtx.currentTime;
                 var _pdo=_pdCtx.createOscillator();var _pdg=_pdCtx.createGain();

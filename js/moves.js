@@ -167,18 +167,18 @@ function MoveProjectile_update(proj){
 
     // Hit detection
     var hit=_moveHitDetect(proj.owner, proj.ball.position, 1.5, function(target){
-        target.vx+=proj.vx*0.8;
-        target.vz+=proj.vz*0.8;
-        target.vy=0.15;
-        target.squash=0.5;
-        target.throwTimer=25;
-        target._bounces=1;
+        target.vx+=proj.vx*COMBAT.projectile.knockbackMul;
+        target.vz+=proj.vz*COMBAT.projectile.knockbackMul;
+        target.vy=COMBAT.projectile.vy;
+        target.squash=COMBAT.projectile.squash;
+        target.throwTimer=COMBAT.projectile.throwTimer;
+        target._bounces=COMBAT.projectile.bounces;
         if(proj.isPlayer){
-            _addStunDamage(target,15);
+            _addStunDamage(target,COMBAT.projectile.stunDmg);
         } else {
-            target._stunTimer=50;
+            target._stunTimer=COMBAT.projectile.npcStunTimer;
         }
-        if(proj.burns) target._onFire=120;
+        if(proj.burns) target._onFire=COMBAT.projectile.fireDuration;
         if(proj.isSonicBoom) spawnSlashEffect(target,Math.atan2(proj.vx,proj.vz));
         _dropNpcStolenCoins(target);
         if(target.isPlayer) playHitSound(proj.ball.position.x,proj.ball.position.z);
@@ -310,7 +310,7 @@ function MoveSpin_update(egg, inputFn){
         if(!t._tatsuHitCD) t._tatsuHitCD=0;
         if(t._tatsuHitCD>0){t._tatsuHitCD--;return false;}
         var d=dist||1;
-        _moveApplyKnockback(t,dx/d,dz/d,dist,0.6,0.35,{squash:0.3,throwTimer:50,bounces:2,stunDmg:MOVE_PARAMS.egg.tatsumaki.stunDmg});
+        _moveApplyKnockback(t,dx/d,dz/d,dist,COMBAT.spin.force,COMBAT.spin.vy,{squash:COMBAT.spin.squash,throwTimer:COMBAT.spin.throwTimer,bounces:COMBAT.spin.bounces,stunDmg:MOVE_PARAMS.egg.tatsumaki.stunDmg});
         t._tatsuHitCD=12;
         return false; // hit multiple
     });
@@ -397,12 +397,12 @@ function MoveUppercut_update(egg){
             var shdy=she.mesh.position.y-egg.mesh.position.y;
             var shd=Math.sqrt(shdx*shdx+shdz*shdz+shdy*shdy);
             if(shd<3&&shd>0.01){
-                she.vx+=shdx/shd*0.6;she.vz+=shdz/shd*0.6;
-                she.vy=0.4;she.squash=0.3;she.throwTimer=50;she._bounces=2;
-                _addStunDamage(she,15);
+                she.vx+=shdx/shd*COMBAT.shoryuken.force;she.vz+=shdz/shd*COMBAT.shoryuken.force;
+                she.vy=COMBAT.shoryuken.vy;she.squash=COMBAT.shoryuken.squash;she.throwTimer=COMBAT.shoryuken.throwTimer;she._bounces=COMBAT.shoryuken.bounces;
+                _addStunDamage(she,COMBAT.shoryuken.stunDmg);
                 _dropNpcStolenCoins(she);playHitSound();
                 if(egg._shoryuIsKen){
-                    she._onFire=90;
+                    she._onFire=COMBAT.shoryuken.kenFireDuration;
                 }
             }
         }
@@ -576,9 +576,9 @@ function MoveRapidHit_update(egg, limbType, holdKey, inputFn){
             var hd=Math.sqrt(hdx*hdx+hdz*hdz);
             if(hd<2.5){
                 var hd2=hd||1;
-                he.vx+=hdx/hd2*0.5;he.vz+=hdz/hd2*0.5;he.vy=0.25;
-                he.squash=0.3;he.throwTimer=45;he._bounces=2;
-                _addStunDamage(he,10);_dropNpcStolenCoins(he);playHitSound();
+                he.vx+=hdx/hd2*COMBAT.rapidHit.force;he.vz+=hdz/hd2*COMBAT.rapidHit.force;he.vy=COMBAT.rapidHit.vy;
+                he.squash=COMBAT.rapidHit.squash;he.throwTimer=COMBAT.rapidHit.throwTimer;he._bounces=COMBAT.rapidHit.bounces;
+                _addStunDamage(he,COMBAT.rapidHit.stunDmg);_dropNpcStolenCoins(he);playHitSound();
             }
         }
     }

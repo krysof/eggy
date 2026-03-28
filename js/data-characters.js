@@ -16,6 +16,48 @@ var STUN_CONFIG={
     piledriverRange:5.0
 };
 
+// ---- Combat constants (centralized) ----
+var COMBAT={
+    // Projectile hit
+    projectile:{knockbackMul:0.8, vy:0.15, squash:0.5, throwTimer:25, bounces:1, stunDmg:15, npcStunTimer:50, fireDuration:120},
+    // Shoryuken/uppercut hit
+    shoryuken:{force:0.6, vy:0.4, squash:0.3, throwTimer:50, bounces:2, stunDmg:15, kenFireDuration:90},
+    // Tatsumaki/spin hit
+    spin:{force:0.6, vy:0.35, squash:0.3, throwTimer:50, bounces:2},
+    // Rapid hit (hyakuretsu)
+    rapidHit:{force:0.5, vy:0.25, squash:0.3, throwTimer:45, bounces:2, stunDmg:10},
+    // Blanka roll hit
+    blankaRoll:{throwTimer:45, bounces:2, stunDmg:10},
+    // Honda dash hit
+    hondaDash:{throwTimer:45, bounces:2, stunDmg:10},
+    // Somersault kick hit
+    somersault:{force:0.6, vy:0.35, squash:0.3, throwTimer:50, bounces:2, stunDmg:20},
+    // Electric
+    electric:{electrocuteDuration:90},
+    // Yoga flame
+    yogaFlame:{fireDuration:120, fireStun:90, stunDmg:20},
+    // Normal punch hit
+    punch:{throwTimer:30, bounces:1, squash:0.4, stunDmg:10, aerialStunDmg:30},
+    // Normal kick hit
+    kick:{throwTimer:45, bounces:2, squash:0.3, stunDmg:10, aerialStunDmg:30},
+    // Body slam
+    bodySlam:{baseThrowTimer:40, bounces:2, stunDmg:50},
+    // Piledriver
+    piledriver:{throwTimer:80, bounces:3, stunTimer:180},
+    // Grab/throw
+    grab:{stunDmg:20, throwTimer:50, bounces:2, squash:0.3},
+    // Stomp/dive attack
+    stomp:{baseVy:0.2, throwTimer:20, bounces:1, squash:0.4, stunDmg:30},
+    // Prop/object impact
+    propImpact:{throwTimer:15, bounces:1, squash:0.4},
+    // NPC throw
+    npcThrow:{throwTotal:60, throwTimer:60, bounces:2},
+    // NPC piledriver
+    npcPiledriver:{throwTimer:40, bounces:1, stunDmg:50},
+    // NPC body slam
+    npcBodySlam:{throwTimer:40, bounces:2, stunTimer:80}
+};
+
 // ---- Character definitions ----
 var CHAR_DEFS=[
     {name:'egg',sf2:'Ryu',color:0xF5F5F0,accent:0xCC2222,icon:'\uD83E\uDD5A',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52,

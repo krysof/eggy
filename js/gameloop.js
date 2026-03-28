@@ -468,7 +468,7 @@ function updateCity(){
                     // Knockback away from fire source
                     var _fkDir=npc._fireStunDir||0;
                     npc.vx=Math.sin(_fkDir)*0.3;npc.vz=Math.cos(_fkDir)*0.3;npc.vy=0.1;
-                    npc.throwTimer=30;npc._bounces=1;npc.squash=0.5;
+                    npc.throwTimer=COMBAT.punch.throwTimer;npc._bounces=COMBAT.punch.bounces;npc.squash=COMBAT.projectile.squash;
                     npc.mesh.rotation.z=0;
                 }
             }
@@ -1086,7 +1086,7 @@ function updateCity(){
                     if(_bd<2.0){
                         var _bImp=0.15;
                         _be.vx+=bb.vx*_bImp;_be.vy+=bb.vy*_bImp+0.1;_be.vz+=bb.vz*_bImp;
-                        _be.throwTimer=15;_be._bounces=1;_be.squash=0.5;
+                        _be.throwTimer=COMBAT.propImpact.throwTimer;_be._bounces=COMBAT.propImpact.bounces;_be.squash=0.5;
                         if(_be.isPlayer)playHitSound(_be.mesh.position.x,_be.mesh.position.z);
                         _dropNpcStolenCoins(_be);
                         bb._hitEgg=true;bb.life=Math.min(bb.life,3);break;
@@ -1136,7 +1136,7 @@ function updateCity(){
                 var _md=Math.sqrt(_mdx*_mdx+_mdy*_mdy+_mdz*_mdz);
                 if(_md<3.0){
                     var _mImp=0.2;if(_md>0.1){_me.vx+=_mdx/_md*_mImp;_me.vy+=_mdy/_md*_mImp+0.15;_me.vz+=_mdz/_md*_mImp;}
-                    _me.throwTimer=20;_me._bounces=1;_me.squash=0.4;
+                    _me.throwTimer=COMBAT.stomp.throwTimer;_me._bounces=COMBAT.stomp.bounces;_me.squash=COMBAT.propImpact.squash;
                     if(_me.isPlayer)playHitSound(_me.mesh.position.x,_me.mesh.position.z);
                     _dropNpcStolenCoins(_me);
                     mm._hitEgg=true;mm.life=0;break;
@@ -1376,8 +1376,8 @@ function updateHeldEggs(){
             holder.grabCD=40; egg.grabCD=40;
             var throwDir=holder.mesh.rotation.y;
             egg.mesh.position.set(holder.mesh.position.x+Math.sin(throwDir)*1.5, holder.mesh.position.y+0.5, holder.mesh.position.z+Math.cos(throwDir)*1.5);
-            var ntw=egg.weight||1.0;var ntf=0.3/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=60;egg.throwTimer=60;egg._bounces=2;
-            if(currentCityStyle===5&&gameState==='city'){egg.vx*=0.3;egg.vy*=0.3;egg.vz*=0.3;egg._throwTotal=60;egg.throwTimer=60;}
+            var ntw=egg.weight||1.0;var ntf=0.3/ntw;egg.vx=Math.sin(throwDir)*ntf;egg.vy=-0.02;egg.vz=Math.cos(throwDir)*ntf;egg._throwTotal=COMBAT.npcThrow.throwTotal;egg.throwTimer=COMBAT.npcThrow.throwTimer;egg._bounces=COMBAT.npcThrow.bounces;
+            if(currentCityStyle===5&&gameState==='city'){egg.vx*=0.3;egg.vy*=0.3;egg.vz*=0.3;egg._throwTotal=COMBAT.npcThrow.throwTotal;egg.throwTimer=COMBAT.npcThrow.throwTimer;}
             egg.squash=0.5; playThrowSound(holder.mesh.position.x,holder.mesh.position.z);
             egg._dropCoinsOnLand=true;egg._coinsDropped=false;
             continue;
@@ -1569,7 +1569,7 @@ function updateHeldEggs(){
             var tpdz=tpeg.mesh.position.z-tp.group.position.z;
             var tpd=Math.sqrt(tpdx*tpdx+tpdz*tpdz);
             if(tpd<tp.radius+0.8){
-                var impW=tp.weight||1;tpeg.vx+=tpdx/tpd*0.4*impW;tpeg.vz+=tpdz/tpd*0.4*impW;tpeg.vy=0.3+0.12*impW;tpeg.squash=0.4;tpeg.throwTimer=15;tpeg._bounces=1;
+                var impW=tp.weight||1;tpeg.vx+=tpdx/tpd*0.4*impW;tpeg.vz+=tpdz/tpd*0.4*impW;tpeg.vy=0.3+0.12*impW;tpeg.squash=COMBAT.propImpact.squash;tpeg.throwTimer=COMBAT.propImpact.throwTimer;tpeg._bounces=COMBAT.propImpact.bounces;
                 if(tpeg.isPlayer)playHitSound(tpeg.mesh.position.x,tpeg.mesh.position.z);
                 _dropNpcStolenCoins(tpeg);
             }
@@ -1617,7 +1617,7 @@ function updateHeldEggs(){
             var tdx=teg.mesh.position.x-tob.mesh.position.x;
             var tdz=teg.mesh.position.z-tob.mesh.position.z;
             if(Math.sqrt(tdx*tdx+tdz*tdz)<1.5){
-                var oiw=tob._weight||2;teg.vx+=tdx*0.35*oiw;teg.vz+=tdz*0.35*oiw;teg.vy=0.3+0.12*oiw;teg.squash=0.4;teg.throwTimer=15;teg._bounces=1;if(teg.isPlayer)playHitSound(teg.mesh.position.x,teg.mesh.position.z);
+                var oiw=tob._weight||2;teg.vx+=tdx*0.35*oiw;teg.vz+=tdz*0.35*oiw;teg.vy=0.3+0.12*oiw;teg.squash=COMBAT.propImpact.squash;teg.throwTimer=COMBAT.propImpact.throwTimer;teg._bounces=COMBAT.propImpact.bounces;if(teg.isPlayer)playHitSound(teg.mesh.position.x,teg.mesh.position.z);
                 _dropNpcStolenCoins(teg);
             }
         }
@@ -2127,7 +2127,7 @@ function _gameUpdate(){
                 if(playerEgg._fireStun<=0){
                     var _pfkDir=playerEgg._fireStunDir||0;
                     playerEgg.vx=Math.sin(_pfkDir)*0.3;playerEgg.vz=Math.cos(_pfkDir)*0.3;playerEgg.vy=0.1;
-                    playerEgg.throwTimer=30;playerEgg._bounces=1;playerEgg.squash=0.5;
+                    playerEgg.throwTimer=COMBAT.punch.throwTimer;playerEgg._bounces=COMBAT.punch.bounces;playerEgg.squash=COMBAT.projectile.squash;
                     playerEgg.mesh.rotation.z=0;
                 }
             }

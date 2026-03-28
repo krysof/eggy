@@ -398,12 +398,12 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     var _nkf=0.35;
                     closest.vx+=(cdx2/cd2)*_nkf;closest.vz+=(cdz2/cd2)*_nkf;
                     closest.vy=0.2;closest.squash=0.4;
-                    closest.throwTimer=30;closest._bounces=1;_addStunDamage(closest,10);
+                    closest.throwTimer=COMBAT.punch.throwTimer;closest._bounces=COMBAT.punch.bounces;_addStunDamage(closest,COMBAT.punch.stunDmg);
                     egg._npcCombo=0;egg._npcAtkCD=20;
                 } else {
                     // Hitstun — flinch
                     closest.vx+=(cdx2/cd2)*0.08;closest.vz+=(cdz2/cd2)*0.08;
-                    closest.squash=0.75;_addStunDamage(closest,10);
+                    closest.squash=0.75;_addStunDamage(closest,COMBAT.punch.stunDmg);
                 }
                 _dropNpcStolenCoins(closest);
                 if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
@@ -425,7 +425,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     egg._npcSpecialCD=60;egg._npcShoryuActive=true;
                     MoveUppercut_execute(egg,Math.atan2(cdx2,cdz2),{duration:MOVE_PARAMS.egg.shoryuken.duration,jumpMul:1.5,fwdSpeed:MOVE_PARAMS.egg.shoryuken.fwdSpeed});
                     // NPC immediate hit on nearby target
-                    if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;_addStunDamage(closest,15);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<3){closest.vx+=(cdx2/cd2)*0.3;closest.vz+=(cdz2/cd2)*0.3;closest.vy=COMBAT.spin.vy;closest.squash=COMBAT.spin.squash;closest.throwTimer=COMBAT.npcBodySlam.throwTimer;closest._bounces=COMBAT.spin.bounces;_addStunDamage(closest,COMBAT.shoryuken.stunDmg);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.024&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0.08;
@@ -440,7 +440,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 if(cd2<2.5&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcShoryuActive=true;
                     MoveUppercut_execute(egg,Math.atan2(cdx2,cdz2),{duration:MOVE_PARAMS.dog.shoryuken.duration,jumpMul:1.7,fwdSpeed:MOVE_PARAMS.dog.shoryuken.fwdSpeed});
-                    if(cd2<3){closest.vx+=(cdx2/cd2)*0.35;closest.vz+=(cdz2/cd2)*0.35;closest.vy=0.35;closest.squash=0.3;closest.throwTimer=40;closest._bounces=2;closest._onFire=120;_addStunDamage(closest,15);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<3){closest.vx+=(cdx2/cd2)*0.35;closest.vz+=(cdz2/cd2)*0.35;closest.vy=COMBAT.spin.vy;closest.squash=COMBAT.spin.squash;closest.throwTimer=COMBAT.npcBodySlam.throwTimer;closest._bounces=COMBAT.spin.bounces;closest._onFire=COMBAT.projectile.fireDuration;_addStunDamage(closest,COMBAT.shoryuken.stunDmg);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.024&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0.08;
@@ -450,7 +450,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             else if(_nCT==='bull'){
                 if(cd2<2.5&&Math.random()<0.06&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=30;
-                    if(cd2<2.5){closest.vx+=(cdx2/(cd2||1))*0.5;closest.vz+=(cdz2/(cd2||1))*0.5;closest.vy=0.25;closest.squash=0.3;closest.throwTimer=45;closest._bounces=2;_addStunDamage(closest,10);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<2.5){closest.vx+=(cdx2/(cd2||1))*COMBAT.rapidHit.force;closest.vz+=(cdz2/(cd2||1))*COMBAT.rapidHit.force;closest.vy=COMBAT.rapidHit.vy;closest.squash=COMBAT.rapidHit.squash;closest.throwTimer=COMBAT.rapidHit.throwTimer;closest._bounces=COMBAT.rapidHit.bounces;_addStunDamage(closest,COMBAT.rapidHit.stunDmg);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>3&&cd2<10&&egg.onGround&&Math.random()<0.024&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=80;var _nhbDir=Math.atan2(cdx2,cdz2);
@@ -463,7 +463,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 if(cd2<2.5&&Math.random()<0.03&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;
                     MoveElectric_execute(egg,{duration:30});
-                    if(cd2<2){closest._electrocuted=90;closest._elecKnockDir={x:-cdx2/(cd2||1),z:-cdz2/(cd2||1)};closest.vx=0;closest.vz=0;if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<2){closest._electrocuted=COMBAT.electric.electrocuteDuration;closest._elecKnockDir={x:-cdx2/(cd2||1),z:-cdz2/(cd2||1)};closest.vx=0;closest.vz=0;if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>4&&cd2<12&&egg.onGround&&Math.random()<0.018&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=70;var _nbrDir=Math.atan2(cdx2,cdz2);
@@ -480,7 +480,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2<3&&egg.onGround&&Math.random()<0.024&&!egg._npcShoryuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcShoryuActive=true;egg.vy=JUMP_FORCE*1.6;egg.squash=0.5;
-                    if(cd2<3){closest.vx+=(cdx2/cd2)*0.4;closest.vz+=(cdz2/cd2)*0.4;closest.vy=0.3;closest.squash=0.4;closest.throwTimer=35;closest._bounces=1;_addStunDamage(closest,20);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<3){closest.vx+=(cdx2/cd2)*0.4;closest.vz+=(cdz2/cd2)*0.4;closest.vy=0.3;closest.squash=COMBAT.punch.squash;closest.throwTimer=35;closest._bounces=COMBAT.punch.bounces;_addStunDamage(closest,COMBAT.somersault.stunDmg);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
             }
             // Chun-Li: kikouken, hyakuretsu kick(close), spinning bird kick
@@ -491,7 +491,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2<2.5&&Math.random()<0.045&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=30;
-                    if(cd2<2.5){closest.vx+=(cdx2/(cd2||1))*0.5;closest.vz+=(cdz2/(cd2||1))*0.5;closest.vy=0.25;closest.squash=0.3;closest.throwTimer=45;closest._bounces=2;_addStunDamage(closest,10);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<2.5){closest.vx+=(cdx2/(cd2||1))*COMBAT.rapidHit.force;closest.vz+=(cdz2/(cd2||1))*COMBAT.rapidHit.force;closest.vy=COMBAT.rapidHit.vy;closest.squash=COMBAT.rapidHit.squash;closest.throwTimer=COMBAT.rapidHit.throwTimer;closest._bounces=COMBAT.rapidHit.bounces;_addStunDamage(closest,COMBAT.rapidHit.stunDmg);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.018&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=JUMP_FORCE*1.2;
@@ -518,7 +518,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2<5&&Math.random()<0.018&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=70;
-                    if(cd2<4){MoveYogaFlame_execute(egg,Math.atan2(cdx2,cdz2),MOVE_PARAMS.cockroach.yogaFlame);closest._onFire=120;closest._fireStun=90;closest._fireStunDir=Math.atan2(cdx2,cdz2);closest.vx=0;closest.vz=0;_addStunDamage(closest,20);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
+                    if(cd2<4){MoveYogaFlame_execute(egg,Math.atan2(cdx2,cdz2),MOVE_PARAMS.cockroach.yogaFlame);closest._onFire=COMBAT.yogaFlame.fireDuration;closest._fireStun=COMBAT.yogaFlame.fireStun;closest._fireStunDir=Math.atan2(cdx2,cdz2);closest.vx=0;closest.vz=0;_addStunDamage(closest,COMBAT.yogaFlame.stunDmg);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
             }
             // NPC piledriver: Zangief only (already handled above)
@@ -623,7 +623,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 var sdd2=Math.sqrt(sddx2*sddx2+sddz2*sddz2);
                 if(sdd2<2.5&&sdd2>0.01){
                     sde2.vx+=sddx2/sdd2*0.4;sde2.vy+=0.2;sde2.vz+=sddz2/sdd2*0.4;
-                    sde2.throwTimer=15;sde2._bounces=1;sde2.squash=0.5;
+                    sde2.throwTimer=COMBAT.propImpact.throwTimer;sde2._bounces=COMBAT.propImpact.bounces;sde2.squash=0.5;
                     sde2._stunTimer=Math.floor(30+Math.random()*40);
                     if(sde2.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
                     _dropNpcStolenCoins(sde2);
@@ -662,7 +662,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             _npdt.squash=0.1;
             var _npdDir=Math.random()*Math.PI*2;
             _npdt.vx=Math.sin(_npdDir)*0.4;_npdt.vy=0.25;_npdt.vz=Math.cos(_npdDir)*0.4;
-            _npdt.throwTimer=40;_npdt._bounces=1;_addStunDamage(_npdt,50);
+            _npdt.throwTimer=COMBAT.npcPiledriver.throwTimer;_npdt._bounces=COMBAT.npcPiledriver.bounces;_addStunDamage(_npdt,COMBAT.npcPiledriver.stunDmg);
             _dropNpcStolenCoins(_npdt);
             if(_npdt.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
             egg.vy=0.15;egg.grabCD=40;egg._npcPiledriver=null;egg._npcPdPhase=0;
@@ -676,7 +676,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             _nbst2.squash=0.2;
             var _nbDir=Math.random()*Math.PI*2;
             _nbst2.vx=Math.sin(_nbDir)*0.4;_nbst2.vy=0.3;_nbst2.vz=Math.cos(_nbDir)*0.4;
-            _nbst2.throwTimer=40;_nbst2._bounces=2;_nbst2._stunTimer=80;
+            _nbst2.throwTimer=COMBAT.npcBodySlam.throwTimer;_nbst2._bounces=COMBAT.npcBodySlam.bounces;_nbst2._stunTimer=COMBAT.npcBodySlam.stunTimer;
             _dropNpcStolenCoins(_nbst2);
             if(_nbst2.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
             egg.vy=0.2;egg.squash=0.5;
