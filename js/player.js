@@ -1636,25 +1636,52 @@ function handlePlayerInput(){
     var _inputX=(_hLeft?-1:0)+(_hRight?1:0);
     var _inputZ=(_hDown?1:0)+(keys['KeyW']||keys['ArrowUp']?-1:0);
     var _inputDot=_inputX*_faceSinY+_inputZ*_faceCosY; // positive=forward, negative=back
+    // ---- Back-Forward detection: any two opposite direction presses ----
+    if(!playerEgg._bfSeq)playerEgg._bfSeq=0;
+    if(!playerEgg._bfTimer)playerEgg._bfTimer=0;
+    playerEgg._bfTimer--;
+    // Detect any direction press
+    var _anyDirX=(_hLeft?-1:0)+(_hRight?1:0);
+    var _anyDirZ=(_hDown?1:0)+(keys['KeyW']||keys['ArrowUp']?-1:0);
+    var _anyDirLen=Math.sqrt(_anyDirX*_anyDirX+_anyDirZ*_anyDirZ);
+    var _dirPress=_anyDirLen>0.3&&!playerEgg._prevBfDir;
+    if(_dirPress&&playerEgg._bfSeq===0){
+        playerEgg._bfSeq=1;playerEgg._bfTimer=25;
+        playerEgg._bfFirstX=_anyDirX;playerEgg._bfFirstZ=_anyDirZ;
+    } else if(_dirPress&&playerEgg._bfSeq===1){
+        // Check if second direction is roughly opposite to first
+        var _dot2=_anyDirX*playerEgg._bfFirstX+_anyDirZ*playerEgg._bfFirstZ;
+        if(_dot2<-0.3){
+            playerEgg._bfSeq=2;playerEgg._bfTimer=25;playerEgg._bfReady=true;
+        } else {
+            // Not opposite — restart with this as first
+            playerEgg._bfSeq=1;playerEgg._bfTimer=25;
+            playerEgg._bfFirstX=_anyDirX;playerEgg._bfFirstZ=_anyDirZ;
+        }
+    }
+    if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
+    playerEgg._prevBfDir=(_anyDirLen>0.3);
+    // Forward/back press for other uses
     var _inputBack=(_inputDot<-0.3);
     var _inputFwd=(_inputDot>0.3);
     var _inputBackPress=_inputBack&&!playerEgg._prevBfBack;
     var _inputFwdPress=_inputFwd&&!playerEgg._prevBfFwd;
-    if(_inputBackPress&&playerEgg._bfSeq===0){
-        playerEgg._bfSeq=1;playerEgg._bfTimer=30;
-    } else if(_inputFwdPress&&playerEgg._bfSeq===1){
-        playerEgg._bfSeq=2;playerEgg._bfTimer=30;playerEgg._bfReady=true;
-    }
-    if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
     playerEgg._prevBfBack=_inputBack;playerEgg._prevBfFwd=_inputFwd;
-    // ---- Forward-Forward detection (→→) for hadouken/sonic boom/yoga fire/kikouken ----
+    // ---- Forward-Forward detection: same direction pressed twice ----
     if(!playerEgg._ffSeq)playerEgg._ffSeq=0;
     if(!playerEgg._ffTimer)playerEgg._ffTimer=0;
     playerEgg._ffTimer--;
-    if(_inputFwdPress&&playerEgg._ffSeq===0){
+    if(_dirPress&&playerEgg._ffSeq===0){
         playerEgg._ffSeq=1;playerEgg._ffTimer=20;
-    } else if(_inputFwdPress&&playerEgg._ffSeq===1){
-        playerEgg._ffSeq=2;playerEgg._ffTimer=20;playerEgg._ffReady=true;
+        playerEgg._ffFirstX=_anyDirX;playerEgg._ffFirstZ=_anyDirZ;
+    } else if(_dirPress&&playerEgg._ffSeq===1){
+        var _ffDot=_anyDirX*playerEgg._ffFirstX+_anyDirZ*playerEgg._ffFirstZ;
+        if(_ffDot>0.3){
+            playerEgg._ffSeq=2;playerEgg._ffTimer=20;playerEgg._ffReady=true;
+        } else {
+            playerEgg._ffSeq=1;playerEgg._ffTimer=20;
+            playerEgg._ffFirstX=_anyDirX;playerEgg._ffFirstZ=_anyDirZ;
+        }
     }
     if(playerEgg._ffTimer<=0){playerEgg._ffSeq=0;playerEgg._ffReady=false;}
     // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) ----
