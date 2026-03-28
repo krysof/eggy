@@ -1620,17 +1620,20 @@ function handlePlayerInput(){
     var _anyDX=(_hLeft?-1:0)+(_hRight?1:0);
     var _anyDZ=(_hDown?1:0)+((keys['KeyW']||keys['ArrowUp'])?-1:0);
     var _anyDL=Math.sqrt(_anyDX*_anyDX+_anyDZ*_anyDZ);
-    var _newDP=(_anyDL>0.3)&&!(playerEgg._prevDA);
+    // Hysteresis: press at 0.3, release at 0.15 (easier to re-trigger on mobile joystick)
+    var _dpPressed=_anyDL>0.3;
+    if(!_dpPressed&&_anyDL<0.15)playerEgg._prevDA=false;
+    var _newDP=_dpPressed&&!playerEgg._prevDA;
+    if(_dpPressed)playerEgg._prevDA=true;
     if(_newDP&&playerEgg._bfSeq===0){
-        playerEgg._bfSeq=1;playerEgg._bfTimer=25;
+        playerEgg._bfSeq=1;playerEgg._bfTimer=30;
         playerEgg._bfDX=_anyDX;playerEgg._bfDZ=_anyDZ;
     } else if(_newDP&&playerEgg._bfSeq===1){
         var _bfD2=_anyDX*(playerEgg._bfDX||0)+_anyDZ*(playerEgg._bfDZ||0);
-        if(_bfD2<-0.3){playerEgg._bfSeq=2;playerEgg._bfTimer=25;playerEgg._bfReady=true;playerEgg._bfMoveAngle=Math.atan2(_anyDX,_anyDZ);}
-        else{playerEgg._bfSeq=1;playerEgg._bfTimer=25;playerEgg._bfDX=_anyDX;playerEgg._bfDZ=_anyDZ;}
+        if(_bfD2<-0.3){playerEgg._bfSeq=2;playerEgg._bfTimer=30;playerEgg._bfReady=true;playerEgg._bfMoveAngle=Math.atan2(_anyDX,_anyDZ);}
+        else{playerEgg._bfSeq=1;playerEgg._bfTimer=30;playerEgg._bfDX=_anyDX;playerEgg._bfDZ=_anyDZ;}
     }
     if(playerEgg._bfTimer<=0){playerEgg._bfSeq=0;playerEgg._bfReady=false;}
-    playerEgg._prevDA=(_anyDL>0.3);
     // Forward/back press for other uses
     var _inputBack=(_inputDot<-0.3);
     var _inputFwd=(_inputDot>0.3);
@@ -1642,14 +1645,14 @@ function handlePlayerInput(){
     if(!playerEgg._ffTimer)playerEgg._ffTimer=0;
     playerEgg._ffTimer--;
     if(_newDP&&playerEgg._ffSeq===0&&!playerEgg._bfReady){
-        playerEgg._ffSeq=1;playerEgg._ffTimer=20;
+        playerEgg._ffSeq=1;playerEgg._ffTimer=30;
         playerEgg._ffDX=_anyDX;playerEgg._ffDZ=_anyDZ;
     } else if(_newDP&&playerEgg._ffSeq===1&&!playerEgg._bfReady){
         var _ffDot=_anyDX*(playerEgg._ffDX||0)+_anyDZ*(playerEgg._ffDZ||0);
         if(_ffDot>0.3){
-            playerEgg._ffSeq=2;playerEgg._ffTimer=20;playerEgg._ffReady=true;playerEgg._ffMoveAngle=Math.atan2(_anyDX,_anyDZ);
+            playerEgg._ffSeq=2;playerEgg._ffTimer=30;playerEgg._ffReady=true;playerEgg._ffMoveAngle=Math.atan2(_anyDX,_anyDZ);
         } else {
-            playerEgg._ffSeq=1;playerEgg._ffTimer=20;
+            playerEgg._ffSeq=1;playerEgg._ffTimer=30;
             playerEgg._ffDX=_anyDX;playerEgg._ffDZ=_anyDZ;
         }
     }
