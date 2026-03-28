@@ -4,33 +4,30 @@
 // ============================================================
 var _pfActive=false;
 var _pfScene=null,_pfGroup=null;
-var _pfTileSize=2; // world units per tile
+var _pfTileSize=PLATFORMER_CONFIG.tileSize;
 var _pfLevel=null;
 var _pfEnemies=[],_pfItems=[],_pfFireballs=[],_pfParticles=[];
 var _pfFlag=null,_pfCastleX=0;
-var _pfWinTimer=0,_pfDeathTimer=0,_pfCoins=0,_pfTime=300,_pfTimeCnt=0;
+var _pfWinTimer=0,_pfDeathTimer=0,_pfCoins=0,_pfTime=PLATFORMER_CONFIG.timeLimit,_pfTimeCnt=0;
 var _pfNPCList=[];
-var _pfGrav=0.025,_pfJF=0.38,_pfMaxSpd=0.18;
+var _pfGrav=PLATFORMER_CONFIG.gravity,_pfJF=PLATFORMER_CONFIG.jumpForce,_pfMaxSpd=PLATFORMER_CONFIG.maxSpeed;
 var _pfPlayerStartX=4,_pfPlayerStartY=5;
 var _pfCamTarget={x:0,y:5};
 
 // ---- Level generation (tiles in X-Y plane, Z=0) ----
 function _pfGenLevel(){
-    var W=200,H=20,T=_pfTileSize;
+    var W=PLATFORMER_CONFIG.levelWidth,H=PLATFORMER_CONFIG.levelHeight,T=_pfTileSize;
     var tiles=[];
     for(var y=0;y<H;y++){tiles[y]=[];for(var x=0;x<W;x++)tiles[y][x]=0;}
-    // Ground (bottom 2 rows, y=0,1)
     for(var x=0;x<W;x++){tiles[0][x]=1;tiles[1][x]=1;}
-    // Gaps
-    [[20,23],[48,51],[82,84],[125,128],[160,163]].forEach(function(g){for(var x=g[0];x<g[1];x++){tiles[0][x]=0;tiles[1][x]=0;}});
-    // Brick platforms
-    [[8,13,5],[27,33,6],[40,45,4],[58,64,5],[75,80,6],[95,102,4],[110,116,5],[135,142,6],[150,156,4],[170,176,5]].forEach(function(b){
+    PLATFORMER_CONFIG.gaps.forEach(function(g){for(var x=g[0];x<g[1];x++){tiles[0][x]=0;tiles[1][x]=0;}});
+    PLATFORMER_CONFIG.brickPlatforms.forEach(function(b){
         for(var x=b[0];x<b[1];x++)tiles[b[2]][x]=2;
     });
     // Question blocks
-    [[10,5],[30,6],[42,4],[60,5],[77,8],[98,4],[113,5],[138,8],[153,4],[173,7]].forEach(function(q){tiles[q[1]][q[0]]=3;});
-    // Pipes (2 wide, variable height)
-    [[16,3],[38,4],[68,3],[90,5],[120,3],[145,4],[165,3]].forEach(function(p){
+    PLATFORMER_CONFIG.questionBlocks.forEach(function(q){tiles[q[1]][q[0]]=3;});
+    // Pipes
+    PLATFORMER_CONFIG.pipes.forEach(function(p){
         var px=p[0],ph=p[1];
         for(var py=0;py<ph;py++){
             tiles[2+py][px]=4;tiles[2+py][px+1]=4;
@@ -173,7 +170,7 @@ function _pfHitBlock(tx,ty,egg){
         // Update mesh color
         _pfGroup.children.forEach(function(c){if(c.userData._tileX===tx&&c.userData._tileY===ty)c.material=toon(0x888888);});
         // Spawn item
-        var itemType=(Math.random()<0.3)?'star':'mushroom';
+        var itemType=(Math.random()<PLATFORMER_CONFIG.mushroomChance)?'star':'mushroom';
         var itemColor=itemType==='star'?0xFFDD00:0xFF4444;
         var itemMesh=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),toon(itemColor));
         itemMesh.position.set(tx*T+T/2,(ty+1)*T+T/2,0);
@@ -207,7 +204,7 @@ function _pfUpdateItems(){
             var dx=e.mesh.position.x-it.mesh.position.x,dy=e.mesh.position.y-it.mesh.position.y;
             if(Math.sqrt(dx*dx+dy*dy)<1.5){
                 if(it.type==='mushroom'){e._pfBig=true;e.mesh.scale.set(1.4,1.4,1.4);}
-                else{e._pfStar=true;e._pfStarTimer=600;}
+                else{e._pfStar=true;e._pfStarTimer=PLATFORMER_CONFIG.starDuration;}
                 it.active=false;
                 if(e.isPlayer){_pfCoins++;playGrabSound();}
                 break;
@@ -221,7 +218,7 @@ function _pfUpdateItems(){
 function _pfSpawnEnemies(){
     _pfEnemies=[];
     var T=_pfTileSize;
-    var spots=[12,25,35,50,60,72,88,100,112,128,138,148,158,168,178];
+    var spots=PLATFORMER_CONFIG.enemySpots;
     for(var i=0;i<spots.length;i++){
         var isKoopa=(i%3===2);
         var color=isKoopa?0x33AA33:0x884422;
@@ -453,9 +450,9 @@ function _pfStart(){
     scene.add(playerEgg.mesh);
     // Spawn NPC companions
     _pfNPCList=[];
-    var npcColors=[0xFF8844,0x44AAFF,0xFFDD44,0xFF44AA];
-    var npcAccents=[0xFFCC00,0xFFAA44,0xFF8800,0xFFDD00];
-    for(var i=0;i<4;i++){
+    var npcColors=PLATFORMER_CONFIG.npcColors;
+    var npcAccents=PLATFORMER_CONFIG.npcAccents;
+    for(var i=0;i<PLATFORMER_CONFIG.npcCount;i++){
         var nMesh=createEggMesh(npcColors[i],npcAccents[i],'egg');
         nMesh.position.set((2+i*1.5)*T,4*T,0);
         scene.add(nMesh);

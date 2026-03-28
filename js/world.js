@@ -88,7 +88,7 @@ function buildPortals() {
     // ---- Platformer mini-game portal ----
     if(currentCityStyle!==5){
         var _pfPortalG=new THREE.Group();
-        var _pfPX=0,_pfPZ=-8;
+        var _pfPX=PORTAL_POSITIONS.platformerPortal.x,_pfPZ=PORTAL_POSITIONS.platformerPortal.z;
         _pfPortalG.position.set(_pfPX,0,_pfPZ);
         var _pfRing=new THREE.Mesh(new THREE.TorusGeometry(2,0.3,8,24),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.4}));
         _pfRing.position.y=2.5;_pfPortalG.add(_pfRing);

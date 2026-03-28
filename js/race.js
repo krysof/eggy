@@ -7,7 +7,7 @@ raceGroup.visible = false;
 scene.add(raceGroup);
 const obstacleObjects = [];
 const raceCoins = [];
-const TRACK_W = 10;
+const TRACK_W = RACE_CONFIG.trackWidth;
 let trackSegments = [];
 
 function clearRace() {
@@ -37,7 +37,7 @@ function getFloorY(z,x){
     return s.floorY||0;
 }
 
-const FLOOR_THEMES=[[0x6EC850,0x5DB83A],[0xE8C170,0xD4A84B],[0x88BBEE,0x6699CC],[0xDD7799,0xCC5577]];
+const FLOOR_THEMES=RACE_CONFIG.floorThemes;
 
 function buildRaceTrack(ri){
     clearRace();

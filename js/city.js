@@ -11,7 +11,7 @@ const cityBuildingMeshes = []; // all meshes per building [{body,roof,windows,do
 const cityCoins = []; // {mesh, collected}
 const cityProps = []; // {group, x, z, radius, type, grabbed, origY}
 
-const CITY_SIZE = 160; // half-size of city ground (doubled)
+const CITY_SIZE = CITY_CONFIG.size;
 var currentCityStyle=0;
 var _prevCityStyle=0; // track previous city for earth return
 var CITY_STYLES=[

@@ -7,7 +7,7 @@
 // Returns true if the target gets stunned
 function _addStunDamage(egg,amount){
     if(!egg._stunMeter)egg._stunMeter=0;
-    if(!egg._stunThreshold)egg._stunThreshold=100;
+    if(!egg._stunThreshold)egg._stunThreshold=STUN_CONFIG.threshold;
     // If already stunned, getting hit clears the stun
     if(egg._stunTimer>0){egg._stunTimer=0;egg._stunMeter=0;return false;}
     egg._stunMeter+=amount;
@@ -305,7 +305,7 @@ function handlePlayerInput(){
         // ---- Piledriver (Zangief): left-right-left-F ----
         else if(playerEgg._piledriverReady&&playerEgg.onGround&&!playerEgg.holding&&!playerEgg.holdingProp&&!playerEgg.holdingObs){
             var _pdTarget=null;
-            var _pdDist=5.0; // 2x normal grab range
+            var _pdDist=STUN_CONFIG.piledriverRange;
             for(var _pdi=0;_pdi<allEggs.length;_pdi++){
                 var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy||_pde.holding||_pde._piledriverLocked)continue;
                 var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
@@ -405,7 +405,7 @@ function handlePlayerInput(){
     // Grab on first press (only when not holding anything)
     if(playerEgg._fPressStart&&!_holdingSomething&&playerEgg.grabCD<=0){
         playerEgg._fPressStart=false;
-        var nearest=null, nearDist=2.5;
+        var nearest=null, nearDist=STUN_CONFIG.grabRange;
         for(var ei=0;ei<allEggs.length;ei++){
             var e=allEggs[ei];
             if(e===playerEgg||!e.alive||e.heldBy||e.holding)continue;
@@ -742,12 +742,12 @@ function handlePlayerInput(){
             }}
         } else {
         // Normal punch combo
-        playerEgg._comboCount++;playerEgg._comboTimer=(_ct==='cockroach')?40:25;playerEgg._attackCD=(_ct==='cockroach')?32:8;
+        playerEgg._comboCount++;playerEgg._comboTimer=(_ct==='cockroach')?MOVE_PARAMS.cockroach.comboTimerPunch:25;playerEgg._attackCD=(_ct==='cockroach')?MOVE_PARAMS.cockroach.punchCD:8;
         var _punchArm=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightArm:playerEgg.mesh.userData.leftArm;
         var _pArmZ=(_ct==='cockroach')?3.0:0.9;
         var _pArmS=(_ct==='cockroach')?new THREE.Vector3(1.0,1.0,4.0):new THREE.Vector3(1.3,1.3,1.3);
         if(_punchArm){_punchArm.visible=true;_punchArm.position.set(_punchArm===playerEgg.mesh.userData.rightArm?0.3:-0.3,0.2,_pArmZ);_punchArm.scale.copy(_pArmS);}
-        playerEgg._atkAnim=(_ct==='cockroach')?28:8;
+        playerEgg._atkAnim=(_ct==='cockroach')?MOVE_PARAMS.cockroach.punchAnim:8;
         var _atkDir=playerEgg.mesh.rotation.y;
         var _isFinisher=(playerEgg._comboCount>=3)&&_ct!=='pig'&&_ct!=='cat'; // Honda/Blanka skip finisher (use rapid-press instead)
         var _isAerial=!playerEgg.onGround;
@@ -904,11 +904,11 @@ function handlePlayerInput(){
             playJumpSound();
         } else {
         // Normal kick
-        playerEgg._comboCount++;playerEgg._comboTimer=(_ct==='cockroach')?45:25;playerEgg._attackCD=(_ct==='cockroach')?36:12;
+        playerEgg._comboCount++;playerEgg._comboTimer=(_ct==='cockroach')?MOVE_PARAMS.cockroach.comboTimerKick:25;playerEgg._attackCD=(_ct==='cockroach')?MOVE_PARAMS.cockroach.kickCD:12;
         var _kickLeg=(playerEgg._comboCount%2===1)?playerEgg.mesh.userData.rightLeg:playerEgg.mesh.userData.leftLeg;
         var _kLegZ=(_ct==='cockroach')?2.5:0.7;
         if(_kickLeg){_kickLeg.visible=true;_kickLeg.position.z=_kLegZ;_kickLeg.rotation.x=-Math.PI/2.5;if(_ct==='cockroach')_kickLeg.scale.set(1,1,3.5);}
-        playerEgg._atkAnim=(_ct==='cockroach')?28:10;
+        playerEgg._atkAnim=(_ct==='cockroach')?MOVE_PARAMS.cockroach.kickAnim:10;
         var _kDir=playerEgg.mesh.rotation.y;
         var _kFinisher=(playerEgg._comboCount>=3)&&_ct!=='monkey'; // Chun-Li skips finisher (use rapid-press instead)
         var _kAerial=!playerEgg.onGround;
@@ -1694,7 +1694,7 @@ function handlePlayerInput(){
     // Rapid T ready (3+ presses in 60 frames) — Chun-Li 百裂脚
     playerEgg._rapidTReady=(playerEgg._rapidT>=3);
     // ---- Dhalsim passive: extended attack range ----
-    playerEgg._extendedRange=(_ct==='cockroach')?2.5:1.0;
+    playerEgg._extendedRange=(_ct==='cockroach')?MOVE_PARAMS.cockroach.extendedRange:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
     playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_ct==='frog');
     // ---- Piledriver input sequence tracker (forward-back-forward relative to facing) ----

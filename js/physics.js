@@ -2,8 +2,8 @@
 // ============================================================
 //  PHYSICS
 // ============================================================
-const GRAVITY=0.018, JUMP_FORCE=0.28, MOVE_ACCEL=0.016, MAX_SPEED=0.22, FRICTION=0.92;
-var MOON_CITY_SIZE=400; // half-size of flat moon city ground
+const GRAVITY=CHAR_PHYSICS.GRAVITY, JUMP_FORCE=CHAR_PHYSICS.JUMP_FORCE, MOVE_ACCEL=CHAR_PHYSICS.MOVE_ACCEL, MAX_SPEED=CHAR_PHYSICS.MAX_SPEED, FRICTION=CHAR_PHYSICS.FRICTION;
+var MOON_CITY_SIZE=CITY_CONFIG.moonSize;
 
 // (spherical _moonProject removed — moon is now flat city)
 // (spherical _moonOrient removed — moon is now flat city)
