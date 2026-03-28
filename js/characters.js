@@ -86,6 +86,12 @@ function drawPortrait(ch) {
         }
         portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+6,12,8,0,0,Math.PI*2);
         portraitCtx.fillStyle='#333';portraitCtx.fill();
+        // Protruding brown muzzle/snout below nose
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+18,18,12,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#8B5E3C';portraitCtx.fill();
+        // Small pink tongue hanging out
+        portraitCtx.beginPath();portraitCtx.ellipse(cx+4,cy+30,5,8,0.15,0,Math.PI*2);
+        portraitCtx.fillStyle='#FF8899';portraitCtx.fill();
     } else if(ch.type==='bull'){
         // Buffalo (野牛) — Honda
         // Big bull horns (牛魔王 style) — horizontal then curve up
@@ -102,13 +108,16 @@ function drawPortrait(ch) {
             portraitCtx.beginPath();portraitCtx.arc(cx+s*63,cy-63,4,0,Math.PI*2);
             portraitCtx.fillStyle='#CCBB88';portraitCtx.fill();
         });
+        // Wider muzzle/snout area (darker oval below nostrils)
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+14,24,14,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#3A2518';portraitCtx.fill();
         // Nose ring
-        portraitCtx.beginPath();portraitCtx.arc(cx,cy+18,6,0,Math.PI);
+        portraitCtx.beginPath();portraitCtx.arc(cx,cy+22,6,0,Math.PI);
         portraitCtx.strokeStyle='#CCAA00';portraitCtx.lineWidth=3;portraitCtx.stroke();
-        // Wide nostrils
+        // Bigger nostrils
         [-1,1].forEach(function(s){
-            portraitCtx.beginPath();portraitCtx.arc(cx+s*8,cy+12,4,0,Math.PI*2);
-            portraitCtx.fillStyle='#2A1A0A';portraitCtx.fill();
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*10,cy+12,6,5,0,0,Math.PI*2);
+            portraitCtx.fillStyle='#1A0A00';portraitCtx.fill();
         });
         // Face paint
         portraitCtx.fillStyle='rgba(34,68,170,0.4)';
@@ -133,6 +142,21 @@ function drawPortrait(ch) {
             portraitCtx.lineTo(cx+Math.cos(ba+0.3)*35,cy-48+Math.sin(ba+0.3)*15);
             portraitCtx.fillStyle='#FF8800';portraitCtx.fill();
         }
+        // 3 darker green horizontal stripe marks on body
+        portraitCtx.fillStyle='rgba(20,80,20,0.45)';
+        for(var si=0;si<3;si++){
+            portraitCtx.fillRect(cx-rx*0.7,cy+si*14-10,rx*1.4,5);
+        }
+        // Vertical slit pupils (override round pupils)
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*18,_eyeY,10,12,0,0,Math.PI*2);
+            portraitCtx.fillStyle='#fff';portraitCtx.fill();
+            // Vertical slit
+            portraitCtx.fillStyle='#111';portraitCtx.fillRect(cx+s*18-2,_eyeY-8,4,16);
+            // Highlight
+            portraitCtx.beginPath();portraitCtx.arc(cx+s*16,_eyeY-3,2,0,Math.PI*2);
+            portraitCtx.fillStyle='#fff';portraitCtx.fill();
+        });
         // Fangs
         [-1,1].forEach(function(s){
             portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy+18);portraitCtx.lineTo(cx+s*8,cy+28);
@@ -151,6 +175,26 @@ function drawPortrait(ch) {
         }
         // Blonde flat-top
         portraitCtx.fillStyle='#FFDD44';portraitCtx.fillRect(cx-25,cy-78,50,16);
+        // Bigger wings on sides
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();
+            portraitCtx.moveTo(cx+s*rx*0.6,cy-10);
+            portraitCtx.quadraticCurveTo(cx+s*rx*1.6,cy-20,cx+s*rx*1.4,cy+15);
+            portraitCtx.quadraticCurveTo(cx+s*rx*1.2,cy+25,cx+s*rx*0.6,cy+20);
+            portraitCtx.closePath();
+            portraitCtx.fillStyle='#4A5E28';portraitCtx.fill();
+            portraitCtx.strokeStyle='rgba(0,0,0,0.15)';portraitCtx.lineWidth=1;portraitCtx.stroke();
+        });
+        // More tail feathers spread wider
+        for(var tf=-2;tf<=2;tf++){
+            portraitCtx.beginPath();
+            portraitCtx.moveTo(cx+tf*6,cy+ry*0.7);
+            portraitCtx.quadraticCurveTo(cx+tf*14,cy+ry+20,cx+tf*18,cy+ry+35);
+            portraitCtx.lineTo(cx+tf*12,cy+ry+30);
+            portraitCtx.quadraticCurveTo(cx+tf*8,cy+ry+15,cx+tf*4,cy+ry*0.7);
+            portraitCtx.closePath();
+            portraitCtx.fillStyle=tf%2===0?'#556B2F':'#6B8E23';portraitCtx.fill();
+        }
         // Beak
         portraitCtx.beginPath();portraitCtx.moveTo(cx-6,cy+4);portraitCtx.lineTo(cx+6,cy+4);
         portraitCtx.lineTo(cx,cy+16);portraitCtx.fillStyle='#FFAA00';portraitCtx.fill();
@@ -173,6 +217,9 @@ function drawPortrait(ch) {
             portraitCtx.beginPath();portraitCtx.moveTo(cx+s*38,cy-42);portraitCtx.lineTo(cx+s*42,cy-30);
             portraitCtx.lineTo(cx+s*34,cy-30);portraitCtx.fillStyle='#fff';portraitCtx.fill();
         });
+        // Lighter belly patch (peach oval on lower body center)
+        portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+15,20,28,0,0,Math.PI*2);
+        portraitCtx.fillStyle='#FFDCB0';portraitCtx.fill();
         portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+10,25,18,0,0,Math.PI*2);
         portraitCtx.fillStyle='#FFCC88';portraitCtx.fill();
     } else if(ch.type==='bear'){
@@ -199,6 +246,16 @@ function drawPortrait(ch) {
             portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy+18);portraitCtx.lineTo(cx+s*8,cy+28);
             portraitCtx.lineTo(cx+s*14,cy+20);portraitCtx.fillStyle='#FFFFF0';portraitCtx.fill();
         });
+        // Bigger paw shapes on sides
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*rx*0.95,cy+20,18,22,s*0.2,0,Math.PI*2);
+            portraitCtx.fillStyle='#6B4A2A';portraitCtx.fill();
+            // Paw pads
+            for(var pi=0;pi<3;pi++){
+                portraitCtx.beginPath();portraitCtx.arc(cx+s*(rx*0.85+pi*5),cy+12+pi*6,3,0,Math.PI*2);
+                portraitCtx.fillStyle='#AA7755';portraitCtx.fill();
+            }
+        });
         // Chest hair
         portraitCtx.fillStyle='rgba(139,69,19,0.5)';
         portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+15,20,12,0,0,Math.PI*2);portraitCtx.fill();
@@ -206,7 +263,23 @@ function drawPortrait(ch) {
         portraitCtx.strokeStyle='rgba(200,100,100,0.5)';portraitCtx.lineWidth=2;
         portraitCtx.beginPath();portraitCtx.moveTo(cx-15,cy-5);portraitCtx.lineTo(cx-5,cy+10);portraitCtx.stroke();
         portraitCtx.beginPath();portraitCtx.moveTo(cx+10,cy);portraitCtx.lineTo(cx+20,cy+12);portraitCtx.stroke();
+        // Small claw marks
+        [-1,1].forEach(function(s){
+            portraitCtx.strokeStyle='rgba(60,30,10,0.5)';portraitCtx.lineWidth=1.5;
+            for(var ci=0;ci<3;ci++){
+                portraitCtx.beginPath();
+                portraitCtx.moveTo(cx+s*(rx*0.7)+ci*4,cy+32);
+                portraitCtx.lineTo(cx+s*(rx*0.7)+ci*4+s*3,cy+40);
+                portraitCtx.stroke();
+            }
+        });
     } else if(ch.type==='cockroach'){
+        // Wing cases on back (two translucent brown ovals behind body)
+        [-1,1].forEach(function(s){
+            portraitCtx.beginPath();portraitCtx.ellipse(cx+s*18,cy+10,16,35,s*0.2,0,Math.PI*2);
+            portraitCtx.fillStyle='rgba(139,105,20,0.3)';portraitCtx.fill();
+            portraitCtx.strokeStyle='rgba(92,46,10,0.3)';portraitCtx.lineWidth=1;portraitCtx.stroke();
+        });
         // Dhalsim: antennae + skull necklace
         [-1,1].forEach(function(s){
             portraitCtx.beginPath();portraitCtx.moveTo(cx+s*10,cy-55);
