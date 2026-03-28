@@ -173,6 +173,26 @@ function createEggMesh(color, accent, charType) {
         var centerSpike=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.25,4),kenHairMat);
         centerSpike.position.set(0,1.3,0);
         body.add(centerSpike);
+        // Protruding muzzle/snout
+        var dogSnout=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),toon(0xC08060));
+        dogSnout.position.set(0,0.68,0.55);dogSnout.scale.set(1.0,0.7,0.7);
+        body.add(dogSnout);
+        // Small tongue hanging out
+        var tongue=new THREE.Mesh(new THREE.SphereGeometry(0.05,6,4),toon(0xFF6688));
+        tongue.position.set(0.04,0.58,0.6);tongue.scale.set(0.8,1.5,0.5);
+        body.add(tongue);
+        // Paw-print toes on feet
+        [-1,1].forEach(function(s){
+            for(var pi=0;pi<3;pi++){
+                var paw=new THREE.Mesh(new THREE.SphereGeometry(0.03,4,4),toon(0x555555));
+                paw.position.set(s*0.2+(pi-1)*0.05,-0.58,0.14);
+                body.add(paw);
+            }
+            // Central pad
+            var pad=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0x555555));
+            pad.position.set(s*0.2,-0.56,0.08);
+            body.add(pad);
+        });
     } else if (charType==='cat') {
         // Blanka — wild beast traits
         var cearG=new THREE.ConeGeometry(0.14,0.35,4);
@@ -223,6 +243,26 @@ function createEggMesh(color, accent, charType) {
         var catTailCurve=new THREE.CatmullRomCurve3(catTailPts);
         var catTailGeo=new THREE.TubeGeometry(catTailCurve,12,0.04,6,false);
         body.add(new THREE.Mesh(catTailGeo,toon(color)));
+        // Darker stripe markings on body (3 horizontal stripes)
+        var stripeMat=toon(0x1A6600);
+        for(var sti=0;sti<3;sti++){
+            var stripeY=0.35+sti*0.2;
+            // Front stripe
+            var stripeF=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.04,0.02),stripeMat);
+            stripeF.position.set(0,stripeY,0.52);body.add(stripeF);
+            // Left side stripe
+            var stripeL=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.04,0.35),stripeMat);
+            stripeL.position.set(-0.52,stripeY,0.1);body.add(stripeL);
+            // Right side stripe
+            var stripeR=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.04,0.35),stripeMat);
+            stripeR.position.set(0.52,stripeY,0.1);body.add(stripeR);
+        }
+        // Bigger cat-like slit pupils (cover existing round pupils)
+        [-1,1].forEach(function(s){
+            var slitPupil=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.18,0.02),toon(0x111111));
+            slitPupil.position.set(s*0.24,0.86,0.555);
+            body.add(slitPupil);
+        });
     } else if (charType==='monkey') {
         var mearG=new THREE.SphereGeometry(0.18,8,6);
         [-1,1].forEach(function(s){
@@ -264,6 +304,14 @@ function createEggMesh(color, accent, charType) {
         var monkTailCurve=new THREE.CatmullRomCurve3(monkTailPts);
         var monkTailGeo=new THREE.TubeGeometry(monkTailCurve,14,0.04,6,false);
         body.add(new THREE.Mesh(monkTailGeo,toon(0x2255CC)));
+        // Lighter belly patch (front of body)
+        var bellyPatch=new THREE.Mesh(new THREE.SphereGeometry(0.3,10,8),toon(0xFFDDBB));
+        bellyPatch.position.set(0,0.45,0.38);bellyPatch.scale.set(0.8,1.0,0.3);
+        body.add(bellyPatch);
+        // Curled tail tip with puff ball
+        var tailPuff=new THREE.Mesh(new THREE.SphereGeometry(0.07,6,4),toon(0x2255CC));
+        tailPuff.position.set(0.15,0.35,-1.15);
+        body.add(tailPuff);
     } else if (charType==='rooster') {
         for(var ri=0;ri<3;ri++){
             var cb=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,4),toon(0xFF3333));
@@ -285,20 +333,33 @@ function createEggMesh(color, accent, charType) {
             sideFlat.position.set(s*0.22,1.33,0);
             body.add(sideFlat);
         });
-        // Wings
+        // Bigger wings (scaled up)
         [-1,1].forEach(function(s){
-            var wing=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,4),toon(0x556B2F));
-            wing.position.set(s*0.55,0.65,-0.05);
-            wing.scale.set(0.4,1.0,0.8); wing.rotation.z=s*0.3;
+            var wing=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),toon(0x556B2F));
+            wing.position.set(s*0.58,0.6,-0.05);
+            wing.scale.set(0.5,1.3,1.0); wing.rotation.z=s*0.3;
             body.add(wing);
+            // Wing tip feather detail
+            var wingTip=new THREE.Mesh(new THREE.ConeGeometry(0.08,0.2,4),toon(0x556B2F));
+            wingTip.position.set(s*0.72,0.45,-0.05);wingTip.rotation.z=s*0.8;
+            body.add(wingTip);
         });
-        // Tail feathers
-        for(var fi=0;fi<3;fi++){
-            var feather=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.4,4),toon(fi===1?0x556B2F:0xFFDD44));
-            feather.position.set((fi-1)*0.08,0.85+fi*0.05,-0.55);
-            feather.rotation.x=0.6+fi*0.1;
+        // Fan-shaped tail feathers (more feathers spread wider)
+        for(var fi=0;fi<7;fi++){
+            var fAngle=(fi-3)*0.25;
+            var fColor=(fi%2===0)?0x556B2F:0xFFDD44;
+            var feather=new THREE.Mesh(new THREE.ConeGeometry(0.05,0.45,4),toon(fColor));
+            feather.position.set(Math.sin(fAngle)*0.15,0.8+Math.abs(fi-3)*0.04,-0.55);
+            feather.rotation.x=0.5+Math.abs(fi-3)*0.08;
+            feather.rotation.y=fAngle*0.3;
             body.add(feather);
         }
+        // Spurs on feet
+        [-1,1].forEach(function(s){
+            var spur=new THREE.Mesh(new THREE.ConeGeometry(0.025,0.12,4),toon(0xCCAA00));
+            spur.position.set(s*0.2,-0.6,-0.08);spur.rotation.x=0.5;
+            body.add(spur);
+        });
     } else if (charType==='cockroach') {
         // Dhalsim — elongated body with skull necklace
         // Twin-tail antennae (hair-style)
@@ -349,6 +410,17 @@ function createEggMesh(color, accent, charType) {
         }
         // Elongate body slightly more
         body.scale.y=1.1;
+        // Wing cases on back (two elliptical translucent shapes)
+        var wingCaseMat=toon(0x7B5030,{transparent:true,opacity:0.5});
+        [-1,1].forEach(function(s){
+            var wingCase=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,6),wingCaseMat);
+            wingCase.position.set(s*0.12,0.7,-0.35);
+            wingCase.scale.set(0.8,1.4,0.3);
+            wingCase.rotation.z=s*0.15;
+            body.add(wingCase);
+        });
+        // Wider/flatter body shape enhancement
+        body.scale.x=1.15;body.scale.z=0.9;
     } else if (charType==='bull') {
         // Buffalo (野牛) — Honda moveset
         // Big bull horns (牛魔王 style) — horizontal outward then curve up
@@ -387,6 +459,21 @@ function createEggMesh(color, accent, charType) {
         bufTail.position.set(0,0.65,-0.55);bufTail.rotation.x=0.5;body.add(bufTail);
         var tailTuft=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,4),toon(0x222222));
         tailTuft.position.set(0,0.58,-0.63);body.add(tailTuft);
+        // Wider protruding muzzle/snout area
+        var bullSnout=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),toon(0x3A2A1A));
+        bullSnout.position.set(0,0.62,0.52);bullSnout.scale.set(1.3,0.7,0.6);
+        body.add(bullSnout);
+        // Bigger nostrils (replace small ones with larger)
+        [-1,1].forEach(function(s){
+            var bigNos=new THREE.Mesh(new THREE.SphereGeometry(0.06,6,4),toon(0x1A0A00));
+            bigNos.position.set(s*0.1,0.6,0.6);body.add(bigNos);
+        });
+        // Hoof-shaped darker feet
+        [-1,1].forEach(function(s){
+            var hoof=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,0.06,8),toon(0x2A1A0A));
+            hoof.position.set(s*0.2,-0.6,0.06);
+            body.add(hoof);
+        });
     } else if (charType==='bear') {
         // Bear with boar mask (Inosuke style) — Zangief moveset
         // Round bear ears
@@ -439,6 +526,20 @@ function createEggMesh(color, accent, charType) {
         // Short stubby bear tail
         var bearTail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0x6B4A2A));
         bearTail.position.set(0,0.65,-0.55);body.add(bearTail);
+        // Bigger bear paws (larger arms/stubs)
+        var bearPawMat=toon(0x6B4A2A);
+        [-1,1].forEach(function(s){
+            var paw=new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6),bearPawMat);
+            paw.position.set(s*0.6,0.55,0.1);paw.scale.set(0.9,1.0,0.9);
+            body.add(paw);
+            // Visible claws (small cones on paws)
+            for(var ci=0;ci<3;ci++){
+                var claw=new THREE.Mesh(new THREE.ConeGeometry(0.02,0.1,4),toon(0xEEDDCC));
+                claw.position.set(s*0.65+(ci-1)*0.06,0.42,0.15);
+                claw.rotation.x=-0.3;
+                body.add(claw);
+            }
+        });
     }
 
     // Feet
