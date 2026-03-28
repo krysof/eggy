@@ -38,43 +38,201 @@ var CHAR_DEFS=[
 
 // ---- Special move parameters per character ----
 var MOVE_PARAMS={
-    egg:{ // Ryu
-        hadouken:{speed:0.35,life:120,color:0xFF4422,ringColor:0xFF8866,burns:true,stunDmg:15},
-        shoryuken:{jumpMul:1.6,fwdSpeed:0.15,duration:65,stunDmg:15},
-        tatsumaki:{duration:94,hitForce:0.5,hitVy:0.3,stunDmg:15}
+    // ================================================================
+    // Ryu (egg) — 波动拳, 升龙拳, 旋风腿
+    // ================================================================
+    egg:{
+        hadouken:{
+            input:'→→+R',        // forward-forward + punch
+            name:'HADOUKEN!',shout:'HADOUKEN!',
+            speed:0.35,life:120,color:0xFF4422,ringColor:0xFF8866,
+            burns:true,           // hit causes fire
+            damage:10,stunDmg:15, // damage & stun
+            cd:25                 // cooldown frames
+        },
+        shoryuken:{
+            input:'↓↑+R',        // down-up + punch
+            name:'SHORYUKEN!',shout:'SHORYUKEN!',
+            jumpMul:1.6,fwdSpeed:0.15,duration:65,
+            damage:20,stunDmg:15,
+            cd:30
+        },
+        tatsumaki:{
+            input:'←→+T',        // back-forward + kick
+            name:'Tatsumaki Senpukyaku!',shout:'Tatsumaki Senpukyaku!',
+            duration:94,hitForce:0.5,hitVy:0.3,
+            damage:12,stunDmg:15,hitCD:12,
+            cd:40
+        }
     },
-    dog:{ // Ken
-        hadouken:{speed:0.35,life:120,color:0x4488FF,ringColor:0x88AAFF,burns:false,stunDmg:15},
-        shoryuken:{jumpMul:1.7,fwdSpeed:0.35,duration:75,stunDmg:15,fire:true},
-        tatsumaki:{duration:94,hitForce:0.5,hitVy:0.3,stunDmg:15}
+    // ================================================================
+    // Ken (dog) — 波动拳, 升龙拳(火), 旋风腿
+    // ================================================================
+    dog:{
+        hadouken:{
+            input:'→→+R',
+            name:'Hadouken!',shout:'Hadouken!',
+            speed:0.35,life:120,color:0x4488FF,ringColor:0x88AAFF,
+            burns:false,
+            damage:10,stunDmg:15,
+            cd:25
+        },
+        shoryuken:{
+            input:'↓↑+R',
+            name:'Shoryuken!',shout:'Shoryuken!',
+            jumpMul:1.7,fwdSpeed:0.35,duration:75,
+            fire:true,            // Ken shoryuken sets target on fire
+            damage:22,stunDmg:15,
+            cd:30
+        },
+        tatsumaki:{
+            input:'←→+T',
+            name:'Tatsumaki Senpukyaku!',shout:'Tatsumaki Senpukyaku!',
+            duration:94,hitForce:0.5,hitVy:0.3,
+            damage:12,stunDmg:15,hitCD:12,
+            cd:40
+        }
     },
-    pig:{ // Honda
-        hyakuretsu:{cd:4,range:2.5,hitForce:0.5,hitVy:0.25,stunDmg:10},
-        headbutt:{speed:2,duration:60,cd:70}
+    // ================================================================
+    // Honda/Buffalo (pig) — 百裂掌, 头锤
+    // ================================================================
+    pig:{
+        hyakuretsu:{
+            input:'R (always)',   // normal punch = hyakuretsu
+            name:'Hohoho!',shout:'Hohoho!',
+            cd:4,range:2.5,hitForce:0.5,hitVy:0.25,
+            damage:8,stunDmg:10
+        },
+        headbutt:{
+            input:'←→+R',        // back-forward + punch
+            name:'Dosukoi!',shout:'Dosukoi!',
+            speed:2,duration:60,cd:70,
+            damage:15,stunDmg:20
+        }
     },
-    cat:{ // Blanka
-        electric:{duration:60,range:2.5,stunDmg:15},
-        roll:{speed:3,duration:60,cd:35}
+    // ================================================================
+    // Blanka (cat) — 电击, 滚动攻击
+    // ================================================================
+    cat:{
+        electric:{
+            input:'R (always)',   // normal punch = electric
+            name:'ELECTRIC!',shout:'ELECTRIC!',
+            duration:60,range:2.5,
+            damage:8,stunDmg:15,
+            electrocuteDuration:90 // frames target is electrocuted
+        },
+        roll:{
+            input:'←→+R',        // back-forward + punch
+            name:'GRAAAH!',shout:'GRAAAH!',
+            speed:3,duration:60,cd:35,
+            damage:15,stunDmg:20
+        }
     },
-    rooster:{ // Guile
-        sonicBoom:{speed:0.5,life:100,color:0xFFDD44,ringColor:0xFFFF88},
-        somersault:{jumpMul:1.6,duration:65,arcSpeed:0.2,arcLife:30}
+    // ================================================================
+    // Guile (rooster) — 音速手刀, 闪光飞踢
+    // ================================================================
+    rooster:{
+        sonicBoom:{
+            input:'→→+R',        // forward-forward + punch
+            name:'Sonic Boom!',shout:'Sonic Boom!',
+            speed:0.5,life:100,color:0xFFDD44,ringColor:0xFFFF88,
+            damage:10,stunDmg:15,
+            cd:20
+        },
+        somersault:{
+            input:'←→+T',        // back-forward + kick
+            name:'Somersault Kick!',shout:'Somersault Kick!',
+            jumpMul:1.6,duration:65,arcSpeed:0.2,arcLife:30,
+            damage:18,stunDmg:20,
+            cd:35
+        }
     },
-    monkey:{ // Chun-Li
-        kikouken:{speed:0.5,life:100,color:0x88BBFF,ringColor:0x88FF88},
-        hyakuretsuKick:{cd:4,range:2.5,hitForce:0.5,hitVy:0.25,stunDmg:10},
-        spinningBird:{jumpMul:1.2,duration:60}
+    // ================================================================
+    // Chun-Li (monkey) — 气功拳, 百裂脚, 回旋鸟踢
+    // ================================================================
+    monkey:{
+        kikouken:{
+            input:'→→+R',        // forward-forward + punch
+            name:'Kikouken!',shout:'Kikouken!',
+            speed:0.5,life:100,color:0x88BBFF,ringColor:0x88FF88,
+            damage:10,stunDmg:15,
+            cd:20
+        },
+        hyakuretsuKick:{
+            input:'T (always)',   // normal kick = hyakuretsu kick
+            name:'Hyakuretsu Kick!',shout:'Hyakuretsu Kick!',
+            cd:4,range:2.5,hitForce:0.5,hitVy:0.25,
+            damage:8,stunDmg:10
+        },
+        spinningBird:{
+            input:'←→+T',        // back-forward + kick
+            name:'Spinning Bird Kick!',shout:'Spinning Bird Kick!',
+            jumpMul:1.2,duration:60,
+            damage:15,stunDmg:15,
+            cd:35
+        }
     },
-    frog:{ // Zangief
-        lariat:{duration:60,hitForce:0.5,hitVy:0.3,stunDmg:15},
-        piledriver:{range:5.0,riseFrames:40,pauseFrames:8,slamFrames:12,maxHeight:15}
+    // ================================================================
+    // Zangief/Bear (frog) — 回旋双臂, 螺旋打桩
+    // ================================================================
+    frog:{
+        lariat:{
+            input:'R+T (hold)',   // punch + kick held together
+            name:'Double Lariat!',shout:'Double Lariat!',
+            duration:60,hitForce:0.5,hitVy:0.3,
+            damage:12,stunDmg:15,hitCD:12,
+            cd:40
+        },
+        piledriver:{
+            input:'→←→+F',       // forward-back-forward + grab
+            name:'Piledriver!',shout:'Piledriver!',
+            range:5.0,riseFrames:40,pauseFrames:8,slamFrames:12,maxHeight:15,
+            damage:35,stunDmg:50, // devastating
+            cd:80
+        }
     },
-    cockroach:{ // Dhalsim
-        yogaFire:{speed:0.2,life:180,color:0xFF6600,ringColor:0xFFAA00,burns:true},
-        yogaFlame:{duration:60,range:4,stunDmg:20,fireDuration:120,fireStun:90},
+    // ================================================================
+    // Dhalsim (cockroach) — 瑜伽火球, 瑜伽火焰, 长手长脚(被动)
+    // ================================================================
+    cockroach:{
+        yogaFire:{
+            input:'→→+R',        // forward-forward + punch
+            name:'Yoga Fire!',shout:'Yoga Fire!',
+            speed:0.2,life:180,color:0xFF6600,ringColor:0xFFAA00,
+            burns:true,
+            damage:10,stunDmg:15,
+            cd:30
+        },
+        yogaFlame:{
+            input:'←→+R',        // back-forward + punch
+            name:'Yoga Flame!',shout:'Yoga Flame!',
+            duration:60,range:4,
+            damage:15,stunDmg:20,
+            fireDuration:120,     // 2 seconds on fire
+            fireStun:90,          // 1.5 seconds frozen
+            cd:40
+        },
+        // Passive: extended attack range
         extendedRange:2.5,
-        punchCD:32,kickCD:36,punchAnim:28,kickAnim:28,comboTimerPunch:40,comboTimerKick:45
+        // Slower attack speed
+        punchCD:32,kickCD:36,punchAnim:28,kickAnim:28,
+        comboTimerPunch:40,comboTimerKick:45,
+        // Normal punch/kick damage (long range)
+        normalPunchDmg:6,normalKickDmg:8
     }
+};
+
+// ---- Common move damage values ----
+var COMMON_DAMAGE={
+    normalPunch:5,          // basic punch hit
+    normalKick:6,           // basic kick hit
+    finisherPunch:12,       // 3rd combo punch
+    finisherKick:15,        // 3rd combo kick
+    aerialHit:10,           // air attack
+    throwBase:8,            // normal throw
+    chargeThrowMax:20,      // max charge throw
+    bodySlam:25,            // jump + down slam
+    grabDamage:0            // grab itself does no damage
 };
 
 // ---- NPC AI special move chances ----
