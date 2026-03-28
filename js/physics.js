@@ -332,21 +332,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     // ============================================================
     var _attackAnim=!!(egg._hondaDash||egg._blankaSpinTimer||egg._guileSomersault);
     if(body){
-        if(egg._hondaDash>0&&!egg._blankaRoll&&egg._dashDirX!==undefined){
-            // Honda headbutt: tilt using quaternion to guarantee visible forward lean
-            var _hdTotal2=egg._hondaDashTotal||60;
-            var _hdPhase2=_hdTotal2-egg._hondaDash;
-            var _hdAngle=0;
-            if(_hdPhase2<8){_hdAngle=(_hdPhase2/8)*0.8;}
-            else if(egg._hondaDash>5){_hdAngle=0.8;}
-            else{var _lt=(5-egg._hondaDash)/5;_hdAngle=egg._hondaBounced?-0.8*(1-_lt):0.8*(1-_lt);}
-            // Set facing direction
-            var _hdFaceY=Math.atan2(egg._dashDirX,egg._dashDirZ);
-            // Build quaternion: first Y rotation (facing), then X rotation (tilt)
-            var _qY=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),_hdFaceY);
-            var _qX=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),_hdAngle);
-            egg.mesh.quaternion.copy(_qY.multiply(_qX));
+        if(egg._hondaDash>0){
             egg.mesh.scale.set(1,1,1);
+            // Visual handled by player.js quaternion
         } else if(egg._blankaSpinTimer>0){
             // Blanka roll: fast forward spin
             body.rotation.x+=0.8;
@@ -400,7 +388,7 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
 
     if(speed>0.01){
         // Skip facing update during backstep or post-dash bounce or Dhalsim attack
-        if(!(egg.isPlayer&&(egg._backstepTimer>0||egg._dashBounceTimer>0||(egg._atkAnim>0&&egg.mesh.userData._charType==='cockroach')))){
+        if(!(egg.isPlayer&&(egg._backstepTimer>0||egg._dashBounceTimer>0||egg._hondaDash>0||(egg._atkAnim>0&&egg.mesh.userData._charType==='cockroach')))){
         const ta=Math.atan2(egg.vx,egg.vz);
         let diff=ta-egg.mesh.rotation.y;
         while(diff>Math.PI)diff-=Math.PI*2; while(diff<-Math.PI)diff+=Math.PI*2;
