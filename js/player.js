@@ -1552,10 +1552,7 @@ function handlePlayerInput(){
         }
         // Honda headbutt: face-down head-forward torpedo (consistent in all directions)
         if(!playerEgg._blankaRoll){
-            if(playerEgg._dashDirX!==undefined){
-                // Visual tilt handled by physics.js (last step)
-            }
-            playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
+            if(!playerEgg._hondaBounced)playerEgg.mesh.position.y=Math.max(playerEgg.mesh.position.y,1.5);
         }
         // Blanka rolls visually — forward tumble (head down first, clockwise from viewer's perspective)
         if(playerEgg._blankaRoll){
@@ -1577,7 +1574,7 @@ function handlePlayerInput(){
                 _hde.squash=0.3;_hde.throwTimer=45;_hde._bounces=2;_addStunDamage(_hde,10);
                 _dropNpcStolenCoins(_hde);playHitSound();
                 // Bounce back on hit — reverse, land, recover
-                playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
+                playerEgg._dashDirX*=-0.6;playerEgg._dashDirZ*=-0.6;
                 playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
                 if(playerEgg._blankaRoll){
                     playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
@@ -1593,7 +1590,7 @@ function handlePlayerInput(){
             var _dc=cityColliders[_dci];
             var _ddx=playerEgg.mesh.position.x-_dc.x,_ddz=playerEgg.mesh.position.z-_dc.z;
             if(Math.abs(_ddx)<_dc.hw+1&&Math.abs(_ddz)<_dc.hd+1&&playerEgg.mesh.position.y<(_dc.h||6)){
-                playerEgg._dashDirX*=-0.3;playerEgg._dashDirZ*=-0.3;
+                playerEgg._dashDirX*=-0.6;playerEgg._dashDirZ*=-0.6;
                 playerEgg.vx=playerEgg._dashDirX;playerEgg.vz=playerEgg._dashDirZ;
                 if(playerEgg._blankaRoll){
                     playerEgg._hondaDash=Math.min(playerEgg._hondaDash,25);
