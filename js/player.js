@@ -1626,18 +1626,13 @@ function handlePlayerInput(){
         playerEgg._shoryuSeq=2;playerEgg._shoryuTimer=30;playerEgg._shoryuReady=true;
     }
     if(playerEgg._shoryuTimer<=0){playerEgg._shoryuSeq=0;playerEgg._shoryuReady=false;}
-    // ---- Back-Forward+R (Honda headbutt, Blanka roll): relative to facing ----
-    if(!playerEgg._bfSeq)playerEgg._bfSeq=0;
-    if(!playerEgg._bfTimer)playerEgg._bfTimer=0;
-    playerEgg._bfTimer--;
     // Determine "forward" and "back" based on facing direction
     var _faceY=playerEgg.mesh.rotation.y;
     var _faceSinY=Math.sin(_faceY),_faceCosY=Math.cos(_faceY);
-    // Project current input direction onto facing axis
     var _inputX=(_hLeft?-1:0)+(_hRight?1:0);
     var _inputZ=(_hDown?1:0)+(keys['KeyW']||keys['ArrowUp']?-1:0);
-    var _inputDot=_inputX*_faceSinY+_inputZ*_faceCosY; // positive=forward, negative=back
-    // ---- Back-Forward detection: any two opposite direction presses ----
+    var _inputDot=_inputX*_faceSinY+_inputZ*_faceCosY;
+    // ---- Back-Forward detection: opposite directions (absolute) ----
     if(!playerEgg._bfSeq)playerEgg._bfSeq=0;
     if(!playerEgg._bfTimer)playerEgg._bfTimer=0;
     playerEgg._bfTimer--;
