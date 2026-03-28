@@ -10,21 +10,21 @@ R.outputColorSpace = THREE.SRGBColorSpace;
 root.appendChild(R.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87CEEB);
-scene.fog = new THREE.Fog(0x87CEEB, 80, 400);
+scene.background = new THREE.Color(RENDER_CONFIG.fogColor);
+scene.fog = new THREE.Fog(RENDER_CONFIG.fogColor, RENDER_CONFIG.fogNear, RENDER_CONFIG.fogFar);
 
 const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 2000000);
 window.addEventListener('resize', ()=>{ R.setSize(innerWidth,innerHeight); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); });
 
 // ---- Lighting ----
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const sun = new THREE.DirectionalLight(0xFFEECC, 2.0);
-sun.position.set(60,80,40); sun.castShadow=true;
-sun.shadow.mapSize.set(4096,4096);
-const ssc=sun.shadow.camera; ssc.left=-120;ssc.right=120;ssc.top=120;ssc.bottom=-120;ssc.near=1;ssc.far=300;
-sun.shadow.bias=-0.001;
+scene.add(new THREE.AmbientLight(0xffffff, RENDER_CONFIG.ambientIntensity));
+const sun = new THREE.DirectionalLight(RENDER_CONFIG.sunColor, RENDER_CONFIG.sunIntensity);
+sun.position.set(RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,RENDER_CONFIG.sunPos.z); sun.castShadow=true;
+sun.shadow.mapSize.set(RENDER_CONFIG.shadowMapSize,RENDER_CONFIG.shadowMapSize);
+const ssc=sun.shadow.camera; ssc.left=-RENDER_CONFIG.shadowRange;ssc.right=RENDER_CONFIG.shadowRange;ssc.top=RENDER_CONFIG.shadowRange;ssc.bottom=-RENDER_CONFIG.shadowRange;ssc.near=RENDER_CONFIG.shadowNear;ssc.far=RENDER_CONFIG.shadowFar;
+sun.shadow.bias=RENDER_CONFIG.shadowBias;
 scene.add(sun); scene.add(sun.target);
-scene.add(new THREE.HemisphereLight(0xaaddff,0x88cc66,0.5));
+scene.add(new THREE.HemisphereLight(RENDER_CONFIG.hemiSkyColor,RENDER_CONFIG.hemiGroundColor,RENDER_CONFIG.hemiIntensity));
 // Sun visual mesh (visible in ground cities)
 var _sunMesh=new THREE.Mesh(new THREE.SphereGeometry(8,16,12),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
 _sunMesh.position.copy(sun.position).multiplyScalar(3);

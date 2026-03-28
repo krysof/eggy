@@ -40,21 +40,21 @@ function buildPortals() {
         }
 
         // Portal ring
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(2, 0.3, 8, 24), toon(pColor, {emissive:pColor, emissiveIntensity:0.3}));
-        ring.position.y = 2.5; ring.castShadow = true;
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(PORTAL_CONFIG.ringRadius, PORTAL_CONFIG.ringThickness, 8, 24), toon(pColor, {emissive:pColor, emissiveIntensity:0.3}));
+        ring.position.y = PORTAL_CONFIG.baseHeight; ring.castShadow = true;
         g.add(ring);
 
         // Outer glow ring
-        var glowRing=new THREE.Mesh(new THREE.TorusGeometry(2.2,0.15,6,24),new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.3}));
-        glowRing.position.y=2.5;g.add(glowRing);
+        var glowRing=new THREE.Mesh(new THREE.TorusGeometry(PORTAL_CONFIG.glowRadius,PORTAL_CONFIG.glowThickness,6,24),new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.3}));
+        glowRing.position.y=PORTAL_CONFIG.baseHeight;g.add(glowRing);
 
         // Swirling inner
         const inner = new THREE.Mesh(new THREE.CircleGeometry(1.7, 20), toon(pColor, {transparent:true, opacity:0.4, side:THREE.DoubleSide, emissive:pColor, emissiveIntensity:0.5}));
-        inner.position.y = 2.5;
+        inner.position.y = PORTAL_CONFIG.baseHeight;
         g.add(inner);
 
         // Base platform
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.8, 0.4, 16), toon(baseColor));
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(PORTAL_CONFIG.baseRadius, 2.8, 0.4, 16), toon(baseColor));
         base.position.y = 0.2; base.receiveShadow = true;
         g.add(base);
 
@@ -62,7 +62,7 @@ function buildPortals() {
         for(let p=0;p<8;p++){
             var partColor=currentCityStyle===5?pColor:race.color;
             const particle = new THREE.Mesh(new THREE.SphereGeometry(0.12,4,4), toon(partColor, {emissive:partColor, emissiveIntensity:0.6}));
-            particle.position.set(Math.cos(p)*1.8, 2.5+Math.sin(p*2)*0.8, Math.sin(p)*1.8);
+            particle.position.set(Math.cos(p)*PORTAL_CONFIG.particleRadius, PORTAL_CONFIG.baseHeight+Math.sin(p*2)*0.8, Math.sin(p)*PORTAL_CONFIG.particleRadius);
             particle.userData.orbitPhase = p;
             g.add(particle);
         }
@@ -90,11 +90,11 @@ function buildPortals() {
         var _pfPortalG=new THREE.Group();
         var _pfPX=PORTAL_POSITIONS.platformerPortal.x,_pfPZ=PORTAL_POSITIONS.platformerPortal.z;
         _pfPortalG.position.set(_pfPX,0,_pfPZ);
-        var _pfRing=new THREE.Mesh(new THREE.TorusGeometry(2,0.3,8,24),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.4}));
-        _pfRing.position.y=2.5;_pfPortalG.add(_pfRing);
+        var _pfRing=new THREE.Mesh(new THREE.TorusGeometry(PORTAL_CONFIG.ringRadius,PORTAL_CONFIG.ringThickness,8,24),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.4}));
+        _pfRing.position.y=PORTAL_CONFIG.baseHeight;_pfPortalG.add(_pfRing);
         var _pfInner=new THREE.Mesh(new THREE.CircleGeometry(1.7,20),toon(0xFF8844,{transparent:true,opacity:0.4,side:THREE.DoubleSide,emissive:0xFF6622,emissiveIntensity:0.5}));
-        _pfInner.position.y=2.5;_pfPortalG.add(_pfInner);
-        var _pfBase=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.8,0.4,16),toon(0x886644));
+        _pfInner.position.y=PORTAL_CONFIG.baseHeight;_pfPortalG.add(_pfInner);
+        var _pfBase=new THREE.Mesh(new THREE.CylinderGeometry(PORTAL_CONFIG.baseRadius,2.8,0.4,16),toon(0x886644));
         _pfBase.position.y=0.2;_pfPortalG.add(_pfBase);
         cityGroup.add(_pfPortalG);
         var _pfName={zhs:'\uD83C\uDF44 \u86CB\u5B9D\u5192\u9669',zht:'\uD83C\uDF44 \u86CB\u5BF6\u5192\u96AA',ja:'\uD83C\uDF44 \u30C0\u30F3\u30DC\u30A2\u30C9\u30D9\u30F3\u30C1\u30E3\u30FC',en:'\uD83C\uDF44 Danbo Adventure'};
@@ -161,13 +161,13 @@ function buildWarpPipes(){
         var pColor=pipeColors[tgt];
         var pMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.4,side:THREE.DoubleSide});
         // Vertical tube — big and visible
-        var tube=new THREE.Mesh(new THREE.CylinderGeometry(3,3,8,16,1,true),pMat);
-        tube.position.y=4;g.add(tube);
+        var tube=new THREE.Mesh(new THREE.CylinderGeometry(PIPE_CONFIG.radius,PIPE_CONFIG.radius,PIPE_CONFIG.height,16,1,true),pMat);
+        tube.position.y=PIPE_CONFIG.height/2;g.add(tube);
         // Top rim
-        var rim=new THREE.Mesh(new THREE.TorusGeometry(3,0.4,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.4}));
-        rim.position.y=8;rim.rotation.x=Math.PI/2;g.add(rim);
+        var rim=new THREE.Mesh(new THREE.TorusGeometry(PIPE_CONFIG.ringRadius,PIPE_CONFIG.ringThickness,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.4}));
+        rim.position.y=PIPE_CONFIG.height;rim.rotation.x=Math.PI/2;g.add(rim);
         // Bottom rim
-        var rim2=new THREE.Mesh(new THREE.TorusGeometry(3,0.35,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.3}));
+        var rim2=new THREE.Mesh(new THREE.TorusGeometry(PIPE_CONFIG.ringRadius,0.35,8,16),toon(pColor,{emissive:pColor,emissiveIntensity:0.3}));
         rim2.position.y=0.1;rim2.rotation.x=Math.PI/2;g.add(rim2);
         // Inner glow spiral — more orbs
         var sMat=new THREE.MeshBasicMaterial({color:pColor,transparent:true,opacity:0.5});
@@ -267,15 +267,15 @@ function applyCityTheme(){
     sun.visible=!isMoon;
     // Follow player with shadow camera
     if(!isMoon){
-        sun.shadow.camera.far=300;
-        sun.intensity=2.0;
+        sun.shadow.camera.far=RENDER_CONFIG.shadowFar;
+        sun.intensity=RENDER_CONFIG.sunIntensity;
     }
     // Update HUD
     document.getElementById('city-name-hud').textContent=st.name;
 }
 
 // ---- Pipe travel animation state ----
-var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=180, _pipeArrivalCooldown=0; // 3 seconds at 60fps
+var _pipeTraveling=false, _pipeTimer=0, _pipeDuration=PIPE_CONFIG.travelDuration, _pipeArrivalCooldown=0; // 3 seconds at 60fps
 var _pipeStartX=0, _pipeStartZ=0, _pipeEndX=0, _pipeEndZ=0;
 var _pipeTubeGroup=null, _pipeTargetStyle=0;
 var _pipeMidX=0, _pipeMidZ=0;

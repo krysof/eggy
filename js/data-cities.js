@@ -64,3 +64,67 @@ var CLOUD_CONFIG={
     cloudScale:{min:2,max:4},
     staircaseSteps:12
 };
+
+// ---- Camera parameters ----
+var CAMERA_CONFIG={
+    zoomMin:0.04, zoomMax:1000,
+    followSmooth:0.08, minHeight:3,
+    yOffset:10, zOffset:14,
+    shakeMultX:2, shakeMultY:1.5, shakeMultZ:2
+};
+
+// ---- Renderer / lighting parameters ----
+var RENDER_CONFIG={
+    fogNear:80, fogFar:400,
+    fogColor:0x87CEEB,
+    sunColor:0xFFEECC, sunIntensity:2.0,
+    sunPos:{x:60,y:80,z:40},
+    shadowMapSize:4096, shadowBias:-0.001,
+    shadowRange:120, shadowNear:1, shadowFar:300,
+    ambientIntensity:0.6,
+    hemiSkyColor:0xaaddff, hemiGroundColor:0x88cc66, hemiIntensity:0.5
+};
+
+// ---- Portal (race entrance) parameters ----
+var PORTAL_CONFIG={
+    ringRadius:2, ringThickness:0.3,
+    glowRadius:2.2, glowThickness:0.15,
+    baseHeight:2.5, baseRadius:2.5,
+    triggerDist:6.0, confirmDist:2.5,
+    particleRadius:1.8
+};
+
+// ---- Warp pipe parameters ----
+var PIPE_CONFIG={
+    radius:3, height:8,
+    ringRadius:3, ringThickness:0.4,
+    travelDuration:180
+};
+
+// ---- Tree parameters ----
+var TREE_CONFIG={
+    trunkRadius:{min:0.2,max:0.3}, trunkHeight:2,
+    crownRadius:1.5, crownScaleY:0.7,
+    collisionRadius:1.2, weight:3.0
+};
+
+// ---- Building parameters ----
+var BUILDING_CONFIG={
+    roofHeightMul:0.6, roofHeight:3,
+    windowSpacingY:3, windowSpacingX:2.5,
+    windowSize:{w:1,h:1.2,d:0.1},
+    doorSize:{w:1.5,h:2.2,d:0.15}
+};
+
+// ---- Lamp post parameters ----
+var LAMP_CONFIG={
+    poleRadius:{top:0.06,bottom:0.08}, poleHeight:4,
+    lampRadius:0.25, lampHeight:4.2,
+    emissiveIntensity:0.3
+};
+
+// ---- Bench parameters ----
+var BENCH_CONFIG={
+    seatSize:{w:2,h:0.15,d:0.6}, seatHeight:0.5,
+    backSize:{w:2,h:0.8,d:0.1}, backHeight:0.9
+};

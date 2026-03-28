@@ -350,10 +350,10 @@ function updateCity(){
         if(currentCityStyle!==5&&py>4)continue;
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
-    if(_nearP&&_nearD<6.0){
+    if(_nearP&&_nearD<PORTAL_CONFIG.triggerDist){
         _pp.style.display='block';
         var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
-        if(_nearD<2.5&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
+        if(_nearD<PORTAL_CONFIG.confirmDist&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
             _pp.style.display='none';
             showPortalConfirm(_nearP);
         } else if(!_portalConfirmOpen){

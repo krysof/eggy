@@ -100,24 +100,24 @@ function buildCity() {
         cityGroup.add(bm);
         const bMeshes = [bm]; // collect all meshes for this building
         // Roof
-        const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*0.6, 3, 4), toon(st.roof));
-        roof.position.set(b.x, b.h+1.5, b.z); roof.rotation.y=Math.PI/4; roof.castShadow=true;
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, BUILDING_CONFIG.roofHeight, 4), toon(st.roof));
+        roof.position.set(b.x, b.h+BUILDING_CONFIG.roofHeight/2, b.z); roof.rotation.y=Math.PI/4; roof.castShadow=true;
         cityGroup.add(roof); bMeshes.push(roof);
         // Windows
         const winM = toon(0xAADDFF, {emissive:0x4488AA, emissiveIntensity:0.2});
-        for(let wy=2; wy<b.h-1; wy+=3){
-            for(let wx=-b.w/2+1.5; wx<b.w/2-1; wx+=2.5){
-                const win=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,0.1), winM);
+        for(let wy=2; wy<b.h-1; wy+=BUILDING_CONFIG.windowSpacingY){
+            for(let wx=-b.w/2+1.5; wx<b.w/2-1; wx+=BUILDING_CONFIG.windowSpacingX){
+                const win=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.windowSize.w,BUILDING_CONFIG.windowSize.h,BUILDING_CONFIG.windowSize.d), winM);
                 win.position.set(b.x+wx, wy, b.z+b.d/2+0.05); cityGroup.add(win); bMeshes.push(win);
-                const win2=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,0.1), winM);
+                const win2=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.windowSize.w,BUILDING_CONFIG.windowSize.h,BUILDING_CONFIG.windowSize.d), winM);
                 win2.position.set(b.x+wx, wy, b.z-b.d/2-0.05); cityGroup.add(win2); bMeshes.push(win2);
             }
         }
         // Door
-        const door=new THREE.Mesh(new THREE.BoxGeometry(1.5,2.2,0.15), toon(0x885533));
-        door.position.set(b.x, 1.1, b.z+b.d/2+0.07); cityGroup.add(door); bMeshes.push(door);
+        const door=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.doorSize.w,BUILDING_CONFIG.doorSize.h,BUILDING_CONFIG.doorSize.d), toon(0x885533));
+        door.position.set(b.x, BUILDING_CONFIG.doorSize.h/2, b.z+b.d/2+0.07); cityGroup.add(door); bMeshes.push(door);
 
-        cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h, roofR:Math.max(b.w,b.d)*0.6, roofH:3});
+        cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h, roofR:Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, roofH:BUILDING_CONFIG.roofHeight});
         cityBuildingMeshes.push({meshes:bMeshes, x:b.x, z:b.z, hw:b.w/2, hd:b.d/2, h:b.h});
     });
 
@@ -129,12 +129,12 @@ function buildCity() {
         if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
         if(skip) continue;
         const tg=new THREE.Group(); tg.position.set(tx,0,tz);
-        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.3,2,6),toon(0x8B5E3C));
-        trunk.position.y=1; trunk.castShadow=true; tg.add(trunk);
-        const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,6),toon(st.tree));
-        crown.position.y=3; crown.scale.y=0.7; crown.castShadow=true; tg.add(crown);
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(TREE_CONFIG.trunkRadius.min,TREE_CONFIG.trunkRadius.max,TREE_CONFIG.trunkHeight,6),toon(0x8B5E3C));
+        trunk.position.y=TREE_CONFIG.trunkHeight/2; trunk.castShadow=true; tg.add(trunk);
+        const crown=new THREE.Mesh(new THREE.SphereGeometry(TREE_CONFIG.crownRadius,8,6),toon(st.tree));
+        crown.position.y=TREE_CONFIG.trunkHeight+1; crown.scale.y=TREE_CONFIG.crownScaleY; crown.castShadow=true; tg.add(crown);
         cityGroup.add(tg);
-        cityProps.push({group:tg, x:tx, z:tz, radius:1.2, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:3.0});
+        cityProps.push({group:tg, x:tx, z:tz, radius:TREE_CONFIG.collisionRadius, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:TREE_CONFIG.weight});
     }
 
 // ---- Grand Roman Wishing Fountain (Trevi-style) ----
@@ -402,10 +402,10 @@ function buildCity() {
         for(const c of cityColliders) if(Math.abs(lx-c.x)<c.hw+1&&Math.abs(lz-c.z)<c.hd+1) skip2=true;
         if(skip2) continue;
         const lg=new THREE.Group(); lg.position.set(lx,0,lz);
-        const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,4,4),toon(0x555555));
-        pole.position.y=2; lg.add(pole);
-        const lamp=new THREE.Mesh(new THREE.SphereGeometry(0.25,6,4),toon(0xFFEE88,{emissive:0xFFDD44,emissiveIntensity:0.3}));
-        lamp.position.y=4.2; lg.add(lamp);
+        const pole=new THREE.Mesh(new THREE.CylinderGeometry(LAMP_CONFIG.poleRadius.top,LAMP_CONFIG.poleRadius.bottom,LAMP_CONFIG.poleHeight,4),toon(0x555555));
+        pole.position.y=LAMP_CONFIG.poleHeight/2; lg.add(pole);
+        const lamp=new THREE.Mesh(new THREE.SphereGeometry(LAMP_CONFIG.lampRadius,6,4),toon(0xFFEE88,{emissive:0xFFDD44,emissiveIntensity:LAMP_CONFIG.emissiveIntensity}));
+        lamp.position.y=LAMP_CONFIG.lampHeight; lg.add(lamp);
         cityGroup.add(lg);
         cityProps.push({group:lg, x:lx, z:lz, radius:0.5, type:'lamp', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:1.5});
     }
@@ -417,10 +417,10 @@ function buildCity() {
         for(const c of cityColliders) if(Math.abs(bx-c.x)<c.hw+1.5&&Math.abs(bz-c.z)<c.hd+1.5) skip3=true;
         if(skip3) continue;
         const bg=new THREE.Group(); bg.position.set(bx,0,bz);
-        const seat=new THREE.Mesh(new THREE.BoxGeometry(2,0.15,0.6),toon(0x8B5E3C));
-        seat.position.y=0.5; bg.add(seat);
-        const back=new THREE.Mesh(new THREE.BoxGeometry(2,0.8,0.1),toon(0x8B5E3C));
-        back.position.y=0.9; back.position.z=-0.25; bg.add(back);
+        const seat=new THREE.Mesh(new THREE.BoxGeometry(BENCH_CONFIG.seatSize.w,BENCH_CONFIG.seatSize.h,BENCH_CONFIG.seatSize.d),toon(0x8B5E3C));
+        seat.position.y=BENCH_CONFIG.seatHeight; bg.add(seat);
+        const back=new THREE.Mesh(new THREE.BoxGeometry(BENCH_CONFIG.backSize.w,BENCH_CONFIG.backSize.h,BENCH_CONFIG.backSize.d),toon(0x8B5E3C));
+        back.position.y=BENCH_CONFIG.backHeight; back.position.z=-0.25; bg.add(back);
         const leg1=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.5,0.5),toon(0x555555));
         leg1.position.set(-0.8,0.25,0); bg.add(leg1);
         const leg2=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.5,0.5),toon(0x555555));

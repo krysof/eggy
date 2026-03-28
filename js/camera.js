@@ -13,8 +13,8 @@ var _specCamX=0,_specCamY=50,_specCamZ=0;
 var _specLookX=0,_specLookY=0,_specLookZ=-50;
 document.addEventListener('wheel',function(e){
     _cameraZoom+=e.deltaY*0.001*Math.max(1,_cameraZoom*0.5);
-    if(_cameraZoom<0.04)_cameraZoom=0.04;
-    if(_cameraZoom>1000)_cameraZoom=1000;
+    if(_cameraZoom<CAMERA_CONFIG.zoomMin)_cameraZoom=CAMERA_CONFIG.zoomMin;
+    if(_cameraZoom>CAMERA_CONFIG.zoomMax)_cameraZoom=CAMERA_CONFIG.zoomMax;
 },{passive:true});
 // Mouse drag to orbit camera (disabled — moon now uses flat camera)
 document.addEventListener('mousedown',function(e){
@@ -113,7 +113,7 @@ function updateCamera(){
         camera.position.set(_specCamX,_specCamY,_specCamZ);
         var _lookDist=100;
         camera.lookAt(_specCamX-Math.sin(_moonCamYaw)*_lookDist,_specCamY-Math.sin(_moonCamPitch)*_lookDist*0.5,_specCamZ-Math.cos(_moonCamYaw)*_lookDist);
-        sun.position.set(_specCamX+60,80,_specCamZ+40);
+        sun.position.set(_specCamX+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,_specCamZ+RENDER_CONFIG.sunPos.z);
         sun.target.position.set(_specCamX,0,_specCamZ);
         _sunMesh.position.set(_specCamX+180,240,_specCamZ+120);
         _sunGlow.position.copy(_sunMesh.position);
@@ -121,22 +121,22 @@ function updateCamera(){
     }
     const p=playerEgg.mesh.position;
     // Normal flat camera (used for all cities including moon)
-    var tx=p.x, ty=p.y+10*_cameraZoom, tz=p.z+14*_cameraZoom;
-    camera.position.x+=(tx-camera.position.x)*0.08;
-    camera.position.y+=(ty-camera.position.y)*0.08;
-    camera.position.z+=(tz-camera.position.z)*0.08;
+    var tx=p.x, ty=p.y+CAMERA_CONFIG.yOffset*_cameraZoom, tz=p.z+CAMERA_CONFIG.zOffset*_cameraZoom;
+    camera.position.x+=(tx-camera.position.x)*CAMERA_CONFIG.followSmooth;
+    camera.position.y+=(ty-camera.position.y)*CAMERA_CONFIG.followSmooth;
+    camera.position.z+=(tz-camera.position.z)*CAMERA_CONFIG.followSmooth;
     // Clamp camera above ground to prevent blue screen when falling
-    if(camera.position.y<3)camera.position.y=3;
+    if(camera.position.y<CAMERA_CONFIG.minHeight)camera.position.y=CAMERA_CONFIG.minHeight;
     // Earthquake shake
     if(_earthquakeTimer>0){
         var shakeAmt=_earthquakeIntensity*(_earthquakeTimer/180);
-        camera.position.x+=(Math.random()-0.5)*shakeAmt*2;
-        camera.position.y+=(Math.random()-0.5)*shakeAmt*1.5;
-        camera.position.z+=(Math.random()-0.5)*shakeAmt*2;
+        camera.position.x+=(Math.random()-0.5)*shakeAmt*CAMERA_CONFIG.shakeMultX;
+        camera.position.y+=(Math.random()-0.5)*shakeAmt*CAMERA_CONFIG.shakeMultY;
+        camera.position.z+=(Math.random()-0.5)*shakeAmt*CAMERA_CONFIG.shakeMultZ;
         _earthquakeTimer--;
     }
     camera.lookAt(p.x, p.y+1, p.z-4);
-    sun.position.set(p.x+60,80,p.z+40);
+    sun.position.set(p.x+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,p.z+RENDER_CONFIG.sunPos.z);
     sun.target.position.set(p.x,0,p.z);
     // Show spectator button on moon
     if(_specBtn){_specBtn.style.display=(currentCityStyle===5&&gameState==='city')?'inline-block':'none';}
