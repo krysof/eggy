@@ -408,9 +408,9 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
         else{var _l2=(5-egg._hondaDash)/5;_hdA=egg._hondaBounced?-1.57*(1-_l2):1.57*(1-_l2);}
         // Tilt axis = local right axis (perpendicular to facing)
         var _hdF=Math.atan2(egg._dashDirX,egg._dashDirZ);
-        var _tiltAxis=new THREE.Vector3(-Math.cos(_hdF),0,Math.sin(_hdF)).normalize();
+        var _tiltAxis=new THREE.Vector3(Math.cos(_hdF),0,Math.sin(_hdF)).normalize();
         var _q1=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),_hdF);
-        var _q2=new THREE.Quaternion().setFromAxisAngle(_tiltAxis,_hdA);
+        var _q2=new THREE.Quaternion().setFromAxisAngle(_tiltAxis,-_hdA);
         egg.mesh.quaternion.copy(_q2).multiply(_q1);
     }
 }
