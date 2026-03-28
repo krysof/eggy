@@ -101,7 +101,7 @@ function updateCity(){
                 _nhe.vx+=_nh.vx*0.8;_nhe.vz+=_nh.vz*0.8;_nhe.vy=0.15;
                 _nhe.squash=0.5;_nhe.throwTimer=25;_nhe._bounces=1;_nhe._stunTimer=50;
                 if(_nh.burns)_nhe._onFire=120;
-                _dropNpcStolenCoins(_nhe);if(_nhe.isPlayer)playHitSound();
+                _dropNpcStolenCoins(_nhe);if(_nhe.isPlayer)playHitSound(_nh.ball.position.x,_nh.ball.position.z);
                 _nh.life=0;break;
             }
         }

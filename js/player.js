@@ -722,7 +722,7 @@ function handlePlayerInput(){
             _shoutMove(playerEgg,'Yoga Flame!');
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._bfReady=false;playerEgg._bfSeq=0;
             playerEgg._yogaFlame=MOVE_PARAMS.cockroach.yogaFlame.duration;
-            playerEgg._yogaFlameDir=playerEgg.mesh.rotation.y;
+            playerEgg._yogaFlameDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
             playerEgg.squash=0.85;
             // Fire breath sound
             if(sfxEnabled){var _yfCtx=ensureAudio();if(_yfCtx){var _yft=_yfCtx.currentTime;
@@ -832,7 +832,7 @@ function handlePlayerInput(){
             playerEgg._comboCount=0;playerEgg._attackCD=40;playerEgg._tatsuReady=false;
             playerEgg.vy=0.1; // slight hop
             playerEgg._tatsuActive=MOVE_PARAMS.egg.tatsumaki.duration;
-            playerEgg._tatsuDir=playerEgg.mesh.rotation.y; // store facing direction
+            playerEgg._tatsuDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
             // Show both legs extended
             var _tud=playerEgg.mesh.userData;
             if(_tud.rightLeg){_tud.rightLeg.visible=true;_tud.rightLeg.position.set(0.3,0.15,0.6);_tud.rightLeg.rotation.x=-Math.PI/2;}
@@ -849,7 +849,7 @@ function handlePlayerInput(){
             // SPINNING BIRD KICK (Chun-Li) — ↓←+T
             playerEgg._comboCount=0;playerEgg._attackCD=35;playerEgg._tatsuReady=false;
             playerEgg.vy=JUMP_FORCE*MOVE_PARAMS.monkey.spinningBird.jumpMul;
-            playerEgg._tatsuActive=MOVE_PARAMS.monkey.spinningBird.duration;playerEgg._tatsuDir=playerEgg.mesh.rotation.y;
+            playerEgg._tatsuActive=MOVE_PARAMS.monkey.spinningBird.duration;playerEgg._tatsuDir=playerEgg._bfMoveAngle||playerEgg.mesh.rotation.y;
             playerEgg._atkAnim=62;
             _shoutMove(playerEgg,'Spinning Bird Kick!');
             // Phoenix cry sound
