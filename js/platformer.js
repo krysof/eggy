@@ -56,7 +56,7 @@ function _pfStart(){try{
     if(R)R.setClearColor(0x87CEEB);
     var hud=document.getElementById('city-hud');if(hud)hud.style.display='';
     var tc=document.getElementById('touch-controls');if(tc)tc.classList.remove('hidden');
-}catch(e){console.error('_pfStart ERROR:',e);}}
+}catch(e){console.error('_pfStart ERROR:',e);alert('Start error: '+e.message);}}
 
 function _pfBuildLevel(){try{
     var T=4,L=200,D=T*3;
@@ -459,7 +459,7 @@ function _pfBuildLevel(){try{
         cityGroup.add(c3);
         cityCoins.push({mesh:c3,collected:false});
     }
-}catch(e){console.error('_pfBuildLevel ERROR:',e);}}
+}catch(e){console.error('_pfBuildLevel ERROR:',e);alert('Level build error: '+e.message);}}
 
 // ---- Moving / dynamic platform updates ----
 function _pfUpdateMoving(){try{
