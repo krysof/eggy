@@ -8,7 +8,15 @@ var MOON_CITY_SIZE=CITY_CONFIG.moonSize;
 // (spherical _moonProject removed — moon is now flat city)
 // (spherical _moonOrient removed — moon is now flat city)
 
-function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)return;
+function updateEggPhysics(egg, isCity){
+    // Safety: auto-release piledriver lock after 5 seconds to prevent permanent freeze
+    if(egg._piledriverLocked){
+        if(!egg._piledriverLockTimer)egg._piledriverLockTimer=300;
+        egg._piledriverLockTimer--;
+        if(egg._piledriverLockTimer<=0){egg._piledriverLocked=false;egg._piledriverLockTimer=0;}
+        else return;
+    }
+    if(egg.heldBy)return;
     if(!egg.alive) return;
     // ---- Normal flat physics (used for all cities including moon) ----
     var grav=GRAVITY;
