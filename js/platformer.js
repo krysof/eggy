@@ -41,6 +41,8 @@ function _pfStart(){try{
         npc.grabCD=99999;
     }
     _pfActive=true;
+    window._pfGoalReached=false;
+    finishedEggs=[];playerFinished=false;
     // Use racing state + race HUD (same back button)
     gameState='racing';
     scene.fog=null;
@@ -397,6 +399,8 @@ function _pfBuildLevel(){try{
     pole.position.set(castleX,T*7+T*7,0);raceGroup.add(pole);
     var flag=new THREE.Mesh(new THREE.PlaneGeometry(T*3,T*1.5),new THREE.MeshBasicMaterial({color:0xFF4444,side:THREE.DoubleSide}));
     flag.position.set(castleX+T*1.5,T*13,0);raceGroup.add(flag);
+    // Goal trigger zone — touching the flag pole = victory
+    window._pfGoalX=castleX-T*3; // trigger zone starts before the castle
 
     // ================================================================
     //  SKY + CLOUDS (shared across all zones)
@@ -608,11 +612,35 @@ function _pfUpdateCamera(){try{
     camera.position.y+=(py-camera.position.y)*0.08;
     camera.position.z=45;
     camera.lookAt(new THREE.Vector3(camera.position.x,camera.position.y-4,0));
+    // Goal check — reach the flag pole to win!
+    if(window._pfGoalX&&playerEgg.mesh.position.x>=window._pfGoalX&&!window._pfGoalReached){
+        window._pfGoalReached=true;
+        // Victory! Show result screen
+        playerFinished=true;
+        playerEgg.finishOrder=0;
+        finishedEggs=[playerEgg];
+        gameState='raceResult';
+        document.getElementById('result-emoji').textContent='🎉';
+        document.getElementById('result-title').textContent=L('resultWin')?I18N.resultWin(1):'🏆 Victory!';
+        document.getElementById('result-sub').textContent='⭐ '+coins+' coins collected!';
+        document.getElementById('result-screen').classList.add('active');
+        document.getElementById('race-hud').classList.add('hidden');
+        // Victory sound
+        if(sfxEnabled){var _vCtx=ensureAudio();if(_vCtx){var _vt=_vCtx.currentTime;
+            [523,659,784,988,1318].forEach(function(f,i){
+                var o=_vCtx.createOscillator();var g=_vCtx.createGain();o.type='sawtooth';o.frequency.value=f;
+                g.gain.setValueAtTime(0.12,_vt+i*0.08);g.gain.exponentialRampToValueAtTime(0.001,_vt+i*0.08+0.2);
+                o.connect(g);g.connect(_vCtx.destination);o.start(_vt+i*0.08);o.stop(_vt+i*0.08+0.2);
+            });
+        }}
+    }
 }catch(e){console.error('_pfUpdateCamera ERROR:',e);}}
 
 // ---- End platformer ----
 function _pfEndGame(){
     _pfActive=false;
+    window._pfGoalReached=false;
+    window._pfGoalX=null;
     currentCityStyle=_pfSavedCity>=0?_pfSavedCity:0;
     if(typeof goBackToCity==='function')goBackToCity();
 }
