@@ -631,6 +631,9 @@ function updateCity(){
         var _bound2=CITY_SIZE-5;
         for(var _ai2=0;_ai2<window._cityAnimals.length;_ai2++){
             var a=window._cityAnimals[_ai2];
+            // Skip AI when animal is grabbed as prop
+            if(a._propRef&&a._propRef.grabbed){a.x=a.group.position.x;a.y=a.group.position.y;a.z=a.group.position.z;continue;}
+            if(a._propRef&&a._propRef.throwTimer>0){a.x=a.group.position.x;a.y=a.group.position.y;a.z=a.group.position.z;continue;}
             a.stateTimer--;
             if(a.type==='pigeon'){
                 a.flapPhase+=0.3;
@@ -847,6 +850,24 @@ function updateCity(){
         var haloChild=ca.group.children[ca.group.children.length-3];
         if(haloChild)haloChild.rotation.z=Math.sin(ca.flapPhase*0.5)*0.1;
         ca.group.position.set(ca.x,ca.y,ca.z);
+    }
+    // ---- Ocean wave animation ----
+    if(window._oceanMesh&&window._oceanMesh.geometry){
+        var _owt=Date.now()*0.001;
+        var _opos=window._oceanMesh.geometry.attributes.position;
+        for(var _owi=0;_owi<_opos.count;_owi++){
+            var _ox=_opos.getX(_owi),_oz=_opos.getY(_owi);
+            _opos.setZ(_owi,Math.sin(_ox*0.02+_owt*1.5)*0.8+Math.sin(_oz*0.03+_owt*1.2)*0.6+Math.sin((_ox+_oz)*0.01+_owt*0.8)*1.2);
+        }
+        _opos.needsUpdate=true;
+    }
+    if(window._waveRings){
+        var _wrt=Date.now()*0.001;
+        for(var _wri2=0;_wri2<window._waveRings.length;_wri2++){
+            var wr2=window._waveRings[_wri2];
+            wr2.position.y=-0.3+Math.sin(_wrt*0.8+_wri2*1.5)*0.3;
+            wr2.material.opacity=0.2+Math.sin(_wrt*0.6+_wri2)*0.1;
+        }
     }
     // Moon earth rotation + star twinkling
     if(window._moonEarth){window._moonEarth.rotation.y+=0.001;}

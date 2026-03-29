@@ -540,9 +540,13 @@ function buildCity() {
         var dkx=(Math.random()-0.5)*30,dkz=(Math.random()-0.5)*30;
         dkg.position.set(dkx,0.3,dkz);
         cityGroup.add(dkg);
-        window._cityAnimals.push({group:dkg,type:'duck',x:dkx,y:0.3,z:dkz,
+        var _dkAnimal={group:dkg,type:'duck',x:dkx,y:0.3,z:dkz,
             vx:0,vy:0,vz:0,state:'swim',stateTimer:80+Math.floor(Math.random()*120),
-            waddlePhase:Math.random()*Math.PI*2,moveDir:Math.random()*Math.PI*2});
+            waddlePhase:Math.random()*Math.PI*2,moveDir:Math.random()*Math.PI*2};
+        window._cityAnimals.push(_dkAnimal);
+        var _dkProp={group:dkg,x:dkx,z:dkz,radius:0.6,type:'duck',grabbed:false,origY:0.3,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:0.4,_animal:_dkAnimal};
+        _dkAnimal._propRef=_dkProp;
+        cityProps.push(_dkProp);
     }
     // Eagles (3) — dark brown, large wingspan, fly very high
     for(var _ei2=0;_ei2<3;_ei2++){
@@ -632,9 +636,13 @@ function buildCity() {
         var rx3=(Math.random()-0.5)*60+(_ri2<3?(Math.random()-0.5)*20:0),rz3=(Math.random()-0.5)*60+(_ri2<3?(Math.random()-0.5)*20:0);
         rg.position.set(rx3,0,rz3);
         cityGroup.add(rg);
-        window._cityAnimals.push({group:rg,type:'rabbit',x:rx3,y:0,z:rz3,
+        var _rAnimal={group:rg,type:'rabbit',x:rx3,y:0,z:rz3,
             vx:0,vy:0,vz:0,state:'idle',stateTimer:60+Math.floor(Math.random()*120),
-            hopPhase:0,moveDir:Math.random()*Math.PI*2});
+            hopPhase:0,moveDir:Math.random()*Math.PI*2};
+        window._cityAnimals.push(_rAnimal);
+        var _rProp={group:rg,x:rx3,z:rz3,radius:0.8,type:'rabbit',grabbed:false,origY:0,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:0.5,_animal:_rAnimal};
+        _rAnimal._propRef=_rProp;
+        cityProps.push(_rProp);
     }
     // Deer (6) — graceful walking, bigger
     for(var _di2=0;_di2<6;_di2++){
@@ -687,16 +695,31 @@ function buildCity() {
         var dx3=(Math.random()-0.5)*80,dz3=(Math.random()-0.5)*80;
         dg.position.set(dx3,0,dz3);
         cityGroup.add(dg);
-        window._cityAnimals.push({group:dg,type:'deer',x:dx3,y:0,z:dz3,
+        var _dAnimal={group:dg,type:'deer',x:dx3,y:0,z:dz3,
             vx:0,vy:0,vz:0,state:'walk',stateTimer:120+Math.floor(Math.random()*180),
-            walkPhase:0,moveDir:Math.random()*Math.PI*2});
+            walkPhase:0,moveDir:Math.random()*Math.PI*2};
+        window._cityAnimals.push(_dAnimal);
+        var _dProp={group:dg,x:dx3,z:dz3,radius:1.2,type:'deer',grabbed:false,origY:0,throwVx:0,throwVy:0,throwVz:0,throwTimer:0,weight:1.0,_animal:_dAnimal};
+        _dAnimal._propRef=_dProp;
+        cityProps.push(_dProp);
     }
-    // ---- Ocean — large blue plane surrounding the city ----
-    var oceanGeo = new THREE.PlaneGeometry(CITY_SIZE*8, CITY_SIZE*8);
+    // ---- Ocean with waves ----
+    var oceanGeo = new THREE.PlaneGeometry(CITY_SIZE*8, CITY_SIZE*8, 40, 40);
     var oceanMat = toon(0x2266AA, {transparent:true, opacity:0.7});
     var ocean = new THREE.Mesh(oceanGeo, oceanMat);
     ocean.rotation.x = -Math.PI/2;
     ocean.position.y = -0.5;
+    window._oceanMesh = ocean;
+    // Wave foam rings at different radii
+    var _waveRings=[];
+    for(var _wri=0;_wri<4;_wri++){
+        var wr=CITY_SIZE+10+_wri*40;
+        var wring=new THREE.Mesh(new THREE.TorusGeometry(wr,0.8,4,48),
+            toon(0xAADDFF,{transparent:true,opacity:0.3+_wri*0.05}));
+        wring.rotation.x=Math.PI/2;wring.position.y=-0.3;
+        cityGroup.add(wring);_waveRings.push(wring);
+    }
+    window._waveRings=_waveRings;
     cityGroup.add(ocean);
     // ---- Boats (6) — on the ocean beyond city bounds ----
     var _boatColors=[0xCC3333,0x3366CC,0xFFCC00,0x33AA55,0xFF6600,0x9933CC];
