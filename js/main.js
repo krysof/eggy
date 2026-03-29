@@ -196,6 +196,7 @@ function goBackToCity(){
     document.getElementById('portal-confirm').style.display='none';
     document.getElementById('portal-prompt').style.display='none';
     finishedEggs=[];playerFinished=false;
+    _pfActive=false; // reset platformer flag
     gameState='city';
     raceGroup.visible=false;
     clearRace();

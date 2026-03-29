@@ -2551,8 +2551,8 @@ function _gameUpdate(){
             if(!MoveProjectile_update(_rap)){MoveProjectile_cleanup(_rap);window._allProjectiles.splice(_rapi,1);}
         }
         updateSlashEffects();
-        updateObstacles();
-        updateCamera();
+        if(!_pfActive)updateObstacles();
+        if(_pfActive&&typeof _pfUpdateCamera==='function'){_pfUpdateCamera();}else{updateCamera();}
         updateRaceHUD();
         checkRaceEnd();
     } else if(gameState==='raceIntro'){
