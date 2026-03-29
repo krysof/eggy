@@ -2338,93 +2338,98 @@ function enterRace(raceIndex){
             return;
         }
 
-        // --- Phase 1: Summoning (0 - 0.4 normalized = 0-0.8s) ---
-        if(t<0.4){
-            var p1=t/0.4; // 0..1 within phase 1
-            // Expand rainbow rings from 0 to radius 3
+        // --- Phase 1: Rainbow descends from sky (0 - 0.35) ---
+        if(t<0.35){
+            var p1=t/0.35;
+            // Light pillars descend from height 120 down to ground
+            var pillarTop=120;
+            var pillarBot=pillarTop*(1-p1);
+            var pillarH=pillarTop-pillarBot;
+            for(var _pp=0;_pp<_bfPillars.length;_pp++){
+                _bfPillars[_pp].geometry.dispose();
+                _bfPillars[_pp].geometry=new THREE.CylinderGeometry(0.2+p1*0.1,0.4+p1*0.2,Math.max(0.1,pillarH),8);
+                _bfPillars[_pp].position.y=pillarBot+pillarH/2;
+                var spiralAngle=elapsed*0.003+_pp*(Math.PI*2/7);
+                var spiralR=0.5+_pp*0.2;
+                _bfPillars[_pp].position.x=_bfPlayerX+Math.cos(spiralAngle)*spiralR;
+                _bfPillars[_pp].position.z=_bfPlayerZ+Math.sin(spiralAngle)*spiralR;
+                _bfPillars[_pp].material.opacity=0.3+p1*0.5;
+            }
+            // Rings appear on ground as pillar arrives
             for(var _ri2=0;_ri2<_bfRings.length;_ri2++){
+                var ringP=Math.max(0,(p1-0.5)*2);
                 var targetR=0.3+_ri2*0.4;
-                var curR=targetR*p1;
                 _bfRings[_ri2].geometry.dispose();
-                _bfRings[_ri2].geometry=new THREE.TorusGeometry(curR,0.08+p1*0.04,6,32);
+                _bfRings[_ri2].geometry=new THREE.TorusGeometry(targetR*ringP,0.06+ringP*0.06,6,32);
                 _bfRings[_ri2].rotation.x=Math.PI/2;
                 _bfRings[_ri2].rotation.z=elapsed*0.002+_ri2*0.5;
-                _bfRings[_ri2].material.opacity=0.5+p1*0.4;
+                _bfRings[_ri2].material.opacity=ringP*0.8;
             }
-            // Spin rune elements in a circle
-            for(var _rn2=0;_rn2<_bfRunes.length;_rn2++){
-                var runeAngle=elapsed*0.003+_rn2*(Math.PI*2/6);
-                var runeR=1.5*p1;
-                _bfRunes[_rn2].position.set(
-                    _bfPlayerX+Math.cos(runeAngle)*runeR,
-                    0.3+Math.sin(elapsed*0.005+_rn2)*0.2,
-                    _bfPlayerZ+Math.sin(runeAngle)*runeR
-                );
-                _bfRunes[_rn2].rotation.y=elapsed*0.005;
-                _bfRunes[_rn2].rotation.x=elapsed*0.003;
-                var runeScale=p1*0.8;
-                _bfRunes[_rn2].scale.set(runeScale,runeScale,runeScale);
-            }
-            // Camera shake (ground rumble)
-            camera.position.x=_bfCamStartX+Math.sin(elapsed*0.05)*0.08*p1;
-            camera.position.y=_bfCamStartY+Math.cos(elapsed*0.07)*0.06*p1;
-            // Pillars stay tiny
-            for(var _pp=0;_pp<_bfPillars.length;_pp++){
-                _bfPillars[_pp].scale.set(1,0.01,1);
+            // Runes hidden in phase 1
+            for(var _rn2=0;_rn2<_bfRunes.length;_rn2++){_bfRunes[_rn2].scale.set(0.01,0.01,0.01);}
+            // Camera looks up at descending light
+            camera.position.x=_bfCamStartX;camera.position.y=_bfCamStartY;camera.position.z=_bfCamStartZ;
+            camera.lookAt(_bfPlayerX,_bfPlayerY+20+p1*30,_bfPlayerZ);
+            // Particles rain down along pillars
+            for(var _pp3=0;_pp3<_bfParticles.length;_pp3++){
+                var ptc=_bfParticles[_pp3];ptc.mesh.visible=true;
+                ptc.y-=ptc.speed*2;if(ptc.y<0)ptc.y=pillarTop;
+                ptc.angle+=0.03;
+                var ptcR2=0.8+Math.sin(ptc.angle*3)*0.4;
+                ptc.mesh.position.set(_bfPlayerX+Math.cos(ptc.angle)*ptcR2,ptc.y,_bfPlayerZ+Math.sin(ptc.angle)*ptcR2);
+                ptc.mesh.material.opacity=0.3+p1*0.5;
             }
         }
-        // --- Phase 2: Light Pillar (0.4 - 0.75 normalized = 0.8-1.5s) ---
-        else if(t<0.75){
-            var p2=(t-0.4)/0.35; // 0..1 within phase 2
-            // Keep rings at full size, pulsing
-            for(var _ri3=0;_ri3<_bfRings.length;_ri3++){
-                var fullR=0.3+_ri3*0.4;
-                _bfRings[_ri3].geometry.dispose();
-                _bfRings[_ri3].geometry=new THREE.TorusGeometry(fullR,0.12,6,32);
-                _bfRings[_ri3].rotation.x=Math.PI/2;
-                _bfRings[_ri3].rotation.z=elapsed*0.002+_ri3*0.5;
-                _bfRings[_ri3].material.opacity=0.7+Math.sin(elapsed*0.01+_ri3)*0.2;
-            }
-            // Hide runes as pillars take over
-            for(var _rn3=0;_rn3<_bfRunes.length;_rn3++){
-                _bfRunes[_rn3].material.opacity=Math.max(0,0.7-p2*1.5);
-            }
-            // Grow light pillars upward
-            var pillarH=p2*100;
+        // --- Phase 2: Rings lock on + Player sucked up (0.35 - 0.7) ---
+        else if(t<0.7){
+            var p2=(t-0.35)/0.35;
+            // Full pillars from ground to sky, pulsing
             for(var _pp2=0;_pp2<_bfPillars.length;_pp2++){
-                _bfPillars[_pp2].geometry.dispose();
-                _bfPillars[_pp2].geometry=new THREE.CylinderGeometry(0.15,0.3,Math.max(0.1,pillarH),8);
-                _bfPillars[_pp2].position.y=pillarH/2;
-                // Spiral offset
-                var spiralAngle=elapsed*0.002+_pp2*(Math.PI*2/7);
-                var spiralR=0.3+_pp2*0.15;
-                _bfPillars[_pp2].position.x=_bfPlayerX+Math.cos(spiralAngle)*spiralR;
-                _bfPillars[_pp2].position.z=_bfPlayerZ+Math.sin(spiralAngle)*spiralR;
-                _bfPillars[_pp2].material.opacity=0.5+Math.sin(elapsed*0.008+_pp2)*0.2;
+                var spiralAngle2=elapsed*0.003+_pp2*(Math.PI*2/7);
+                var spiralR2=0.5+_pp2*0.2;
+                _bfPillars[_pp2].position.x=_bfPlayerX+Math.cos(spiralAngle2)*spiralR2;
+                _bfPillars[_pp2].position.z=_bfPlayerZ+Math.sin(spiralAngle2)*spiralR2;
+                _bfPillars[_pp2].material.opacity=0.6+Math.sin(elapsed*0.01+_pp2)*0.3;
             }
-            // Player rises
+            // Rings spin fast + constrict around player
+            for(var _ri3=0;_ri3<_bfRings.length;_ri3++){
+                var fullR2=0.3+_ri3*0.4;
+                var constrict=1-p2*0.3;
+                _bfRings[_ri3].geometry.dispose();
+                _bfRings[_ri3].geometry=new THREE.TorusGeometry(fullR2*constrict,0.12,6,32);
+                _bfRings[_ri3].rotation.x=Math.PI/2;
+                _bfRings[_ri3].rotation.z=elapsed*0.005+_ri3*0.5;
+                _bfRings[_ri3].position.y=_bfPlayerY+p2*40;
+                _bfRings[_ri3].material.opacity=0.8;
+            }
+            // Runes orbit and shrink
+            for(var _rn3=0;_rn3<_bfRunes.length;_rn3++){
+                var runeA=elapsed*0.005+_rn3*(Math.PI*2/6);
+                var runeR2=1.5*(1-p2);
+                _bfRunes[_rn3].position.set(_bfPlayerX+Math.cos(runeA)*runeR2,_bfPlayerY+p2*40,_bfPlayerZ+Math.sin(runeA)*runeR2);
+                _bfRunes[_rn3].scale.set(1-p2,1-p2,1-p2);
+                _bfRunes[_rn3].rotation.y=elapsed*0.008;
+            }
+            // Player rises — sucked into the light
             var riseY=_bfPlayerY+p2*40;
             playerEgg.mesh.position.y=riseY;
-            // Camera follows upward, tilts to look up
+            playerEgg.mesh.rotation.y+=0.15;
+            // Camera follows upward
             camera.position.x=_bfCamStartX;
             camera.position.y=_bfCamStartY+p2*35;
-            camera.position.z=_bfCamStartZ+p2*3;
-            camera.lookAt(_bfPlayerX,riseY+10+p2*20,_bfPlayerZ);
-            // Activate particles flying upward
-            for(var _pp3=0;_pp3<_bfParticles.length;_pp3++){
-                var ptc=_bfParticles[_pp3];
-                ptc.mesh.visible=true;
-                ptc.y+=ptc.speed*1.2;
-                if(ptc.y>pillarH)ptc.y=0;
-                ptc.angle+=0.02;
-                var ptcR=0.8+Math.sin(ptc.angle*3)*0.3;
-                ptc.mesh.position.set(
-                    _bfPlayerX+Math.cos(ptc.angle)*ptcR,
-                    ptc.y,
-                    _bfPlayerZ+Math.sin(ptc.angle)*ptcR
-                );
-                ptc.mesh.material.opacity=0.4+Math.sin(elapsed*0.01+_pp3)*0.4;
+            camera.position.z=_bfCamStartZ+p2*5;
+            camera.lookAt(_bfPlayerX,riseY+5,_bfPlayerZ);
+            // Particles fly upward
+            for(var _pp4=0;_pp4<_bfParticles.length;_pp4++){
+                var ptc2=_bfParticles[_pp4];
+                ptc2.y+=ptc2.speed*1.5;if(ptc2.y>120)ptc2.y=0;
+                ptc2.angle+=0.03;
+                var ptcR3=0.6+Math.sin(ptc2.angle*3)*0.3;
+                ptc2.mesh.position.set(_bfPlayerX+Math.cos(ptc2.angle)*ptcR3,ptc2.y,_bfPlayerZ+Math.sin(ptc2.angle)*ptcR3);
+                ptc2.mesh.material.opacity=0.5+Math.sin(elapsed*0.01+_pp4)*0.4;
             }
+            // Camera shake intensifies
+            camera.position.x+=Math.sin(elapsed*0.06)*0.15*p2;
         }
         // --- Phase 3: Flash + Transition (0.75 - 1.0 normalized = 1.5-2.0s) ---
         else{
