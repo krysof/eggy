@@ -2462,9 +2462,19 @@ function _gameUpdate(){
         const raceEggs=allEggs.filter(e=>!e.cityNPC);
         for(const egg of raceEggs){
             if(!egg.isPlayer){
+                // Respawn NPC if fallen off map
+                if(egg.mesh.position.y<-10){
+                    if(_pfActive&&egg._patrolBaseX){
+                        egg.mesh.position.set(egg._patrolBaseX,5,0);
+                    } else {
+                        egg.mesh.position.set((Math.random()-0.5)*8,5,egg.mesh.position.z);
+                    }
+                    egg.vx=0;egg.vy=0;egg.vz=0;egg.throwTimer=0;egg._stunTimer=0;
+                    egg.heldBy=null;egg.holding=null;egg._piledriverLocked=false;
+                }
                 if(_pfActive){
                     // Platformer: city AI for combat, lock Z axis
-                    updateCityNPC(egg);
+                    if(egg.mesh.position.y>-5)updateCityNPC(egg); // skip AI if fallen
                     egg.vz=0;egg.mesh.position.z=0;
                 } else {
                     updateRaceAI(egg);
