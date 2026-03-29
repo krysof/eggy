@@ -292,7 +292,7 @@ function updateEggPhysics(egg, isCity){
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
                 var mdy=egg.mesh.position.y-mp.y;
                 var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
-                if(mdist<4&&egg.mesh.position.y>=mp.y-3&&egg.mesh.position.y<=mp.y+8&&!_moonPipeDismissed){
+                if(mdist<5&&egg.mesh.position.y>=mp.y-5&&egg.mesh.position.y<=mp.y+15&&!_moonPipeDismissed){
                     _showMoonPipePrompt();
                 }
                 if(mdist>6){_moonPipeDismissed=false;}

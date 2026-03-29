@@ -671,9 +671,9 @@ function addClouds(){
         cityCoins.push({mesh:coin,collected:false,baseY:ccY,inScene:true});
     }
     // ---- Moon Warp Pipe in cloud world center ----
-    // Ensure solid cloud platform under moon pipe
-    _makeCloud(0,cwY-1,0,2,3,3,4);
-    _buildCloudWorldMoonPipe(0,cwY,0);
+    // Place pipe on TOP of central cloud (cloudTop ≈ cwY + maxScale*0.45 ≈ cwY+9)
+    var _moonPipeY=cwY+8;
+    _buildCloudWorldMoonPipe(0,_moonPipeY,0);
 }
 function _buildCloudWorldMoonPipe(px,py,pz){
     var pColor=0xCCCCFF;
