@@ -1252,6 +1252,7 @@ function _shoutMove(egg,key){
     var t=_moveNames[key];
     var txt=t?t[_langCode]||t.en||key:key;
     _showChatBubble(egg,txt,60);
+    egg._moveShoutTimer=60; // block random chat while shouting move name
 }
 function _showChatBubble(egg,msg,duration){
     if(!egg||!egg.mesh)return;
@@ -1322,6 +1323,7 @@ var _npcChatPhrases={
 function _npcRandomChat(egg){
     if(Math.random()>0.0008)return; // very rare
     if(egg.heldBy||!egg.alive)return;
+    if(egg._moveShoutTimer>0){egg._moveShoutTimer--;return;} // don't override move shout
     var phrases=_npcChatPhrases[_langCode]||_npcChatPhrases.en;
     _showChatBubble(egg,phrases[Math.floor(Math.random()*phrases.length)]);
 }
