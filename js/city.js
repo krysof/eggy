@@ -485,6 +485,125 @@ function buildCity() {
             state:'fly',stateTimer:120+Math.floor(Math.random()*180),
             flapPhase:Math.random()*Math.PI*2,targetY:py2});
     }
+    // Seagulls (8) — white body, gray wing tips, yellow beak, fly higher
+    for(var _si2=0;_si2<8;_si2++){
+        var sg=new THREE.Group();
+        sg.scale.set(1.5,1.5,1.5);
+        var sbody=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,4),toon(0xFFFFFF));
+        sbody.scale.set(1,0.7,1.4);sg.add(sbody);
+        var shead=new THREE.Mesh(new THREE.SphereGeometry(0.13,6,4),toon(0xFFFFFF));
+        shead.position.set(0,0.16,0.22);sg.add(shead);
+        [-1,1].forEach(function(s){
+            var seye=new THREE.Mesh(new THREE.SphereGeometry(0.03,4,3),toon(0x111111));
+            seye.position.set(s*0.07,0.19,0.3);sg.add(seye);
+        });
+        var sbeak=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.12,4),toon(0xFFCC00));
+        sbeak.position.set(0,0.12,0.34);sbeak.rotation.x=-Math.PI/2;sg.add(sbeak);
+        [-1,1].forEach(function(s){
+            var swing=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.03,0.28),toon(0x999999));
+            swing.position.set(s*0.28,0.05,0);swing.userData._side=s;sg.add(swing);
+        });
+        var stail=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.02,0.18),toon(0xCCCCCC));
+        stail.position.set(0,0.02,-0.28);sg.add(stail);
+        var sx2=(Math.random()-0.5)*CITY_SIZE*1.2,sz2=(Math.random()-0.5)*CITY_SIZE*1.2;
+        var sy2=10+Math.random()*15;
+        sg.position.set(sx2,sy2,sz2);
+        cityGroup.add(sg);
+        window._cityAnimals.push({group:sg,type:'seagull',x:sx2,y:sy2,z:sz2,
+            vx:(Math.random()-0.5)*0.08,vy:0,vz:(Math.random()-0.5)*0.08,
+            state:'fly',stateTimer:200+Math.floor(Math.random()*200),
+            flapPhase:Math.random()*Math.PI*2,targetY:sy2,diveTimer:0});
+    }
+    // Ducks (6) — green head, brown body, near fountain/center
+    for(var _dki=0;_dki<6;_dki++){
+        var dkg=new THREE.Group();
+        var dkbody=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,4),toon(0x8B6914));
+        dkbody.scale.set(0.8,0.7,1.3);dkbody.position.y=0.15;dkg.add(dkbody);
+        var dkhead=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0x006633));
+        dkhead.position.set(0,0.3,0.2);dkg.add(dkhead);
+        [-1,1].forEach(function(s){
+            var dkeye=new THREE.Mesh(new THREE.SphereGeometry(0.025,4,3),toon(0x111111));
+            dkeye.position.set(s*0.06,0.33,0.28);dkg.add(dkeye);
+        });
+        var dkbeak=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.1,4),toon(0xFF8800));
+        dkbeak.position.set(0,0.26,0.32);dkbeak.rotation.x=-Math.PI/2;dkg.add(dkbeak);
+        [-1,1].forEach(function(s){
+            var dkwing=new THREE.Mesh(new THREE.BoxGeometry(0.28,0.03,0.2),toon(0x7A5B10));
+            dkwing.position.set(s*0.2,0.18,0);dkwing.userData._side=s;dkg.add(dkwing);
+        });
+        var dktail=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.06,0.12),toon(0x8B6914));
+        dktail.position.set(0,0.18,-0.28);dktail.rotation.x=0.3;dkg.add(dktail);
+        [-1,1].forEach(function(s){
+            var dkfoot=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.02,0.1),toon(0xFF6600));
+            dkfoot.position.set(s*0.08,0.02,0.05);dkg.add(dkfoot);
+        });
+        var dkx=(Math.random()-0.5)*30,dkz=(Math.random()-0.5)*30;
+        dkg.position.set(dkx,0.3,dkz);
+        cityGroup.add(dkg);
+        window._cityAnimals.push({group:dkg,type:'duck',x:dkx,y:0.3,z:dkz,
+            vx:0,vy:0,vz:0,state:'swim',stateTimer:80+Math.floor(Math.random()*120),
+            waddlePhase:Math.random()*Math.PI*2,moveDir:Math.random()*Math.PI*2});
+    }
+    // Eagles (3) — dark brown, large wingspan, fly very high
+    for(var _ei2=0;_ei2<3;_ei2++){
+        var eg=new THREE.Group();
+        eg.scale.set(2.5,2.5,2.5);
+        var ebody=new THREE.Mesh(new THREE.SphereGeometry(0.25,6,4),toon(0x3B2210));
+        ebody.scale.set(1,0.6,1.5);eg.add(ebody);
+        var ehead=new THREE.Mesh(new THREE.SphereGeometry(0.14,6,4),toon(0x3B2210));
+        ehead.position.set(0,0.14,0.3);eg.add(ehead);
+        [-1,1].forEach(function(s){
+            var eeye=new THREE.Mesh(new THREE.SphereGeometry(0.03,4,3),toon(0xFFDD00));
+            eeye.position.set(s*0.07,0.17,0.38);eg.add(eeye);
+        });
+        var ebeak=new THREE.Mesh(new THREE.ConeGeometry(0.05,0.14,4),toon(0xCCAA00));
+        ebeak.position.set(0,0.1,0.42);ebeak.rotation.x=-Math.PI/2;eg.add(ebeak);
+        [-1,1].forEach(function(s){
+            var ewing=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.03,0.3),toon(0x4A3018));
+            ewing.position.set(s*0.4,0.02,0);ewing.userData._side=s;eg.add(ewing);
+        });
+        var etail=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.03,0.2),toon(0x3B2210));
+        etail.position.set(0,0,-0.35);eg.add(etail);
+        var ex2=(Math.random()-0.5)*CITY_SIZE*1.5,ez2=(Math.random()-0.5)*CITY_SIZE*1.5;
+        var ey2=20+Math.random()*20;
+        eg.position.set(ex2,ey2,ez2);
+        cityGroup.add(eg);
+        window._cityAnimals.push({group:eg,type:'eagle',x:ex2,y:ey2,z:ez2,
+            vx:(Math.random()-0.5)*0.04,vy:0,vz:(Math.random()-0.5)*0.04,
+            state:'soar',stateTimer:9999,
+            flapPhase:Math.random()*Math.PI*2,targetY:ey2,circleAngle:Math.random()*Math.PI*2});
+    }
+    // Crows (5) — all black, perch on buildings
+    for(var _ci2=0;_ci2<5;_ci2++){
+        var cg=new THREE.Group();
+        cg.scale.set(0.8,0.8,0.8);
+        var cbody=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,4),toon(0x111111));
+        cbody.scale.set(1,0.7,1.3);cg.add(cbody);
+        var chead=new THREE.Mesh(new THREE.SphereGeometry(0.11,6,4),toon(0x0D0D15));
+        chead.position.set(0,0.14,0.2);cg.add(chead);
+        [-1,1].forEach(function(s){
+            var ceye=new THREE.Mesh(new THREE.SphereGeometry(0.025,4,3),toon(0x222222));
+            ceye.position.set(s*0.05,0.17,0.27);cg.add(ceye);
+        });
+        var cbeak=new THREE.Mesh(new THREE.ConeGeometry(0.03,0.1,4),toon(0x222222));
+        cbeak.position.set(0,0.11,0.3);cbeak.rotation.x=-Math.PI/2;cg.add(cbeak);
+        [-1,1].forEach(function(s){
+            var cwing=new THREE.Mesh(new THREE.BoxGeometry(0.32,0.03,0.22),toon(0x1A0A2E));
+            cwing.position.set(s*0.22,0.04,0);cwing.userData._side=s;cg.add(cwing);
+        });
+        var ctail=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.02,0.15),toon(0x111111));
+        ctail.position.set(0,0.01,-0.24);cg.add(ctail);
+        // Perch on a random building rooftop
+        var crowCol=cityColliders[Math.floor(Math.random()*Math.min(cityColliders.length,20))];
+        var cx2=crowCol.x+(Math.random()-0.5)*crowCol.hw*0.5;
+        var cz2=crowCol.z+(Math.random()-0.5)*crowCol.hd*0.5;
+        var cy2=(crowCol.h||5)+0.3;
+        cg.position.set(cx2,cy2,cz2);
+        cityGroup.add(cg);
+        window._cityAnimals.push({group:cg,type:'crow',x:cx2,y:cy2,z:cz2,
+            vx:0,vy:0,vz:0,state:'perch',stateTimer:100+Math.floor(Math.random()*200),
+            flapPhase:Math.random()*Math.PI*2,spawnY:cy2,hopPhase:0});
+    }
     // Rabbits (8) — hop around on ground, bigger and near center
     for(var _ri2=0;_ri2<8;_ri2++){
         var rg=new THREE.Group();
@@ -571,6 +690,63 @@ function buildCity() {
         window._cityAnimals.push({group:dg,type:'deer',x:dx3,y:0,z:dz3,
             vx:0,vy:0,vz:0,state:'walk',stateTimer:120+Math.floor(Math.random()*180),
             walkPhase:0,moveDir:Math.random()*Math.PI*2});
+    }
+    // ---- Ocean — large blue plane surrounding the city ----
+    var oceanGeo = new THREE.PlaneGeometry(CITY_SIZE*8, CITY_SIZE*8);
+    var oceanMat = toon(0x2266AA, {transparent:true, opacity:0.7});
+    var ocean = new THREE.Mesh(oceanGeo, oceanMat);
+    ocean.rotation.x = -Math.PI/2;
+    ocean.position.y = -0.5;
+    cityGroup.add(ocean);
+    // ---- Boats (6) — on the ocean beyond city bounds ----
+    var _boatColors=[0xCC3333,0x3366CC,0xFFCC00,0x33AA55,0xFF6600,0x9933CC];
+    for(var _bi2=0;_bi2<6;_bi2++){
+        var boatAngle=(_bi2/6)*Math.PI*2+Math.random()*0.5;
+        var boatDist=180+Math.random()*170;
+        var bx2=Math.cos(boatAngle)*boatDist,bz2=Math.sin(boatAngle)*boatDist;
+        var btg=new THREE.Group();
+        // Hull
+        var hull=new THREE.Mesh(new THREE.BoxGeometry(2,0.6,5),toon(_boatColors[_bi2]));
+        hull.scale.set(1,0.6,1);hull.position.y=0;btg.add(hull);
+        // Cabin
+        var cabin=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.8,1.5),toon(0xEEDDCC));
+        cabin.position.set(0,0.6,-0.5);btg.add(cabin);
+        // Mast
+        var mast=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,3,4),toon(0x886644));
+        mast.position.set(0,1.8,0.5);btg.add(mast);
+        // Flag
+        var flag=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.4,0.03),toon(0xFF4444));
+        flag.position.set(0.4,3.0,0.5);btg.add(flag);
+        btg.position.set(bx2,-0.2,bz2);
+        btg.rotation.y=boatAngle+Math.PI/2;
+        cityGroup.add(btg);
+        window._cityAnimals.push({group:btg,type:'boat',x:bx2,y:-0.2,z:bz2,
+            vx:0,vy:0,vz:0,state:'drift',stateTimer:9999,
+            circleAngle:boatAngle,circleDist:boatDist,rockPhase:Math.random()*Math.PI*2});
+    }
+    // ---- Flying Fish (10) — on the ocean ----
+    for(var _fi2=0;_fi2<10;_fi2++){
+        var ffAngle=Math.random()*Math.PI*2;
+        var ffDist=180+Math.random()*170;
+        var ffx=Math.cos(ffAngle)*ffDist,ffz=Math.sin(ffAngle)*ffDist;
+        var ffg=new THREE.Group();
+        // Body
+        var ffbody=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),toon(0x6699CC));
+        ffbody.scale.set(0.5,0.4,1.5);ffg.add(ffbody);
+        // Tail fin
+        var fftail=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.12,0.12),toon(0x4477AA));
+        fftail.position.set(0,0.02,-0.22);fftail.rotation.x=0.2;ffg.add(fftail);
+        // Side fins
+        [-1,1].forEach(function(s){
+            var ffin=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.02,0.1),toon(0x88BBDD));
+            ffin.position.set(s*0.1,0,0.05);ffin.userData._side=s;ffg.add(ffin);
+        });
+        ffg.position.set(ffx,-0.5,ffz);
+        cityGroup.add(ffg);
+        window._cityAnimals.push({group:ffg,type:'flyingFish',x:ffx,y:-0.5,z:ffz,
+            vx:0,vy:0,vz:0,state:'underwater',stateTimer:30+Math.floor(Math.random()*120),
+            jumpPhase:0,moveDir:Math.random()*Math.PI*2,jumpSpeed:0.08+Math.random()*0.04,
+            baseX:ffx,baseZ:ffz});
     }
     // (Hidden entrances removed — moon only reachable from cloud world)
     } // end if not moon

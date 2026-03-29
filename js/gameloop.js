@@ -691,6 +691,138 @@ function updateCity(){
                 if(Math.abs(a.x)>_bound2){a.moveDir+=Math.PI;a.x=Math.sign(a.x)*(_bound2-1);}
                 if(Math.abs(a.z)>_bound2){a.moveDir+=Math.PI;a.z=Math.sign(a.z)*(_bound2-1);}
                 a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='seagull'){
+                // Seagull — wider circles, occasional dive, head tilt
+                a.flapPhase+=0.25;
+                for(var _swi=0;_swi<a.group.children.length;_swi++){
+                    var swc=a.group.children[_swi];
+                    if(swc.userData._side){
+                        if(a.state==='fly')swc.rotation.z=swc.userData._side*Math.sin(a.flapPhase)*0.5;
+                        else swc.rotation.z=swc.userData._side*0.2;
+                    }
+                }
+                if(a.state==='fly'){
+                    a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.015;
+                    var _sa2=Math.atan2(a.vx,a.vz)+0.012;
+                    var _ss2=Math.sqrt(a.vx*a.vx+a.vz*a.vz);
+                    a.vx=Math.sin(_sa2)*_ss2;a.vz=Math.cos(_sa2)*_ss2;
+                    a.group.rotation.y=_sa2;
+                    // Head tilt animation
+                    if(Math.random()<0.005&&a.group.children[1])a.group.children[1].rotation.z=0.3;
+                    else if(a.group.children[1])a.group.children[1].rotation.z*=0.95;
+                    if(a.stateTimer<=0){
+                        if(Math.random()<0.3){a.state='dive';a.stateTimer=40;a.targetY=1;}
+                        else{a.stateTimer=200+Math.floor(Math.random()*200);a.targetY=10+Math.random()*15;}
+                    }
+                } else if(a.state==='dive'){
+                    a.y+=(a.targetY-a.y)*0.06;a.x+=a.vx*1.5;a.z+=a.vz*1.5;
+                    if(a.stateTimer<=0){a.state='fly';a.stateTimer=200+Math.floor(Math.random()*200);a.targetY=10+Math.random()*15;}
+                }
+                if(Math.abs(a.x)>_bound2){a.vx*=-1;a.x=Math.sign(a.x)*(_bound2-1);}
+                if(Math.abs(a.z)>_bound2){a.vz*=-1;a.z=Math.sign(a.z)*(_bound2-1);}
+                a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='duck'){
+                // Duck — waddle near fountain, head bob, occasional wing flap
+                a.waddlePhase+=0.1;
+                if(a.state==='swim'){
+                    a.x+=Math.sin(a.moveDir)*0.02;a.z+=Math.cos(a.moveDir)*0.02;
+                    a.group.rotation.y=a.moveDir;
+                    // Waddle side-to-side
+                    a.group.rotation.z=Math.sin(a.waddlePhase)*0.08;
+                    // Head bob
+                    if(a.group.children[1])a.group.children[1].position.y=0.3+Math.sin(a.waddlePhase*2)*0.02;
+                    if(a.stateTimer<=0){
+                        if(Math.random()<0.3){a.state='flap';a.stateTimer=20;}
+                        else{a.state='swim';a.stateTimer=80+Math.floor(Math.random()*120);a.moveDir+=(Math.random()-0.5)*1.5;}
+                    }
+                } else if(a.state==='flap'){
+                    // Wing flap animation
+                    for(var _dwi=0;_dwi<a.group.children.length;_dwi++){
+                        var dwc=a.group.children[_dwi];
+                        if(dwc.userData._side)dwc.rotation.z=dwc.userData._side*Math.sin(a.waddlePhase*3)*0.7;
+                    }
+                    if(a.stateTimer<=0){a.state='swim';a.stateTimer=80+Math.floor(Math.random()*120);a.moveDir+=(Math.random()-0.5)*1.0;}
+                }
+                // Keep close to center (within radius 20)
+                var dkDist=Math.sqrt(a.x*a.x+a.z*a.z);
+                if(dkDist>20){a.moveDir=Math.atan2(-a.x,-a.z);}
+                a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='eagle'){
+                // Eagle — very slow wide circles, slight wing tilt, never lands
+                a.flapPhase+=0.05;
+                a.circleAngle+=0.005;
+                var eRadius=40+Math.sin(a.flapPhase*0.2)*10;
+                a.x=Math.cos(a.circleAngle)*eRadius;
+                a.z=Math.sin(a.circleAngle)*eRadius;
+                a.y=a.targetY+Math.sin(a.flapPhase*0.3)*2;
+                a.group.rotation.y=a.circleAngle+Math.PI/2;
+                // Slight wing tilt into the turn
+                for(var _ewi=0;_ewi<a.group.children.length;_ewi++){
+                    var ewc=a.group.children[_ewi];
+                    if(ewc.userData._side)ewc.rotation.z=ewc.userData._side*(0.05+Math.sin(a.flapPhase*0.1)*0.03);
+                }
+                a.group.rotation.z=Math.sin(a.circleAngle)*0.08;
+                a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='crow'){
+                // Crow — perch on buildings, hop, fly to another rooftop
+                a.flapPhase+=0.2;
+                if(a.state==='perch'){
+                    // Occasional head turn
+                    if(Math.random()<0.02&&a.group.children[1])a.group.children[1].rotation.y=(Math.random()-0.5)*0.6;
+                    if(a.stateTimer<=0){
+                        if(Math.random()<0.4){a.state='hop';a.stateTimer=15;a.hopPhase=0;}
+                        else{a.state='flyTo';a.stateTimer=60+Math.floor(Math.random()*60);
+                            a.targetY=a.spawnY+5;a.vx=(Math.random()-0.5)*0.3;a.vz=(Math.random()-0.5)*0.3;}
+                    }
+                } else if(a.state==='hop'){
+                    a.hopPhase+=0.2;a.y=a.spawnY+Math.abs(Math.sin(a.hopPhase))*0.3;
+                    a.x+=(Math.random()-0.5)*0.05;a.z+=(Math.random()-0.5)*0.05;
+                    if(a.stateTimer<=0){a.state='perch';a.stateTimer=100+Math.floor(Math.random()*200);a.y=a.spawnY;}
+                } else if(a.state==='flyTo'){
+                    a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.05;
+                    for(var _cwi2=0;_cwi2<a.group.children.length;_cwi2++){
+                        var cwc2=a.group.children[_cwi2];
+                        if(cwc2.userData._side)cwc2.rotation.z=cwc2.userData._side*Math.sin(a.flapPhase)*0.6;
+                    }
+                    a.group.rotation.y=Math.atan2(a.vx,a.vz);
+                    if(a.stateTimer<=0){a.state='perch';a.stateTimer=100+Math.floor(Math.random()*200);
+                        a.spawnY=a.y;a.vx=0;a.vz=0;}
+                }
+                a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='boat'){
+                // Boat — slow drift in circles, gentle rocking
+                a.rockPhase+=0.02;
+                a.circleAngle+=0.001;
+                a.x=Math.cos(a.circleAngle)*a.circleDist;
+                a.z=Math.sin(a.circleAngle)*a.circleDist;
+                a.group.position.set(a.x,a.y,a.z);
+                a.group.rotation.y=a.circleAngle+Math.PI/2;
+                a.group.rotation.z=Math.sin(a.rockPhase)*0.05;
+                a.group.rotation.x=Math.sin(a.rockPhase*0.7)*0.03;
+            } else if(a.type==='flyingFish'){
+                // Flying fish — jump out of water in arc, splash back down
+                if(a.state==='underwater'){
+                    a.group.visible=false;
+                    if(a.stateTimer<=0){
+                        a.state='jump';a.jumpPhase=0;
+                        a.moveDir=Math.random()*Math.PI*2;
+                        a.stateTimer=60+Math.floor(Math.random()*40);
+                    }
+                } else if(a.state==='jump'){
+                    a.jumpPhase+=a.jumpSpeed;
+                    a.y=-0.5+Math.sin(a.jumpPhase)*2.5;
+                    a.x+=Math.sin(a.moveDir)*0.15;a.z+=Math.cos(a.moveDir)*0.15;
+                    a.group.visible=(a.y>-0.5);
+                    a.group.rotation.y=a.moveDir;
+                    a.group.rotation.x=-Math.cos(a.jumpPhase)*0.5;
+                    // Fin flap
+                    for(var _ffi=0;_ffi<a.group.children.length;_ffi++){
+                        var ffc=a.group.children[_ffi];
+                        if(ffc.userData._side)ffc.rotation.z=ffc.userData._side*Math.sin(a.jumpPhase*3)*0.4;
+                    }
+                    if(a.jumpPhase>=Math.PI){a.state='underwater';a.stateTimer=30+Math.floor(Math.random()*120);a.y=-0.5;a.group.visible=false;}
+                }
+                a.group.position.set(a.x,a.y,a.z);
             }
         }
     }
