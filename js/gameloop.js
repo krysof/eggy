@@ -2401,8 +2401,12 @@ function _gameUpdate(){
         handlePlayerInput();
         const raceEggs=allEggs.filter(e=>!e.cityNPC);
         for(const egg of raceEggs){
-            if(!egg.isPlayer) updateRaceAI(egg);
+            if(!egg.isPlayer){
+                updateRaceAI(egg);
+                updateCityNPC(egg); // also use city combat AI (specials, grab, etc.)
+            }
             updateEggPhysics(egg, false);
+            if(!egg.isPlayer){_updateStunStars(egg);_updatePainFace(egg);}
         }
         resolveEggCollisions(raceEggs);
         checkThrownEggImpact(raceEggs);
