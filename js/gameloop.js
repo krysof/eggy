@@ -2458,10 +2458,15 @@ function _gameUpdate(){
         const raceEggs=allEggs.filter(e=>!e.cityNPC);
         for(const egg of raceEggs){
             if(!egg.isPlayer){
-                updateRaceAI(egg);
-                updateCityNPC(egg); // also use city combat AI (specials, grab, etc.)
+                if(_pfActive){
+                    // Platformer: NPC patrol handled by _pfUpdateMoving, lock Z
+                    egg.vz=0;egg.mesh.position.z=0;
+                } else {
+                    updateRaceAI(egg);
+                    updateCityNPC(egg);
+                }
             }
-            updateEggPhysics(egg, false);
+            updateEggPhysics(egg, _pfActive); // platformer uses city physics (ground colliders)
             if(!egg.isPlayer){_updateStunStars(egg);_updatePainFace(egg);}
         }
         resolveEggCollisions(raceEggs);
