@@ -211,6 +211,7 @@ function clearCity(){
     window._fountainInnerWater=null;
     window._cityFish=null;
     window._waterWheels=null;
+    if(window._cityAnimals){for(var _cai=0;_cai<window._cityAnimals.length;_cai++){if(window._cityAnimals[_cai]._inScene)scene.remove(window._cityAnimals[_cai].group);}}
     window._cityAnimals=null;
     if(window._allProjectiles){for(var _api2=0;_api2<window._allProjectiles.length;_api2++){MoveProjectile_cleanup(window._allProjectiles[_api2]);}window._allProjectiles=[];}
     window._playerHadouken=null;
@@ -670,6 +671,73 @@ function addClouds(){
         coin.rotation.x=Math.PI/2;
         scene.add(coin);
         cityCoins.push({mesh:coin,collected:false,baseY:ccY,inScene:true});
+    }
+    // ---- Cloud World Cherubs (小天使) ----
+    if(!window._cityAnimals)window._cityAnimals=[];
+    for(var _chi=0;_chi<8;_chi++){
+        var cg=new THREE.Group();
+        // Round body (chubby)
+        var cbody=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),toon(0xFFDDCC));
+        cbody.scale.set(1,0.9,0.8);cbody.position.y=0;cg.add(cbody);
+        // Head
+        var chead=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,6),toon(0xFFDDCC));
+        chead.position.set(0,0.35,0.05);cg.add(chead);
+        // Curly golden hair
+        for(var _chi2=0;_chi2<6;_chi2++){
+            var cha=_chi2/6*Math.PI*2;
+            var curl=new THREE.Mesh(new THREE.SphereGeometry(0.07,4,3),toon(0xFFDD44));
+            curl.position.set(Math.cos(cha)*0.15,0.5+Math.sin(cha)*0.05,Math.sin(cha)*0.12);
+            cg.add(curl);
+        }
+        // Eyes (cute big)
+        [-1,1].forEach(function(s){
+            var ceye=new THREE.Mesh(new THREE.SphereGeometry(0.05,4,3),toon(0x4488CC));
+            ceye.position.set(s*0.1,0.38,0.2);cg.add(ceye);
+            var cshine=new THREE.Mesh(new THREE.SphereGeometry(0.02,3,2),toon(0xFFFFFF));
+            cshine.position.set(s*0.1+s*0.02,0.4,0.22);cg.add(cshine);
+        });
+        // Smile
+        var csmile=new THREE.Mesh(new THREE.TorusGeometry(0.05,0.012,4,8,Math.PI),toon(0xFF8888));
+        csmile.position.set(0,0.3,0.2);csmile.rotation.x=Math.PI;cg.add(csmile);
+        // Blush
+        [-1,1].forEach(function(s){
+            var cblush=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,3),toon(0xFF9999,{transparent:true,opacity:0.4}));
+            cblush.position.set(s*0.15,0.32,0.18);cg.add(cblush);
+        });
+        // Wings (feathery, translucent white)
+        [-1,1].forEach(function(s){
+            var wing=new THREE.Group();
+            for(var fi=0;fi<4;fi++){
+                var feather=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),
+                    toon(0xFFFFFF,{transparent:true,opacity:0.7}));
+                feather.scale.set(0.4,0.15,1);
+                feather.position.set(s*(0.15+fi*0.08),0.05-fi*0.03,-fi*0.06);
+                feather.rotation.z=s*(0.2+fi*0.15);
+                wing.add(feather);
+            }
+            wing.position.set(s*0.2,0.15,-0.1);
+            wing.userData._side=s;
+            cg.add(wing);
+        });
+        // Halo
+        var halo=new THREE.Mesh(new THREE.TorusGeometry(0.15,0.02,6,16),
+            toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.5}));
+        halo.position.set(0,0.6,0.05);halo.rotation.x=Math.PI/2;cg.add(halo);
+        // Small chubby arms
+        [-1,1].forEach(function(s){
+            var carm=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),toon(0xFFDDCC));
+            carm.position.set(s*0.3,0.05,0.1);carm.scale.set(0.7,1,0.7);cg.add(carm);
+        });
+        var ca2=_chi/8*Math.PI*2;
+        var cr2=15+Math.random()*30;
+        var cx2=Math.cos(ca2)*cr2, cz2=Math.sin(ca2)*cr2;
+        var cy2=cwY+3+Math.random()*6;
+        cg.position.set(cx2,cy2,cz2);
+        scene.add(cg);
+        window._cityAnimals.push({group:cg,type:'cherub',x:cx2,y:cy2,z:cz2,
+            vx:Math.sin(ca2+Math.PI/2)*0.04,vy:0,vz:Math.cos(ca2+Math.PI/2)*0.04,
+            state:'fly',stateTimer:200+Math.floor(Math.random()*200),
+            flapPhase:Math.random()*Math.PI*2,baseY:cy2,_inScene:true});
     }
     // ---- Moon Warp Pipe in cloud world center ----
     // Place pipe on TOP of central cloud (cloudTop ≈ cwY + maxScale*0.45 ≈ cwY+9)

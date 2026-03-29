@@ -694,6 +694,28 @@ function updateCity(){
             }
         }
     }
+    // Cherub (cloud world angel) animation
+    if(window._cityAnimals)for(var _ai3=0;_ai3<window._cityAnimals.length;_ai3++){
+        var ca=window._cityAnimals[_ai3];
+        if(ca.type!=='cherub')continue;
+        ca.flapPhase+=0.15;
+        // Wing flap
+        for(var _cwi=0;_cwi<ca.group.children.length;_cwi++){
+            var cwc=ca.group.children[_cwi];
+            if(cwc.userData._side){cwc.rotation.z=cwc.userData._side*Math.sin(ca.flapPhase)*0.4;}
+        }
+        // Gentle floating + circle flight
+        ca.x+=ca.vx;ca.z+=ca.vz;
+        ca.y=ca.baseY+Math.sin(ca.flapPhase*0.3)*1.5;
+        var _ca2=Math.atan2(ca.vx,ca.vz)+0.01;
+        var _cs2=Math.sqrt(ca.vx*ca.vx+ca.vz*ca.vz);
+        ca.vx=Math.sin(_ca2)*_cs2;ca.vz=Math.cos(_ca2)*_cs2;
+        ca.group.rotation.y=_ca2;
+        // Halo gentle bob
+        var haloChild=ca.group.children[ca.group.children.length-3];
+        if(haloChild)haloChild.rotation.z=Math.sin(ca.flapPhase*0.5)*0.1;
+        ca.group.position.set(ca.x,ca.y,ca.z);
+    }
     // Moon earth rotation + star twinkling
     if(window._moonEarth){window._moonEarth.rotation.y+=0.001;}
     if(window._moonStars){
