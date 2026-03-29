@@ -458,7 +458,7 @@ function updatePipeTravel(){
             camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
         } else {
-            playerEgg.mesh.position.set(5,3,5);
+            playerEgg.mesh.position.set(0,15,0);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
             camera.position.set(0,12,19);camera.lookAt(0,0,5);
@@ -498,7 +498,7 @@ function switchCity(targetStyle){
         camera.position.set(50,12,19);camera.lookAt(50,0,0);
         camera.up.set(0,1,0);
     } else {
-        playerEgg.mesh.position.set(5,3,5);
+        playerEgg.mesh.position.set(0,15,0);
         camera.position.set(0,12,19);camera.lookAt(0,0,5);
         camera.up.set(0,1,0);
     }

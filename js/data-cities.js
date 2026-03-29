@@ -53,7 +53,7 @@ var PORTAL_POSITIONS={
         {x:0,z:145,targetOffset:2},
         {x:-145,z:0,targetOffset:3}
     ],
-    platformerPortal:{x:0,z:-50}
+    platformerPortal:{x:0,z:-15}
 };
 
 // ---- Cloud world parameters ----
