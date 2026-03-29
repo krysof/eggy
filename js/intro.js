@@ -132,18 +132,81 @@ function _drawCityBG(ctx,W,H,panY){
     var sunGrad=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,sunR);
     sunGrad.addColorStop(0,'#FFEE66');sunGrad.addColorStop(0.7,'#FF8833');sunGrad.addColorStop(1,'#FF5522');
     ctx.fillStyle=sunGrad;ctx.beginPath();ctx.arc(sunX,sunY,sunR,0,Math.PI*2);ctx.fill();
-    // Sun cheeky face
+    // Sun animated face — expression changes over time
+    var _sunT=Date.now()*0.001;
+    var _sunPhase=Math.floor(_sunT/3)%5; // change every 3 seconds
+    var _sunBlink=Math.sin(_sunT*3)>0.95; // occasional blink
     ctx.fillStyle='#552200';
-    // Squinting eyes (cheeky)
-    ctx.save();ctx.translate(sunX-sunR*0.3,sunY-sunR*0.1);ctx.rotate(-0.1);
-    ctx.fillRect(-sunR*0.12,-sunR*0.03,sunR*0.24,sunR*0.06);ctx.restore();
-    ctx.save();ctx.translate(sunX+sunR*0.3,sunY-sunR*0.1);ctx.rotate(0.1);
-    ctx.fillRect(-sunR*0.12,-sunR*0.03,sunR*0.24,sunR*0.06);ctx.restore();
-    // Cheeky grin (wide, slightly crooked)
+    // Eyes — different per phase
+    if(_sunBlink){
+        // Blink: thin lines
+        [-1,1].forEach(function(s){
+            ctx.save();ctx.translate(sunX+s*sunR*0.3,sunY-sunR*0.1);
+            ctx.fillRect(-sunR*0.12,-sunR*0.02,sunR*0.24,sunR*0.04);ctx.restore();
+        });
+    } else if(_sunPhase===0){
+        // Happy squint
+        [-1,1].forEach(function(s){
+            ctx.save();ctx.translate(sunX+s*sunR*0.3,sunY-sunR*0.1);ctx.rotate(s*0.1);
+            ctx.fillRect(-sunR*0.12,-sunR*0.03,sunR*0.24,sunR*0.06);ctx.restore();
+        });
+    } else if(_sunPhase===1){
+        // Round surprised eyes
+        [-1,1].forEach(function(s){
+            ctx.beginPath();ctx.arc(sunX+s*sunR*0.3,sunY-sunR*0.1,sunR*0.1,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(sunX+s*sunR*0.3-sunR*0.03,sunY-sunR*0.13,sunR*0.04,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#552200';
+        });
+    } else if(_sunPhase===2){
+        // Winking (one eye closed)
+        ctx.beginPath();ctx.arc(sunX-sunR*0.3,sunY-sunR*0.1,sunR*0.08,0,Math.PI*2);ctx.fill();
+        ctx.save();ctx.translate(sunX+sunR*0.3,sunY-sunR*0.1);
+        ctx.fillRect(-sunR*0.12,-sunR*0.02,sunR*0.24,sunR*0.04);ctx.restore();
+    } else if(_sunPhase===3){
+        // Sleepy half-closed
+        [-1,1].forEach(function(s){
+            ctx.strokeStyle='#552200';ctx.lineWidth=sunR*0.06;ctx.lineCap='round';
+            ctx.beginPath();ctx.arc(sunX+s*sunR*0.3,sunY-sunR*0.05,sunR*0.08,Math.PI*0.1,Math.PI*0.9);ctx.stroke();
+        });
+    } else {
+        // Star eyes (excited)
+        [-1,1].forEach(function(s){
+            var _sx=sunX+s*sunR*0.3,_sy=sunY-sunR*0.1;
+            for(var si=0;si<5;si++){
+                var sa=si/5*Math.PI*2-Math.PI/2;
+                ctx.beginPath();ctx.moveTo(_sx,_sy);
+                ctx.lineTo(_sx+Math.cos(sa)*sunR*0.12,_sy+Math.sin(sa)*sunR*0.12);
+                ctx.lineTo(_sx+Math.cos(sa+0.6)*sunR*0.05,_sy+Math.sin(sa+0.6)*sunR*0.05);
+                ctx.fill();
+            }
+        });
+    }
+    // Mouth — different per phase
     ctx.strokeStyle='#552200';ctx.lineWidth=sunR*0.07;ctx.lineCap='round';
-    ctx.beginPath();ctx.moveTo(sunX-sunR*0.35,sunY+sunR*0.15);
-    ctx.quadraticCurveTo(sunX,sunY+sunR*0.45,sunX+sunR*0.4,sunY+sunR*0.1);ctx.stroke();
-    // Blush
+    if(_sunPhase===0){
+        // Cheeky grin
+        ctx.beginPath();ctx.moveTo(sunX-sunR*0.3,sunY+sunR*0.15);
+        ctx.quadraticCurveTo(sunX,sunY+sunR*0.4,sunX+sunR*0.35,sunY+sunR*0.1);ctx.stroke();
+    } else if(_sunPhase===1){
+        // O mouth (surprised)
+        ctx.fillStyle='#552200';ctx.beginPath();ctx.ellipse(sunX,sunY+sunR*0.2,sunR*0.12,sunR*0.15,0,0,Math.PI*2);ctx.fill();
+    } else if(_sunPhase===2){
+        // Tongue out wink
+        ctx.beginPath();ctx.moveTo(sunX-sunR*0.25,sunY+sunR*0.15);
+        ctx.quadraticCurveTo(sunX,sunY+sunR*0.35,sunX+sunR*0.3,sunY+sunR*0.15);ctx.stroke();
+        ctx.fillStyle='#FF6666';ctx.beginPath();ctx.ellipse(sunX+sunR*0.05,sunY+sunR*0.35,sunR*0.08,sunR*0.12,0.2,0,Math.PI*2);ctx.fill();
+    } else if(_sunPhase===3){
+        // Zzz sleeping
+        ctx.beginPath();ctx.moveTo(sunX-sunR*0.15,sunY+sunR*0.2);
+        ctx.lineTo(sunX+sunR*0.15,sunY+sunR*0.2);ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font=Math.floor(sunR*0.3)+'px sans-serif';
+        ctx.fillText('z',sunX+sunR*0.5,sunY-sunR*0.3);
+        ctx.fillText('Z',sunX+sunR*0.7,sunY-sunR*0.5);
+    } else {
+        // Big happy smile
+        ctx.beginPath();ctx.arc(sunX,sunY+sunR*0.15,sunR*0.25,0,Math.PI);ctx.stroke();
+    }
+    // Blush (always)
     ctx.fillStyle='rgba(255,100,80,0.35)';
     ctx.beginPath();ctx.ellipse(sunX-sunR*0.45,sunY+sunR*0.2,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
     ctx.beginPath();ctx.ellipse(sunX+sunR*0.5,sunY+sunR*0.15,sunR*0.15,sunR*0.1,0,0,Math.PI*2);ctx.fill();
@@ -310,11 +373,38 @@ function _renderIntro(now){
         ctx.restore();
     }
 
-    // ======== PHASE 2: Face off with bounce (2.5-5s) ========
+    // ======== PHASE 2: Face off with bounce + flight effects (2.5-5s) ========
     if(t>=2.5&&t<5){
         ctx.save();
         ctx.translate(0,panY);
         var bounce=Math.sin((t-2.5)*8)*4*scale;
+        var _ft=(t-2.5);
+        // Speed lines behind each character
+        ctx.strokeStyle='rgba(255,255,200,0.3)';ctx.lineWidth=1.5*scale;
+        for(var _sli=0;_sli<6;_sli++){
+            var _slOff=(_ft*80+_sli*25)%120;
+            var _slY=cy-eggSize+_sli*eggSize*0.4+bounce;
+            ctx.globalAlpha=Math.max(0,1-_slOff/120)*0.4;
+            ctx.beginPath();ctx.moveTo(cx-eggSize*0.8-_slOff*scale,_slY);ctx.lineTo(cx-eggSize*0.5,_slY);ctx.stroke();
+            var _slY2=ry-eggSize+_sli*eggSize*0.4-bounce;
+            ctx.beginPath();ctx.moveTo(rx+eggSize*0.8+_slOff*scale,_slY2);ctx.lineTo(rx+eggSize*0.5,_slY2);ctx.stroke();
+        }
+        ctx.globalAlpha=1;
+        // Afterimage trails (semi-transparent copies offset behind)
+        ctx.globalAlpha=0.15;
+        _drawIntroEgg(ctx,cx-6*scale,cy+bounce+2*scale,eggSize,'#FFDD44','#FFAA00',false,true);
+        _drawIntroEgg(ctx,rx+6*scale,ry-bounce+2*scale,eggSize,'#8B4513','#5C2E0A',true,true);
+        ctx.globalAlpha=0.3;
+        _drawIntroEgg(ctx,cx-3*scale,cy+bounce+1*scale,eggSize,'#FFDD44','#FFAA00',false,true);
+        _drawIntroEgg(ctx,rx+3*scale,ry-bounce+1*scale,eggSize,'#8B4513','#5C2E0A',true,true);
+        ctx.globalAlpha=1;
+        // Aura glow around characters
+        var _auraAlpha=0.15+Math.sin(_ft*6)*0.1;
+        ctx.fillStyle='rgba(255,220,100,'+_auraAlpha+')';
+        ctx.beginPath();ctx.arc(cx,cy+bounce,eggSize*1.3,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(139,69,19,'+_auraAlpha+')';
+        ctx.beginPath();ctx.arc(rx,ry-bounce,eggSize*1.3,0,Math.PI*2);ctx.fill();
+        // Main characters
         _drawIntroEgg(ctx,cx,cy+bounce,eggSize,'#FFDD44','#FFAA00',false,true);
         _drawIntroEgg(ctx,rx,ry-bounce,eggSize,'#8B4513','#5C2E0A',true,true);
         // White cat strolls across — walk, stop to watch, then run away
