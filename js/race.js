@@ -493,8 +493,26 @@ function buildRaceTrack(ri){
         const c=new THREE.Mesh(new THREE.BoxGeometry(TRACK_W*2/10,0.08,0.6),toon(i%2===0?0x222222:0xffffff));
         c.position.set(-TRACK_W+TRACK_W/5+i*TRACK_W*2/10,0.04,-trackLength); raceGroup.add(c);
     }
-    const arch=new THREE.Mesh(new THREE.TorusGeometry(5,0.3,8,20,Math.PI),toon(0xFFD700));
+    // Finish arch gate — large golden arch with glow
+    const arch=new THREE.Mesh(new THREE.TorusGeometry(6,0.5,8,24,Math.PI),toon(0xFFD700,{emissive:0xFFAA00,emissiveIntensity:0.4}));
     arch.position.set(0,0,-trackLength); arch.rotation.y=Math.PI/2; raceGroup.add(arch);
+    // Inner glow ring
+    var archGlow=new THREE.Mesh(new THREE.TorusGeometry(6,0.2,6,24,Math.PI),new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.3}));
+    archGlow.position.copy(arch.position);archGlow.rotation.copy(arch.rotation);raceGroup.add(archGlow);
+    // GOAL text above arch
+    var goalCvs=document.createElement('canvas');goalCvs.width=256;goalCvs.height=64;
+    var goalCtx2=goalCvs.getContext('2d');
+    goalCtx2.fillStyle='rgba(0,0,0,0.6)';goalCtx2.fillRect(0,0,256,64);
+    goalCtx2.fillStyle='#FFD700';goalCtx2.font='bold 40px sans-serif';goalCtx2.textAlign='center';
+    goalCtx2.fillText('🏁 GOAL',128,46);
+    var goalTex=new THREE.CanvasTexture(goalCvs);
+    var goalSign=new THREE.Sprite(new THREE.SpriteMaterial({map:goalTex,transparent:true}));
+    goalSign.scale.set(8,2,1);goalSign.position.set(0,8,-trackLength);raceGroup.add(goalSign);
+    // Pillars on both sides
+    [-1,1].forEach(function(s){
+        var pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,7,8),toon(0xFFD700,{emissive:0xFFAA00,emissiveIntensity:0.3}));
+        pillar.position.set(s*6,3.5,-trackLength);raceGroup.add(pillar);
+    });
     // ---- Scatter power-up items along every track ----
     var _pitems=['star','shield','magnet'];
     for(var _pii=0;_pii<4;_pii++){

@@ -331,10 +331,20 @@ function updateEggPhysics(egg, isCity){
         if(egg._speedBoost>0)egg._speedBoost--;
         if(egg._shieldTimer>0)egg._shieldTimer--;
         if(egg._coinMagnet>0)egg._coinMagnet--;
-        // Finish (skip in platformer mode)
-        if(!egg.finished&&!_pfActive&&trackLength>0&&gz>=trackLength){
+        // Finish — cross the finish line (arch gate at trackLength)
+        if(!egg.finished&&!_pfActive&&trackLength>0&&gz>=trackLength-2){
             egg.finished=true;egg.finishOrder=finishedEggs.length;finishedEggs.push(egg);
-            if(egg.isPlayer)playerFinished=true;
+            egg.squash=0.5; // celebrate squash
+            if(egg.isPlayer){
+                playerFinished=true;
+                // Victory flash + sound
+                if(sfxEnabled){var _fCtx=ensureAudio();if(_fCtx){var _ft=_fCtx.currentTime;
+                    var _fo=_fCtx.createOscillator();var _fg=_fCtx.createGain();
+                    _fo.type='triangle';_fo.frequency.setValueAtTime(800,_ft);_fo.frequency.linearRampToValueAtTime(1600,_ft+0.3);
+                    _fg.gain.setValueAtTime(0.15,_ft);_fg.gain.exponentialRampToValueAtTime(0.001,_ft+0.4);
+                    _fo.connect(_fg);_fg.connect(_fCtx.destination);_fo.start(_ft);_fo.stop(_ft+0.4);
+                }}
+            }
         }
     }
 
