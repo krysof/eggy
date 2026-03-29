@@ -268,10 +268,11 @@ function _renderIntro(now){
         ctx.translate(0,panY);
 
         // Lightning flash + thunder sound
-        if(pt<0.4){
-            var lAlpha=1-pt/0.4;
-            _drawLightning(ctx,W*0.1,H*0.1,W*0.9,H*0.5,lAlpha,3*scale);
-            _drawLightning(ctx,W*0.15,H*0.05,W*0.85,H*0.55,lAlpha*0.6,2*scale);
+        if(pt<0.5){
+            var lAlpha=1-pt/0.5;
+            _drawLightning(ctx,W*0.1,H*0.15,W*0.9,H*0.45,lAlpha,4*scale);
+            _drawLightning(ctx,W*0.15,H*0.1,W*0.85,H*0.5,lAlpha*0.7,3*scale);
+            _drawLightning(ctx,W*0.5,H*0.05,W*0.6,H*0.4,lAlpha*0.5,2*scale);
             if(!window._introThunderPlayed){
                 window._introThunderPlayed=true;
                 try{var _thCtx=ensureAudio();if(_thCtx&&sfxEnabled){var _tht=_thCtx.currentTime;
