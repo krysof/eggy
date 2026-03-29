@@ -3,18 +3,18 @@
 //  PORTALS (race entrances in city)
 // ============================================================
 const RACES = [
-    {name:'🌀 疯狂赛道', desc:'旋转臂与传送带！', x:25, z:0, color:0xFF4444},
-    {name:'🔨 锤子风暴', desc:'大锤与摆锤！小心！', x:22, z:13, color:0xFF8800},
-    {name:'⚡ 极限挑战', desc:'所有障碍加速！', x:13, z:22, color:0x8844FF},
-    {name:'👑 冠军之路', desc:'最终决战！', x:0, z:25, color:0xFFD700},
-    {name:'💎 \u7eff\u5b9d\u77f3\u5c71\u4e18', desc:'Sonic\u98ce\u683c\uff01\u91d1\u5e01\u4e0e\u5f39\u7c27\uff01', x:-13, z:22, color:0x44DD44},
-    {name:'🔥 \u706b\u7130\u5c71\u8c37', desc:'\u52a0\u901f\u5e26\u4e0e\u5ca9\u6d46\u5730\u5f62\uff01', x:-22, z:13, color:0xFF4400},
-    {name:'\u2744\ufe0f \u51b0\u971c\u6ed1\u9053', desc:'\u6ed1\u51b0\u5730\u5f62\u4e0e\u5f39\u7c27\uff01', x:-25, z:0, color:0x44CCFF},
-    {name:'🌈 \u5f69\u8679\u5929\u7a7a', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u91d1\u5e01\u96e8\uff01', x:-22, z:-13, color:0xFF88FF},
-    {name:'🍄 \u8611\u83c7\u738b\u56fd', desc:'\u7ecf\u5178\u6c34\u7ba1\u4e0e\u677f\u6817\uff01', x:-13, z:-22, color:0x44BB44},
-    {name:'🔥 \u5ca9\u6d46\u57ce\u5821', desc:'\u5ca9\u6d46\u5730\u5f62\u4e0e\u706b\u7403\uff01', x:0, z:-25, color:0xDD4400},
-    {name:'\u2601\ufe0f \u4e91\u7aef\u5929\u5802', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u5f39\u7c27\uff01', x:13, z:-22, color:0x88CCFF},
-    {name:'🏰 \u5e93\u5df4\u57ce\u5821', desc:'\u6700\u7ec8\u5173\u5361\uff01\u5168\u969c\u788d\uff01', x:22, z:-13, color:0x884422}
+    {name:'🌀 疯狂赛道', desc:'旋转臂与传送带！', x:40, z:0, color:0xFF4444},
+    {name:'🔨 锤子风暴', desc:'大锤与摆锤！小心！', x:35, z:20, color:0xFF8800},
+    {name:'⚡ 极限挑战', desc:'所有障碍加速！', x:20, z:35, color:0x8844FF},
+    {name:'👑 冠军之路', desc:'最终决战！', x:0, z:40, color:0xFFD700},
+    {name:'💎 \u7eff\u5b9d\u77f3\u5c71\u4e18', desc:'Sonic\u98ce\u683c\uff01\u91d1\u5e01\u4e0e\u5f39\u7c27\uff01', x:-20, z:35, color:0x44DD44},
+    {name:'🔥 \u706b\u7130\u5c71\u8c37', desc:'\u52a0\u901f\u5e26\u4e0e\u5ca9\u6d46\u5730\u5f62\uff01', x:-35, z:20, color:0xFF4400},
+    {name:'\u2744\ufe0f \u51b0\u971c\u6ed1\u9053', desc:'\u6ed1\u51b0\u5730\u5f62\u4e0e\u5f39\u7c27\uff01', x:-40, z:0, color:0x44CCFF},
+    {name:'🌈 \u5f69\u8679\u5929\u7a7a', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u91d1\u5e01\u96e8\uff01', x:-35, z:-20, color:0xFF88FF},
+    {name:'🍄 \u8611\u83c7\u738b\u56fd', desc:'\u7ecf\u5178\u6c34\u7ba1\u4e0e\u677f\u6817\uff01', x:-20, z:-35, color:0x44BB44},
+    {name:'🔥 \u5ca9\u6d46\u57ce\u5821', desc:'\u5ca9\u6d46\u5730\u5f62\u4e0e\u706b\u7403\uff01', x:0, z:-40, color:0xDD4400},
+    {name:'\u2601\ufe0f \u4e91\u7aef\u5929\u5802', desc:'\u7a7a\u4e2d\u5e73\u53f0\u4e0e\u5f39\u7c27\uff01', x:20, z:-35, color:0x88CCFF},
+    {name:'🏰 \u5e93\u5df4\u57ce\u5821', desc:'\u6700\u7ec8\u5173\u5361\uff01\u5168\u969c\u788d\uff01', x:35, z:-20, color:0x884422}
 ];
 // Apply localized race names/descs
 for(var _ri=0;_ri<RACES.length;_ri++){RACES[_ri].name=I18N.raceNames[_langCode][_ri]||RACES[_ri].name;RACES[_ri].desc=I18N.raceDescs[_langCode][_ri]||RACES[_ri].desc;}
@@ -458,7 +458,7 @@ function updatePipeTravel(){
             camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
         } else {
-            playerEgg.mesh.position.set(0,15,0);
+            playerEgg.mesh.position.set(5,3,5);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
             camera.position.set(0,12,19);camera.lookAt(0,0,5);
@@ -498,7 +498,7 @@ function switchCity(targetStyle){
         camera.position.set(50,12,19);camera.lookAt(50,0,0);
         camera.up.set(0,1,0);
     } else {
-        playerEgg.mesh.position.set(0,15,0);
+        playerEgg.mesh.position.set(5,3,5);
         camera.position.set(0,12,19);camera.lookAt(0,0,5);
         camera.up.set(0,1,0);
     }

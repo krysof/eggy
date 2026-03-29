@@ -2115,7 +2115,7 @@ function enterCity(spawnX,spawnZ){
         if(sx===0&&sz===5){sx=50;sz=0;}
         sy=0.5;
     } else if(sx===0&&sz===0){
-        sy=15; // above fountain pillar
+        sx=5;sz=5;sy=3; // beside fountain, not on pillar
     }
     const skin=CHARACTERS[selectedChar];
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
