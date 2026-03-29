@@ -676,6 +676,7 @@ function addClouds(){
     if(!window._cityAnimals)window._cityAnimals=[];
     for(var _chi=0;_chi<8;_chi++){
         var cg=new THREE.Group();
+        cg.scale.set(3,3,3); // big enough to see in cloud world
         // Round body (chubby)
         var cbody=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,6),toon(0xFFDDCC));
         cbody.scale.set(1,0.9,0.8);cbody.position.y=0;cg.add(cbody);

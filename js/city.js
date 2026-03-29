@@ -485,9 +485,10 @@ function buildCity() {
             state:'fly',stateTimer:120+Math.floor(Math.random()*180),
             flapPhase:Math.random()*Math.PI*2,targetY:py2});
     }
-    // Rabbits (6) — hop around on ground
-    for(var _ri2=0;_ri2<6;_ri2++){
+    // Rabbits (8) — hop around on ground, bigger and near center
+    for(var _ri2=0;_ri2<8;_ri2++){
         var rg=new THREE.Group();
+        rg.scale.set(2,2,2); // 2x bigger for visibility
         var rbody=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),toon(0xEEDDCC));
         rbody.scale.set(0.8,0.7,1);rbody.position.y=0.2;rg.add(rbody);
         var rhead=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),toon(0xEEDDCC));
@@ -509,16 +510,17 @@ function buildCity() {
         // Tail puff
         var rtail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0xFFFFFF));
         rtail.position.set(0,0.2,-0.25);rg.add(rtail);
-        var rx3=(Math.random()-0.5)*CITY_SIZE*0.8,rz3=(Math.random()-0.5)*CITY_SIZE*0.8;
+        var rx3=(Math.random()-0.5)*60+(_ri2<3?(Math.random()-0.5)*20:0),rz3=(Math.random()-0.5)*60+(_ri2<3?(Math.random()-0.5)*20:0);
         rg.position.set(rx3,0,rz3);
         cityGroup.add(rg);
         window._cityAnimals.push({group:rg,type:'rabbit',x:rx3,y:0,z:rz3,
             vx:0,vy:0,vz:0,state:'idle',stateTimer:60+Math.floor(Math.random()*120),
             hopPhase:0,moveDir:Math.random()*Math.PI*2});
     }
-    // Deer (4) — graceful walking
-    for(var _di2=0;_di2<4;_di2++){
+    // Deer (6) — graceful walking, bigger
+    for(var _di2=0;_di2<6;_di2++){
         var dg=new THREE.Group();
+        dg.scale.set(1.8,1.8,1.8);
         var dbody=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),toon(0xCC9966));
         dbody.scale.set(0.7,0.6,1.2);dbody.position.y=0.7;dg.add(dbody);
         // White belly
@@ -563,7 +565,7 @@ function buildCity() {
             dspot.position.set((Math.random()-0.5)*0.3,0.6+Math.random()*0.3,(Math.random()-0.5)*0.4);
             dg.add(dspot);
         }
-        var dx3=(Math.random()-0.5)*CITY_SIZE*0.8,dz3=(Math.random()-0.5)*CITY_SIZE*0.8;
+        var dx3=(Math.random()-0.5)*80,dz3=(Math.random()-0.5)*80;
         dg.position.set(dx3,0,dz3);
         cityGroup.add(dg);
         window._cityAnimals.push({group:dg,type:'deer',x:dx3,y:0,z:dz3,
