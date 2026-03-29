@@ -198,6 +198,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
                     const overlapZ=c.hd+egg.radius-Math.abs(dz);
                     if(overlapX<overlapZ){egg.mesh.position.x+=Math.sign(dx)*overlapX;egg.vx*=-0.2;}
                     else{egg.mesh.position.z+=Math.sign(dz)*overlapZ;egg.vz*=-0.2;}
+                    // Pushed out at height — ensure gravity applies (not stuck as onGround)
+                    if(egg.mesh.position.y>1)egg.onGround=false;
                     }
                 }
             }
