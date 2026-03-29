@@ -331,8 +331,8 @@ function updateEggPhysics(egg, isCity){
         if(egg._speedBoost>0)egg._speedBoost--;
         if(egg._shieldTimer>0)egg._shieldTimer--;
         if(egg._coinMagnet>0)egg._coinMagnet--;
-        // Finish
-        if(!egg.finished&&gz>=trackLength){
+        // Finish (skip in platformer mode)
+        if(!egg.finished&&!_pfActive&&trackLength>0&&gz>=trackLength){
             egg.finished=true;egg.finishOrder=finishedEggs.length;finishedEggs.push(egg);
             if(egg.isPlayer)playerFinished=true;
         }

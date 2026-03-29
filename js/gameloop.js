@@ -2263,6 +2263,7 @@ function enterRace(raceIndex){
 
 function checkRaceEnd(){
     if(gameState!=='racing')return;
+    if(_pfActive)return; // platformer has no finish line
     if(playerFinished){
         showRaceResult();
         return;
