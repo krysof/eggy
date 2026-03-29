@@ -180,7 +180,7 @@ CHARACTERS.forEach((ch,i) => {
     const cell = document.createElement('div');
     cell.className = 'char-cell' + (i===0?' selected':'');
     var miniCanvas=_drawMiniPortrait(ch,56);
-    miniCanvas.style.cssText='width:52px;height:52px;border-radius:6px;';
+    miniCanvas.style.cssText='border-radius:6px;';
     miniCanvas.className='char-icon-canvas';
     cell.appendChild(miniCanvas);
     cell.addEventListener('click', () => {
