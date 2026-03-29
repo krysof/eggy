@@ -451,6 +451,125 @@ function buildCity() {
         cityGroup.add(bg);
         cityProps.push({group:bg, x:bx, z:bz, radius:1.2, type:'bench', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:2.5});
     }
+    // ---- City Animals: pigeons, rabbits, deer ----
+    window._cityAnimals=[];
+    // Pigeons (12) — fly and land
+    for(var _pi=0;_pi<12;_pi++){
+        var pg=new THREE.Group();
+        var pbody=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,4),toon(0xAAAAAA));
+        pbody.scale.set(1,0.7,1.3);pg.add(pbody);
+        var phead=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0x999999));
+        phead.position.set(0,0.15,0.2);pg.add(phead);
+        // Eyes
+        [-1,1].forEach(function(s){
+            var peye=new THREE.Mesh(new THREE.SphereGeometry(0.03,4,3),toon(0xFF6600));
+            peye.position.set(s*0.06,0.18,0.28);pg.add(peye);
+        });
+        // Beak
+        var pbeak=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.1,4),toon(0xFFAA44));
+        pbeak.position.set(0,0.12,0.32);pbeak.rotation.x=-Math.PI/2;pg.add(pbeak);
+        // Wings
+        [-1,1].forEach(function(s){
+            var pwing=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.03,0.25),toon(0x888888));
+            pwing.position.set(s*0.25,0.05,0);pwing.userData._side=s;pg.add(pwing);
+        });
+        // Tail
+        var ptail=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.02,0.15),toon(0x777777));
+        ptail.position.set(0,0.02,-0.25);pg.add(ptail);
+        var px2=(Math.random()-0.5)*CITY_SIZE*1.2,pz2=(Math.random()-0.5)*CITY_SIZE*1.2;
+        var py2=Math.random()*15+3;
+        pg.position.set(px2,py2,pz2);
+        cityGroup.add(pg);
+        window._cityAnimals.push({group:pg,type:'pigeon',x:px2,y:py2,z:pz2,
+            vx:(Math.random()-0.5)*0.1,vy:0,vz:(Math.random()-0.5)*0.1,
+            state:'fly',stateTimer:120+Math.floor(Math.random()*180),
+            flapPhase:Math.random()*Math.PI*2,targetY:py2});
+    }
+    // Rabbits (6) — hop around on ground
+    for(var _ri2=0;_ri2<6;_ri2++){
+        var rg=new THREE.Group();
+        var rbody=new THREE.Mesh(new THREE.SphereGeometry(0.25,8,6),toon(0xEEDDCC));
+        rbody.scale.set(0.8,0.7,1);rbody.position.y=0.2;rg.add(rbody);
+        var rhead=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,4),toon(0xEEDDCC));
+        rhead.position.set(0,0.38,0.15);rg.add(rhead);
+        // Ears
+        [-1,1].forEach(function(s){
+            var rear=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.05,0.25,4),toon(0xEEDDCC));
+            rear.position.set(s*0.08,0.55,0.1);rear.rotation.z=s*0.15;rg.add(rear);
+            var rearIn=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.03,0.2,4),toon(0xFFBBCC));
+            rearIn.position.set(s*0.08,0.55,0.12);rearIn.rotation.z=s*0.15;rg.add(rearIn);
+        });
+        // Eyes + nose
+        [-1,1].forEach(function(s){
+            var reye=new THREE.Mesh(new THREE.SphereGeometry(0.03,4,3),toon(0x332222));
+            reye.position.set(s*0.07,0.4,0.27);rg.add(reye);
+        });
+        var rnose=new THREE.Mesh(new THREE.SphereGeometry(0.025,4,3),toon(0xFFAAAA));
+        rnose.position.set(0,0.35,0.3);rg.add(rnose);
+        // Tail puff
+        var rtail=new THREE.Mesh(new THREE.SphereGeometry(0.08,6,4),toon(0xFFFFFF));
+        rtail.position.set(0,0.2,-0.25);rg.add(rtail);
+        var rx3=(Math.random()-0.5)*CITY_SIZE*0.8,rz3=(Math.random()-0.5)*CITY_SIZE*0.8;
+        rg.position.set(rx3,0,rz3);
+        cityGroup.add(rg);
+        window._cityAnimals.push({group:rg,type:'rabbit',x:rx3,y:0,z:rz3,
+            vx:0,vy:0,vz:0,state:'idle',stateTimer:60+Math.floor(Math.random()*120),
+            hopPhase:0,moveDir:Math.random()*Math.PI*2});
+    }
+    // Deer (4) — graceful walking
+    for(var _di2=0;_di2<4;_di2++){
+        var dg=new THREE.Group();
+        var dbody=new THREE.Mesh(new THREE.SphereGeometry(0.4,8,6),toon(0xCC9966));
+        dbody.scale.set(0.7,0.6,1.2);dbody.position.y=0.7;dg.add(dbody);
+        // White belly
+        var dbelly=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),toon(0xFFEEDD));
+        dbelly.scale.set(0.6,0.4,1);dbelly.position.set(0,0.6,0);dg.add(dbelly);
+        // Head
+        var dhead=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,4),toon(0xCC9966));
+        dhead.position.set(0,1.0,0.4);dg.add(dhead);
+        // Ears
+        [-1,1].forEach(function(s){
+            var dear=new THREE.Mesh(new THREE.ConeGeometry(0.05,0.15,4),toon(0xCC9966));
+            dear.position.set(s*0.12,1.15,0.35);dear.rotation.z=s*0.4;dg.add(dear);
+        });
+        // Eyes
+        [-1,1].forEach(function(s){
+            var deye=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,3),toon(0x332222));
+            deye.position.set(s*0.08,1.02,0.55);dg.add(deye);
+        });
+        // Nose
+        var dnose=new THREE.Mesh(new THREE.SphereGeometry(0.03,4,3),toon(0x333333));
+        dnose.position.set(0,0.95,0.58);dg.add(dnose);
+        // Antlers (small)
+        [-1,1].forEach(function(s){
+            var antler=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.03,0.3,4),toon(0x886644));
+            antler.position.set(s*0.1,1.25,0.35);antler.rotation.z=s*0.3;dg.add(antler);
+            var antlerTip=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.02,0.15,4),toon(0x886644));
+            antlerTip.position.set(s*0.18,1.35,0.35);antlerTip.rotation.z=s*0.8;dg.add(antlerTip);
+        });
+        // Legs (4)
+        [{x:-0.12,z:0.25},{x:0.12,z:0.25},{x:-0.12,z:-0.25},{x:0.12,z:-0.25}].forEach(function(lp){
+            var dleg=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.035,0.55,4),toon(0xBB8855));
+            dleg.position.set(lp.x,0.28,lp.z);dg.add(dleg);
+            var dhoof=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.04,0.06,4),toon(0x444444));
+            dhoof.position.set(lp.x,0.03,lp.z);dg.add(dhoof);
+        });
+        // Tail
+        var dtail=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),toon(0xFFFFFF));
+        dtail.position.set(0,0.75,-0.5);dg.add(dtail);
+        // White spots
+        for(var _dsi=0;_dsi<5;_dsi++){
+            var dspot=new THREE.Mesh(new THREE.SphereGeometry(0.04,4,3),toon(0xFFEEDD));
+            dspot.position.set((Math.random()-0.5)*0.3,0.6+Math.random()*0.3,(Math.random()-0.5)*0.4);
+            dg.add(dspot);
+        }
+        var dx3=(Math.random()-0.5)*CITY_SIZE*0.8,dz3=(Math.random()-0.5)*CITY_SIZE*0.8;
+        dg.position.set(dx3,0,dz3);
+        cityGroup.add(dg);
+        window._cityAnimals.push({group:dg,type:'deer',x:dx3,y:0,z:dz3,
+            vx:0,vy:0,vz:0,state:'walk',stateTimer:120+Math.floor(Math.random()*180),
+            walkPhase:0,moveDir:Math.random()*Math.PI*2});
+    }
     // (Hidden entrances removed — moon only reachable from cloud world)
     } // end if not moon
 

@@ -626,6 +626,74 @@ function updateCity(){
             mc.z=mc.baseZ+offset;
         }
     }
+    // ---- City Animals animation ----
+    if(window._cityAnimals){
+        var _bound2=CITY_SIZE-5;
+        for(var _ai2=0;_ai2<window._cityAnimals.length;_ai2++){
+            var a=window._cityAnimals[_ai2];
+            a.stateTimer--;
+            if(a.type==='pigeon'){
+                a.flapPhase+=0.3;
+                // Wings flap when flying
+                for(var _wi=0;_wi<a.group.children.length;_wi++){
+                    var wc=a.group.children[_wi];
+                    if(wc.userData._side){
+                        if(a.state==='fly')wc.rotation.z=wc.userData._side*Math.sin(a.flapPhase)*0.6;
+                        else wc.rotation.z=wc.userData._side*0.3; // folded
+                    }
+                }
+                if(a.state==='fly'){
+                    a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.02;
+                    // Circle motion
+                    var _pa=Math.atan2(a.vx,a.vz)+0.02;
+                    var _ps=Math.sqrt(a.vx*a.vx+a.vz*a.vz);
+                    a.vx=Math.sin(_pa)*_ps;a.vz=Math.cos(_pa)*_ps;
+                    a.group.rotation.y=_pa;
+                    if(a.stateTimer<=0){a.state='land';a.stateTimer=30;a.targetY=0.3;}
+                } else if(a.state==='land'){
+                    a.y+=(a.targetY-a.y)*0.05;
+                    if(a.stateTimer<=0){a.state='ground';a.stateTimer=120+Math.floor(Math.random()*180);}
+                } else if(a.state==='ground'){
+                    // Peck animation
+                    if(Math.random()<0.03)a.group.children[1].rotation.x=0.5; else a.group.children[1].rotation.x*=0.9;
+                    if(a.stateTimer<=0){a.state='fly';a.stateTimer=180+Math.floor(Math.random()*240);
+                        a.targetY=5+Math.random()*15;a.vx=(Math.random()-0.5)*0.12;a.vz=(Math.random()-0.5)*0.12;}
+                }
+                if(Math.abs(a.x)>_bound2){a.vx*=-1;a.x=Math.sign(a.x)*(_bound2-1);}
+                if(Math.abs(a.z)>_bound2){a.vz*=-1;a.z=Math.sign(a.z)*(_bound2-1);}
+                a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='rabbit'){
+                if(a.state==='idle'){
+                    if(a.stateTimer<=0){a.state='hop';a.stateTimer=20+Math.floor(Math.random()*40);
+                        a.moveDir+=((Math.random()-0.5)*1.5);a.vx=Math.sin(a.moveDir)*0.08;a.vz=Math.cos(a.moveDir)*0.08;}
+                } else if(a.state==='hop'){
+                    a.hopPhase+=0.15;a.x+=a.vx;a.z+=a.vz;
+                    a.y=Math.abs(Math.sin(a.hopPhase))*0.4;
+                    a.group.rotation.y=a.moveDir;
+                    if(a.stateTimer<=0){a.state='idle';a.stateTimer=60+Math.floor(Math.random()*120);a.y=0;}
+                }
+                if(Math.abs(a.x)>_bound2){a.moveDir+=Math.PI;a.x=Math.sign(a.x)*(_bound2-1);}
+                if(Math.abs(a.z)>_bound2){a.moveDir+=Math.PI;a.z=Math.sign(a.z)*(_bound2-1);}
+                a.group.position.set(a.x,a.y,a.z);
+            } else if(a.type==='deer'){
+                if(a.state==='walk'){
+                    a.walkPhase+=0.08;a.x+=Math.sin(a.moveDir)*0.03;a.z+=Math.cos(a.moveDir)*0.03;
+                    a.group.rotation.y=a.moveDir;
+                    // Gentle head bob
+                    if(a.group.children[2])a.group.children[2].position.y=1.0+Math.sin(a.walkPhase)*0.03;
+                    if(a.stateTimer<=0){a.state='idle';a.stateTimer=90+Math.floor(Math.random()*150);}
+                } else if(a.state==='idle'){
+                    // Look around
+                    if(Math.random()<0.01)a.group.rotation.y+=(Math.random()-0.5)*0.3;
+                    if(a.stateTimer<=0){a.state='walk';a.stateTimer=120+Math.floor(Math.random()*180);
+                        a.moveDir+=(Math.random()-0.5)*1.2;}
+                }
+                if(Math.abs(a.x)>_bound2){a.moveDir+=Math.PI;a.x=Math.sign(a.x)*(_bound2-1);}
+                if(Math.abs(a.z)>_bound2){a.moveDir+=Math.PI;a.z=Math.sign(a.z)*(_bound2-1);}
+                a.group.position.set(a.x,a.y,a.z);
+            }
+        }
+    }
     // Moon earth rotation + star twinkling
     if(window._moonEarth){window._moonEarth.rotation.y+=0.001;}
     if(window._moonStars){

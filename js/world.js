@@ -211,6 +211,7 @@ function clearCity(){
     window._fountainInnerWater=null;
     window._cityFish=null;
     window._waterWheels=null;
+    window._cityAnimals=null;
     if(window._allProjectiles){for(var _api2=0;_api2<window._allProjectiles.length;_api2++){MoveProjectile_cleanup(window._allProjectiles[_api2]);}window._allProjectiles=[];}
     window._playerHadouken=null;
     // Remove city NPCs
