@@ -207,7 +207,7 @@ function _renderIntro(now){
     var t=(now-_introStart)/1000;
     var W=_introCanvas.width,H=_introCanvas.height;
     var ctx=_introCtx;
-    var scale=H/600;
+    var scale=Math.min(W,H)/600;
 
     ctx.clearRect(0,0,W,H);
 
@@ -675,7 +675,7 @@ function _showTapStart(){
     _resizeIntroCanvas();
     var W=_introCanvas.width,H=_introCanvas.height;
     var ctx=_introCtx;
-    var scale=H/600;
+    var scale=Math.min(W,H)/600;
     // Black screen with tap prompt
     ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
     // Game title small
