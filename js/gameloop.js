@@ -2425,6 +2425,13 @@ function _gameUpdate(){
             var cdist=Math.sqrt(cdx*cdx+cdz*cdz+cdy*cdy);
             if(cdist<1.5){rc.collected=true;rc.mesh.visible=false;raceCoinScore++;playCoinSound();}
         }
+        // Projectile update (same as in updateCity)
+        if(!window._allProjectiles)window._allProjectiles=[];
+        for(var _rapi=window._allProjectiles.length-1;_rapi>=0;_rapi--){
+            var _rap=window._allProjectiles[_rapi];
+            if(!MoveProjectile_update(_rap)){MoveProjectile_cleanup(_rap);window._allProjectiles.splice(_rapi,1);}
+        }
+        updateSlashEffects();
         updateObstacles();
         updateCamera();
         updateRaceHUD();

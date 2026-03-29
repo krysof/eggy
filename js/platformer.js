@@ -5,7 +5,7 @@
 var _pfActive=false;
 var _pfSavedCity=-1;
 
-function _pfStart(){
+function _pfStart(){try{
     _pfSavedCity=currentCityStyle;
     // Fully clear old city using existing clearCity
     if(typeof clearCity==='function')clearCity();
@@ -45,9 +45,9 @@ function _pfStart(){
     if(R)R.setClearColor(0x87CEEB);
     var hud=document.getElementById('city-hud');if(hud)hud.style.display='';
     var tc=document.getElementById('touch-controls');if(tc)tc.classList.remove('hidden');
-}
+}catch(e){console.error('_pfStart ERROR:',e);}}
 
-function _pfBuildLevel(){
+function _pfBuildLevel(){try{
     var T=4,L=200,D=T*3;
     var W=T*L;
     // Global arrays for dynamic elements
@@ -448,7 +448,7 @@ function _pfBuildLevel(){
         cityGroup.add(c3);
         cityCoins.push({mesh:c3,collected:false});
     }
-}
+}catch(e){console.error('_pfBuildLevel ERROR:',e);}}
 
 // ---- Moving / dynamic platform updates ----
 function _pfUpdateMoving(){
