@@ -350,7 +350,9 @@ function updateCity(){
         if(currentCityStyle!==5&&py>4)continue;
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
-    if(_nearP&&_nearD<PORTAL_CONFIG.triggerDist){
+    // Only trigger portal when player is walking normally (not thrown, stunned, dashing, spinning, held, etc.)
+    var _isVoluntary=playerEgg&&playerEgg.onGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
+    if(_nearP&&_nearD<PORTAL_CONFIG.triggerDist&&_isVoluntary){
         _pp.style.display='block';
         var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
         if(_nearD<PORTAL_CONFIG.confirmDist&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){

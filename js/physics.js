@@ -251,7 +251,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
                 var wp=warpPipeMeshes[wpi];
                 var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
                 var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                if(wdist<PORTAL_CONFIG.confirmDist&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing&&!_portalConfirmOpen){
+                var _wpVoluntary=egg.onGround&&!egg.throwTimer&&!egg._stunTimer&&!egg.heldBy&&!egg._piledriverLocked&&!egg._hondaDash&&!egg._blankaSpinTimer&&!egg._tatsuActive&&!egg._shoryuActive&&!egg._guileSomersault&&!egg._electrocuted&&!egg._elecFlying;
+                if(wdist<PORTAL_CONFIG.confirmDist&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing&&!_portalConfirmOpen&&_wpVoluntary){
                     wp._cooldown=true;
                     var _tgtName=CITY_STYLES[wp.targetStyle]?CITY_STYLES[wp.targetStyle].name:'???';
                     showPortalConfirm({name:_tgtName,desc:L('warpDesc')||'Travel to another city!',_targetStyle:wp.targetStyle,_isWarpPipe:true,_pipeX:wp.x,_pipeZ:wp.z});
