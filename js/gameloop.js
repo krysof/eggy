@@ -2185,18 +2185,80 @@ function enterRace(raceIndex){
     camera.lookAt(0, 0, -5);
     camera.up.set(0,1,0); // reset from moon spherical camera
 
-    // Show Mario Maker style countdown
+    // ---- Bifrost Rainbow Bridge transition ----
     gameState='raceIntro';
-    stopBGM(); startRaceBGM(raceIndex);
+    stopBGM();
     const race=RACES[raceIndex];
-    var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
-    if(raceNames[raceIndex])_showAreaName(raceNames[raceIndex]);
-    document.getElementById('round-label').textContent=race.name;
-    document.getElementById('round-name').textContent=race.desc;
-    document.getElementById('round-desc').textContent=L('rushGoal');
-    document.getElementById('player-count').textContent='🥚 × '+total;
-    document.getElementById('countdown').textContent='3';
+    // Show bridge animation first, then countdown
     document.getElementById('round-screen').classList.add('active');
+    document.getElementById('countdown').textContent='';
+    document.getElementById('round-label').textContent='';
+    document.getElementById('round-name').textContent='';
+    document.getElementById('round-desc').textContent='';
+    document.getElementById('player-count').textContent='';
+    var _rcvs=document.getElementById('round-canvas');
+    var _rctx=_rcvs?_rcvs.getContext('2d'):null;
+    if(_rcvs){_rcvs.width=_rcvs.parentElement.offsetWidth*Math.min(devicePixelRatio,2);_rcvs.height=_rcvs.parentElement.offsetHeight*Math.min(devicePixelRatio,2);}
+    var _bfStart=Date.now();
+    var _bfDuration=2000; // 2 second bridge animation
+    var _bfColors=['#FF0000','#FF8800','#FFDD00','#44DD44','#4488FF','#4400CC','#8800CC'];
+    // Bifrost whoosh sound
+    if(sfxEnabled){var _bfCtx=ensureAudio();if(_bfCtx){var _bft=_bfCtx.currentTime;
+        var _bfo=_bfCtx.createOscillator();var _bfg=_bfCtx.createGain();
+        _bfo.type='sawtooth';_bfo.frequency.setValueAtTime(100,_bft);_bfo.frequency.exponentialRampToValueAtTime(2000,_bft+1.5);_bfo.frequency.exponentialRampToValueAtTime(100,_bft+2);
+        _bfg.gain.setValueAtTime(0.08,_bft);_bfg.gain.linearRampToValueAtTime(0.15,_bft+1);_bfg.gain.exponentialRampToValueAtTime(0.001,_bft+2);
+        _bfo.connect(_bfg);_bfg.connect(_bfCtx.destination);_bfo.start(_bft);_bfo.stop(_bft+2);
+    }}
+    var _bfAnimId=null;
+    function _drawBifrost(){
+        if(!_rctx){_startRaceCountdown();return;}
+        var W=_rcvs.width,H=_rcvs.height;
+        var t=(Date.now()-_bfStart)/_bfDuration;
+        if(t>=1){if(_bfAnimId)cancelAnimationFrame(_bfAnimId);_startRaceCountdown();return;}
+        _rctx.clearRect(0,0,W,H);
+        // Black background
+        _rctx.fillStyle='#000';_rctx.fillRect(0,0,W,H);
+        // Rainbow tunnel — converging lines from edges to center
+        var cx=W/2,cy=H/2;
+        var tunnelSize=Math.max(W,H)*(1-t*0.8);
+        for(var ri=0;ri<7;ri++){
+            var bandW=tunnelSize/7;
+            var angle=t*Math.PI*4+ri*0.3;
+            var radius=tunnelSize*0.5-ri*bandW*0.5;
+            _rctx.strokeStyle=_bfColors[ri];
+            _rctx.lineWidth=bandW*0.8;
+            _rctx.globalAlpha=0.6+Math.sin(t*10+ri)*0.3;
+            _rctx.beginPath();
+            _rctx.arc(cx,cy,Math.max(1,radius),angle,angle+Math.PI*1.2);
+            _rctx.stroke();
+        }
+        _rctx.globalAlpha=1;
+        // Sparkling stars
+        for(var si=0;si<20;si++){
+            var sa=si/20*Math.PI*2+t*8;
+            var sr=tunnelSize*0.3*(0.3+Math.sin(t*5+si)*0.7);
+            _rctx.fillStyle='#fff';
+            _rctx.globalAlpha=0.5+Math.sin(t*15+si*3)*0.5;
+            _rctx.beginPath();_rctx.arc(cx+Math.cos(sa)*sr,cy+Math.sin(sa)*sr,2+Math.sin(t*10+si)*2,0,Math.PI*2);_rctx.fill();
+        }
+        _rctx.globalAlpha=1;
+        // Center white flash at end
+        if(t>0.8){
+            var flashA=(t-0.8)/0.2;
+            _rctx.fillStyle='rgba(255,255,255,'+flashA+')';
+            _rctx.fillRect(0,0,W,H);
+        }
+        _bfAnimId=requestAnimationFrame(_drawBifrost);
+    }
+    _drawBifrost();
+    function _startRaceCountdown(){
+        startRaceBGM(raceIndex);
+        var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
+        if(raceNames[raceIndex])_showAreaName(raceNames[raceIndex]);
+        document.getElementById('round-label').textContent=race.name;
+        document.getElementById('round-name').textContent=race.desc;
+        document.getElementById('round-desc').textContent=L('rushGoal');
+        document.getElementById('player-count').textContent='🥚 × '+total;
     // Animated canvas background
     var _rcvs=document.getElementById('round-canvas');
     var _rctx=_rcvs?_rcvs.getContext('2d'):null;
@@ -2268,6 +2330,7 @@ function enterRace(raceIndex){
             }}
         }
     },1000);
+    } // end _startRaceCountdown
 }
 
 function checkRaceEnd(){
