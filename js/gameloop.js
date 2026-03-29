@@ -2155,9 +2155,12 @@ function enterRace(raceIndex){
         playerEgg=null;
     }
 
-    // Hide city
+    // Hide city + babel tower + clouds + scene objects
     cityGroup.visible=false;
     for(const npc of cityNPCs) npc.mesh.visible=false;
+    if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
+    for(var _hci=0;_hci<cityCloudPlatforms.length;_hci++){if(cityCloudPlatforms[_hci].group)cityCloudPlatforms[_hci].group.visible=false;}
+    if(window._cityAnimals)for(var _hai=0;_hai<window._cityAnimals.length;_hai++){if(window._cityAnimals[_hai]._inScene&&window._cityAnimals[_hai].group)window._cityAnimals[_hai].group.visible=false;}
 
     // Build race
     raceGroup.visible=true;

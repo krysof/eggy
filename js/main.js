@@ -204,6 +204,9 @@ function goBackToCity(){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     cityGroup.visible=true;
     for(const npc of cityNPCs) npc.mesh.visible=true;
+    if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=true;
+    for(var _sci=0;_sci<cityCloudPlatforms.length;_sci++){if(cityCloudPlatforms[_sci].group)cityCloudPlatforms[_sci].group.visible=true;}
+    if(window._cityAnimals)for(var _sai=0;_sai<window._cityAnimals.length;_sai++){if(window._cityAnimals[_sai]._inScene&&window._cityAnimals[_sai].group)window._cityAnimals[_sai].group.visible=true;}
     // Spawn near the portal they entered, offset so it won't re-trigger
     var sx=0,sz=5;
     if(currentRaceIndex>=0&&currentRaceIndex<RACES.length&&RACES[currentRaceIndex]){
