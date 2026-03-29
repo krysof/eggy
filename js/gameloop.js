@@ -667,13 +667,27 @@ function updateCity(){
                 a.group.position.set(a.x,a.y,a.z);
             } else if(a.type==='rabbit'){
                 if(a.state==='idle'){
+                    // Ear twitch + nose wiggle
+                    if(a.group.children[2])a.group.children[2].rotation.z=0.15+Math.sin(Date.now()*0.008)*0.05;
+                    if(a.group.children[8])a.group.children[8].position.z=0.3+Math.sin(Date.now()*0.015)*0.02;
                     if(a.stateTimer<=0){a.state='hop';a.stateTimer=20+Math.floor(Math.random()*40);
                         a.moveDir+=((Math.random()-0.5)*1.5);a.vx=Math.sin(a.moveDir)*0.08;a.vz=Math.cos(a.moveDir)*0.08;}
                 } else if(a.state==='hop'){
                     a.hopPhase+=0.15;a.x+=a.vx;a.z+=a.vz;
                     a.y=Math.abs(Math.sin(a.hopPhase))*0.4;
                     a.group.rotation.y=a.moveDir;
-                    if(a.stateTimer<=0){a.state='idle';a.stateTimer=60+Math.floor(Math.random()*120);a.y=0;}
+                    // Body stretch during hop
+                    var _hpct=Math.sin(a.hopPhase);
+                    if(a.group.children[0])a.group.children[0].scale.set(0.8,0.7-_hpct*0.15,1+_hpct*0.2);
+                    // Head bob
+                    if(a.group.children[1])a.group.children[1].position.y=0.38+_hpct*0.08;
+                    // Ears bounce back
+                    if(a.group.children[2])a.group.children[2].rotation.x=-_hpct*0.3;
+                    if(a.group.children[3])a.group.children[3].rotation.x=-_hpct*0.3;
+                    // Tail bounce
+                    if(a.group.children[9])a.group.children[9].position.y=0.2+Math.abs(_hpct)*0.1;
+                    if(a.stateTimer<=0){a.state='idle';a.stateTimer=60+Math.floor(Math.random()*120);a.y=0;
+                        if(a.group.children[0])a.group.children[0].scale.set(0.8,0.7,1);}
                 }
                 if(Math.abs(a.x)>_bound2){a.moveDir+=Math.PI;a.x=Math.sign(a.x)*(_bound2-1);}
                 if(Math.abs(a.z)>_bound2){a.moveDir+=Math.PI;a.z=Math.sign(a.z)*(_bound2-1);}
@@ -682,10 +696,30 @@ function updateCity(){
                 if(a.state==='walk'){
                     a.walkPhase+=0.08;a.x+=Math.sin(a.moveDir)*0.03;a.z+=Math.cos(a.moveDir)*0.03;
                     a.group.rotation.y=a.moveDir;
-                    // Gentle head bob
-                    if(a.group.children[2])a.group.children[2].position.y=1.0+Math.sin(a.walkPhase)*0.03;
-                    if(a.stateTimer<=0){a.state='idle';a.stateTimer=90+Math.floor(Math.random()*150);}
+                    // Head bob
+                    if(a.group.children[2])a.group.children[2].position.y=1.0+Math.sin(a.walkPhase)*0.05;
+                    // Body sway
+                    a.group.rotation.z=Math.sin(a.walkPhase)*0.02;
+                    // Leg animation — 4 legs alternate (children 12-19, pairs of leg+hoof)
+                    var _dWalk=a.walkPhase;
+                    for(var _dli=0;_dli<4;_dli++){
+                        var _legIdx=12+_dli*2; // leg mesh index
+                        var _legPhase=_dWalk+_dli*Math.PI/2;
+                        if(a.group.children[_legIdx]){
+                            a.group.children[_legIdx].rotation.x=Math.sin(_legPhase)*0.3;
+                            // Hoof follows
+                            if(a.group.children[_legIdx+1])a.group.children[_legIdx+1].rotation.x=Math.sin(_legPhase)*0.3;
+                        }
+                    }
+                    // Tail wag
+                    if(a.group.children[20])a.group.children[20].position.x=Math.sin(_dWalk*2)*0.03;
+                    if(a.stateTimer<=0){a.state='idle';a.stateTimer=90+Math.floor(Math.random()*150);
+                        a.group.rotation.z=0;}
                 } else if(a.state==='idle'){
+                    // Ears twitch
+                    if(a.group.children[3])a.group.children[3].rotation.z=0.4+Math.sin(Date.now()*0.006)*0.1;
+                    // Tail gentle sway
+                    if(a.group.children[20])a.group.children[20].position.x=Math.sin(Date.now()*0.003)*0.02;
                     // Look around
                     if(Math.random()<0.01)a.group.rotation.y+=(Math.random()-0.5)*0.3;
                     if(a.stateTimer<=0){a.state='walk';a.stateTimer=120+Math.floor(Math.random()*180);
@@ -731,9 +765,16 @@ function updateCity(){
                     a.x+=Math.sin(a.moveDir)*0.02;a.z+=Math.cos(a.moveDir)*0.02;
                     a.group.rotation.y=a.moveDir;
                     // Waddle side-to-side
-                    a.group.rotation.z=Math.sin(a.waddlePhase)*0.08;
-                    // Head bob
-                    if(a.group.children[1])a.group.children[1].position.y=0.3+Math.sin(a.waddlePhase*2)*0.02;
+                    a.group.rotation.z=Math.sin(a.waddlePhase)*0.12;
+                    // Body bob up/down
+                    a.group.children[0].position.y=Math.sin(a.waddlePhase*0.8)*0.03;
+                    // Head bob + look around
+                    if(a.group.children[1]){a.group.children[1].position.y=0.3+Math.sin(a.waddlePhase*2)*0.04;a.group.children[1].rotation.y=Math.sin(a.waddlePhase*0.5)*0.2;}
+                    // Tail wag
+                    if(a.group.children[5])a.group.children[5].rotation.y=Math.sin(a.waddlePhase*3)*0.3;
+                    // Feet paddle
+                    if(a.group.children[6])a.group.children[6].rotation.x=Math.sin(a.waddlePhase*2)*0.4;
+                    if(a.group.children[7])a.group.children[7].rotation.x=Math.sin(a.waddlePhase*2+Math.PI)*0.4;
                     if(a.stateTimer<=0){
                         if(Math.random()<0.3){a.state='flap';a.stateTimer=20;}
                         else{a.state='swim';a.stateTimer=80+Math.floor(Math.random()*120);a.moveDir+=(Math.random()-0.5)*1.5;}
