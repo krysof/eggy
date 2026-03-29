@@ -834,8 +834,8 @@ function _buildBabylonTower(){
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
     _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
-    // Fixed exit cloud platform at tower top — small, just enough to land on
-    _makeCloud(towerX,topY+1,towerZ,2,2,2,2.5);
+    // Fixed exit cloud platform at tower top — large enough to jump onto from rooftops
+    _makeCloud(towerX,topY+1,towerZ,3,4,3,4);
     // Add bridge clouds from tower top down to the big cloud platform
     for(var bci=0;bci<5;bci++){
         var bcx=towerX-bci*2.5;

@@ -13,6 +13,8 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
     // ---- Normal flat physics (used for all cities including moon) ----
     var grav=GRAVITY;
     egg.vy -= grav;
+    // Terminal velocity — cap fall speed so high falls have visible duration
+    if(egg.vy<-0.5)egg.vy=-0.5;
     egg._prevY=egg.mesh.position.y;
     egg.mesh.position.x += egg.vx + (egg.conveyorVx||0);
     egg.mesh.position.y += egg.vy;
