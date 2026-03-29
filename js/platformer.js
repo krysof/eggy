@@ -7,56 +7,48 @@ var _pfSavedCity=-1;
 
 function _pfStart(){try{
     _pfSavedCity=currentCityStyle;
-    // Release player from any grab/hold/piledriver state before switching
+    // Use the same enterRace flow — hide city, clear state, build level
+    cityGroup.visible=false;
+    for(var _ci2=0;_ci2<cityNPCs.length;_ci2++)cityNPCs[_ci2].mesh.visible=false;
+    // Clear player states
     if(playerEgg){
-        if(playerEgg.heldBy){playerEgg.heldBy.holding=null;playerEgg.heldBy=null;}
         if(playerEgg.holding){playerEgg.holding.heldBy=null;playerEgg.holding=null;}
-        if(playerEgg._piledriverLocked){playerEgg._piledriverLocked=false;}
+        if(playerEgg.heldBy){playerEgg.heldBy.holding=null;playerEgg.heldBy=null;}
+        playerEgg._piledriverLocked=false;playerEgg.throwTimer=0;playerEgg._stunTimer=0;
         if(playerEgg.holdingProp){playerEgg.holdingProp.grabbed=false;playerEgg.holdingProp=null;}
         if(playerEgg.holdingObs){playerEgg.holdingObs._grabbed=false;playerEgg.holdingObs=null;}
-        playerEgg.throwTimer=0;playerEgg._stunTimer=0;playerEgg._hitStun=0;
-        playerEgg._electrocuted=0;playerEgg._elecFlying=0;playerEgg._fireStun=0;
-        if(playerEgg.struggleBar){playerEgg.mesh.remove(playerEgg.struggleBar);playerEgg.struggleBar=null;}
+        scene.remove(playerEgg.mesh);
+        var _pidx=allEggs.indexOf(playerEgg);if(_pidx!==-1)allEggs.splice(_pidx,1);
+        playerEgg=null;
     }
-    // Fully clear old city using existing clearCity
-    if(typeof clearCity==='function')clearCity();
-    // Also remove player egg
-    if(playerEgg&&playerEgg.mesh)scene.remove(playerEgg.mesh);
-    // Clear allEggs
-    for(var ai=allEggs.length-1;ai>=0;ai--){scene.remove(allEggs[ai].mesh);allEggs.splice(ai,1);}
-    playerEgg=null;
-    cityNPCs.length=0;
-    // Set special city style
+    // Build platformer in raceGroup (same as race tracks)
+    raceGroup.visible=true;
     currentCityStyle=99;
-    gameState='city';
-    // Build the platformer level
     _pfBuildLevel();
-    scene.add(cityGroup);
-    // Create player
+    // Spawn player
     var ch=CHARACTERS[selectedChar];
-    playerEgg=createEgg(4,0,ch.color,ch.accent,true,scene,ch.type);
+    playerEgg=createEgg(4,0,ch.color,ch.accent,true,undefined,ch.type);
     playerEgg.mesh.position.set(4,2,0);
-    playerEgg.isPlayer=true;
-    allEggs.push(playerEgg);
-    // Pick 3 random NPC companions (different characters)
+    // Spawn 3 NPC companions
     var npcPool=[];
     for(var ci=0;ci<CHARACTERS.length;ci++){if(ci!==selectedChar)npcPool.push(ci);}
     for(var si=npcPool.length-1;si>0;si--){var sj=Math.floor(Math.random()*(si+1));var t=npcPool[si];npcPool[si]=npcPool[sj];npcPool[sj]=t;}
-    for(var ni=0;ni<3;ni++){
-        var nch=CHARACTERS[npcPool[ni]];
-        var npc=createEgg(2+ni*3,0,nch.color,nch.accent,false,scene,nch.type);
+    var total=4;
+    for(var ni=1;ni<total;ni++){
+        var nch=CHARACTERS[npcPool[(ni-1)%npcPool.length]];
+        var npc=createEgg(2+ni*3,0,nch.color,nch.accent,false,undefined,nch.type);
         npc.mesh.position.set(2+ni*3,2,(ni-1)*2);
-        npc.cityNPC=true;npc.grabCD=99999; // companions don't grab player
-        cityNPCs.push(npc);
-        allEggs.push(npc);
+        npc.grabCD=99999;
     }
     _pfActive=true;
-    // UI
+    // Use racing state + race HUD (same back button)
+    gameState='racing';
     scene.fog=null;
     if(R)R.setClearColor(0x87CEEB);
-    var hud=document.getElementById('city-hud');if(hud)hud.style.display='';
-    var tc=document.getElementById('touch-controls');if(tc)tc.classList.remove('hidden');
-    var pfBack=document.getElementById('pf-back-btn');if(pfBack)pfBack.style.display='inline-block';
+    stopBGM();startRaceBGM(0);
+    document.getElementById('city-hud').classList.add('hidden');
+    document.getElementById('race-hud').classList.remove('hidden');
+    if('ontouchstart' in window||_touchVisible){document.getElementById('touch-controls').classList.remove('hidden');}
 }catch(e){console.error('_pfStart ERROR:',e);alert('Start error: '+e.message);}}
 
 function _pfBuildLevel(){try{
@@ -79,9 +71,9 @@ function _pfBuildLevel(){try{
     // Helper: build ground segment
     function addGround(sx,sw,color,dirtColor){
         var gnd=new THREE.Mesh(new THREE.BoxGeometry(sw,1,D),toon(color));
-        gnd.position.set(sx+sw/2,-0.5,0);gnd.receiveShadow=true;cityGroup.add(gnd);
+        gnd.position.set(sx+sw/2,-0.5,0);gnd.receiveShadow=true;raceGroup.add(gnd);
         var drt=new THREE.Mesh(new THREE.BoxGeometry(sw,3,D),toon(dirtColor));
-        drt.position.set(sx+sw/2,-2.5,0);cityGroup.add(drt);
+        drt.position.set(sx+sw/2,-2.5,0);raceGroup.add(drt);
         cityColliders.push({x:sx+sw/2,z:0,hw:sw/2,hd:D/2,h:1,y:0});
     }
 
@@ -107,18 +99,18 @@ function _pfBuildLevel(){try{
         if(Math.random()>0.3)continue;
         var tuft=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.8,5),toon(0x33BB33));
         tuft.position.set(gt*T+(Math.random()-0.5)*T*0.8,0.4,(Math.random()-0.5)*D*0.6);
-        cityGroup.add(tuft);
+        raceGroup.add(tuft);
     }
     // Spike pits in forest gaps
     for(var sgi=0;sgi<z1Gaps.length;sgi++){
         var sgx1=z1Gaps[sgi][0]*T,sgx2=z1Gaps[sgi][1]*T,sgw=sgx2-sgx1;
         var pitBg=new THREE.Mesh(new THREE.BoxGeometry(sgw,5,D),toon(0x111111));
-        pitBg.position.set(sgx1+sgw/2,-3,0);cityGroup.add(pitBg);
+        pitBg.position.set(sgx1+sgw/2,-3,0);raceGroup.add(pitBg);
         // Red spikes at bottom
         for(var sp=0;sp<6;sp++){
             var spike=new THREE.Mesh(new THREE.ConeGeometry(0.4,1.5,6),toon(0xCC2222));
             spike.position.set(sgx1+1+sp*(sgw-2)/5,-1.5,(Math.random()-0.5)*D*0.5);
-            cityGroup.add(spike);
+            raceGroup.add(spike);
         }
     }
     // Floating log platforms (some crumble)
@@ -128,7 +120,7 @@ function _pfBuildLevel(){try{
         var lw=lx2-lx1;
         var logMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,lw,10),toon(0x8B6914));
         logMesh.rotation.z=Math.PI/2;
-        logMesh.position.set(lx1+lw/2,lh,0);cityGroup.add(logMesh);
+        logMesh.position.set(lx1+lw/2,lh,0);raceGroup.add(logMesh);
         var logCol={x:lx1+lw/2,z:0,hw:lw/2,hd:D/2,h:lh+0.6,y:lh-0.6};
         cityColliders.push(logCol);
         if(lCrumble){
@@ -142,16 +134,16 @@ function _pfBuildLevel(){try{
         var mx=mushrooms[mi][0]*T,my=mushrooms[mi][1];
         // Stick
         var stick=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,2,6),toon(0xEEDDCC));
-        stick.position.set(mx,1+my,0);cityGroup.add(stick);
+        stick.position.set(mx,1+my,0);raceGroup.add(stick);
         // Red cap with white spots
         var cap=new THREE.Mesh(new THREE.SphereGeometry(1.2,10,8,0,Math.PI*2,0,Math.PI/2),toon(0xDD2222));
-        cap.position.set(mx,2+my,0);cityGroup.add(cap);
+        cap.position.set(mx,2+my,0);raceGroup.add(cap);
         // White spots
         for(var ws=0;ws<4;ws++){
             var spot=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,4),toon(0xFFFFFF));
             var sa=ws*Math.PI/2;
             spot.position.set(mx+Math.cos(sa)*0.7,2.3+my,Math.sin(sa)*0.7);
-            cityGroup.add(spot);
+            raceGroup.add(spot);
         }
         var mCol={x:mx,z:0,hw:1.2,hd:1.2,h:2.5+my,y:my,_mushroom:true};
         cityColliders.push(mCol);
@@ -160,18 +152,18 @@ function _pfBuildLevel(){try{
     // Hidden cave at segment 30
     var caveX=30*T;
     var caveOuter=new THREE.Mesh(new THREE.BoxGeometry(T*5,T*3,D),toon(0x333333));
-    caveOuter.position.set(caveX,T*1.5,-D*0.3);cityGroup.add(caveOuter);
+    caveOuter.position.set(caveX,T*1.5,-D*0.3);raceGroup.add(caveOuter);
     var caveInner=new THREE.Mesh(new THREE.BoxGeometry(T*4,T*2.5,D*0.8),toon(0x111111));
-    caveInner.position.set(caveX,T*1.25,-D*0.3);cityGroup.add(caveInner);
+    caveInner.position.set(caveX,T*1.25,-D*0.3);raceGroup.add(caveInner);
     // Opening arch
     var caveArch=new THREE.Mesh(new THREE.BoxGeometry(T*2,T*2.2,1),toon(0x222222));
-    caveArch.position.set(caveX,T*1.1,D*0.2);cityGroup.add(caveArch);
+    caveArch.position.set(caveX,T*1.1,D*0.2);raceGroup.add(caveArch);
     // 10 bonus coins inside cave
     for(var cvi=0;cvi<10;cvi++){
         var cvx=caveX-T*1.5+cvi*(T*3)/9;
         var cc=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
         cc.position.set(cvx,1.5,-D*0.3);cc.rotation.x=Math.PI/2;
-        cityGroup.add(cc);
+        raceGroup.add(cc);
         cityCoins.push({mesh:cc,collected:false});
     }
     // Background trees (decorative, behind Z=-10)
@@ -179,9 +171,9 @@ function _pfBuildLevel(){try{
         var btx=Math.random()*65*T;
         var trunkH=4+Math.random()*4;
         var trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,trunkH,6),toon(0x6B4226));
-        trunk.position.set(btx,trunkH/2,-10-Math.random()*5);cityGroup.add(trunk);
+        trunk.position.set(btx,trunkH/2,-10-Math.random()*5);raceGroup.add(trunk);
         var crown=new THREE.Mesh(new THREE.SphereGeometry(2+Math.random()*1.5,8,6),toon(0x228B22));
-        crown.position.set(btx,trunkH+1,-10-Math.random()*5);cityGroup.add(crown);
+        crown.position.set(btx,trunkH+1,-10-Math.random()*5);raceGroup.add(crown);
     }
     // 2 patrolling enemies in Zone 1
     var enemyPositions=[[20,2],[50,2]];
@@ -213,7 +205,7 @@ function _pfBuildLevel(){try{
     }
     // Ceiling for cave zone
     var ceilMesh=new THREE.Mesh(new THREE.BoxGeometry(65*T,2,D*1.5),toon(0x333333));
-    ceilMesh.position.set(65*T+65*T/2,22,0);cityGroup.add(ceilMesh);
+    ceilMesh.position.set(65*T+65*T/2,22,0);raceGroup.add(ceilMesh);
     // Stalactites hanging from ceiling
     for(var sti=0;sti<30;sti++){
         var stx=65*T+Math.random()*65*T;
@@ -221,18 +213,18 @@ function _pfBuildLevel(){try{
         var stal=new THREE.Mesh(new THREE.ConeGeometry(0.4+Math.random()*0.3,stLen,6),toon(0x555555));
         stal.rotation.x=Math.PI;
         stal.position.set(stx,21-stLen/2,(Math.random()-0.5)*D);
-        cityGroup.add(stal);
+        raceGroup.add(stal);
     }
     // Lava pools in gaps
     for(var lgi=0;lgi<z2Gaps.length;lgi++){
         var lgx1=z2Gaps[lgi][0]*T,lgx2=z2Gaps[lgi][1]*T,lgw=lgx2-lgx1;
         var lava=new THREE.Mesh(new THREE.PlaneGeometry(lgw,D),toon(0xFF4400,{emissive:0xFF2200,emissiveIntensity:0.8}));
         lava.rotation.x=-Math.PI/2;
-        lava.position.set(lgx1+lgw/2,-2,0);cityGroup.add(lava);
+        lava.position.set(lgx1+lgw/2,-2,0);raceGroup.add(lava);
         // Lava glow
         var lavaGlow=new THREE.Mesh(new THREE.PlaneGeometry(lgw+2,D+2),toon(0xFF6600,{emissive:0xFF4400,emissiveIntensity:0.5}));
         lavaGlow.rotation.x=-Math.PI/2;
-        lavaGlow.position.set(lgx1+lgw/2,-2.1,0);cityGroup.add(lavaGlow);
+        lavaGlow.position.set(lgx1+lgw/2,-2.1,0);raceGroup.add(lavaGlow);
         window._pfLavaColliders.push({x:lgx1+lgw/2,z:0,hw:lgw/2,hd:D/2,y:-2});
     }
     // 4 moving platforms in cave
@@ -241,7 +233,7 @@ function _pfBuildLevel(){try{
         var mpSeg=mpDefs[mpi][0],mpH=mpDefs[mpi][1],mpRange=mpDefs[mpi][2],mpSpd=mpDefs[mpi][3],mpPh=mpDefs[mpi][4];
         var mpX=mpSeg*T;
         var mpMesh=new THREE.Mesh(new THREE.BoxGeometry(T*2,0.8,D),toon(0x6666AA));
-        mpMesh.position.set(mpX,mpH,0);cityGroup.add(mpMesh);
+        mpMesh.position.set(mpX,mpH,0);raceGroup.add(mpMesh);
         var mpCol={x:mpX,z:0,hw:T,hd:D/2,h:mpH+0.4,y:mpH-0.4};
         cityColliders.push(mpCol);
         window._pfMovingPlatforms.push({mesh:mpMesh,collider:mpCol,baseX:mpX,range:mpRange,speed:mpSpd,phase:mpPh});
@@ -254,7 +246,7 @@ function _pfBuildLevel(){try{
         if(inGapCr)continue;
         var crystal=new THREE.Mesh(new THREE.OctahedronGeometry(0.5,0),toon(0x00FFFF,{emissive:0x00AAAA,emissiveIntensity:0.5}));
         crystal.position.set(crx,1.5+Math.random()*2,0);
-        cityGroup.add(crystal);
+        raceGroup.add(crystal);
         // Crystals are worth 3 coins, push 3 coin entries for same mesh
         cityCoins.push({mesh:crystal,collected:false});
         cityCoins.push({mesh:crystal,collected:false,_linked:true});
@@ -265,10 +257,10 @@ function _pfBuildLevel(){try{
         var tlx=tli*T;
         for(var tside=-1;tside<=1;tside+=2){
             var torch=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,6),toon(0xFF8800,{emissive:0xFF6600,emissiveIntensity:0.9}));
-            torch.position.set(tlx,3,tside*D*0.5);cityGroup.add(torch);
+            torch.position.set(tlx,3,tside*D*0.5);raceGroup.add(torch);
             // Torch bracket
             var bracket=new THREE.Mesh(new THREE.BoxGeometry(0.2,1.5,0.2),toon(0x444444));
-            bracket.position.set(tlx,2,tside*D*0.5);cityGroup.add(bracket);
+            bracket.position.set(tlx,2,tside*D*0.5);raceGroup.add(bracket);
         }
     }
     // Golden key at segment 90
@@ -283,15 +275,15 @@ function _pfBuildLevel(){try{
     var keyBit2=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.15,0.15),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.6}));
     keyBit2.position.set(0.15,-1.2,0);keyMesh.add(keyBit2);
     keyMesh.position.set(keyX,3,0);
-    cityGroup.add(keyMesh);
+    raceGroup.add(keyMesh);
     window._pfKeyMesh=keyMesh;
     // Locked door at segment 120
     var doorX=120*T;
     var lockDoor=new THREE.Mesh(new THREE.BoxGeometry(T*1.5,T*4,D),toon(0x884422));
-    lockDoor.position.set(doorX,T*2,0);cityGroup.add(lockDoor);
+    lockDoor.position.set(doorX,T*2,0);raceGroup.add(lockDoor);
     // Lock icon on door
     var lockIcon=new THREE.Mesh(new THREE.TorusGeometry(0.8,0.2,8,8),toon(0xFFDD00));
-    lockIcon.position.set(doorX,T*2.5,D*0.51);cityGroup.add(lockIcon);
+    lockIcon.position.set(doorX,T*2.5,D*0.51);raceGroup.add(lockIcon);
     var doorCol={x:doorX,z:0,hw:T*0.75,hd:D/2,h:T*4,y:0,_door:true};
     cityColliders.push(doorCol);
     window._pfDoorCollider=doorCol;
@@ -303,7 +295,7 @@ function _pfBuildLevel(){try{
         var rx=rockSegs[ri]*T;
         var rockMesh=new THREE.Mesh(new THREE.DodecahedronGeometry(1.2,0),toon(0x666666));
         rockMesh.position.set(rx,20,(Math.random()-0.5)*D*0.4);
-        cityGroup.add(rockMesh);
+        raceGroup.add(rockMesh);
         window._pfFallingRocks.push({mesh:rockMesh,triggerX:rx,triggered:false,falling:false,vy:0});
     }
 
@@ -322,12 +314,12 @@ function _pfBuildLevel(){try{
         var skw=skx2-skx1;
         // Cloud platform (white fluffy)
         var cloudBase=new THREE.Mesh(new THREE.BoxGeometry(skw,1.5,D),toon(0xEEEEFF));
-        cloudBase.position.set(skx1+skw/2,skh,0);cityGroup.add(cloudBase);
+        cloudBase.position.set(skx1+skw/2,skh,0);raceGroup.add(cloudBase);
         // Fluffy top
         for(var cf=0;cf<3;cf++){
             var puff=new THREE.Mesh(new THREE.SphereGeometry(1+Math.random()*0.8,8,6),toon(0xFFFFFF));
             puff.position.set(skx1+skw/2+(cf-1)*skw*0.3,skh+0.8,(Math.random()-0.5)*D*0.3);
-            cityGroup.add(puff);
+            raceGroup.add(puff);
         }
         cityColliders.push({x:skx1+skw/2,z:0,hw:skw/2,hd:D/2,h:skh+0.75,y:skh-0.75});
     }
@@ -337,7 +329,7 @@ function _pfBuildLevel(){try{
         var chSeg=chainStart+chi*5;
         var chx=chSeg*T,chh=8+Math.sin(chi*0.8)*3;
         var chPlat=new THREE.Mesh(new THREE.BoxGeometry(T,0.6,D*0.7),toon(0xDDDDFF));
-        chPlat.position.set(chx,chh,0);cityGroup.add(chPlat);
+        chPlat.position.set(chx,chh,0);raceGroup.add(chPlat);
         cityColliders.push({x:chx,z:0,hw:T/2,hd:D*0.35,h:chh+0.3,y:chh-0.3});
     }
     // Wind gust zones (visual + effect)
@@ -349,7 +341,7 @@ function _pfBuildLevel(){try{
         for(var wvi=0;wvi<8;wvi++){
             var streak=new THREE.Mesh(new THREE.BoxGeometry(3,0.05,0.05),toon(0xCCDDFF,{transparent:true,opacity:0.4}));
             streak.position.set(wz1+Math.random()*(wz2-wz1),5+Math.random()*12,(Math.random()-0.5)*D);
-            cityGroup.add(streak);
+            raceGroup.add(streak);
         }
     }
     // Rotating platforms (4 platforms orbiting center points)
@@ -358,10 +350,10 @@ function _pfBuildLevel(){try{
         var rcx=rotCenters[rci][0]*T,rcy=rotCenters[rci][1];
         // Center post (decorative)
         var post=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,1,6),toon(0x888888));
-        post.position.set(rcx,rcy,0);cityGroup.add(post);
+        post.position.set(rcx,rcy,0);raceGroup.add(post);
         // Rotating platform arm
         var armMesh=new THREE.Mesh(new THREE.BoxGeometry(T*2,0.6,D*0.6),toon(0xAAAADD));
-        armMesh.position.set(rcx+T*2,rcy,0);cityGroup.add(armMesh);
+        armMesh.position.set(rcx+T*2,rcy,0);raceGroup.add(armMesh);
         var armCol={x:rcx+T*2,z:0,hw:T,hd:D*0.3,h:rcy+0.3,y:rcy-0.3};
         cityColliders.push(armCol);
         window._pfRotatingPlatforms.push({mesh:armMesh,collider:armCol,centerX:rcx,centerY:rcy,radius:T*2,angle:rci*Math.PI/2,speed:0.008+rci*0.002});
@@ -369,12 +361,12 @@ function _pfBuildLevel(){try{
     // Boss arena (large flat platform segments 190-198)
     var bossX1=190*T,bossX2=198*T,bossW=bossX2-bossX1;
     var bossPlat=new THREE.Mesh(new THREE.BoxGeometry(bossW,2,D*1.5),toon(0x8888AA));
-    bossPlat.position.set(bossX1+bossW/2,6,0);cityGroup.add(bossPlat);
+    bossPlat.position.set(bossX1+bossW/2,6,0);raceGroup.add(bossPlat);
     cityColliders.push({x:bossX1+bossW/2,z:0,hw:bossW/2,hd:D*0.75,h:7,y:5});
     // Boss arena pillars
     for(var bpi=-1;bpi<=1;bpi+=2){
         var bPillar=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,8,8),toon(0x666688));
-        bPillar.position.set(bossX1+bossW/2+bpi*(bossW/2-2),11,0);cityGroup.add(bPillar);
+        bPillar.position.set(bossX1+bossW/2+bpi*(bossW/2-2),11,0);raceGroup.add(bPillar);
     }
     // Boss enemy (larger NPC, scale 1.5)
     var bossEnemy=createEgg(bossX1+bossW/2,0,0xFF2222,0x880000,false,scene,'egg');
@@ -387,33 +379,33 @@ function _pfBuildLevel(){try{
     // Final castle (bigger version)
     var castleX=(L-3)*T;
     var castle=new THREE.Mesh(new THREE.BoxGeometry(T*10,T*8,D*2),toon(0xAA8866));
-    castle.position.set(castleX,T*4,0);cityGroup.add(castle);
+    castle.position.set(castleX,T*4,0);raceGroup.add(castle);
     cityColliders.push({x:castleX,z:0,hw:T*5,hd:D,h:T*8,y:0});
     var cdoor=new THREE.Mesh(new THREE.BoxGeometry(T*2,T*3.5,1),toon(0x442200));
-    cdoor.position.set(castleX,T*1.75,D);cityGroup.add(cdoor);
+    cdoor.position.set(castleX,T*1.75,D);raceGroup.add(cdoor);
     // 4 turrets
     for(var cti=-1;cti<=1;cti+=2){
         for(var ctj=-1;ctj<=1;ctj+=2){
             var turret=new THREE.Mesh(new THREE.CylinderGeometry(T*0.8,T*1,T*3,8),toon(0x998877));
-            turret.position.set(castleX+cti*T*4,T*9.5,ctj*D*0.6);cityGroup.add(turret);
+            turret.position.set(castleX+cti*T*4,T*9.5,ctj*D*0.6);raceGroup.add(turret);
             var tcone=new THREE.Mesh(new THREE.ConeGeometry(T*1,T*2,8),toon(0xCC4444));
-            tcone.position.set(castleX+cti*T*4,T*12,ctj*D*0.6);cityGroup.add(tcone);
+            tcone.position.set(castleX+cti*T*4,T*12,ctj*D*0.6);raceGroup.add(tcone);
         }
     }
     // Flag pole at castle
     var pole=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,T*14,6),toon(0x888888));
-    pole.position.set(castleX,T*7+T*7,0);cityGroup.add(pole);
+    pole.position.set(castleX,T*7+T*7,0);raceGroup.add(pole);
     var flag=new THREE.Mesh(new THREE.PlaneGeometry(T*3,T*1.5),new THREE.MeshBasicMaterial({color:0xFF4444,side:THREE.DoubleSide}));
-    flag.position.set(castleX+T*1.5,T*13,0);cityGroup.add(flag);
+    flag.position.set(castleX+T*1.5,T*13,0);raceGroup.add(flag);
 
     // ================================================================
     //  SKY + CLOUDS (shared across all zones)
     // ================================================================
     var sky=new THREE.Mesh(new THREE.PlaneGeometry(W+200,200),new THREE.MeshBasicMaterial({color:0x87CEEB,side:THREE.DoubleSide}));
-    sky.position.set(W/2,50,-D*3);cityGroup.add(sky);
+    sky.position.set(W/2,50,-D*3);raceGroup.add(sky);
     // Cave background for Zone 2
     var caveBg=new THREE.Mesh(new THREE.PlaneGeometry(65*T+20,60),new THREE.MeshBasicMaterial({color:0x111118,side:THREE.DoubleSide}));
-    caveBg.position.set(65*T+65*T/2,10,-D*2);cityGroup.add(caveBg);
+    caveBg.position.set(65*T+65*T/2,10,-D*2);raceGroup.add(caveBg);
     // Clouds (more for sky zone)
     for(var ci2=0;ci2<30;ci2++){
         var cloud=new THREE.Group();
@@ -422,7 +414,7 @@ function _pfBuildLevel(){try{
             cb.position.set(ccp*2.5-2.5,Math.random()*0.5,0);cloud.add(cb);
         }
         cloud.position.set(Math.random()*W,25+Math.random()*25,-D*2-Math.random()*10);
-        cityGroup.add(cloud);
+        raceGroup.add(cloud);
     }
 
     // ================================================================
@@ -436,7 +428,7 @@ function _pfBuildLevel(){try{
         if(c1InGap){c1i--;continue;}
         var c1=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
         c1.position.set(c1x,1.2+Math.random()*3,0);c1.rotation.x=Math.PI/2;
-        cityGroup.add(c1);
+        raceGroup.add(c1);
         cityCoins.push({mesh:c1,collected:false});
     }
     // Zone 2: 10 coins (+ crystals already added above)
@@ -447,7 +439,7 @@ function _pfBuildLevel(){try{
         if(c2InGap){c2i--;continue;}
         var c2=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
         c2.position.set(c2x,1.2+Math.random()*2,0);c2.rotation.x=Math.PI/2;
-        cityGroup.add(c2);
+        raceGroup.add(c2);
         cityCoins.push({mesh:c2,collected:false});
     }
     // Zone 3: 15 coins floating near platforms
@@ -457,7 +449,7 @@ function _pfBuildLevel(){try{
         var c3x=c3p[0]*T+Math.random()*(c3p[1]-c3p[0])*T;
         var c3=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
         c3.position.set(c3x,c3p[2]+2+Math.random()*2,0);c3.rotation.x=Math.PI/2;
-        cityGroup.add(c3);
+        raceGroup.add(c3);
         cityCoins.push({mesh:c3,collected:false});
     }
 }catch(e){console.error('_pfBuildLevel ERROR:',e);alert('Level build error: '+e.message);}}
@@ -498,7 +490,7 @@ function _pfUpdateMoving(){try{
                 cp.mesh.position.y-=0.01;
                 cp.mesh.rotation.z+=0.02;
                 if(cp.timer<=0){
-                    cityGroup.remove(cp.mesh);
+                    raceGroup.remove(cp.mesh);
                     var idx=cityColliders.indexOf(cp.collider);
                     if(idx!==-1)cityColliders.splice(idx,1);
                     window._pfCrumblePlatforms.splice(j,1);
@@ -518,7 +510,7 @@ function _pfUpdateMoving(){try{
                 fr.mesh.position.y+=fr.vy;
                 fr.mesh.rotation.x+=0.03;fr.mesh.rotation.z+=0.02;
                 if(fr.mesh.position.y<-5){
-                    cityGroup.remove(fr.mesh);
+                    raceGroup.remove(fr.mesh);
                     window._pfFallingRocks.splice(fri,1);
                 }
             }
@@ -543,11 +535,11 @@ function _pfUpdateCamera(){try{
     if(!_pfActive||!playerEgg)return;
     // Update dynamic elements
     _pfUpdateMoving();
-    // Restrict Z for all eggs
+    // Lock Z axis — side-scrolling only (left/right + jump)
     for(var i=0;i<allEggs.length;i++){
         if(!allEggs[i]||!allEggs[i].mesh)continue;
-        allEggs[i].mesh.position.z=Math.max(-5,Math.min(5,allEggs[i].mesh.position.z));
-        allEggs[i].vz*=0.3;
+        allEggs[i].mesh.position.z=0;
+        allEggs[i].vz=0;
     }
     // Crumbling platform detection
     if(window._pfCrumblePlatforms&&playerEgg&&playerEgg.onGround){
@@ -597,7 +589,7 @@ function _pfUpdateCamera(){try{
         var kd=playerEgg.mesh.position.distanceTo(window._pfKeyMesh.position);
         if(kd<3){
             window._pfHasKey=true;
-            cityGroup.remove(window._pfKeyMesh);
+            raceGroup.remove(window._pfKeyMesh);
             window._pfKeyMesh=null;
         }
     }
@@ -605,8 +597,8 @@ function _pfUpdateCamera(){try{
     if(window._pfHasKey&&window._pfDoorCollider){
         var didx=cityColliders.indexOf(window._pfDoorCollider);
         if(didx!==-1)cityColliders.splice(didx,1);
-        if(window._pfDoorMesh){cityGroup.remove(window._pfDoorMesh);window._pfDoorMesh=null;}
-        if(window._pfDoorLockIcon){cityGroup.remove(window._pfDoorLockIcon);window._pfDoorLockIcon=null;}
+        if(window._pfDoorMesh){raceGroup.remove(window._pfDoorMesh);window._pfDoorMesh=null;}
+        if(window._pfDoorLockIcon){raceGroup.remove(window._pfDoorLockIcon);window._pfDoorLockIcon=null;}
         window._pfDoorCollider=null;
     }
     // Side camera
@@ -621,7 +613,6 @@ function _pfUpdateCamera(){try{
 // ---- End platformer ----
 function _pfEndGame(){
     _pfActive=false;
-    var pfBack=document.getElementById('pf-back-btn');if(pfBack)pfBack.style.display='none';
     currentCityStyle=_pfSavedCity>=0?_pfSavedCity:0;
-    if(typeof switchCity==='function')switchCity(currentCityStyle);
+    if(typeof goBackToCity==='function')goBackToCity();
 }
