@@ -7,6 +7,17 @@ var _pfSavedCity=-1;
 
 function _pfStart(){try{
     _pfSavedCity=currentCityStyle;
+    // Release player from any grab/hold/piledriver state before switching
+    if(playerEgg){
+        if(playerEgg.heldBy){playerEgg.heldBy.holding=null;playerEgg.heldBy=null;}
+        if(playerEgg.holding){playerEgg.holding.heldBy=null;playerEgg.holding=null;}
+        if(playerEgg._piledriverLocked){playerEgg._piledriverLocked=false;}
+        if(playerEgg.holdingProp){playerEgg.holdingProp.grabbed=false;playerEgg.holdingProp=null;}
+        if(playerEgg.holdingObs){playerEgg.holdingObs._grabbed=false;playerEgg.holdingObs=null;}
+        playerEgg.throwTimer=0;playerEgg._stunTimer=0;playerEgg._hitStun=0;
+        playerEgg._electrocuted=0;playerEgg._elecFlying=0;playerEgg._fireStun=0;
+        if(playerEgg.struggleBar){playerEgg.mesh.remove(playerEgg.struggleBar);playerEgg.struggleBar=null;}
+    }
     // Fully clear old city using existing clearCity
     if(typeof clearCity==='function')clearCity();
     // Also remove player egg

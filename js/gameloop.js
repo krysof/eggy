@@ -2141,12 +2141,14 @@ function enterRace(raceIndex){
     document.getElementById('touch-controls').classList.add('hidden');
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
 
-    // Clear player grab states before leaving city
+    // Clear ALL player states before leaving city
     if(playerEgg){
         if(playerEgg.holding){var h2=playerEgg.holding;h2.heldBy=null;playerEgg.holding=null;if(h2.struggleBar){h2.mesh.remove(h2.struggleBar);h2.struggleBar=null;}}
         if(playerEgg.heldBy){var hdr2=playerEgg.heldBy;hdr2.holding=null;playerEgg.heldBy=null;if(playerEgg.struggleBar){playerEgg.mesh.remove(playerEgg.struggleBar);playerEgg.struggleBar=null;}}
         if(playerEgg.holdingObs){playerEgg.holdingObs._grabbed=false;playerEgg.holdingObs=null;}
         if(playerEgg.holdingProp){playerEgg.holdingProp.grabbed=false;playerEgg.holdingProp=null;}
+        playerEgg._piledriverLocked=false;playerEgg.throwTimer=0;playerEgg._stunTimer=0;playerEgg._hitStun=0;
+        playerEgg._electrocuted=0;playerEgg._elecFlying=0;playerEgg._fireStun=0;
         scene.remove(playerEgg.mesh);
         const idx=allEggs.indexOf(playerEgg);
         if(idx!==-1) allEggs.splice(idx,1);
