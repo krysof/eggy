@@ -2432,29 +2432,43 @@ function enterRace(raceIndex){
             // Camera shake intensifies
             camera.position.x+=Math.sin(elapsed*0.06)*0.15*p2;
         }
-        // --- Phase 3: Flash + Transition (0.75 - 1.0 = 2s) ---
+        // --- Phase 3: Fly through sky + descend to race track (0.75 - 1.0 = 2s) ---
         else{
-            var p3=(t-0.75)/0.25; // 0..1 within phase 3
-            // White flash plane tracks camera
+            var p3=(t-0.75)/0.25;
+            // Hide pillars/rings/particles during travel
+            for(var _hp=0;_hp<_bfPillars.length;_hp++)_bfPillars[_hp].visible=false;
+            for(var _hr=0;_hr<_bfRings.length;_hr++)_bfRings[_hr].visible=false;
+            for(var _hrn=0;_hrn<_bfRunes.length;_hrn++)_bfRunes[_hrn].visible=false;
+            for(var _hpt=0;_hpt<_bfParticles.length;_hpt++)_bfParticles[_hpt].mesh.visible=false;
+            // White flash at start of phase 3 to switch scenes
             _bfFlash.position.copy(camera.position);
             _bfFlash.quaternion.copy(camera.quaternion);
             _bfFlash.translateZ(-1);
-            // Flash opacity: quick in, hold, quick out
-            if(p3<0.4){
-                _bfFlash.material.opacity=p3/0.4;
-            }else if(p3<0.7){
+            if(p3<0.15){
+                _bfFlash.material.opacity=p3/0.15;
+            }else if(p3<0.3){
                 _bfFlash.material.opacity=1;
+                // Switch scene during peak flash
+                if(!_bfCityHidden){
+                    _bfCityHidden=true;
+                    cityGroup.visible=false;
+                    for(var _hn=0;_hn<cityNPCs.length;_hn++)cityNPCs[_hn].mesh.visible=false;
+                    if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
+                    for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
+                    if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
+                    raceGroup.visible=true;
+                }
             }else{
-                _bfFlash.material.opacity=1-(p3-0.7)/0.3;
-            }
-            // During peak flash, hide city and show race track
-            if(p3>0.3&&!_bfCityHidden){
-                _bfCityHidden=true;
-                cityGroup.visible=false;
-                if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
-                for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
-                if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
-                raceGroup.visible=true;
+                // Descend to race track — bezier arc from sky to start position
+                var _landP=(p3-0.3)/0.7; // 0..1 for landing phase
+                _bfFlash.material.opacity=Math.max(0,1-_landP*3); // fade out flash
+                var _skyY=80,_startY=5;
+                var _arcY=_skyY+(Math.sin(_landP*Math.PI)*30)-(_skyY-_startY)*_landP;
+                playerEgg.mesh.position.set(0,_arcY,0);
+                playerEgg.mesh.rotation.y+=0.1*(1-_landP);
+                // Camera follows descent
+                camera.position.set(0,_arcY+10,14);
+                camera.lookAt(0,_arcY,0);
             }
             // Fade pillars and rings
             for(var _ri4=0;_ri4<_bfRings.length;_ri4++){
