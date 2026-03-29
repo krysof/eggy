@@ -2471,6 +2471,15 @@ function _gameUpdate(){
         }
         resolveEggCollisions(raceEggs);
         checkThrownEggImpact(raceEggs);
+        // Platformer: force-release any grabs (no grab mechanic in 2D)
+        if(_pfActive){
+            for(var _fgi=0;_fgi<raceEggs.length;_fgi++){
+                var _fge=raceEggs[_fgi];
+                if(_fge.heldBy){_fge.heldBy.holding=null;_fge.heldBy=null;}
+                if(_fge.holding){_fge.holding.heldBy=null;_fge.holding=null;}
+                _fge.grabCD=99999;
+            }
+        }
         updateHeldEggs();
                 // Race coin collection + animation
         for(var ci=0;ci<raceCoins.length;ci++){
