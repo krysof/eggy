@@ -671,6 +671,8 @@ function addClouds(){
         cityCoins.push({mesh:coin,collected:false,baseY:ccY,inScene:true});
     }
     // ---- Moon Warp Pipe in cloud world center ----
+    // Ensure solid cloud platform under moon pipe
+    _makeCloud(0,cwY-1,0,5,6,6,8);
     _buildCloudWorldMoonPipe(0,cwY,0);
 }
 function _buildCloudWorldMoonPipe(px,py,pz){
@@ -832,6 +834,8 @@ function _buildBabylonTower(){
     g.position.set(towerX,_babylonRiseY,towerZ);
     scene.add(g);
     _babylonTower={group:g,x:towerX,z:towerZ,pipeX:towerX,pipeZ:towerZ,topY:topY,baseW:baseW,baseD:baseD,_collidersAdded:false};
+    // Fixed exit cloud platform at tower top — always there to land on
+    _makeCloud(towerX,topY+1,towerZ,4,5,4,6);
     // Add bridge clouds from tower top down to the big cloud platform
     for(var bci=0;bci<5;bci++){
         var bcx=towerX-bci*2.5;

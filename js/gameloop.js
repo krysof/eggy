@@ -595,22 +595,10 @@ function updateCity(){
         playerEgg.mesh.position.set(bt2.x,_babylonElevY,bt2.z);
         playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
         playerEgg.onGround=true;
-        // Arrived at top — place on nearest cloud platform
+        // Arrived at top — land on fixed exit cloud at tower top
         if(_babylonElevDir===1&&_babylonElevY>=bt2.topY+1){
             _babylonElevator=false;
-            // Find the nearest cloud platform near tower top to land on
-            var _bestCloud=null,_bestCloudDist=9999;
-            for(var _bci3=0;_bci3<cityCloudPlatforms.length;_bci3++){
-                var _bc3=cityCloudPlatforms[_bci3];
-                var _bcdx3=_bc3.x-bt2.x,_bcdz3=_bc3.z-bt2.z,_bcdy3=Math.abs(_bc3.y-bt2.topY);
-                var _bcd3=Math.sqrt(_bcdx3*_bcdx3+_bcdz3*_bcdz3)+_bcdy3;
-                if(_bcd3<_bestCloudDist){_bestCloudDist=_bcd3;_bestCloud=_bc3;}
-            }
-            if(_bestCloud){
-                playerEgg.mesh.position.set(_bestCloud.x,_bestCloud.y+(_bestCloud.top||1.2)+0.1,_bestCloud.z);
-            } else {
-                playerEgg.mesh.position.set(bt2.x,bt2.topY+1,bt2.z);
-            }
+            playerEgg.mesh.position.set(bt2.x,bt2.topY+2.5,bt2.z);
             playerEgg.vy=0;playerEgg.onGround=true;
             _babylonPromptDismissed=true;
             _showCloudAreaName();
