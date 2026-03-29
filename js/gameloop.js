@@ -344,10 +344,11 @@ function updateCity(){
     var _nearP=null, _nearD=9999;
     for(var pi=0;pi<portals.length;pi++){
         var _dx=px-portals[pi].x, _dz=pz-portals[pi].z;
-        var _dy=(currentCityStyle===5)?(py-(portals[pi].y||0)):0;
-        var _d=Math.sqrt(_dx*_dx+_dz*_dz+_dy*_dy);
-        // Ground portals: only trigger when player is near ground level (y < 4)
-        if(currentCityStyle!==5&&py>4)continue;
+        var _ppy=portals[pi].y||0;
+        var _dy=py-_ppy;
+        // Only trigger when player is within 5 units height of portal
+        if(Math.abs(_dy)>5)continue;
+        var _d=Math.sqrt(_dx*_dx+_dz*_dz);
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
     // Only trigger portal when player is walking normally (not thrown, stunned, dashing, spinning, held, etc.)
