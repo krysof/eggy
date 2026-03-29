@@ -61,7 +61,7 @@
   </div>
 
   <!-- Sound & language toggles -->
-  <div id="sound-controls" style="position:absolute;top:12px;right:12px;z-index:20;display:flex;gap:6px;">
+  <div id="sound-controls" style="position:absolute;top:8px;right:8px;z-index:20;display:flex;gap:clamp(2px,1vw,6px);flex-wrap:wrap;justify-content:flex-end;max-width:50vw;">
     <button id="gamepad-btn" class="sound-toggle" title="Virtual Buttons">🎮</button>
     <button id="lang-btn" class="sound-toggle" title="Language">🌐</button>
     <button id="music-btn" class="sound-toggle" title="Music">🎵</button>
@@ -78,8 +78,8 @@
     <div class="hud-top">
       <span class="hud-pill" id="city-name-hud">🏙️ Egg City</span>
       <span class="hud-pill" id="coin-hud">⭐ 0</span>
-      <span class="hud-pill">F Grab/Throw | Hold to Charge</span>
-      <span class="hud-pill" id="zoom-hud">Scroll Zoom</span>
+      <span class="hud-pill hud-desktop-only">F Grab/Throw | Hold to Charge</span>
+      <span class="hud-pill hud-desktop-only" id="zoom-hud">Scroll Zoom</span>
       <button class="hud-pill hud-btn" id="spectator-btn" style="display:none;">👁 Spectator</button>
     </div>
   </div>
