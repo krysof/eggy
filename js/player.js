@@ -24,9 +24,7 @@ function handlePlayerInput(){
     if(!playerEgg||!playerEgg.alive)return;
     if(_portalConfirmOpen)return;
     if(playerEgg.finished&&gameState==='racing')return;
-    // Cannot control during fall respawn penalty
     if(playerEgg._fallPenalty>0)return;
-    // Cannot control while being piledrivered or held by NPC piledriver
     if(playerEgg.heldBy)return;
     // Cannot control while thrown or stunned (except struggle when held)
     if(playerEgg.throwTimer>0||playerEgg._stunTimer>0){

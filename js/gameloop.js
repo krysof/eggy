@@ -2483,12 +2483,14 @@ function _gameUpdate(){
                     egg.vz=0;egg.mesh.position.z=0;
                 } else {
                     updateRaceAI(egg);
-                    // Only use city AI combat (force chase state, skip movement)
-                    egg._aiState='chase';
-                    var _savedVx=egg.vx,_savedVz=egg.vz;
-                    updateCityNPC(egg);
-                    // Restore race AI movement (city AI may have overridden it)
-                    egg.vx=_savedVx;egg.vz=_savedVz;
+                    // City AI combat only after initial 3 seconds (avoid start-line chaos)
+                    if(!egg._raceCombatCD)egg._raceCombatCD=180;
+                    if(egg._raceCombatCD>0){egg._raceCombatCD--;} else {
+                        egg._aiState='chase';
+                        var _savedVx=egg.vx,_savedVz=egg.vz;
+                        updateCityNPC(egg);
+                        egg.vx=_savedVx;egg.vz=_savedVz;
+                    }
                 }
             }
             updateEggPhysics(egg, _pfActive); // platformer uses city physics (ground colliders)
