@@ -177,10 +177,10 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
                 var roofY=c.h||6;
-                // Babel tower: wider landing range but skip if egg came from far above (charge-jump to cloud)
-                var landBelow=c._babel?6.0:1.0;
+                // Babel tower: skip roof snap if player is on/near clouds (above roofY)
+                var landBelow=1.0;
                 var skipBabelSnap=false;
-                if(c._babel&&egg._prevY&&egg._prevY>roofY+10){skipBabelSnap=true;}
+                if(c._babel&&egg.mesh.position.y>roofY-2){skipBabelSnap=true;}
                 // On top of building body — land on roof (penetration correction only)
                 if(!skipBabelSnap&&Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd&&egg.vy<=0&&egg.mesh.position.y<=roofY+0.05&&egg.mesh.position.y>=roofY-landBelow){
                     egg.mesh.position.y=roofY+0.01;egg.vy=0;egg.onGround=true;
