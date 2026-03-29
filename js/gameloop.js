@@ -2454,6 +2454,10 @@ function _gameUpdate(){
         for(var _nci=0;_nci<allEggs.length;_nci++){if(!allEggs[_nci].isPlayer)_npcRandomChat(allEggs[_nci]);}
         if(_pfActive&&typeof _pfUpdateCamera==='function'){_pfUpdateCamera();}else{updateCamera();}
     } else if(gameState==='racing'){
+        // Safety: release player if holder is not in allEggs (stale grab from city mode)
+        if(playerEgg&&playerEgg.heldBy&&allEggs.indexOf(playerEgg.heldBy)===-1){
+            playerEgg.heldBy=null;if(playerEgg.struggleBar){playerEgg.mesh.remove(playerEgg.struggleBar);playerEgg.struggleBar=null;}
+        }
         handlePlayerInput();
         const raceEggs=allEggs.filter(e=>!e.cityNPC);
         for(const egg of raceEggs){
