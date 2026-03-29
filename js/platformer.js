@@ -46,7 +46,7 @@ function _pfStart(){try{
         var nch=CHARACTERS[npcPool[ni]];
         var npc=createEgg(2+ni*3,0,nch.color,nch.accent,false,scene,nch.type);
         npc.mesh.position.set(2+ni*3,2,(ni-1)*2);
-        npc.cityNPC=true;
+        npc.cityNPC=true;npc.grabCD=99999; // companions don't grab player
         cityNPCs.push(npc);
         allEggs.push(npc);
     }
@@ -188,7 +188,7 @@ function _pfBuildLevel(){try{
         var ex=enemyPositions[ei][0]*T,ey=enemyPositions[ei][1];
         var enemy=createEgg(ex,0,0xCC3333,0x880000,false,scene,'egg');
         enemy.mesh.position.set(ex,ey,0);
-        enemy.cityNPC=true;
+        enemy.cityNPC=true;enemy.grabCD=99999; // enemies don't grab in platformer
         enemy._patrolBaseX=ex;enemy._patrolRange=T*4;enemy._patrolSpeed=0.03;enemy._patrolPhase=Math.random()*Math.PI*2;
         cityNPCs.push(enemy);
         allEggs.push(enemy);
@@ -379,7 +379,7 @@ function _pfBuildLevel(){try{
     var bossEnemy=createEgg(bossX1+bossW/2,0,0xFF2222,0x880000,false,scene,'egg');
     bossEnemy.mesh.position.set(bossX1+bossW/2,8,0);
     bossEnemy.mesh.scale.set(1.5,1.5,1.5);
-    bossEnemy.cityNPC=true;
+    bossEnemy.cityNPC=true;bossEnemy.grabCD=99999;
     bossEnemy._patrolBaseX=bossX1+bossW/2;bossEnemy._patrolRange=bossW/2-4;bossEnemy._patrolSpeed=0.02;bossEnemy._patrolPhase=0;
     cityNPCs.push(bossEnemy);
     allEggs.push(bossEnemy);
@@ -462,7 +462,7 @@ function _pfBuildLevel(){try{
 }catch(e){console.error('_pfBuildLevel ERROR:',e);}}
 
 // ---- Moving / dynamic platform updates ----
-function _pfUpdateMoving(){
+function _pfUpdateMoving(){try{
     if(!_pfActive)return;
     // Moving platforms
     if(window._pfMovingPlatforms){
@@ -535,10 +535,10 @@ function _pfUpdateMoving(){
         window._pfKeyMesh.rotation.y+=0.03;
         window._pfKeyMesh.position.y=3+Math.sin(Date.now()*0.003)*0.5;
     }
-}
+}catch(e){console.error('_pfUpdateMoving ERROR:',e);}}
 
 // ---- Side-view camera ----
-function _pfUpdateCamera(){
+function _pfUpdateCamera(){try{
     if(!_pfActive||!playerEgg)return;
     // Update dynamic elements
     _pfUpdateMoving();
@@ -615,7 +615,7 @@ function _pfUpdateCamera(){
     camera.position.y+=(py-camera.position.y)*0.08;
     camera.position.z=45;
     camera.lookAt(new THREE.Vector3(camera.position.x,camera.position.y-4,0));
-}
+}catch(e){console.error('_pfUpdateCamera ERROR:',e);}}
 
 // ---- End platformer ----
 function _pfEndGame(){
