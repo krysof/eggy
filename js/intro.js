@@ -121,9 +121,11 @@ function _drawCityBG(ctx,W,H,panY){
     skyGrad.addColorStop(1,'#FFE8AA');
     ctx.fillStyle=skyGrad;
     ctx.fillRect(0,0,W,H);
-    // Setting sun (right side, low)
-    var sunX=W*0.78,sunY=H*0.55+panY*0.3;
-    var sunR=H*0.1;
+    // Setting sun — slowly drifts around
+    var _st=Date.now()*0.0003;
+    var sunX=W*0.78+Math.sin(_st*1.3)*W*0.06+Math.sin(_st*0.7)*W*0.03;
+    var sunY=H*0.55+panY*0.3+Math.cos(_st*0.9)*H*0.04+Math.sin(_st*1.7)*H*0.02;
+    var sunR=Math.min(W,H)*0.12;
     // Sun glow
     var sunGlow=ctx.createRadialGradient(sunX,sunY,sunR*0.5,sunX,sunY,sunR*3);
     sunGlow.addColorStop(0,'rgba(255,200,100,0.4)');sunGlow.addColorStop(1,'rgba(255,100,50,0)');
