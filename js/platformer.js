@@ -95,6 +95,11 @@ function _pfBuildLevel(){try{
             inSeg=false;
         }
     }
+    // Invisible floor under gaps (catches falling NPCs, player respawns via lava/pit check)
+    for(var _gwi=0;_gwi<z1Gaps.length;_gwi++){
+        var _gfx1=z1Gaps[_gwi][0]*T, _gfx2=z1Gaps[_gwi][1]*T, _gfw=_gfx2-_gfx1;
+        cityColliders.push({x:_gfx1+_gfw/2,z:0,hw:_gfw/2,hd:D/2,h:1,y:-4,_gapFloor:true});
+    }
     // Grass tufts on forest ground
     for(var gt=0;gt<65;gt++){
         if(z1GapSet[gt])continue;
@@ -218,6 +223,11 @@ function _pfBuildLevel(){try{
         raceGroup.add(stal);
     }
     // Lava pools in gaps
+    // Invisible floor under lava gaps
+    for(var _g2wi=0;_g2wi<z2Gaps.length;_g2wi++){
+        var _g2x1=z2Gaps[_g2wi][0]*T, _g2x2=z2Gaps[_g2wi][1]*T, _g2w=_g2x2-_g2x1;
+        cityColliders.push({x:_g2x1+_g2w/2,z:0,hw:_g2w/2,hd:D/2,h:1,y:-4,_gapFloor:true});
+    }
     for(var lgi=0;lgi<z2Gaps.length;lgi++){
         var lgx1=z2Gaps[lgi][0]*T,lgx2=z2Gaps[lgi][1]*T,lgw=lgx2-lgx1;
         var lava=new THREE.Mesh(new THREE.PlaneGeometry(lgw,D),toon(0xFF4400,{emissive:0xFF2200,emissiveIntensity:0.8}));

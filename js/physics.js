@@ -166,6 +166,8 @@ function updateEggPhysics(egg, isCity){
                 }
             }
         } else for(const c of cityColliders){
+            // Gap floor: only for NPCs, player falls through
+            if(c._gapFloor&&egg.isPlayer)continue;
             const dx=egg.mesh.position.x-c.x, dz=egg.mesh.position.z-c.z;
             // Cone roof collision — checked independently of box AABB
             if(c.roofR&&c.roofH){
