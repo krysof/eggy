@@ -431,7 +431,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.024&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0.08;
-                    _shoutMove(egg,'Tatsumaki!');
+                    _shoutMove(egg,'Tatsumaki Senpukyaku!');
                 }
             }
             // Ken: hadouken, shoryuken(fire), tatsumaki
@@ -449,7 +449,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.024&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0.08;
-                    _shoutMove(egg,'Tatsumaki!');
+                    _shoutMove(egg,'Tatsumaki Senpukyaku!');
                 }
             }
             // Honda: hyakuretsu(always punch), headbutt
@@ -498,7 +498,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     _shoutMove(egg,'Kikouken!');
                 }
                 if(cd2<2.5&&Math.random()<0.045&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
-                    egg._npcSpecialCD=30;_shoutMove(egg,'Hyakuretsu!');
+                    egg._npcSpecialCD=30;_shoutMove(egg,'Hyakuretsu Kick!');
                     if(cd2<2.5){closest.vx+=(cdx2/(cd2||1))*COMBAT.rapidHit.force;closest.vz+=(cdz2/(cd2||1))*COMBAT.rapidHit.force;closest.vy=COMBAT.rapidHit.vy;closest.squash=COMBAT.rapidHit.squash;closest.throwTimer=COMBAT.rapidHit.throwTimer;closest._bounces=COMBAT.rapidHit.bounces;_addStunDamage(closest,COMBAT.rapidHit.stunDmg);_dropNpcStolenCoins(closest);if(closest.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);}
                 }
                 if(cd2>2&&cd2<8&&egg.onGround&&Math.random()<0.018&&!egg._npcTatsuActive&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
