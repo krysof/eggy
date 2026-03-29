@@ -2163,13 +2163,19 @@ function enterRace(raceIndex){
     raceGroup.visible=true;
     trackSegments=buildRaceTrack(raceIndex);
 
-    // Spawn race eggs
+    // Spawn race eggs — lined up in rows (no bunching)
     const skin=CHARACTERS[selectedChar];
     const total=14+raceIndex*2;
-    playerEgg=createEgg(0, -3, skin.color, skin.accent, true, undefined, skin.type);
+    var _cols=Math.min(total,Math.floor(TRACK_W*2/2.5));
+    var _spacing=TRACK_W*2/(_cols+1);
+    playerEgg=createEgg(0, -2, skin.color, skin.accent, true, undefined, skin.type);
     for(let i=1;i<total;i++){
         const ci=(i-1)%AI_COLORS.length;
-        createEgg((Math.random()-0.5)*8, -3 - Math.random()*4, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
+        var _row=Math.floor(i/_cols);
+        var _col=i%_cols;
+        var _sx=-TRACK_W+_spacing*(_col+1);
+        var _sz=-2-_row*3;
+        createEgg(_sx, _sz, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
     }
 
     camera.position.set(0, 12, 11);
