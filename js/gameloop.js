@@ -2462,12 +2462,17 @@ function _gameUpdate(){
         const raceEggs=allEggs.filter(e=>!e.cityNPC);
         for(const egg of raceEggs){
             if(!egg.isPlayer){
-                // Respawn NPC if fallen off map
-                if(egg.mesh.position.y<-10){
-                    if(_pfActive&&egg._patrolBaseX){
-                        egg.mesh.position.set(egg._patrolBaseX,5,0);
+                // Respawn NPC if fallen off map (y<-3 in platformer, y<-10 in race)
+                var _fallLimit=_pfActive?-3:-10;
+                if(egg.mesh.position.y<_fallLimit){
+                    if(_pfActive){
+                        // Respawn at patrol base or near player
+                        var _rspX=egg._patrolBaseX||playerEgg.mesh.position.x-10;
+                        egg.mesh.position.set(_rspX,3,0);
                     } else {
-                        egg.mesh.position.set((Math.random()-0.5)*8,5,egg.mesh.position.z);
+                        var _rspGz=-egg.mesh.position.z;
+                        var _rspRz=Math.max(0,_rspGz-5);
+                        egg.mesh.position.set((Math.random()-0.5)*4,getFloorY(_rspRz)+5,-_rspRz);
                     }
                     egg.vx=0;egg.vy=0;egg.vz=0;egg.throwTimer=0;egg._stunTimer=0;
                     egg.heldBy=null;egg.holding=null;egg._piledriverLocked=false;
