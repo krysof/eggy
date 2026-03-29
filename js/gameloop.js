@@ -2185,72 +2185,298 @@ function enterRace(raceIndex){
     camera.lookAt(0, 0, -5);
     camera.up.set(0,1,0); // reset from moon spherical camera
 
-    // ---- Bifrost Rainbow Bridge transition ----
+    // ---- Bifrost Rainbow Bridge transition (3D in Three.js scene) ----
     gameState='raceIntro';
     stopBGM();
     const race=RACES[raceIndex];
-    // Show bridge animation first, then countdown
+    // Show overlay but keep it transparent so 3D scene is visible
     document.getElementById('round-screen').classList.add('active');
     document.getElementById('countdown').textContent='';
     document.getElementById('round-label').textContent='';
     document.getElementById('round-name').textContent='';
     document.getElementById('round-desc').textContent='';
     document.getElementById('player-count').textContent='';
+    // Hide the 2D round-canvas so 3D scene shows through
     var _rcvs=document.getElementById('round-canvas');
-    var _rctx=_rcvs?_rcvs.getContext('2d'):null;
-    if(_rcvs){_rcvs.width=_rcvs.parentElement.offsetWidth*Math.min(devicePixelRatio,2);_rcvs.height=_rcvs.parentElement.offsetHeight*Math.min(devicePixelRatio,2);}
-    var _bfStart=Date.now();
-    var _bfDuration=2000; // 2 second bridge animation
-    var _bfColors=['#FF0000','#FF8800','#FFDD00','#44DD44','#4488FF','#4400CC','#8800CC'];
-    // Bifrost whoosh sound
-    if(sfxEnabled){var _bfCtx=ensureAudio();if(_bfCtx){var _bft=_bfCtx.currentTime;
-        var _bfo=_bfCtx.createOscillator();var _bfg=_bfCtx.createGain();
-        _bfo.type='sawtooth';_bfo.frequency.setValueAtTime(100,_bft);_bfo.frequency.exponentialRampToValueAtTime(2000,_bft+1.5);_bfo.frequency.exponentialRampToValueAtTime(100,_bft+2);
-        _bfg.gain.setValueAtTime(0.08,_bft);_bfg.gain.linearRampToValueAtTime(0.15,_bft+1);_bfg.gain.exponentialRampToValueAtTime(0.001,_bft+2);
-        _bfo.connect(_bfg);_bfg.connect(_bfCtx.destination);_bfo.start(_bft);_bfo.stop(_bft+2);
-    }}
-    var _bfAnimId=null;
-    function _drawBifrost(){
-        if(!_rctx){_startRaceCountdown();return;}
-        var W=_rcvs.width,H=_rcvs.height;
-        var t=(Date.now()-_bfStart)/_bfDuration;
-        if(t>=1){if(_bfAnimId)cancelAnimationFrame(_bfAnimId);_startRaceCountdown();return;}
-        _rctx.clearRect(0,0,W,H);
-        // Black background
-        _rctx.fillStyle='#000';_rctx.fillRect(0,0,W,H);
-        // Rainbow tunnel — converging lines from edges to center
-        var cx=W/2,cy=H/2;
-        var tunnelSize=Math.max(W,H)*(1-t*0.8);
-        for(var ri=0;ri<7;ri++){
-            var bandW=tunnelSize/7;
-            var angle=t*Math.PI*4+ri*0.3;
-            var radius=tunnelSize*0.5-ri*bandW*0.5;
-            _rctx.strokeStyle=_bfColors[ri];
-            _rctx.lineWidth=bandW*0.8;
-            _rctx.globalAlpha=0.6+Math.sin(t*10+ri)*0.3;
-            _rctx.beginPath();
-            _rctx.arc(cx,cy,Math.max(1,radius),angle,angle+Math.PI*1.2);
-            _rctx.stroke();
-        }
-        _rctx.globalAlpha=1;
-        // Sparkling stars
-        for(var si=0;si<20;si++){
-            var sa=si/20*Math.PI*2+t*8;
-            var sr=tunnelSize*0.3*(0.3+Math.sin(t*5+si)*0.7);
-            _rctx.fillStyle='#fff';
-            _rctx.globalAlpha=0.5+Math.sin(t*15+si*3)*0.5;
-            _rctx.beginPath();_rctx.arc(cx+Math.cos(sa)*sr,cy+Math.sin(sa)*sr,2+Math.sin(t*10+si)*2,0,Math.PI*2);_rctx.fill();
-        }
-        _rctx.globalAlpha=1;
-        // Center white flash at end
-        if(t>0.8){
-            var flashA=(t-0.8)/0.2;
-            _rctx.fillStyle='rgba(255,255,255,'+flashA+')';
-            _rctx.fillRect(0,0,W,H);
-        }
-        _bfAnimId=requestAnimationFrame(_drawBifrost);
+    if(_rcvs)_rcvs.style.opacity='0';
+
+    // Save player position for Bifrost origin
+    var _bfPlayerX=playerEgg.mesh.position.x;
+    var _bfPlayerY=playerEgg.mesh.position.y;
+    var _bfPlayerZ=playerEgg.mesh.position.z;
+    // Save camera start
+    var _bfCamStartX=camera.position.x,_bfCamStartY=camera.position.y,_bfCamStartZ=camera.position.z;
+
+    // --- Build 3D Bifrost objects ---
+    var _bifrostGroup=new THREE.Group();
+    scene.add(_bifrostGroup);
+
+    var _bfColors=[0xFF0000,0xFF8800,0xFFDD00,0x44DD44,0x4488FF,0x4400CC,0x8800CC];
+
+    // Rainbow rings on ground (TorusGeometry)
+    var _bfRings=[];
+    for(var _bri=0;_bri<7;_bri++){
+        var _ring=new THREE.Mesh(
+            new THREE.TorusGeometry(0.1,0.08,6,32),
+            new THREE.MeshBasicMaterial({color:_bfColors[_bri],transparent:true,opacity:0.8})
+        );
+        _ring.rotation.x=Math.PI/2;
+        _ring.position.set(_bfPlayerX,0.1+_bri*0.05,_bfPlayerZ);
+        _bifrostGroup.add(_ring);
+        _bfRings.push(_ring);
     }
-    _drawBifrost();
+
+    // Rune-like spinning elements (small torus knots in a circle)
+    var _bfRunes=[];
+    for(var _rni=0;_rni<6;_rni++){
+        var _rune=new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.15,0.04,32,6,2,3),
+            new THREE.MeshBasicMaterial({color:0xFFDD88,transparent:true,opacity:0.7})
+        );
+        _rune.position.set(_bfPlayerX,0.2,_bfPlayerZ);
+        _bifrostGroup.add(_rune);
+        _bfRunes.push(_rune);
+    }
+
+    // Light pillars (7 colored cylinders, initially tiny)
+    var _bfPillars=[];
+    for(var _bpi=0;_bpi<7;_bpi++){
+        var _pillar=new THREE.Mesh(
+            new THREE.CylinderGeometry(0.15,0.3,0.1,8),
+            new THREE.MeshBasicMaterial({color:_bfColors[_bpi],transparent:true,opacity:0.6})
+        );
+        _pillar.position.set(_bfPlayerX,0.05,_bfPlayerZ);
+        _bifrostGroup.add(_pillar);
+        _bfPillars.push(_pillar);
+    }
+
+    // Particles (small white spheres that fly upward)
+    var _bfParticles=[];
+    for(var _pti=0;_pti<30;_pti++){
+        var _pt=new THREE.Mesh(
+            new THREE.SphereGeometry(0.15,4,3),
+            new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.7})
+        );
+        _pt.visible=false;
+        _bifrostGroup.add(_pt);
+        _bfParticles.push({mesh:_pt,angle:Math.random()*Math.PI*2,speed:0.5+Math.random(),y:0});
+    }
+
+    // White flash plane (always faces camera)
+    var _bfFlash=new THREE.Mesh(
+        new THREE.PlaneGeometry(200,200),
+        new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0,side:THREE.DoubleSide,depthTest:false})
+    );
+    _bfFlash.renderOrder=9999;
+    scene.add(_bfFlash);
+
+    // --- Sound effects ---
+    var _bfOsc1=null,_bfOsc2=null,_bfGain1=null,_bfGain2=null,_bfAudioCtx=null;
+    if(sfxEnabled){
+        _bfAudioCtx=ensureAudio();
+        if(_bfAudioCtx){
+            var _bft=_bfAudioCtx.currentTime;
+            // Phase 1: Deep rumble (40Hz)
+            _bfOsc1=_bfAudioCtx.createOscillator();_bfGain1=_bfAudioCtx.createGain();
+            _bfOsc1.type='sine';_bfOsc1.frequency.setValueAtTime(40,_bft);
+            _bfGain1.gain.setValueAtTime(0,_bft);_bfGain1.gain.linearRampToValueAtTime(0.15,_bft+0.8);
+            _bfGain1.gain.linearRampToValueAtTime(0.05,_bft+1.5);_bfGain1.gain.exponentialRampToValueAtTime(0.001,_bft+2);
+            _bfOsc1.connect(_bfGain1);_bfGain1.connect(_bfAudioCtx.destination);
+            _bfOsc1.start(_bft);_bfOsc1.stop(_bft+2);
+            // Phase 2: Rising whoosh (100->3000Hz sawtooth)
+            _bfOsc2=_bfAudioCtx.createOscillator();_bfGain2=_bfAudioCtx.createGain();
+            _bfOsc2.type='sawtooth';_bfOsc2.frequency.setValueAtTime(100,_bft+0.8);
+            _bfOsc2.frequency.exponentialRampToValueAtTime(3000,_bft+1.5);
+            _bfOsc2.frequency.exponentialRampToValueAtTime(200,_bft+2);
+            _bfGain2.gain.setValueAtTime(0,_bft);_bfGain2.gain.setValueAtTime(0,_bft+0.8);
+            _bfGain2.gain.linearRampToValueAtTime(0.12,_bft+1.2);
+            _bfGain2.gain.exponentialRampToValueAtTime(0.001,_bft+2);
+            _bfOsc2.connect(_bfGain2);_bfGain2.connect(_bfAudioCtx.destination);
+            _bfOsc2.start(_bft+0.8);_bfOsc2.stop(_bft+2);
+            // Phase 3: Impact boom (noise burst via short oscillator)
+            var _bfOsc3=_bfAudioCtx.createOscillator();var _bfGain3=_bfAudioCtx.createGain();
+            _bfOsc3.type='square';_bfOsc3.frequency.setValueAtTime(60,_bft+1.5);
+            _bfOsc3.frequency.exponentialRampToValueAtTime(20,_bft+2);
+            _bfGain3.gain.setValueAtTime(0,_bft);_bfGain3.gain.setValueAtTime(0.2,_bft+1.5);
+            _bfGain3.gain.exponentialRampToValueAtTime(0.001,_bft+2);
+            _bfOsc3.connect(_bfGain3);_bfGain3.connect(_bfAudioCtx.destination);
+            _bfOsc3.start(_bft+1.5);_bfOsc3.stop(_bft+2.1);
+        }
+    }
+
+    // --- Animation loop ---
+    var _bfStart=Date.now();
+    var _bfDuration=2000;
+    var _bfAnimId=null;
+    var _bfCityHidden=false;
+
+    function _animateBifrost3D(){
+        var elapsed=Date.now()-_bfStart;
+        var t=elapsed/_bfDuration;
+        if(t>=1){
+            // --- Cleanup ---
+            if(_bfAnimId)cancelAnimationFrame(_bfAnimId);
+            // Remove all bifrost meshes
+            for(var _ci=_bifrostGroup.children.length-1;_ci>=0;_ci--){
+                var _ch=_bifrostGroup.children[_ci];
+                if(_ch.geometry)_ch.geometry.dispose();
+                if(_ch.material)_ch.material.dispose();
+                _bifrostGroup.remove(_ch);
+            }
+            scene.remove(_bifrostGroup);
+            if(_bfFlash.geometry)_bfFlash.geometry.dispose();
+            if(_bfFlash.material)_bfFlash.material.dispose();
+            scene.remove(_bfFlash);
+            // Reset player position to race start
+            playerEgg.mesh.position.set(0,_bfPlayerY,-2);
+            // Reset camera to race view
+            camera.position.set(0,12,11);
+            camera.lookAt(0,0,-5);
+            // Restore round-canvas opacity for countdown
+            if(_rcvs)_rcvs.style.opacity='1';
+            _startRaceCountdown();
+            return;
+        }
+
+        // --- Phase 1: Summoning (0 - 0.4 normalized = 0-0.8s) ---
+        if(t<0.4){
+            var p1=t/0.4; // 0..1 within phase 1
+            // Expand rainbow rings from 0 to radius 3
+            for(var _ri2=0;_ri2<_bfRings.length;_ri2++){
+                var targetR=0.3+_ri2*0.4;
+                var curR=targetR*p1;
+                _bfRings[_ri2].geometry.dispose();
+                _bfRings[_ri2].geometry=new THREE.TorusGeometry(curR,0.08+p1*0.04,6,32);
+                _bfRings[_ri2].rotation.x=Math.PI/2;
+                _bfRings[_ri2].rotation.z=elapsed*0.002+_ri2*0.5;
+                _bfRings[_ri2].material.opacity=0.5+p1*0.4;
+            }
+            // Spin rune elements in a circle
+            for(var _rn2=0;_rn2<_bfRunes.length;_rn2++){
+                var runeAngle=elapsed*0.003+_rn2*(Math.PI*2/6);
+                var runeR=1.5*p1;
+                _bfRunes[_rn2].position.set(
+                    _bfPlayerX+Math.cos(runeAngle)*runeR,
+                    0.3+Math.sin(elapsed*0.005+_rn2)*0.2,
+                    _bfPlayerZ+Math.sin(runeAngle)*runeR
+                );
+                _bfRunes[_rn2].rotation.y=elapsed*0.005;
+                _bfRunes[_rn2].rotation.x=elapsed*0.003;
+                var runeScale=p1*0.8;
+                _bfRunes[_rn2].scale.set(runeScale,runeScale,runeScale);
+            }
+            // Camera shake (ground rumble)
+            camera.position.x=_bfCamStartX+Math.sin(elapsed*0.05)*0.08*p1;
+            camera.position.y=_bfCamStartY+Math.cos(elapsed*0.07)*0.06*p1;
+            // Pillars stay tiny
+            for(var _pp=0;_pp<_bfPillars.length;_pp++){
+                _bfPillars[_pp].scale.set(1,0.01,1);
+            }
+        }
+        // --- Phase 2: Light Pillar (0.4 - 0.75 normalized = 0.8-1.5s) ---
+        else if(t<0.75){
+            var p2=(t-0.4)/0.35; // 0..1 within phase 2
+            // Keep rings at full size, pulsing
+            for(var _ri3=0;_ri3<_bfRings.length;_ri3++){
+                var fullR=0.3+_ri3*0.4;
+                _bfRings[_ri3].geometry.dispose();
+                _bfRings[_ri3].geometry=new THREE.TorusGeometry(fullR,0.12,6,32);
+                _bfRings[_ri3].rotation.x=Math.PI/2;
+                _bfRings[_ri3].rotation.z=elapsed*0.002+_ri3*0.5;
+                _bfRings[_ri3].material.opacity=0.7+Math.sin(elapsed*0.01+_ri3)*0.2;
+            }
+            // Hide runes as pillars take over
+            for(var _rn3=0;_rn3<_bfRunes.length;_rn3++){
+                _bfRunes[_rn3].material.opacity=Math.max(0,0.7-p2*1.5);
+            }
+            // Grow light pillars upward
+            var pillarH=p2*100;
+            for(var _pp2=0;_pp2<_bfPillars.length;_pp2++){
+                _bfPillars[_pp2].geometry.dispose();
+                _bfPillars[_pp2].geometry=new THREE.CylinderGeometry(0.15,0.3,Math.max(0.1,pillarH),8);
+                _bfPillars[_pp2].position.y=pillarH/2;
+                // Spiral offset
+                var spiralAngle=elapsed*0.002+_pp2*(Math.PI*2/7);
+                var spiralR=0.3+_pp2*0.15;
+                _bfPillars[_pp2].position.x=_bfPlayerX+Math.cos(spiralAngle)*spiralR;
+                _bfPillars[_pp2].position.z=_bfPlayerZ+Math.sin(spiralAngle)*spiralR;
+                _bfPillars[_pp2].material.opacity=0.5+Math.sin(elapsed*0.008+_pp2)*0.2;
+            }
+            // Player rises
+            var riseY=_bfPlayerY+p2*40;
+            playerEgg.mesh.position.y=riseY;
+            // Camera follows upward, tilts to look up
+            camera.position.x=_bfCamStartX;
+            camera.position.y=_bfCamStartY+p2*35;
+            camera.position.z=_bfCamStartZ+p2*3;
+            camera.lookAt(_bfPlayerX,riseY+10+p2*20,_bfPlayerZ);
+            // Activate particles flying upward
+            for(var _pp3=0;_pp3<_bfParticles.length;_pp3++){
+                var ptc=_bfParticles[_pp3];
+                ptc.mesh.visible=true;
+                ptc.y+=ptc.speed*1.2;
+                if(ptc.y>pillarH)ptc.y=0;
+                ptc.angle+=0.02;
+                var ptcR=0.8+Math.sin(ptc.angle*3)*0.3;
+                ptc.mesh.position.set(
+                    _bfPlayerX+Math.cos(ptc.angle)*ptcR,
+                    ptc.y,
+                    _bfPlayerZ+Math.sin(ptc.angle)*ptcR
+                );
+                ptc.mesh.material.opacity=0.4+Math.sin(elapsed*0.01+_pp3)*0.4;
+            }
+        }
+        // --- Phase 3: Flash + Transition (0.75 - 1.0 normalized = 1.5-2.0s) ---
+        else{
+            var p3=(t-0.75)/0.25; // 0..1 within phase 3
+            // White flash plane tracks camera
+            _bfFlash.position.copy(camera.position);
+            _bfFlash.quaternion.copy(camera.quaternion);
+            _bfFlash.translateZ(-1);
+            // Flash opacity: quick in, hold, quick out
+            if(p3<0.4){
+                _bfFlash.material.opacity=p3/0.4;
+            }else if(p3<0.7){
+                _bfFlash.material.opacity=1;
+            }else{
+                _bfFlash.material.opacity=1-(p3-0.7)/0.3;
+            }
+            // During peak flash, hide city and show race track
+            if(p3>0.3&&!_bfCityHidden){
+                _bfCityHidden=true;
+                cityGroup.visible=false;
+                if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
+                for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
+                if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
+                raceGroup.visible=true;
+            }
+            // Fade pillars and rings
+            for(var _ri4=0;_ri4<_bfRings.length;_ri4++){
+                _bfRings[_ri4].material.opacity=Math.max(0,1-p3*2);
+            }
+            for(var _pp4=0;_pp4<_bfPillars.length;_pp4++){
+                _bfPillars[_pp4].material.opacity=Math.max(0,0.6-p3*1.2);
+            }
+            // Fade particles
+            for(var _pp5=0;_pp5<_bfParticles.length;_pp5++){
+                _bfParticles[_pp5].mesh.material.opacity=Math.max(0,0.7-p3*1.5);
+            }
+            // Ease camera back to race position
+            camera.position.x=_bfCamStartX*(1-p3);
+            camera.position.y=(_bfCamStartY+35)*(1-p3)+12*p3;
+            camera.position.z=(_bfCamStartZ+3)*(1-p3)+11*p3;
+            camera.lookAt(0,0+p3*0,-5*p3);
+            // Ease player back down to race start
+            playerEgg.mesh.position.y=_bfPlayerY+40*(1-p3);
+            playerEgg.mesh.position.x=_bfPlayerX*(1-p3);
+            playerEgg.mesh.position.z=_bfPlayerZ*(1-p3)+(-2)*p3;
+        }
+
+        // Render the 3D scene each frame
+        if(R)R.render(scene,camera);
+        _bfAnimId=requestAnimationFrame(_animateBifrost3D);
+    }
+    _animateBifrost3D();
     function _startRaceCountdown(){
         startRaceBGM(raceIndex);
         var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
