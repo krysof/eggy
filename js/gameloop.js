@@ -2176,11 +2176,10 @@ function enterRace(raceIndex){
     camera.lookAt(0, 0, -5);
     camera.up.set(0,1,0); // reset from moon spherical camera
 
-    // Show countdown then start
+    // Show Mario Maker style countdown
     gameState='raceIntro';
     stopBGM(); startRaceBGM(raceIndex);
     const race=RACES[raceIndex];
-    // SOTN area name reveal for race
     var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
     if(raceNames[raceIndex])_showAreaName(raceNames[raceIndex]);
     document.getElementById('round-label').textContent=race.name;
@@ -2189,6 +2188,44 @@ function enterRace(raceIndex){
     document.getElementById('player-count').textContent='🥚 × '+total;
     document.getElementById('countdown').textContent='3';
     document.getElementById('round-screen').classList.add('active');
+    // Animated canvas background
+    var _rcvs=document.getElementById('round-canvas');
+    var _rctx=_rcvs?_rcvs.getContext('2d'):null;
+    if(_rcvs){_rcvs.width=_rcvs.parentElement.offsetWidth*Math.min(devicePixelRatio,2);_rcvs.height=_rcvs.parentElement.offsetHeight*Math.min(devicePixelRatio,2);}
+    var _rStart=Date.now();
+    var _rColor=race.color||0xFF4444;
+    var _rColorStr='#'+_rColor.toString(16).padStart(6,'0');
+    var _rStars=[];for(var _rsi=0;_rsi<30;_rsi++)_rStars.push({x:Math.random(),y:Math.random(),s:2+Math.random()*4,sp:0.5+Math.random()});
+    var _rAnimId=null;
+    function _drawRoundBG(){
+        if(!_rctx||!document.getElementById('round-screen').classList.contains('active')){if(_rAnimId)cancelAnimationFrame(_rAnimId);return;}
+        var W=_rcvs.width,H=_rcvs.height,t=(Date.now()-_rStart)/1000;
+        _rctx.clearRect(0,0,W,H);
+        // Diagonal curtain wipe
+        var wipe=Math.min(1,t/0.8);
+        _rctx.fillStyle=_rColorStr;_rctx.globalAlpha=0.85;
+        _rctx.beginPath();_rctx.moveTo(-W*0.2,0);_rctx.lineTo(W*wipe*1.4,0);_rctx.lineTo(W*wipe*1.4-W*0.3,H);_rctx.lineTo(-W*0.2,H);_rctx.fill();
+        _rctx.globalAlpha=0.6;
+        _rctx.beginPath();_rctx.moveTo(W*(1-wipe*1.4)+W*0.3,0);_rctx.lineTo(W*1.2,0);_rctx.lineTo(W*1.2,H);_rctx.lineTo(W*(1-wipe*1.4),H);_rctx.fill();
+        _rctx.globalAlpha=1;
+        // Flying stars
+        _rctx.fillStyle='#FFD700';
+        for(var si=0;si<_rStars.length;si++){
+            var s=_rStars[si];s.x-=s.sp*0.003;if(s.x<-0.05)s.x=1.05;
+            _rctx.globalAlpha=0.5+Math.sin(t*3+si)*0.3;
+            _rctx.beginPath();_rctx.arc(s.x*W,s.y*H,s.s*Math.min(W,H)/600,0,Math.PI*2);_rctx.fill();
+        }
+        _rctx.globalAlpha=1;
+        // Checker pattern strip at bottom
+        var stripH=H*0.06;
+        for(var ci2=0;ci2<20;ci2++){
+            _rctx.fillStyle=(ci2%2===0)?'#000':'#FFD700';
+            _rctx.fillRect(ci2*W/10-((t*80)%W/10),H-stripH,W/10+1,stripH);
+            _rctx.fillRect(ci2*W/10+((t*60)%W/10),0,W/10+1,stripH*0.7);
+        }
+        _rAnimId=requestAnimationFrame(_drawRoundBG);
+    }
+    _drawRoundBG();
 
     if(countdownTimer) clearInterval(countdownTimer);
     let count=3;
@@ -2196,15 +2233,30 @@ function enterRace(raceIndex){
         count--;
         if(count>0){
             document.getElementById('countdown').textContent=count;
+            // Play countdown beep
+            if(sfxEnabled){var _cdCtx=ensureAudio();if(_cdCtx){var _cdt=_cdCtx.currentTime;
+                var _cdo=_cdCtx.createOscillator();var _cdg=_cdCtx.createGain();
+                _cdo.type='square';_cdo.frequency.value=count===2?600:800;
+                _cdg.gain.setValueAtTime(0.1,_cdt);_cdg.gain.exponentialRampToValueAtTime(0.001,_cdt+0.15);
+                _cdo.connect(_cdg);_cdg.connect(_cdCtx.destination);_cdo.start(_cdt);_cdo.stop(_cdt+0.15);
+            }}
         } else {
             clearInterval(countdownTimer);
             countdownTimer=null;
+            if(_rAnimId)cancelAnimationFrame(_rAnimId);
             document.getElementById('round-screen').classList.remove('active');
             gameState='racing';
             document.getElementById('race-hud').classList.remove('hidden');
             document.getElementById('round-hud').textContent='🏆 '+race.name;
             document.getElementById('alive-hud').textContent='🥚 '+allEggs.filter(e=>!e.cityNPC).length;
             if('ontouchstart' in window||_touchVisible){document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
+            // GO! sound
+            if(sfxEnabled){var _goCtx=ensureAudio();if(_goCtx){var _got=_goCtx.currentTime;
+                var _goo=_goCtx.createOscillator();var _gog=_goCtx.createGain();
+                _goo.type='sawtooth';_goo.frequency.value=1200;
+                _gog.gain.setValueAtTime(0.15,_got);_gog.gain.exponentialRampToValueAtTime(0.001,_got+0.3);
+                _goo.connect(_gog);_gog.connect(_goCtx.destination);_goo.start(_got);_goo.stop(_got+0.3);
+            }}
         }
     },1000);
 }

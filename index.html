@@ -85,9 +85,10 @@
     </div>
   </div>
 
-  <!-- Race countdown -->
+  <!-- Race countdown — Mario Maker style -->
   <div id="round-screen" class="screen">
-    <div class="round-card">
+    <canvas id="round-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+    <div class="round-card" style="z-index:2;position:relative;">
       <p class="round-label" id="round-label">Round 1</p>
       <h2 id="round-name">Crazy Course</h2>
       <p class="round-desc" id="round-desc">Rush to the finish!</p>

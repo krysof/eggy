@@ -71,15 +71,17 @@ h1{font-size:clamp(32px,8vw,56px);color:#fff;text-shadow:3px 3px 0 #FF8800,6px 6
 .pbar-fill{height:100%;background:linear-gradient(90deg,#FFD700,#FF6B6B);border-radius:4px;width:0%;transition:width .3s}
 .pbar-flag{position:absolute;right:-14px;top:-9px;font-size:14px}
 
-/* Round screen */
-#round-screen{background:rgba(0,0,0,.7);backdrop-filter:blur(10px)}
-.round-card{text-align:center}
-.round-label{color:rgba(255,255,255,.5);font-size:15px;letter-spacing:3px}
-.round-card h2{font-size:36px;color:#fff;margin:6px 0}
-.round-desc{color:rgba(255,255,255,.6);font-size:14px}
-.player-count{color:#FFD700;font-size:18px;margin:10px 0;font-weight:700}
-.countdown{font-size:64px;color:#FFD700;font-weight:900;margin-top:14px;animation:pulse .6s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+/* Round screen — Mario Maker style */
+#round-screen{background:transparent}
+.round-card{text-align:center;animation:roundSlideIn 0.6s ease-out}
+@keyframes roundSlideIn{0%{transform:translateY(-60px) scale(0.8);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+.round-label{color:rgba(255,255,255,.7);font-size:clamp(13px,3vw,18px);letter-spacing:6px;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.round-card h2{font-size:clamp(28px,7vw,48px);color:#FFD700;margin:8px 0;text-shadow:3px 3px 0 rgba(0,0,0,.5),0 0 20px rgba(255,215,0,.4);letter-spacing:3px;animation:titleGlow 1.5s ease-in-out infinite}
+@keyframes titleGlow{0%,100%{text-shadow:3px 3px 0 rgba(0,0,0,.5),0 0 20px rgba(255,215,0,.3)}50%{text-shadow:3px 3px 0 rgba(0,0,0,.5),0 0 40px rgba(255,215,0,.6)}}
+.round-desc{color:rgba(255,255,255,.8);font-size:clamp(12px,3vw,16px);letter-spacing:2px}
+.player-count{color:#FFD700;font-size:clamp(16px,4vw,22px);margin:12px 0;font-weight:700}
+.countdown{font-size:clamp(48px,15vw,80px);color:#FFD700;font-weight:900;margin-top:14px;text-shadow:0 0 30px rgba(255,215,0,.5),4px 4px 0 rgba(0,0,0,.4);animation:countPop .6s ease-in-out infinite}
+@keyframes countPop{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 
 /* Result */
 #result-screen{background:rgba(0,0,0,.5);backdrop-filter:blur(8px)}
