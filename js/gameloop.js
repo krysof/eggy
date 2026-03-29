@@ -2141,6 +2141,10 @@ function enterRace(raceIndex){
     document.getElementById('touch-controls').classList.add('hidden');
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
 
+    // Save player position for Bifrost animation
+    var _bfSavedX=playerEgg?playerEgg.mesh.position.x:0;
+    var _bfSavedY=playerEgg?playerEgg.mesh.position.y:0;
+    var _bfSavedZ=playerEgg?playerEgg.mesh.position.z:0;
     // Clear ALL player states before leaving city
     if(playerEgg){
         if(playerEgg.holding){var h2=playerEgg.holding;h2.heldBy=null;playerEgg.holding=null;if(h2.struggleBar){h2.mesh.remove(h2.struggleBar);h2.struggleBar=null;}}
@@ -2155,15 +2159,10 @@ function enterRace(raceIndex){
         playerEgg=null;
     }
 
-    // Hide city + babel tower + clouds + scene objects
-    cityGroup.visible=false;
-    for(const npc of cityNPCs) npc.mesh.visible=false;
-    if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
-    for(var _hci=0;_hci<cityCloudPlatforms.length;_hci++){if(cityCloudPlatforms[_hci].group)cityCloudPlatforms[_hci].group.visible=false;}
-    if(window._cityAnimals)for(var _hai=0;_hai<window._cityAnimals.length;_hai++){if(window._cityAnimals[_hai]._inScene&&window._cityAnimals[_hai].group)window._cityAnimals[_hai].group.visible=false;}
+    // City stays visible during Bifrost animation — hidden in Phase 3 flash
 
-    // Build race
-    raceGroup.visible=true;
+    // Build race (hidden until Phase 3 flash)
+    raceGroup.visible=false;
     trackSegments=buildRaceTrack(raceIndex);
 
     // Spawn race eggs — lined up in rows (no bunching)
@@ -2172,13 +2171,16 @@ function enterRace(raceIndex){
     var _cols=Math.min(total,Math.floor(TRACK_W*2/2.5));
     var _spacing=TRACK_W*2/(_cols+1);
     playerEgg=createEgg(0, -2, skin.color, skin.accent, true, undefined, skin.type);
+    // Player starts at saved city position for Bifrost rising animation
+    playerEgg.mesh.position.set(_bfSavedX,_bfSavedY,_bfSavedZ);
     for(let i=1;i<total;i++){
         const ci=(i-1)%AI_COLORS.length;
         var _row=Math.floor(i/_cols);
         var _col=i%_cols;
         var _sx=-TRACK_W+_spacing*(_col+1);
         var _sz=-2-_row*3;
-        createEgg(_sx, _sz, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
+        var _rEgg=createEgg(_sx, _sz, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
+        _rEgg.mesh.visible=false;
     }
 
     camera.position.set(0, 12, 11);
@@ -2201,9 +2203,9 @@ function enterRace(raceIndex){
     if(_rcvs)_rcvs.style.opacity='0';
 
     // Save player position for Bifrost origin
-    var _bfPlayerX=playerEgg.mesh.position.x;
-    var _bfPlayerY=playerEgg.mesh.position.y;
-    var _bfPlayerZ=playerEgg.mesh.position.z;
+    var _bfPlayerX=_bfSavedX;
+    var _bfPlayerY=_bfSavedY;
+    var _bfPlayerZ=_bfSavedZ;
     // Save camera start
     var _bfCamStartX=camera.position.x,_bfCamStartY=camera.position.y,_bfCamStartZ=camera.position.z;
 
@@ -2457,6 +2459,8 @@ function enterRace(raceIndex){
                     for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
                     if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
                     raceGroup.visible=true;
+                    // Show all race eggs
+                    for(var _se=0;_se<allEggs.length;_se++)allEggs[_se].mesh.visible=true;
                 }
             }else{
                 // Descend to race track — bezier arc from sky to start position
