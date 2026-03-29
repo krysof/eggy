@@ -314,15 +314,23 @@ function updateEggPhysics(egg, isCity){
         }
         if(Math.abs(egg.mesh.position.x)>hw-egg.radius){egg.mesh.position.x=Math.sign(egg.mesh.position.x)*(hw-egg.radius);egg.vx*=-0.3;}
         // Fall respawn
-        if(egg.mesh.position.y<-12){
-            const rz=Math.max(0,gz-3);
+        if(egg.mesh.position.y<-5){
+            const rz=Math.max(0,gz-5);
             egg.mesh.position.set((Math.random()-0.5)*4,getFloorY(rz)+5,-rz);
             egg.vx=0;egg.vy=0;egg.vz=0;
+            egg.squash=0.3; // poof effect
+            egg._fallPenalty=60; // 1 second stun after respawn
             if(egg.holding){var h=egg.holding;h.heldBy=null;egg.holding=null;if(h.struggleBar){h.mesh.remove(h.struggleBar);h.struggleBar=null;}}
             if(egg.holdingObs){egg.holdingObs._grabbed=false;egg.holdingObs=null;}
             if(egg.holdingProp){egg.holdingProp.grabbed=false;egg.holdingProp=null;}
             if(egg.heldBy){var hdr=egg.heldBy;hdr.holding=null;egg.heldBy=null;if(egg.struggleBar){egg.mesh.remove(egg.struggleBar);egg.struggleBar=null;}}
         }
+        // Fall penalty stun countdown
+        if(egg._fallPenalty>0){egg._fallPenalty--;egg.vx=0;egg.vz=0;}
+        // Power-up timer countdowns
+        if(egg._speedBoost>0)egg._speedBoost--;
+        if(egg._shieldTimer>0)egg._shieldTimer--;
+        if(egg._coinMagnet>0)egg._coinMagnet--;
         // Finish
         if(!egg.finished&&gz>=trackLength){
             egg.finished=true;egg.finishOrder=finishedEggs.length;finishedEggs.push(egg);

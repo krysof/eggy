@@ -24,6 +24,8 @@ function handlePlayerInput(){
     if(!playerEgg||!playerEgg.alive)return;
     if(_portalConfirmOpen)return;
     if(playerEgg.finished&&gameState==='racing')return;
+    // Cannot control during fall respawn penalty
+    if(playerEgg._fallPenalty>0)return;
     // Cannot control while being piledrivered or held by NPC piledriver
     if(playerEgg.heldBy)return;
     // Cannot control while thrown or stunned (except struggle when held)
@@ -108,8 +110,9 @@ function handlePlayerInput(){
     var _holdAnything=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     var holdingF=keys['KeyF']&&!_portalConfirmOpen&&!_holdAnything;
     var sprintPct=_updateSprintBar(holdingF);
-    var accelMul=1+sprintPct*1.0;
-    var speedMul=1+sprintPct*1.0;
+    var _powerBoost=(playerEgg._speedBoost>0)?2:1;
+    var accelMul=(1+sprintPct*1.0)*_powerBoost;
+    var speedMul=(1+sprintPct*1.0)*_powerBoost;
     const len=Math.sqrt(mx*mx+mz*mz);
     if(len>0.1){
         mx/=len;mz/=len;

@@ -171,7 +171,8 @@ function buildRaceTrack(ri){
         add(14,'ramp',{endY:4});add(18,'platforms',{count:6});add(14,'ramp',{endY:0});
         add(10,'coins',{count:18});add(8,'springs',{count:3});
         add(16,'spinners',{count:2});add(10,'flat');
-        add(12,'coins',{count:20});add(10,'boost');add(12,'flat');
+        add(12,'coins',{count:20});add(10,'boost');
+        add(10,'questionBlocks',{count:3});add(12,'flat');
         // Track 4 decorations — Emerald Hills / Flowers, checkered grass, loop rings
         var _d4Z=0;for(var _di=0;_di<segs.length;_di++) _d4Z=Math.max(_d4Z,segs[_di].endZ);
         for(var _fi=0;_fi<14;_fi++){var _fz=_d4Z*(_fi+0.5)/14,_fs=(_fi%2===0?-1:1);
@@ -297,6 +298,7 @@ function buildRaceTrack(ri){
         add(10,'boost');add(12,'coins',{count:15});
         add(16,'spinners',{count:2});add(8,'flat');
         add(10,'pipes',{count:5});add(12,'goombas',{count:4});
+        add(10,'questionBlocks',{count:5});
         add(10,'coins',{count:18});add(10,'flat');
         // Track 8 decorations — Mushroom Kingdom / Giant mushrooms, question blocks, brick walls
         var _d8Z=0;for(var _di=0;_di<segs.length;_di++) _d8Z=Math.max(_d8Z,segs[_di].endZ);
@@ -376,6 +378,7 @@ function buildRaceTrack(ri){
         add(10,'boost');add(8,'flat');
         add(14,'ramp',{endY:6});add(22,'platforms',{count:10});add(14,'ramp',{endY:0});
         add(10,'springs',{count:6});add(12,'coins',{count:25});
+        add(10,'questionBlocks',{count:4});
         add(10,'pipes',{count:4});add(10,'coins',{count:15});add(10,'flat');
         // Track 10 decorations — Cloud Heaven / Angel statues, harps, sun beams
         var _d10Z=0;for(var _di=0;_di<segs.length;_di++) _d10Z=Math.max(_d10Z,segs[_di].endZ);
@@ -492,6 +495,33 @@ function buildRaceTrack(ri){
     }
     const arch=new THREE.Mesh(new THREE.TorusGeometry(5,0.3,8,20,Math.PI),toon(0xFFD700));
     arch.position.set(0,0,-trackLength); arch.rotation.y=Math.PI/2; raceGroup.add(arch);
+    // ---- Scatter power-up items along every track ----
+    var _pitems=['star','shield','magnet'];
+    for(var _pii=0;_pii<4;_pii++){
+        var _piZ=20+_pii*trackLength/5;
+        var _piType=_pitems[_pii%3];
+        var _piG=new THREE.Group();
+        if(_piType==='star'){
+            var _psCore=new THREE.Mesh(new THREE.OctahedronGeometry(0.5,0),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.6}));
+            _piG.add(_psCore);
+            var _psGlow=new THREE.Mesh(new THREE.SphereGeometry(0.6,8,6),toon(0xFFFF88,{transparent:true,opacity:0.3}));
+            _piG.add(_psGlow);
+        } else if(_piType==='shield'){
+            var _pbCore=new THREE.Mesh(new THREE.SphereGeometry(0.5,10,8),toon(0x4488FF,{transparent:true,opacity:0.5,emissive:0x2266CC,emissiveIntensity:0.3}));
+            _piG.add(_pbCore);
+        } else {
+            var _pmArc=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.1,6,10,Math.PI),toon(0xFF2222,{emissive:0xCC0000,emissiveIntensity:0.3}));
+            _piG.add(_pmArc);
+            var _pmT1=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0xCCCCCC));
+            _pmT1.position.set(-0.35,0,0); _piG.add(_pmT1);
+            var _pmT2=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0xCCCCCC));
+            _pmT2.position.set(0.35,0,0); _piG.add(_pmT2);
+        }
+        var _piFloorY=getFloorY(_piZ)||0;
+        _piG.position.set((Math.sin(_pii*2.3))*3,_piFloorY+3,-_piZ);
+        raceGroup.add(_piG);
+        raceCoins.push({mesh:_piG,z:_piZ,x:(Math.sin(_pii*2.3))*3,fy:_piFloorY+3,collected:false,bobPhase:_pii*1.1,type:_piType});
+    }
     return segs;
 }
 
@@ -680,6 +710,53 @@ function buildObs(seg,ri,sm){
         gg.position.set(ox,fy,-oz);
         raceGroup.add(gg);
         obstacleObjects.push({type:'goomba',mesh:gg,data:{z:oz,fy:fy,x:ox,startX:ox,radius:0.6,walkDir:i%2===0?1:-1,walkRange:hw*0.6,walkSpeed:(0.02+ri*0.003)*sm,phase:i*Math.PI}});
+    }
+    // ---- Question Blocks (hit from below for coins/items) ----
+    if(seg.type==='questionBlocks') for(var qi=0;qi<(seg.count||3);qi++){
+        var qoz=seg.startZ+(qi+1)*len/((seg.count||3)+1);
+        var qox=(qi%2===0?-1:1)*hw*0.2*(1+qi%3);
+        var qbH=4; // height above floor
+        var qg=new THREE.Group();
+        // Yellow box body
+        var qBox=new THREE.Mesh(new THREE.BoxGeometry(2,2,2),toon(0xFFCC00,{emissive:0xFFAA00,emissiveIntensity:0.2}));
+        qg.add(qBox);
+        // ? mark on front face (small white plane)
+        var qMark=new THREE.Mesh(new THREE.PlaneGeometry(0.8,1.0),toon(0xFFFFFF,{side:THREE.DoubleSide}));
+        qMark.position.set(0,0,1.01); qg.add(qMark);
+        // ? mark on back
+        var qMark2=new THREE.Mesh(new THREE.PlaneGeometry(0.8,1.0),toon(0xFFFFFF,{side:THREE.DoubleSide}));
+        qMark2.position.set(0,0,-1.01); qg.add(qMark2);
+        qg.position.set(qox,fy+qbH,-qoz);
+        raceGroup.add(qg);
+        obstacleObjects.push({type:'questionBlock',mesh:qg,data:{z:qoz,fy:fy,x:qox,baseY:fy+qbH,used:false,_bouncing:false,_bounceT:0,_coinMeshes:[]}});
+        // Place a power-up item on top of every other ? block
+        if(qi%2===0){
+            var _itemTypes=['star','shield','magnet'];
+            var _itemType=_itemTypes[qi%3];
+            var _itemG=new THREE.Group();
+            if(_itemType==='star'){
+                // Gold star
+                var _starCore=new THREE.Mesh(new THREE.OctahedronGeometry(0.5,0),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.6}));
+                _itemG.add(_starCore);
+                var _starGlow=new THREE.Mesh(new THREE.SphereGeometry(0.6,8,6),toon(0xFFFF88,{transparent:true,opacity:0.3}));
+                _itemG.add(_starGlow);
+            } else if(_itemType==='shield'){
+                // Blue transparent sphere
+                var _shCore=new THREE.Mesh(new THREE.SphereGeometry(0.5,10,8),toon(0x4488FF,{transparent:true,opacity:0.5,emissive:0x2266CC,emissiveIntensity:0.3}));
+                _itemG.add(_shCore);
+            } else {
+                // Red magnet (horseshoe shape = torus arc + cylinders)
+                var _magArc=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.1,6,10,Math.PI),toon(0xFF2222,{emissive:0xCC0000,emissiveIntensity:0.3}));
+                _itemG.add(_magArc);
+                var _magTip1=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0xCCCCCC));
+                _magTip1.position.set(-0.35,0,0); _itemG.add(_magTip1);
+                var _magTip2=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(0xCCCCCC));
+                _magTip2.position.set(0.35,0,0); _itemG.add(_magTip2);
+            }
+            _itemG.position.set(qox,fy+qbH+1.8,-qoz);
+            raceGroup.add(_itemG);
+            raceCoins.push({mesh:_itemG,z:qoz,x:qox,fy:fy+qbH+1.8,collected:false,bobPhase:qi*0.7,type:_itemType});
+        }
     }
 }
 

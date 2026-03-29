@@ -187,6 +187,54 @@ function updateObstacles(){
                 if(ob.data._respawn<=0){ob.data._squashed=false;ob.mesh.scale.y=1;ob.mesh.position.y=ob.data.fy;}
             }
         }
+        if(ob.type==='questionBlock'){
+            // Bounce animation if triggered
+            if(ob.data._bouncing){
+                ob.data._bounceT++;
+                ob.mesh.position.y=ob.data.baseY+Math.sin(ob.data._bounceT/8*Math.PI)*0.5;
+                if(ob.data._bounceT>=8){ob.data._bouncing=false;ob.mesh.position.y=ob.data.baseY;}
+            }
+            // Animate dropped coin meshes (arc outward then fall)
+            for(var _qci=ob.data._coinMeshes.length-1;_qci>=0;_qci--){
+                var _qc=ob.data._coinMeshes[_qci];
+                _qc._vy-=0.008; _qc.mesh.position.y+=_qc._vy;
+                _qc.mesh.position.x+=_qc._vx; _qc.mesh.position.z+=_qc._vz;
+                _qc.mesh.rotation.y+=0.1; _qc._life--;
+                if(_qc._life<=0){raceGroup.remove(_qc.mesh);ob.data._coinMeshes.splice(_qci,1);}
+            }
+            // Hit detection from below
+            if(!ob.data.used){
+                for(var _qei=0;_qei<allEggs.length;_qei++){
+                    var _qegg=allEggs[_qei];
+                    if(!_qegg.alive||_qegg.finished||_qegg.cityNPC)continue;
+                    var _qdx=_qegg.mesh.position.x-ob.data.x;
+                    var _qdz=_qegg.mesh.position.z-(-ob.data.z);
+                    var _qdy=_qegg.mesh.position.y-(ob.data.baseY-1.0);
+                    if(Math.abs(_qdx)<1.5&&Math.abs(_qdz)<1.5&&Math.abs(_qdy)<1.0&&_qegg.vy>0){
+                        // Trigger: bounce block, spawn coins, mark used
+                        ob.data._bouncing=true; ob.data._bounceT=0; ob.data.used=true;
+                        // Change to brown (used block)
+                        if(ob.mesh.children[0])ob.mesh.children[0].material=toon(0x886644);
+                        if(ob.mesh.children[1])ob.mesh.children[1].visible=false; // hide ? mark
+                        if(ob.mesh.children[2])ob.mesh.children[2].visible=false;
+                        // Spawn 3 coin meshes
+                        for(var _sci=0;_sci<3;_sci++){
+                            var _scG=new THREE.Group();
+                            var _scDisc=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.3,0.06,8),toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.5}));
+                            _scDisc.rotation.x=Math.PI/2; _scG.add(_scDisc);
+                            _scG.position.set(ob.mesh.position.x,ob.data.baseY+1,ob.mesh.position.z);
+                            raceGroup.add(_scG);
+                            var _scAngle=(_sci/3)*Math.PI*2+Math.random()*0.5;
+                            ob.data._coinMeshes.push({mesh:_scG,_vx:Math.sin(_scAngle)*0.08,_vz:Math.cos(_scAngle)*0.08,_vy:0.15,_life:60});
+                        }
+                        // Give coins to the egg that hit
+                        if(_qegg.isPlayer){raceCoinScore+=3;playCoinSound();}
+                        _qegg.vy*=-0.3; // bounce off bottom
+                        break;
+                    }
+                }
+            }
+        }
 
     }
 }

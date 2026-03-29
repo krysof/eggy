@@ -2478,7 +2478,70 @@ function _gameUpdate(){
             var cdz=playerEgg.mesh.position.z-(-rc.z);
             var cdy=playerEgg.mesh.position.y-(rc.fy+1.2);
             var cdist=Math.sqrt(cdx*cdx+cdz*cdz+cdy*cdy);
-            if(cdist<1.5){rc.collected=true;rc.mesh.visible=false;raceCoinScore++;playCoinSound();}
+            if(cdist<1.5){
+                rc.collected=true;rc.mesh.visible=false;
+                if(rc.type==='star'){
+                    // Speed Star: 2x speed for 3 seconds
+                    playerEgg._speedBoost=180;
+                    playCoinSound();
+                } else if(rc.type==='shield'){
+                    // Shield Bubble: immune to 1 hit for 5 seconds
+                    playerEgg._shieldTimer=300;
+                    if(!playerEgg._shieldBubble){
+                        var _sbMesh=new THREE.Mesh(new THREE.SphereGeometry(1.2,12,8),new THREE.MeshBasicMaterial({color:0x4488FF,transparent:true,opacity:0.25}));
+                        playerEgg.mesh.add(_sbMesh);
+                        playerEgg._shieldBubble=_sbMesh;
+                    }
+                    playerEgg._shieldBubble.visible=true;
+                    playCoinSound();
+                } else if(rc.type==='magnet'){
+                    // Magnet: attract nearby coins for 5 seconds
+                    playerEgg._coinMagnet=300;
+                    playCoinSound();
+                } else {
+                    raceCoinScore++;playCoinSound();
+                }
+            }
+        }
+        // Power-up visual effects
+        if(playerEgg){
+            // Speed Star glow
+            if(playerEgg._speedBoost>0){
+                var _sbBody=playerEgg.mesh.userData.body;
+                if(_sbBody){_sbBody.material.emissive=new THREE.Color(0xFFDD00);_sbBody.material.emissiveIntensity=0.3+Math.sin(playerEgg._speedBoost*0.15)*0.2;}
+                if(playerEgg._speedBoost<=0&&_sbBody){_sbBody.material.emissiveIntensity=0;}
+            } else {
+                var _sbBody2=playerEgg.mesh.userData.body;
+                if(_sbBody2&&!playerEgg._onFire)_sbBody2.material.emissiveIntensity=0;
+            }
+            // Shield bubble visibility
+            if(playerEgg._shieldBubble){
+                playerEgg._shieldBubble.visible=(playerEgg._shieldTimer>0);
+                if(playerEgg._shieldTimer>0)playerEgg._shieldBubble.material.opacity=0.15+Math.sin(playerEgg._shieldTimer*0.1)*0.1;
+            }
+            // Shield: absorb hit (cancel stun/throw)
+            if(playerEgg._shieldTimer>0&&(playerEgg.throwTimer>0||playerEgg._stunTimer>0)){
+                playerEgg.throwTimer=0;playerEgg._stunTimer=0;playerEgg._shieldTimer=0;
+                playerEgg.vx*=0.3;playerEgg.vz*=0.3;
+                if(playerEgg._shieldBubble)playerEgg._shieldBubble.visible=false;
+            }
+            // Magnet: attract nearby coins
+            if(playerEgg._coinMagnet>0){
+                for(var _mci=0;_mci<raceCoins.length;_mci++){
+                    var _mc=raceCoins[_mci];
+                    if(_mc.collected||_mc.type)continue; // only attract regular coins
+                    var _mdx2=playerEgg.mesh.position.x-_mc.mesh.position.x;
+                    var _mdz2=playerEgg.mesh.position.z-_mc.mesh.position.z;
+                    var _mdy2=playerEgg.mesh.position.y-_mc.mesh.position.y;
+                    var _md2=Math.sqrt(_mdx2*_mdx2+_mdz2*_mdz2+_mdy2*_mdy2);
+                    if(_md2<10&&_md2>0.1){
+                        _mc.mesh.position.x+=_mdx2/_md2*0.15;
+                        _mc.mesh.position.z+=_mdz2/_md2*0.15;
+                        _mc.mesh.position.y+=_mdy2/_md2*0.15;
+                        _mc.x=_mc.mesh.position.x;
+                    }
+                }
+            }
         }
         // Projectile update (same as in updateCity)
         if(!window._allProjectiles)window._allProjectiles=[];

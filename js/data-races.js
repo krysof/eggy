@@ -57,6 +57,13 @@ var OBSTACLE_PARAMS={
         baseSpeed:0.02,speedPerRace:0.003,
         walkRangeRatio:0.6, // fraction of track half-width
         hitVx:0.15,hitVy:0.12,squash:0.6
+    },
+    questionBlock:{
+        height:4, // height above floor
+        size:2, // box size
+        bounceFrames:8,
+        coinCount:3, // coins dropped on hit
+        coinArcForce:0.15
     }
 };
 
