@@ -256,8 +256,10 @@ function _renderIntro(now){
     }
 
     // ======== PHASE 1: Lightning + silhouettes appear (1.5-2.5s) ========
-    var cx=W*0.35, cy=H*0.72;
-    var rx=W*0.65, ry=H*0.72;
+    // Use min dimension for vertical positioning on portrait phones
+    var _baseY=Math.min(H*0.72, H*0.5+150*scale);
+    var cx=W*0.35, cy=_baseY;
+    var rx=W*0.65, ry=_baseY;
     var eggSize=50*scale;
 
     if(t>=1.5&&t<2.5){
