@@ -1658,11 +1658,12 @@ function _updatePortalSel(){
 }
 function showPortalConfirm(portal){
     _portalConfirmOpen=true;
-    _babylonPromptOpen=false;_moonPipePromptOpen=false; // safety reset
+    // All confirm types now unified
     _portalConfirmRace=portal.raceIndex;
     _portalConfirmTarget=portal._targetStyle||(-1);
     _portalConfirmHidden=portal._hiddenType||null;
     _portalConfirmWarpPipe=portal._isWarpPipe?{x:portal._pipeX,z:portal._pipeZ,target:portal._targetStyle}:null;
+    _portalConfirmBabelDir=portal._babelDir||0;
     _portalDismissed=null;
     var box=document.getElementById('portal-confirm');
     document.getElementById('portal-confirm-name').textContent=portal.name;
@@ -1687,8 +1688,26 @@ function confirmPortalEnter(){
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0){ enterRace(ri); }
     else if(wp&&playerEgg){
-        // Warp pipe travel with fly animation
         startPipeTravel(wp.x,wp.z,wp.target);
+    }
+    else if(ht==='babel'){
+        if(!_babylonTower)return;
+        var _bDir=_portalConfirmBabelDir||1;
+        _babylonElevator=true;
+        _babylonElevDir=_bDir;
+        _babylonElevY=(_bDir===1)?1:_babylonTower.topY;
+        if(sfxEnabled){
+            var ctx=ensureAudio();if(ctx){
+                var o=ctx.createOscillator();var g=ctx.createGain();o.type='sine';
+                if(_bDir===1){o.frequency.setValueAtTime(200,ctx.currentTime);o.frequency.linearRampToValueAtTime(600,ctx.currentTime+2);}
+                else{o.frequency.setValueAtTime(600,ctx.currentTime);o.frequency.linearRampToValueAtTime(200,ctx.currentTime+2);}
+                g.gain.setValueAtTime(0.1,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+2.5);
+                o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+2.5);
+            }
+        }
+    }
+    else if(ht==='moonPipe'){
+        if(_cloudWorldPipe)startPipeTravel(_cloudWorldPipe.x,_cloudWorldPipe.z,_cloudWorldPipe.targetStyle,_cloudWorldPipe.y);
     }
     else if(ht==='earthReturn'&&playerEgg){
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
@@ -1697,92 +1716,32 @@ function confirmPortalEnter(){
     else if(ht==='platformer'){if(typeof _pfStart==='function'){_pfStart();}}
     else if(ts>=0){ switchCity(ts); }
 }
-document.getElementById('portal-yes').addEventListener('click',function(){if(_babylonPromptOpen){_confirmBabylonEnter();}else if(_moonPipePromptOpen){_confirmMoonPipeEnter();}else{confirmPortalEnter();}});
-document.getElementById('portal-no').addEventListener('click',function(){if(_babylonPromptOpen){_hideBabylonPrompt();}else if(_moonPipePromptOpen){_hideMoonPipePrompt();}else{hidePortalConfirm();}});
+document.getElementById('portal-yes').addEventListener('click',function(){confirmPortalEnter();});
+document.getElementById('portal-no').addEventListener('click',function(){hidePortalConfirm();});
 
-// ---- Babel Tower prompt (reuses portal-confirm dialog) ----
-var _babylonPromptOpen=false, _babylonPromptDir=1;
+// ---- Babel Tower prompt — unified into showPortalConfirm ----
+var _babylonPromptDir=1;
 function _showBabylonPrompt(dir){
-    if(_babylonPromptOpen||_portalConfirmOpen)return;
-    _babylonPromptOpen=true;
+    if(_portalConfirmOpen)return;
     _babylonPromptDir=dir||1;
-    _portalConfirmOpen=true;
-    var box=document.getElementById('portal-confirm');
     var babelName={zhs:'\u5DF4\u522B\u5854',zht:'\u5DF4\u5225\u5854',ja:'\u30D0\u30D9\u30EB\u306E\u5854',en:'Tower of Babel'};
     var upDesc={zhs:'\u4E58\u5750\u7535\u68AF\u524D\u5F80\u4E91\u4E2D\u754C\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u524D\u5F80\u96F2\u4E2D\u754C\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u96F2\u4E2D\u754C\u3078\uFF1F',en:'Take elevator to Cloud Realm?'};
     var downDesc={zhs:'\u4E58\u5750\u7535\u68AF\u8FD4\u56DE\u5730\u9762\uFF1F',zht:'\u4E58\u5750\u96FB\u68AF\u8FD4\u56DE\u5730\u9762\uFF1F',ja:'\u30A8\u30EC\u30D9\u30FC\u30BF\u30FC\u3067\u5730\u4E0A\u3078\uFF1F',en:'Take elevator back down?'};
-    document.getElementById('portal-confirm-name').textContent=babelName[_langCode]||babelName.en;
-    document.getElementById('portal-confirm-desc').textContent=(dir===-1?downDesc:upDesc)[_langCode]||(dir===-1?downDesc:upDesc).en;
-    box.style.display='flex';
+    var dTxt=dir===-1?downDesc:upDesc;
+    showPortalConfirm({name:babelName[_langCode]||babelName.en,desc:dTxt[_langCode]||dTxt.en,raceIndex:-1,_hiddenType:'babel',_babelDir:dir||1});
 }
-function _hideBabylonPrompt(){
-    _babylonPromptOpen=false;
-    _portalConfirmOpen=false;
-    _babylonPromptDismissed=true;
-    document.getElementById('portal-confirm').style.display='none';
-}
-function _confirmBabylonEnter(){
-    _babylonPromptOpen=false;
-    _portalConfirmOpen=false;
-    document.getElementById('portal-confirm').style.display='none';
-    if(!_babylonTower)return;
-    _babylonElevator=true;
-    _babylonElevDir=_babylonPromptDir;
-    _babylonElevY=(_babylonPromptDir===1)?1:_babylonTower.topY;
-    if(sfxEnabled){
-        var ctx=ensureAudio();if(ctx){
-            var o=ctx.createOscillator();var g=ctx.createGain();
-            o.type='sine';
-            if(_babylonPromptDir===1){o.frequency.setValueAtTime(200,ctx.currentTime);o.frequency.linearRampToValueAtTime(600,ctx.currentTime+2);}
-            else{o.frequency.setValueAtTime(600,ctx.currentTime);o.frequency.linearRampToValueAtTime(200,ctx.currentTime+2);}
-            g.gain.setValueAtTime(0.1,ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+2.5);
-            o.connect(g);g.connect(ctx.destination);
-            o.start();o.stop(ctx.currentTime+2.5);
-        }
-    }
-}
-// ---- Moon Pipe prompt (reuses portal-confirm dialog) ----
+// ---- Moon Pipe prompt — unified into showPortalConfirm ----
 function _showMoonPipePrompt(){
-    if(_moonPipePromptOpen||_portalConfirmOpen||_babylonPromptOpen)return;
-    _moonPipePromptOpen=true;
-    _portalConfirmOpen=true;
-    var box=document.getElementById('portal-confirm');
+    if(_portalConfirmOpen)return;
     var moonName=CITY_STYLES[5]?CITY_STYLES[5].name:'Moon';
     var desc={zhs:'\u901A\u8FC7\u661F\u7A7A\u96A7\u9053\u524D\u5F80'+moonName+'\uFF1F',zht:'\u901A\u904E\u661F\u7A7A\u96A7\u9053\u524D\u5F80'+moonName+'\uFF1F',ja:'\u661F\u7A7A\u30C8\u30F3\u30CD\u30EB\u3067'+moonName+'\u3078\uFF1F',en:'Travel through starfield tunnel to '+moonName+'?'};
-    document.getElementById('portal-confirm-name').textContent=moonName;
-    document.getElementById('portal-confirm-desc').textContent=desc[_langCode]||desc.en;
-    box.style.display='flex';
-}
-function _hideMoonPipePrompt(){
-    _moonPipePromptOpen=false;
-    _portalConfirmOpen=false;
-    _moonPipeDismissed=true;
-    document.getElementById('portal-confirm').style.display='none';
-}
-function _confirmMoonPipeEnter(){
-    _moonPipePromptOpen=false;
-    _portalConfirmOpen=false;
-    document.getElementById('portal-confirm').style.display='none';
-    if(_cloudWorldPipe){
-        startPipeTravel(_cloudWorldPipe.x,_cloudWorldPipe.z,_cloudWorldPipe.targetStyle,_cloudWorldPipe.y);
-    }
+    showPortalConfirm({name:moonName,desc:desc[_langCode]||desc.en,raceIndex:-1,_hiddenType:'moonPipe'});
 }
 addEventListener('keydown',function(e){
     if(!_portalConfirmOpen)return;
-    if(_babylonPromptOpen){
-        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();_confirmBabylonEnter();}
-        if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();_hideBabylonPrompt();}
-        return;
-    }
-    if(_moonPipePromptOpen){
-        if(e.code==='KeyY'||e.code==='Enter'||e.code==='Space'||e.code==='ArrowRight'){e.preventDefault();_confirmMoonPipeEnter();}
-        if(e.code==='KeyN'||e.code==='Escape'||e.code==='ArrowLeft'){e.preventDefault();_hideMoonPipePrompt();}
-        return;
-    }
     if(e.code==='ArrowLeft'||e.code==='KeyA'){e.preventDefault();_portalSel=(_portalSel+1)%2;_updatePortalSel();}
     if(e.code==='ArrowRight'||e.code==='KeyD'){e.preventDefault();_portalSel=(_portalSel+1)%2;_updatePortalSel();}
-    if(e.code==='Enter'||e.code==='Space'||e.code==='KeyR'||e.code==='KeyT'||e.code==='KeyF'||e.code==='KeyG'){e.preventDefault();if(_portalSel===0)confirmPortalEnter();else hidePortalConfirm();}
+    if(e.code==='Enter'||e.code==='Space'||e.code==='KeyY'||e.code==='KeyR'||e.code==='KeyT'||e.code==='KeyF'||e.code==='KeyG'){e.preventDefault();if(_portalSel===0)confirmPortalEnter();else hidePortalConfirm();}
     if(e.code==='Escape'||e.code==='KeyN'){e.preventDefault();hidePortalConfirm();}
 });
 // Result screen — Enter/Space to go back to city
