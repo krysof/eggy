@@ -229,9 +229,24 @@ function updateEggPhysics(egg, isCity){if(egg.heldBy||egg._piledriverLocked)retu
             if(Math.abs(cdx)<cl.hw&&Math.abs(cdz)<cl.hd){
                 // Land on top of cloud visual surface
                 var cloudTop=cl.y+(cl.top||1.2);
-                if(egg.vy<=0&&egg.mesh.position.y<=cloudTop+0.05&&egg.mesh.position.y>=cloudTop-1.5){
+                if(egg.vy<=0&&egg.mesh.position.y<=cloudTop+0.3&&egg.mesh.position.y>=cloudTop-2.0){
                     egg.mesh.position.y=cloudTop+0.01;egg.vy=0;egg.onGround=true;
                     egg._onCloud=cl;
+                    // Flatten cloud visually when stood on (easier to see platform)
+                    if(cl.group){
+                        var _tgtSY=0.3;
+                        for(var cci=0;cci<cl.group.children.length;cci++){
+                            var cc=cl.group.children[cci];
+                            cc.scale.y+=(cc.scale.x*_tgtSY-cc.scale.y)*0.15;
+                        }
+                    }
+                }
+            }
+            // Restore cloud shape when nobody on it
+            if(cl.group&&(!egg._onCloud||egg._onCloud!==cl)){
+                for(var cci2=0;cci2<cl.group.children.length;cci2++){
+                    var cc2=cl.group.children[cci2];
+                    cc2.scale.y+=(cc2.scale.x*0.45-cc2.scale.y)*0.05;
                 }
             }
         }

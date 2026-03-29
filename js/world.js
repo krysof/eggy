@@ -564,7 +564,8 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
     for(var ci2=0;ci2<g.children.length;ci2++){g.children[ci2].position.x-=halfW;}
     g.position.set(cx,cy,cz);
     scene.add(g);
-    var cl={group:g,x:cx,z:cz,y:cy,hw:halfW+maxSc,hd:Math.max(maxD,maxSc*0.7,halfW*0.6),top:maxTop};
+    // Wider collision area than visual to prevent falling through edges
+    var cl={group:g,x:cx,z:cz,y:cy,hw:halfW+maxSc+1,hd:Math.max(maxD,maxSc*0.7,halfW*0.6)+1,top:maxTop,_origScaleY:1};
     cityCloudPlatforms.push(cl);
     return cl;
 }

@@ -1251,8 +1251,14 @@ var _moveNames={};
     }
 })();
 function _shoutMove(egg,key){
-    var t=_moveNames[key];
-    var txt=t?t[_langCode]||t.en||key:key;
+    // Accept either a string key (looked up in _moveNames) or a move object with .text field
+    var txt;
+    if(typeof key==='object'&&key.text){
+        txt=key.text[_langCode]||key.text.en||key.shout||'!';
+    } else {
+        var t=_moveNames[key];
+        txt=t?t[_langCode]||t.en||key:key;
+    }
     _showChatBubble(egg,txt,60);
     egg._moveShoutTimer=60; // block random chat while shouting move name
 }
@@ -1817,24 +1823,22 @@ function enterCity(spawnX,spawnZ){
         if(npc.struggleBar){try{npc.mesh.remove(npc.struggleBar);}catch(e){}npc.struggleBar=null;}
     }
 
-    // Create player in city
+    // Create player in city — spawn at correct height immediately
     var sx=(spawnX!==undefined)?spawnX:0;
     var sz=(spawnZ!==undefined)?spawnZ:0;
+    var sy=0;
+    if(currentCityStyle===5){
+        if(sx===0&&sz===5){sx=50;sz=0;}
+        sy=0.5;
+    } else if(sx===0&&sz===0){
+        sy=15; // above fountain pillar
+    }
     const skin=CHARACTERS[selectedChar];
     playerEgg=createEgg(sx,sz,skin.color,skin.accent,true,undefined,skin.type);
+    playerEgg.mesh.position.set(sx,sy,sz); // set height IMMEDIATELY to avoid pillar clip
     playerEgg.finished=false;playerEgg.alive=true;
-    if(currentCityStyle===5){
-        // Moon flat: spawn in battlefield area (right side)
-        if(sx===0&&sz===5){sx=50;sz=0;}
-        playerEgg.mesh.position.set(sx,0.5,sz);
-        camera.position.set(sx,12,sz+14);camera.lookAt(sx,0,sz);
-        camera.up.set(0,1,0);
-    } else {
-        // Spawn above fountain pillar (h=8), fall onto top
-        if(sx===0&&sz===0)playerEgg.mesh.position.set(0,15,0);
-        camera.position.set(sx,12,sz+14); camera.lookAt(sx,0,sz);
-        camera.up.set(0,1,0);
-    }
+    camera.position.set(sx,12,sz+14);camera.lookAt(sx,0,sz);
+    camera.up.set(0,1,0);
     // Check if Tower of Babel should already be triggered
     if(coins>=10&&!_babylonTriggered&&currentCityStyle!==5){_triggerBabylonEvent();}
     // SOTN area name reveal
