@@ -56,6 +56,7 @@ function _pfStart(){try{
     if(R)R.setClearColor(0x87CEEB);
     var hud=document.getElementById('city-hud');if(hud)hud.style.display='';
     var tc=document.getElementById('touch-controls');if(tc)tc.classList.remove('hidden');
+    var pfBack=document.getElementById('pf-back-btn');if(pfBack)pfBack.style.display='inline-block';
 }catch(e){console.error('_pfStart ERROR:',e);alert('Start error: '+e.message);}}
 
 function _pfBuildLevel(){try{
@@ -620,6 +621,7 @@ function _pfUpdateCamera(){try{
 // ---- End platformer ----
 function _pfEndGame(){
     _pfActive=false;
+    var pfBack=document.getElementById('pf-back-btn');if(pfBack)pfBack.style.display='none';
     currentCityStyle=_pfSavedCity>=0?_pfSavedCity:0;
     if(typeof switchCity==='function')switchCity(currentCityStyle);
 }

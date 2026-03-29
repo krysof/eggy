@@ -225,6 +225,10 @@ document.getElementById('back-city-btn').addEventListener('click', goBackToCity)
 // Back to city during race
 document.getElementById('race-back-btn').addEventListener('click', goBackToCity);
 
+// Back to city from platformer
+var _pfBackBtn=document.getElementById('pf-back-btn');
+if(_pfBackBtn)_pfBackBtn.addEventListener('click', function(){if(typeof _pfEndGame==='function')_pfEndGame();});
+
 // Auto-detect nav bar / notch offset for all Android & iOS devices
 (function(){
     var tc=document.getElementById('touch-controls');
