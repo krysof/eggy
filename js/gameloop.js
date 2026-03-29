@@ -2459,7 +2459,8 @@ function _gameUpdate(){
         for(const egg of raceEggs){
             if(!egg.isPlayer){
                 if(_pfActive){
-                    // Platformer: NPC patrol handled by _pfUpdateMoving, lock Z
+                    // Platformer: city AI for combat, lock Z axis
+                    updateCityNPC(egg);
                     egg.vz=0;egg.mesh.position.z=0;
                 } else {
                     updateRaceAI(egg);
@@ -2471,11 +2472,8 @@ function _gameUpdate(){
         }
         resolveEggCollisions(raceEggs);
         checkThrownEggImpact(raceEggs);
-        // Platformer: NPCs can't grab player (but player can grab NPCs)
-        if(_pfActive&&playerEgg&&playerEgg.heldBy){
-            playerEgg.heldBy.holding=null;playerEgg.heldBy=null;
-            if(playerEgg.struggleBar){playerEgg.mesh.remove(playerEgg.struggleBar);playerEgg.struggleBar=null;}
-        }
+        // Platformer: lock Z for held eggs too
+        if(_pfActive){for(var _fzi=0;_fzi<raceEggs.length;_fzi++){raceEggs[_fzi].mesh.position.z=0;}}
         updateHeldEggs();
                 // Race coin collection + animation
         for(var ci=0;ci<raceCoins.length;ci++){
