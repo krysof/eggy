@@ -175,7 +175,7 @@ function _pfBuildLevel(){
     var enemyPositions=[[20,2],[50,2]];
     for(var ei=0;ei<enemyPositions.length;ei++){
         var ex=enemyPositions[ei][0]*T,ey=enemyPositions[ei][1];
-        var enemy=createEgg(ex,0,0xCC3333,0x880000,false,scene,'round');
+        var enemy=createEgg(ex,0,0xCC3333,0x880000,false,scene,'egg');
         enemy.mesh.position.set(ex,ey,0);
         enemy.cityNPC=true;
         enemy._patrolBaseX=ex;enemy._patrolRange=T*4;enemy._patrolSpeed=0.03;enemy._patrolPhase=Math.random()*Math.PI*2;
@@ -365,7 +365,7 @@ function _pfBuildLevel(){
         bPillar.position.set(bossX1+bossW/2+bpi*(bossW/2-2),11,0);cityGroup.add(bPillar);
     }
     // Boss enemy (larger NPC, scale 1.5)
-    var bossEnemy=createEgg(bossX1+bossW/2,0,0xFF2222,0x880000,false,scene,'round');
+    var bossEnemy=createEgg(bossX1+bossW/2,0,0xFF2222,0x880000,false,scene,'egg');
     bossEnemy.mesh.position.set(bossX1+bossW/2,8,0);
     bossEnemy.mesh.scale.set(1.5,1.5,1.5);
     bossEnemy.cityNPC=true;
