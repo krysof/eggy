@@ -2180,8 +2180,8 @@ function enterRace(raceIndex){
         const ci=(i-1)%AI_COLORS.length;
         var _row=Math.floor(i/_cols);
         var _col=i%_cols;
-        var _sx=-TRACK_W+_spacing*(_col+1);
-        var _sz=-2-_row*3;
+        var _sx=-TRACK_W+_spacing*(_col+1)+(Math.random()-0.5)*1.5;
+        var _sz=-2-_row*3+(Math.random()-0.5)*1.2;
         var _rEgg=createEgg(_sx, _sz, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
         window._bfRacePositions.push({egg:_rEgg, x:_sx, y:_rEgg.mesh.position.y, z:_sz});
         _rEgg.mesh.visible=false;
@@ -2481,7 +2481,10 @@ function enterRace(raceIndex){
                     var _nEggs=window._bfRacePositions.length;
                     // Create center beam once
                     if(!window._bfCenterBeam){
-                        var _cx=0,_cz=-2-6; // 2 egg-lengths ahead of start line
+                        // Calculate actual center of all eggs
+                        var _cx=0,_cz=0;
+                        for(var _cci=0;_cci<_nEggs;_cci++){_cx+=window._bfRacePositions[_cci].x;_cz+=window._bfRacePositions[_cci].z;}
+                        _cx/=_nEggs;_cz/=_nEggs;
                         window._bfCenterBeam={x:_cx,z:_cz,meshes:[]};
                         for(var _cbi=0;_cbi<7;_cbi++){
                             var _cbm=new THREE.Mesh(
