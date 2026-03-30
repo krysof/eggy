@@ -44,12 +44,17 @@ function updateEggPhysics(egg, isCity){
     egg.conveyorVx=0; egg.conveyorVz=0;
 
     if(isCity){
+        // Platformer mode: no global ground, only cityColliders matter
+        if(_pfActive){
+            egg.onGround=false; // will be set by collider checks below
+        } else {
         // City ground — only within city bounds
         var _inBounds=Math.abs(egg.mesh.position.x)<(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE)&&Math.abs(egg.mesh.position.z)<(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
         if(_inBounds&&egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         }else if(!_inBounds){egg.onGround=false;}
         else{egg.onGround=false;}
+        }
         // City bounds — no wall, can fall off edge
         const bound=(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
         // Fall respawn: if egg falls below -5, respawn at center
@@ -186,7 +191,7 @@ function updateEggPhysics(egg, isCity){
             }
             var inX=Math.abs(dx)<c.hw+egg.radius, inZ=Math.abs(dz)<c.hd+egg.radius;
             if(inX&&inZ){
-                var roofY=c.h||6;
+                var roofY=(c.y||0)+(c.h||6);
                 // Babel tower: skip roof snap if player is on/near clouds (above roofY)
                 var landBelow=1.0;
                 var skipBabelSnap=false;
