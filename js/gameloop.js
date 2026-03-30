@@ -2440,128 +2440,117 @@ function enterRace(raceIndex){
             // Camera shake intensifies
             camera.position.x+=Math.sin(elapsed*0.06)*0.15*p2;
         }
-        // --- Phase 3: Arrive from void + descend to race track (0.6 - 1.0 = 4s) ---
+        // --- Phase 3: Reverse Phase 2 then Phase 1 at race track (0.6 - 1.0 = 4s) ---
         else{
             var p3=(t-0.6)/0.4;
-            // Hide runes/particles, keep pillars for landing effect
-            for(var _hrn=0;_hrn<_bfRunes.length;_hrn++)_bfRunes[_hrn].visible=false;
-            for(var _hpt=0;_hpt<_bfParticles.length;_hpt++)_bfParticles[_hpt].mesh.visible=false;
-            for(var _hr=0;_hr<_bfRings.length;_hr++)_bfRings[_hr].visible=false;
-            // White flash at start of phase 3 to switch scenes
-            _bfFlash.position.copy(camera.position);
-            _bfFlash.quaternion.copy(camera.quaternion);
-            _bfFlash.translateZ(-1);
-            if(p3<0.15){
-                _bfFlash.material.opacity=p3/0.15;
-            }else if(p3<0.3){
-                _bfFlash.material.opacity=1;
-                // Switch scene during peak flash
-                if(!_bfCityHidden){
-                    _bfCityHidden=true;
-                    cityGroup.visible=false;
-                    for(var _hn=0;_hn<cityNPCs.length;_hn++)cityNPCs[_hn].mesh.visible=false;
-                    if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
-                    for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
-                    if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
-                    raceGroup.visible=true;
-                    // Use pre-saved race positions for egg targets
-                    if(!window._bfEggTargets&&window._bfRacePositions){
-                        window._bfEggTargets=[];
-                        for(var _se=0;_se<window._bfRacePositions.length;_se++){
-                            var _rp=window._bfRacePositions[_se];
-                            var _eggDelay=_rp.egg.isPlayer?0:(_se/window._bfRacePositions.length)*0.85;
-                            window._bfEggTargets.push({
-                                egg:_rp.egg,
-                                targetX:_rp.x,
-                                targetY:_rp.y,
-                                targetZ:_rp.z,
-                                delay:_eggDelay
-                            });
-                            _rp.egg.mesh.visible=false;
-                            _rp.egg.mesh.position.set(0,200,0);
-                        }
+            // First time: switch scene + place eggs in sky
+            if(!_bfCityHidden){
+                _bfCityHidden=true;
+                cityGroup.visible=false;
+                for(var _hn=0;_hn<cityNPCs.length;_hn++)cityNPCs[_hn].mesh.visible=false;
+                if(_babylonTower&&_babylonTower.group)_babylonTower.group.visible=false;
+                for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
+                if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
+                raceGroup.visible=true;
+                // Move bifrost to race track center
+                for(var _mr=0;_mr<_bfRings.length;_mr++){_bfRings[_mr].position.set(0,0.1+_mr*0.05,0);}
+                for(var _mrn=0;_mrn<_bfRunes.length;_mrn++){_bfRunes[_mrn].position.set(0,0.2,0);}
+                for(var _mp=0;_mp<_bfPillars.length;_mp++){_bfPillars[_mp].position.set(0,50,0);}
+                // Show all eggs at sky height, staggered
+                for(var _se=0;_se<allEggs.length;_se++){
+                    allEggs[_se].mesh.visible=true;
+                    allEggs[_se].mesh.position.set(0,50+_se*2,0);
+                }
+            }
+            // --- Reverse Phase 2 (0-0.5 of p3): eggs descend from sky one by one ---
+            if(p3<0.5){
+                var rp2=p3/0.5; // 0..1
+                // Flash at very start
+                _bfFlash.position.copy(camera.position);_bfFlash.quaternion.copy(camera.quaternion);_bfFlash.translateZ(-1);
+                _bfFlash.material.opacity=Math.max(0,1-rp2*4);
+                // Stagger eggs descending — each egg one by one
+                if(window._bfRacePositions){
+                    var _nEggs=window._bfRacePositions.length;
+                    for(var _dei=0;_dei<_nEggs;_dei++){
+                        var _rp2=window._bfRacePositions[_dei];
+                        var _eDelay=_dei/_nEggs*0.85;
+                        var _eP=Math.max(0,Math.min(1,(rp2-_eDelay)/(1/_nEggs*2)));
+                        if(_eP<=0){_rp2.egg.mesh.visible=false;continue;}
+                        _rp2.egg.mesh.visible=true;
+                        var _eEase=_eP<0.5?2*_eP*_eP:1-Math.pow(-2*_eP+2,2)/2;
+                        // Descend from 40 height (reverse of Phase 2 rise)
+                        var _landY=40*(1-_eEase)+_rp2.y*_eEase;
+                        _rp2.egg.mesh.position.set(_rp2.x,_landY,_rp2.z);
+                        _rp2.egg.mesh.rotation.y-=0.15*(1-_eP);
+                        if(_eP>0.9)_rp2.egg.squash=0.4+(_eP-0.9)*6; else _rp2.egg.squash=1;
                     }
                 }
-            }else{
-                // Descend all eggs from sky with staggered rainbow pillars
-                var _landP=(p3-0.3)/0.7;
-                _bfFlash.material.opacity=Math.max(0,1-_landP*3);
-                if(window._bfEggTargets){
-                    for(var _lei=0;_lei<window._bfEggTargets.length;_lei++){
-                        var _et=window._bfEggTargets[_lei];
-                        var _nTargets=window._bfEggTargets.length;
-                        var _eggWindow=Math.max(0.2,1/_nTargets);
-                        var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/_eggWindow));
-                        // Hidden until descent starts
-                        if(_eggP<=0){_et.egg.mesh.visible=false;continue;}
-                        _et.egg.mesh.visible=true;
-                        // Smooth ease-in-out
-                        var _easeP=_eggP<0.5?2*_eggP*_eggP:1-Math.pow(-2*_eggP+2,2)/2;
-                        // Fly in from 300 units away, each from different direction
-                        var _farDist=300;
-                        var _arriveAngle=_lei*(Math.PI*2/window._bfEggTargets.length);
-                        var _fromX=_et.targetX+Math.cos(_arriveAngle)*_farDist*(1-_easeP);
-                        var _fromZ=_et.targetZ+Math.sin(_arriveAngle)*_farDist*(1-_easeP);
-                        var _eggY=150*(1-_easeP)+_et.targetY*_easeP+Math.sin(_eggP*Math.PI)*30;
-                        _et.egg.mesh.position.set(_fromX,_eggY,_fromZ);
-                        _et.egg.mesh.rotation.y+=0.25*(1-_eggP);
-                        // Squash on landing impact
-                        if(_eggP>0.9){_et.egg.squash=0.4+(_eggP-0.9)*6;}else{_et.egg.squash=1;}
-                        // Rainbow pillar per egg — beam from sky to egg
-                        if(_eggP>0.05&&_eggP<0.95&&!_et._miniPillar){
-                            var _mpColor=_bfColors[_lei%7];
-                            _et._miniPillar=new THREE.Mesh(
-                                new THREE.CylinderGeometry(0.3,0.5,120,8),
-                                new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.5})
-                            );
-                            _bifrostGroup.add(_et._miniPillar);
-                            // Ground ring at landing spot
-                            _et._landRing=new THREE.Mesh(
-                                new THREE.TorusGeometry(1.5,0.15,6,24),
-                                new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.7})
-                            );
-                            _et._landRing.rotation.x=Math.PI/2;
-                            _et._landRing.position.set(_et.targetX,_et.targetY+0.1,_et.targetZ);
-                            _bifrostGroup.add(_et._landRing);
-                        }
-                        if(_et._miniPillar){
-                            // Pillar follows egg from sky, angled toward landing
-                            var _pillarH=Math.max(1,_eggY+10);
-                            _et._miniPillar.position.set(_fromX,_eggY+_pillarH*0.4,_fromZ);
-                            _et._miniPillar.scale.set(1-_eggP*0.5,_pillarH/120,1-_eggP*0.5);
-                            _et._miniPillar.lookAt(_et.targetX,_et.targetY,_et.targetZ);
-                            _et._miniPillar.material.opacity=0.5*(1-_eggP);
-                            if(_eggP>=0.95){
-                                _bifrostGroup.remove(_et._miniPillar);_et._miniPillar=null;
-                                if(_et._landRing){_bifrostGroup.remove(_et._landRing);_et._landRing=null;}
-                            }
-                        }
-                        if(_et._landRing){
-                            _et._landRing.material.opacity=0.7*(1-_eggP);
-                            _et._landRing.scale.set(1+_eggP,1+_eggP,1);
-                        }
+                // Rings at ground pulsing
+                for(var _ri5=0;_ri5<_bfRings.length;_ri5++){
+                    _bfRings[_ri5].visible=true;
+                    _bfRings[_ri5].position.set(0,0.1+_ri5*0.05,0);
+                    _bfRings[_ri5].material.opacity=0.7*(1-rp2*0.5);
+                    _bfRings[_ri5].rotation.z=elapsed*0.005+_ri5*0.5;
+                }
+                // Pillars full height, spiraling at race center
+                for(var _pi5=0;_pi5<_bfPillars.length;_pi5++){
+                    _bfPillars[_pi5].visible=true;
+                    var _sa5=elapsed*0.003+_pi5*(Math.PI*2/_bfPillarCount);
+                    var _sr5=0.3+(_pi5%5)*0.25+Math.floor(_pi5/5)*0.4;
+                    _bfPillars[_pi5].position.set(Math.cos(_sa5)*_sr5,50,Math.sin(_sa5)*_sr5);
+                    _bfPillars[_pi5].material.opacity=0.6*(1-rp2*0.3);
+                }
+                // Camera from above, pulling back
+                camera.position.set(0,20+30*(1-rp2),14+10*(1-rp2));
+                camera.lookAt(0,5+20*(1-rp2),0);
+                // Particles rain down
+                for(var _pp6=0;_pp6<_bfParticles.length;_pp6++){
+                    var _ptc3=_bfParticles[_pp6];_ptc3.mesh.visible=true;
+                    _ptc3.y-=_ptc3.speed*1.5;if(_ptc3.y<0)_ptc3.y=50;
+                    _ptc3.angle+=0.03;
+                    var _pr3=0.8+Math.sin(_ptc3.angle*3)*0.4;
+                    _ptc3.mesh.position.set(Math.cos(_ptc3.angle)*_pr3,_ptc3.y,Math.sin(_ptc3.angle)*_pr3);
+                    _ptc3.mesh.material.opacity=0.4*(1-rp2);
+                }
+            }
+            // --- Reverse Phase 1 (0.5-1.0 of p3): pillars retract to sky ---
+            else{
+                var rp1=(p3-0.5)/0.5; // 0..1
+                _bfFlash.material.opacity=0;
+                // All eggs at final positions
+                if(window._bfRacePositions){
+                    for(var _dei2=0;_dei2<window._bfRacePositions.length;_dei2++){
+                        var _rp3=window._bfRacePositions[_dei2];
+                        _rp3.egg.mesh.visible=true;
+                        _rp3.egg.mesh.position.set(_rp3.x,_rp3.y,_rp3.z);
+                        _rp3.egg.squash=1;
                     }
                 }
-                // Camera watches the descent from overview
-                var _camLandP=Math.min(1,_landP*1.3);
-                camera.position.set(0,15+60*(1-_camLandP),14+20*(1-_camLandP));
-                camera.lookAt(0,5,0);
+                // Pillars retract upward (reverse of Phase 1 descent)
+                var _retractH=120*rp1;
+                for(var _pi6=0;_pi6<_bfPillars.length;_pi6++){
+                    var _sa6=elapsed*0.003+_pi6*(Math.PI*2/_bfPillarCount);
+                    var _sr6=0.3+(_pi6%5)*0.25;
+                    _bfPillars[_pi6].position.set(Math.cos(_sa6)*_sr6,_retractH+50,Math.sin(_sa6)*_sr6);
+                    _bfPillars[_pi6].material.opacity=Math.max(0,0.5*(1-rp1));
+                }
+                // Rings shrink and fade
+                for(var _ri6=0;_ri6<_bfRings.length;_ri6++){
+                    var _shrink=1-rp1;
+                    _bfRings[_ri6].geometry.dispose();
+                    _bfRings[_ri6].geometry=new THREE.TorusGeometry((0.3+_ri6*0.4)*_shrink,0.08,6,32);
+                    _bfRings[_ri6].material.opacity=Math.max(0,0.6*(1-rp1));
+                }
+                // Particles fade
+                for(var _pp7=0;_pp7<_bfParticles.length;_pp7++){
+                    _bfParticles[_pp7].mesh.material.opacity=Math.max(0,0.3*(1-rp1));
+                }
+                // Runes hidden
+                for(var _rn5=0;_rn5<_bfRunes.length;_rn5++)_bfRunes[_rn5].visible=false;
+                // Camera settles at race start view
+                camera.position.set(0,12+8*(1-rp1),14+6*(1-rp1));
+                camera.lookAt(0,0+5*(1-rp1),-5*rp1);
             }
-            // Main pillars move to race center and fade
-            for(var _ri4=0;_ri4<_bfRings.length;_ri4++){
-                _bfRings[_ri4].material.opacity=Math.max(0,0.5-p3);
-            }
-            for(var _pp4=0;_pp4<_bfPillars.length;_pp4++){
-                _bfPillars[_pp4].visible=true;
-                _bfPillars[_pp4].position.x=Math.cos(elapsed*0.003+_pp4*(Math.PI*2/_bfPillarCount))*(0.3+(_pp4%5)*0.25);
-                _bfPillars[_pp4].position.z=Math.sin(elapsed*0.003+_pp4*(Math.PI*2/_bfPillarCount))*(0.3+(_pp4%5)*0.25);
-                _bfPillars[_pp4].material.opacity=Math.max(0,0.5-p3*0.8);
-            }
-            // Fade particles
-            for(var _pp5=0;_pp5<_bfParticles.length;_pp5++){
-                _bfParticles[_pp5].mesh.material.opacity=Math.max(0,0.7-p3*1.5);
-            }
-            // Camera and player descent handled in landing code above
         }
 
         // Render the 3D scene each frame
