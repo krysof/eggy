@@ -2284,13 +2284,21 @@ function enterRace(raceIndex){
         _bfAudioCtx=ensureAudio();
         if(_bfAudioCtx){
             var _bft=_bfAudioCtx.currentTime;
-            // Phase 1: Deep rumble (40Hz, 0-2s)
+            // Phase 1: Descending shimmer (high→low, gentle) + rumble
             _bfOsc1=_bfAudioCtx.createOscillator();_bfGain1=_bfAudioCtx.createGain();
-            _bfOsc1.type='sine';_bfOsc1.frequency.setValueAtTime(40,_bft);
-            _bfGain1.gain.setValueAtTime(0,_bft);_bfGain1.gain.linearRampToValueAtTime(0.15,_bft+1.5);
-            _bfGain1.gain.linearRampToValueAtTime(0.08,_bft+6);_bfGain1.gain.exponentialRampToValueAtTime(0.001,_bft+10);
+            _bfOsc1.type='triangle'; // soft tone
+            _bfOsc1.frequency.setValueAtTime(2000,_bft);_bfOsc1.frequency.exponentialRampToValueAtTime(200,_bft+2);
+            _bfGain1.gain.setValueAtTime(0,_bft);_bfGain1.gain.linearRampToValueAtTime(0.12,_bft+0.3);
+            _bfGain1.gain.linearRampToValueAtTime(0.08,_bft+1.5);_bfGain1.gain.exponentialRampToValueAtTime(0.001,_bft+2.5);
             _bfOsc1.connect(_bfGain1);_bfGain1.connect(_bfAudioCtx.destination);
-            _bfOsc1.start(_bft);_bfOsc1.stop(_bft+10);
+            _bfOsc1.start(_bft);_bfOsc1.stop(_bft+2.5);
+            // Sub rumble underneath
+            var _bfRumble=_bfAudioCtx.createOscillator();var _bfRumbleG=_bfAudioCtx.createGain();
+            _bfRumble.type='sine';_bfRumble.frequency.value=40;
+            _bfRumbleG.gain.setValueAtTime(0,_bft);_bfRumbleG.gain.linearRampToValueAtTime(0.1,_bft+1);
+            _bfRumbleG.gain.exponentialRampToValueAtTime(0.001,_bft+10);
+            _bfRumble.connect(_bfRumbleG);_bfRumbleG.connect(_bfAudioCtx.destination);
+            _bfRumble.start(_bft);_bfRumble.stop(_bft+10);
             // Phase 2: Rising whoosh (100->3000Hz, 2-6s)
             _bfOsc2=_bfAudioCtx.createOscillator();_bfGain2=_bfAudioCtx.createGain();
             _bfOsc2.type='sawtooth';_bfOsc2.frequency.setValueAtTime(100,_bft+2);
@@ -2468,56 +2476,63 @@ function enterRace(raceIndex){
                 // Flash at very start
                 _bfFlash.position.copy(camera.position);_bfFlash.quaternion.copy(camera.quaternion);_bfFlash.translateZ(-1);
                 _bfFlash.material.opacity=Math.max(0,1-rp2*4);
-                // Each egg: a light beam strikes down at egg's position, then egg appears
+                // One big rainbow beam at center → eggs pop out one by one
                 if(window._bfRacePositions){
                     var _nEggs=window._bfRacePositions.length;
+                    // Create center beam once
+                    if(!window._bfCenterBeam){
+                        var _cx=0,_cz=-2;
+                        window._bfCenterBeam={x:_cx,z:_cz,meshes:[]};
+                        for(var _cbi=0;_cbi<7;_cbi++){
+                            var _cbm=new THREE.Mesh(
+                                new THREE.CylinderGeometry(0.5+_cbi*0.3,1+_cbi*0.4,1,12),
+                                new THREE.MeshBasicMaterial({color:_bfColors[_cbi],transparent:true,opacity:0.4})
+                            );
+                            scene.add(_cbm);
+                            window._bfCenterBeam.meshes.push(_cbm);
+                        }
+                    }
+                    // Animate center beam: grows down from sky
+                    var _beamGrow=Math.min(1,rp2*3);
+                    var _beamH2=80*_beamGrow;
+                    for(var _cbi2=0;_cbi2<window._bfCenterBeam.meshes.length;_cbi2++){
+                        var _cbm2=window._bfCenterBeam.meshes[_cbi2];
+                        _cbm2.scale.set(1,Math.max(0.1,_beamH2),1);
+                        _cbm2.position.set(window._bfCenterBeam.x,80-_beamH2/2,window._bfCenterBeam.z);
+                        _cbm2.rotation.y=elapsed*0.002+_cbi2*0.3;
+                        _cbm2.material.opacity=0.35*(1-rp2*0.3);
+                    }
+                    // Eggs pop out from beam center, one by one
                     for(var _dei=0;_dei<_nEggs;_dei++){
                         var _rp2=window._bfRacePositions[_dei];
-                        // Wide stagger: each egg gets a clear slot
-                        var _eDelay=_dei/_nEggs*0.8;
-                        var _eWindow=Math.max(0.12, 0.8/_nEggs);
-                        var _eP=Math.max(0,Math.min(1,(rp2-_eDelay)/_eWindow));
+                        var _eDelay=0.15+_dei/_nEggs*0.75;
+                        var _eP=Math.max(0,Math.min(1,(rp2-_eDelay)/0.12));
                         if(_eP<=0){_rp2.egg.mesh.visible=false;continue;}
-                        // --- Beam phase (0-0.5): light strikes down to THIS egg's spot ---
-                        if(_eP<0.5){
-                            _rp2.egg.mesh.visible=false;
-                            var _beamP=_eP/0.5;
-                            if(!_rp2._beam){
-                                _rp2._beam=new THREE.Mesh(
-                                    new THREE.CylinderGeometry(0.3,0.6,1,8),
-                                    new THREE.MeshBasicMaterial({color:_bfColors[_dei%7],transparent:true,opacity:0.85})
-                                );
-                                scene.add(_rp2._beam); // add to SCENE not bifrostGroup
-                                // Loud descending beam sound
-                                if(sfxEnabled){try{var _bsCtx=ensureAudio();if(_bsCtx){var _bst=_bsCtx.currentTime;
-                                    var _bso=_bsCtx.createOscillator();var _bsg=_bsCtx.createGain();
-                                    _bso.type='sawtooth';
-                                    _bso.frequency.setValueAtTime(1500+_dei*100,_bst);
-                                    _bso.frequency.exponentialRampToValueAtTime(150,_bst+0.4);
-                                    _bsg.gain.setValueAtTime(0.18,_bst);
-                                    _bsg.gain.exponentialRampToValueAtTime(0.001,_bst+0.45);
-                                    _bso.connect(_bsg);_bsg.connect(_bsCtx.destination);
-                                    _bso.start(_bst);_bso.stop(_bst+0.45);
-                                }}catch(e){}}
-                            }
-                            // Beam grows from y=80 down to egg's y position
-                            var _beamH=80*_beamP;
-                            _rp2._beam.scale.set(1,Math.max(0.1,_beamH),1);
-                            _rp2._beam.position.set(_rp2.x, 80-_beamH/2, _rp2.z);
-                            _rp2._beam.material.opacity=0.85;
-                        }
-                        // --- Egg appear phase (0.5-1.0): egg pops in, beam fades ---
-                        else{
-                            var _appearP=(_eP-0.5)/0.5;
-                            _rp2.egg.mesh.visible=true;
-                            _rp2.egg.mesh.position.set(_rp2.x,_rp2.y,_rp2.z);
-                            var _popS=_appearP<0.2?(1.4*_appearP/0.2):1.4-(0.4*Math.min(1,(_appearP-0.2)/0.8));
-                            _rp2.egg.mesh.scale.set(_popS,_popS,_popS);
-                            _rp2.egg.squash=_appearP<0.15?0.3:0.3+Math.min(0.7,(_appearP-0.15)*1.0);
-                            if(_rp2._beam){
-                                _rp2._beam.material.opacity=0.85*(1-_appearP*1.5);
-                                if(_appearP>0.7){scene.remove(_rp2._beam);_rp2._beam=null;}
-                            }
+                        _rp2.egg.mesh.visible=true;
+                        var _eEase=_eP<0.5?2*_eP*_eP:1-Math.pow(-2*_eP+2,2)/2;
+                        // Fly from beam center to own race position
+                        _rp2.egg.mesh.position.set(
+                            window._bfCenterBeam.x+(_rp2.x-window._bfCenterBeam.x)*_eEase,
+                            30*(1-_eEase)+_rp2.y*_eEase,
+                            window._bfCenterBeam.z+(_rp2.z-window._bfCenterBeam.z)*_eEase
+                        );
+                        _rp2.egg.mesh.rotation.y-=0.15*(1-_eP);
+                        var _popS2=_eP<0.2?(1.3*_eP/0.2):1.3-(0.3*Math.min(1,(_eP-0.2)/0.8));
+                        _rp2.egg.mesh.scale.set(_popS2,_popS2,_popS2);
+                        _rp2.egg.squash=_eP<0.15?0.4:0.4+Math.min(0.6,(_eP-0.15)*0.8);
+                        // Soft chime when egg appears
+                        if(_eP>0&&_eP<0.05&&!_rp2._sounded){
+                            _rp2._sounded=true;
+                            if(sfxEnabled){try{var _bsCtx=ensureAudio();if(_bsCtx){var _bst=_bsCtx.currentTime;
+                                var _bso=_bsCtx.createOscillator();var _bsg=_bsCtx.createGain();
+                                _bso.type='triangle';
+                                _bso.frequency.setValueAtTime(600+_dei*40,_bst);
+                                _bso.frequency.exponentialRampToValueAtTime(400,_bst+0.2);
+                                _bsg.gain.setValueAtTime(0.08,_bst);
+                                _bsg.gain.exponentialRampToValueAtTime(0.001,_bst+0.25);
+                                _bso.connect(_bsg);_bsg.connect(_bsCtx.destination);
+                                _bso.start(_bst);_bso.stop(_bst+0.25);
+                            }}catch(e){}}
                         }
                     }
                 }
@@ -2605,8 +2620,13 @@ function enterRace(raceIndex){
                 _ft.egg.mesh.rotation.y=0;
                 _ft.egg.squash=1;
                 if(_ft._beam){scene.remove(_ft._beam);_ft._beam=null;}
+                _ft._sounded=false;
             }
         }
+        if(window._bfCenterBeam&&window._bfCenterBeam.meshes){
+            for(var _cbci=0;_cbci<window._bfCenterBeam.meshes.length;_cbci++)scene.remove(window._bfCenterBeam.meshes[_cbci]);
+        }
+        window._bfCenterBeam=null;
         window._bfRacePositions=null;
         window._bfEggTargets=null;
         startRaceBGM(raceIndex);
