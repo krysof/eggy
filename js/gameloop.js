@@ -2481,7 +2481,7 @@ function enterRace(raceIndex){
                     var _nEggs=window._bfRacePositions.length;
                     // Create center beam once
                     if(!window._bfCenterBeam){
-                        var _cx=0,_cz=-2;
+                        var _cx=0,_cz=-2-6; // 2 egg-lengths ahead of start line
                         window._bfCenterBeam={x:_cx,z:_cz,meshes:[]};
                         for(var _cbi=0;_cbi<7;_cbi++){
                             var _cbm=new THREE.Mesh(
