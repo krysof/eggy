@@ -2468,7 +2468,7 @@ function enterRace(raceIndex){
                 // Flash at very start
                 _bfFlash.position.copy(camera.position);_bfFlash.quaternion.copy(camera.quaternion);_bfFlash.translateZ(-1);
                 _bfFlash.material.opacity=Math.max(0,1-rp2*4);
-                // Stagger eggs descending — each egg one by one
+                // Each egg: a light beam strikes down, then egg appears at landing spot
                 if(window._bfRacePositions){
                     var _nEggs=window._bfRacePositions.length;
                     for(var _dei=0;_dei<_nEggs;_dei++){
@@ -2476,13 +2476,38 @@ function enterRace(raceIndex){
                         var _eDelay=_dei/_nEggs*0.85;
                         var _eP=Math.max(0,Math.min(1,(rp2-_eDelay)/(1/_nEggs*2)));
                         if(_eP<=0){_rp2.egg.mesh.visible=false;continue;}
-                        _rp2.egg.mesh.visible=true;
-                        var _eEase=_eP<0.5?2*_eP*_eP:1-Math.pow(-2*_eP+2,2)/2;
-                        // Descend from 40 height (reverse of Phase 2 rise)
-                        var _landY=40*(1-_eEase)+_rp2.y*_eEase;
-                        _rp2.egg.mesh.position.set(_rp2.x,_landY,_rp2.z);
-                        _rp2.egg.mesh.rotation.y-=0.15*(1-_eP);
-                        if(_eP>0.9)_rp2.egg.squash=0.4+(_eP-0.9)*6; else _rp2.egg.squash=1;
+                        // Light beam phase (0-0.6): beam strikes down from sky to egg position
+                        if(_eP<0.6){
+                            _rp2.egg.mesh.visible=false; // egg not yet visible
+                            var _beamP=_eP/0.6;
+                            if(!_rp2._beam){
+                                _rp2._beam=new THREE.Mesh(
+                                    new THREE.CylinderGeometry(0.2,0.4,1,6),
+                                    new THREE.MeshBasicMaterial({color:_bfColors[_dei%7],transparent:true,opacity:0.8})
+                                );
+                                _bifrostGroup.add(_rp2._beam);
+                            }
+                            // Beam grows from sky downward to target
+                            var _beamH=60*_beamP;
+                            _rp2._beam.scale.set(1,_beamH,1);
+                            _rp2._beam.position.set(_rp2.x,60-_beamH/2,_rp2.z);
+                            _rp2._beam.material.opacity=0.7;
+                        }
+                        // Egg appears (0.6-1.0): beam flash → egg pops in + beam fades
+                        else{
+                            var _appearP=(_eP-0.6)/0.4;
+                            _rp2.egg.mesh.visible=true;
+                            _rp2.egg.mesh.position.set(_rp2.x,_rp2.y,_rp2.z);
+                            // Pop-in scale animation
+                            var _popS=_appearP<0.3?(1.3*_appearP/0.3):1.3-(0.3*(_appearP-0.3)/0.7);
+                            _rp2.egg.mesh.scale.set(_popS,_popS,_popS);
+                            _rp2.egg.squash=_appearP<0.2?0.4:0.4+(_appearP-0.2)*0.75;
+                            // Beam fades out
+                            if(_rp2._beam){
+                                _rp2._beam.material.opacity=0.7*(1-_appearP);
+                                if(_appearP>0.8){_bifrostGroup.remove(_rp2._beam);_rp2._beam=null;}
+                            }
+                        }
                     }
                 }
                 // Rings at ground pulsing
@@ -2560,15 +2585,18 @@ function enterRace(raceIndex){
     _animateBifrost3D();
     function _startRaceCountdown(){
         // Force all eggs to their target positions and visible
-        if(window._bfEggTargets){
-            for(var _fi=0;_fi<window._bfEggTargets.length;_fi++){
-                var _ft=window._bfEggTargets[_fi];
-                _ft.egg.mesh.position.set(_ft.targetX,_ft.targetY,_ft.targetZ);
+        if(window._bfRacePositions){
+            for(var _fi=0;_fi<window._bfRacePositions.length;_fi++){
+                var _ft=window._bfRacePositions[_fi];
+                _ft.egg.mesh.position.set(_ft.x,_ft.y,_ft.z);
                 _ft.egg.mesh.visible=true;
+                _ft.egg.mesh.scale.set(1,1,1);
                 _ft.egg.mesh.rotation.y=0;
                 _ft.egg.squash=1;
+                if(_ft._beam){_bifrostGroup.remove(_ft._beam);_ft._beam=null;}
             }
         }
+        window._bfRacePositions=null;
         window._bfEggTargets=null;
         startRaceBGM(raceIndex);
         var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
