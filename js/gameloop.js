@@ -2542,7 +2542,8 @@ function enterRace(raceIndex){
                 // Rings at ground pulsing
                 for(var _ri5=0;_ri5<_bfRings.length;_ri5++){
                     _bfRings[_ri5].visible=true;
-                    _bfRings[_ri5].position.set(0,0.1+_ri5*0.05,0);
+                    var _bcx=window._bfCenterBeam?window._bfCenterBeam.x:0,_bcz=window._bfCenterBeam?window._bfCenterBeam.z:0;
+                    _bfRings[_ri5].position.set(_bcx,0.1+_ri5*0.05,_bcz);
                     _bfRings[_ri5].material.opacity=0.7*(1-rp2*0.5);
                     _bfRings[_ri5].rotation.z=elapsed*0.005+_ri5*0.5;
                 }
@@ -2551,7 +2552,8 @@ function enterRace(raceIndex){
                     _bfPillars[_pi5].visible=true;
                     var _sa5=elapsed*0.003+_pi5*(Math.PI*2/_bfPillarCount);
                     var _sr5=0.3+(_pi5%5)*0.25+Math.floor(_pi5/5)*0.4;
-                    _bfPillars[_pi5].position.set(Math.cos(_sa5)*_sr5,50,Math.sin(_sa5)*_sr5);
+                    var _bcx2=window._bfCenterBeam?window._bfCenterBeam.x:0,_bcz2=window._bfCenterBeam?window._bfCenterBeam.z:0;
+                    _bfPillars[_pi5].position.set(_bcx2+Math.cos(_sa5)*_sr5,50,_bcz2+Math.sin(_sa5)*_sr5);
                     _bfPillars[_pi5].material.opacity=0.6*(1-rp2*0.3);
                 }
                 // Camera from above, pulling back
@@ -2585,7 +2587,8 @@ function enterRace(raceIndex){
                 for(var _pi6=0;_pi6<_bfPillars.length;_pi6++){
                     var _sa6=elapsed*0.003+_pi6*(Math.PI*2/_bfPillarCount);
                     var _sr6=0.3+(_pi6%5)*0.25;
-                    _bfPillars[_pi6].position.set(Math.cos(_sa6)*_sr6,_retractH+50,Math.sin(_sa6)*_sr6);
+                    var _bcx3=window._bfCenterBeam?window._bfCenterBeam.x:0,_bcz3=window._bfCenterBeam?window._bfCenterBeam.z:0;
+                    _bfPillars[_pi6].position.set(_bcx3+Math.cos(_sa6)*_sr6,_retractH+50,_bcz3+Math.sin(_sa6)*_sr6);
                     _bfPillars[_pi6].material.opacity=Math.max(0,0.5*(1-rp1));
                 }
                 // Rings shrink and fade
