@@ -63,6 +63,8 @@ function _drawFist(ctx,x,y,size,color){
 }
 
 // Draw skyscraper
+// Pre-generate window pattern (stable, no flicker)
+var _buildingWindows=null;
 function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     ctx.fillStyle=color;
     ctx.fillRect(x,y,w,h);
@@ -70,11 +72,17 @@ function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     var ww=w*0.12,wh=h*0.03,gap=w*0.08;
     var cols=Math.floor((w-gap*2)/(ww+gap));
     var rows=Math.floor((h-gap*3)/(wh+gap*1.5));
+    // Generate stable pattern once
+    if(!_buildingWindows||_buildingWindows.length!==rows*cols){
+        _buildingWindows=[];
+        for(var i=0;i<rows*cols;i++)_buildingWindows.push(Math.random()>0.15);
+    }
     for(var r=0;r<rows;r++){
         for(var c=0;c<cols;c++){
+            if(!_buildingWindows[r*cols+c])continue;
             var wx=x+gap+c*(ww+gap);
             var wy=y+gap*2+r*(wh+gap*1.5);
-            if(Math.random()>0.15) ctx.fillRect(wx,wy,ww,wh);
+            ctx.fillRect(wx,wy,ww,wh);
         }
     }
 }
