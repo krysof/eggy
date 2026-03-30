@@ -2472,8 +2472,8 @@ function enterRace(raceIndex){
                                 targetZ:_egg.mesh.position.z,
                                 delay:_egg.isPlayer?0:0.1+_se*0.05
                             });
-                            _egg.mesh.visible=true;
-                            _egg.mesh.position.y=80+_se*3;
+                            _egg.mesh.visible=false; // stay hidden until descent starts
+                            _egg.mesh.position.y=100+_se*3;
                         }
                     }
                 }
@@ -2485,6 +2485,8 @@ function enterRace(raceIndex){
                     for(var _lei=0;_lei<window._bfEggTargets.length;_lei++){
                         var _et=window._bfEggTargets[_lei];
                         var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/(1-_et.delay-0.05)));
+                        // Show egg only when its descent begins
+                        _et.egg.mesh.visible=(_eggP>0);
                         // Arrive from distant void — fly in from far away + descend
                         var _farDist=200; // start 200 units away
                         var _arriveAngle=_lei*(Math.PI*2/window._bfEggTargets.length);
