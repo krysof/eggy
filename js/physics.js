@@ -297,12 +297,12 @@ function updateEggPhysics(egg, isCity){
             if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen&&!_spinDashing){
                 var mp=_cloudWorldPipe;
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
-                var mdy=egg.mesh.position.y-mp.y;
                 var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
-                if(mdist<5&&egg.mesh.position.y>=mp.y-5&&egg.mesh.position.y<=mp.y+15&&!_moonPipeDismissed){
+                if(mdist<5&&egg.mesh.position.y>=mp.y-5&&egg.mesh.position.y<=mp.y+15&&!mp._cooldown){
+                    mp._cooldown=true;
                     _showMoonPipePrompt();
                 }
-                if(mdist>6){_moonPipeDismissed=false;}
+                if(mdist>PORTAL_CONFIG.triggerDist){mp._cooldown=false;}
             }
         }
 } else {
