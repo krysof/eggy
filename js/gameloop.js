@@ -2170,7 +2170,10 @@ function enterRace(raceIndex){
     const total=14+raceIndex*2;
     var _cols=Math.min(total,Math.floor(TRACK_W*2/2.5));
     var _spacing=TRACK_W*2/(_cols+1);
+    // Save race start positions BEFORE Bifrost moves eggs around
+    window._bfRacePositions=[];
     playerEgg=createEgg(0, -2, skin.color, skin.accent, true, undefined, skin.type);
+    window._bfRacePositions.push({egg:playerEgg, x:0, y:playerEgg.mesh.position.y, z:-2});
     // Player starts at saved city position for Bifrost rising animation
     playerEgg.mesh.position.set(_bfSavedX,_bfSavedY,_bfSavedZ);
     for(let i=1;i<total;i++){
@@ -2180,6 +2183,7 @@ function enterRace(raceIndex){
         var _sx=-TRACK_W+_spacing*(_col+1);
         var _sz=-2-_row*3;
         var _rEgg=createEgg(_sx, _sz, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
+        window._bfRacePositions.push({egg:_rEgg, x:_sx, y:_rEgg.mesh.position.y, z:_sz});
         _rEgg.mesh.visible=false;
     }
 
@@ -2460,22 +2464,21 @@ function enterRace(raceIndex){
                     for(var _hc2=0;_hc2<cityCloudPlatforms.length;_hc2++){if(cityCloudPlatforms[_hc2].group)cityCloudPlatforms[_hc2].group.visible=false;}
                     if(window._cityAnimals)for(var _ha2=0;_ha2<window._cityAnimals.length;_ha2++){if(window._cityAnimals[_ha2]._inScene&&window._cityAnimals[_ha2].group)window._cityAnimals[_ha2].group.visible=false;}
                     raceGroup.visible=true;
-                    // Save each egg's target position, move to sky
-                    if(!window._bfEggTargets){
+                    // Use pre-saved race positions for egg targets
+                    if(!window._bfEggTargets&&window._bfRacePositions){
                         window._bfEggTargets=[];
-                        for(var _se=0;_se<allEggs.length;_se++){
-                            var _egg=allEggs[_se];
-                            // Each egg lands one by one — evenly spread across the 4s window
-                            var _eggDelay=_egg.isPlayer?0:(_se/allEggs.length)*0.85;
+                        for(var _se=0;_se<window._bfRacePositions.length;_se++){
+                            var _rp=window._bfRacePositions[_se];
+                            var _eggDelay=_rp.egg.isPlayer?0:(_se/window._bfRacePositions.length)*0.85;
                             window._bfEggTargets.push({
-                                egg:_egg,
-                                targetX:_egg.mesh.position.x,
-                                targetY:_egg.mesh.position.y,
-                                targetZ:_egg.mesh.position.z,
+                                egg:_rp.egg,
+                                targetX:_rp.x,
+                                targetY:_rp.y,
+                                targetZ:_rp.z,
                                 delay:_eggDelay
                             });
-                            _egg.mesh.visible=false;
-                            _egg.mesh.position.set(0,200,0); // far away in sky
+                            _rp.egg.mesh.visible=false;
+                            _rp.egg.mesh.position.set(0,200,0);
                         }
                     }
                 }
