@@ -63,8 +63,7 @@ function _drawFist(ctx,x,y,size,color){
 }
 
 // Draw skyscraper
-// Pre-generate window pattern (stable, no flicker)
-var _buildingWindows=null;
+// Draw skyscraper with slow-flickering windows
 function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     ctx.fillStyle=color;
     ctx.fillRect(x,y,w,h);
@@ -72,14 +71,12 @@ function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     var ww=w*0.12,wh=h*0.03,gap=w*0.08;
     var cols=Math.floor((w-gap*2)/(ww+gap));
     var rows=Math.floor((h-gap*3)/(wh+gap*1.5));
-    // Generate stable pattern once
-    if(!_buildingWindows||_buildingWindows.length!==rows*cols){
-        _buildingWindows=[];
-        for(var i=0;i<rows*cols;i++)_buildingWindows.push(Math.random()>0.15);
-    }
+    var _t=Math.floor(Date.now()/500); // change every 0.5s, not every frame
     for(var r=0;r<rows;r++){
         for(var c=0;c<cols;c++){
-            if(!_buildingWindows[r*cols+c])continue;
+            // Deterministic per-window, changes slowly
+            var _seed=(r*31+c*17+_t)%100;
+            if(_seed<15)continue; // 15% dark
             var wx=x+gap+c*(ww+gap);
             var wy=y+gap*2+r*(wh+gap*1.5);
             ctx.fillRect(wx,wy,ww,wh);
@@ -761,8 +758,9 @@ if(_introCanvas){
         }
     });
     _introCanvas.addEventListener('touchstart',function(e){
-        if(!_introStart)return; // intro not started yet
-        if(_introStart&&(performance.now()-_introStart)>500){
+        if(!_introStart)return;
+        var _elapsed=(Date.now()-_introStart)/1000;
+        if(_elapsed>6){ // only allow skip after 6 seconds (battle scene done)
             if(!_introSkipped){
                 _skipIntro();
             } else {
@@ -824,13 +822,13 @@ function _onTapStart(){
     document.removeEventListener('keydown',_onTapStartKey);
 }
 function _onTapStartKey(e){
-    if(_introStart&&!_introSkipped){_skipIntro();return;}
-    _onTapStart();
+    if(_introStart&&!_introSkipped&&(Date.now()-_introStart)>6000){_skipIntro();return;}
+    if(!_introStart)_onTapStart();
 }
 if(_introCanvas){
     _introCanvas.addEventListener('click',function(){
-        if(_introStart&&!_introSkipped){_skipIntro();return;}
-        _onTapStart();
+        if(_introStart&&!_introSkipped&&(Date.now()-_introStart)>6000){_skipIntro();return;}
+        if(!_introStart)_onTapStart();
     });
     _introCanvas.addEventListener('touchstart',function(){
         if(_introStart&&!_introSkipped){_skipIntro();return;}
