@@ -2567,7 +2567,17 @@ function enterRace(raceIndex){
     }
     _animateBifrost3D();
     function _startRaceCountdown(){
-        window._bfEggTargets=null; // cleanup egg descent targets
+        // Force all eggs to their target positions and visible
+        if(window._bfEggTargets){
+            for(var _fi=0;_fi<window._bfEggTargets.length;_fi++){
+                var _ft=window._bfEggTargets[_fi];
+                _ft.egg.mesh.position.set(_ft.targetX,_ft.targetY,_ft.targetZ);
+                _ft.egg.mesh.visible=true;
+                _ft.egg.mesh.rotation.y=0;
+                _ft.egg.squash=1;
+            }
+        }
+        window._bfEggTargets=null;
         startRaceBGM(raceIndex);
         var raceNames=I18N.raceNames[_langCode]||I18N.raceNames.en;
         if(raceNames[raceIndex])_showAreaName(raceNames[raceIndex]);
