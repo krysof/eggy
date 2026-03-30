@@ -2465,8 +2465,9 @@ function enterRace(raceIndex){
                         window._bfEggTargets=[];
                         for(var _se=0;_se<allEggs.length;_se++){
                             var _egg=allEggs[_se];
-                            var _eggDelay=_egg.isPlayer?0:0.05+_se*0.06; // stagger across 4s
-                            if(_eggDelay>0.7)_eggDelay=0.7; // cap so last eggs still have time
+                            // Each egg lands one by one — evenly spread across the 4s window
+                            var _totalEggs=allEggs.length;
+                            var _eggDelay=_egg.isPlayer?0:(_se/_totalEggs)*0.85;
                             window._bfEggTargets.push({
                                 egg:_egg,
                                 targetX:_egg.mesh.position.x,
@@ -2486,7 +2487,8 @@ function enterRace(raceIndex){
                 if(window._bfEggTargets){
                     for(var _lei=0;_lei<window._bfEggTargets.length;_lei++){
                         var _et=window._bfEggTargets[_lei];
-                        var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/(1-_et.delay-0.05)));
+                        var _eggWindow=Math.max(0.15,1/_totalEggs); // each egg gets its own time slice
+                        var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/_eggWindow));
                         // Hidden until descent starts
                         if(_eggP<=0){_et.egg.mesh.visible=false;continue;}
                         _et.egg.mesh.visible=true;
