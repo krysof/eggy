@@ -2465,15 +2465,17 @@ function enterRace(raceIndex){
                         window._bfEggTargets=[];
                         for(var _se=0;_se<allEggs.length;_se++){
                             var _egg=allEggs[_se];
+                            var _eggDelay=_egg.isPlayer?0:0.05+_se*0.06; // stagger across 4s
+                            if(_eggDelay>0.7)_eggDelay=0.7; // cap so last eggs still have time
                             window._bfEggTargets.push({
                                 egg:_egg,
                                 targetX:_egg.mesh.position.x,
                                 targetY:_egg.mesh.position.y,
                                 targetZ:_egg.mesh.position.z,
-                                delay:_egg.isPlayer?0:0.1+_se*0.05
+                                delay:_eggDelay
                             });
-                            _egg.mesh.visible=false; // stay hidden until descent starts
-                            _egg.mesh.position.y=100+_se*3;
+                            _egg.mesh.visible=false;
+                            _egg.mesh.position.set(0,200,0); // far away in sky
                         }
                     }
                 }
@@ -2485,17 +2487,21 @@ function enterRace(raceIndex){
                     for(var _lei=0;_lei<window._bfEggTargets.length;_lei++){
                         var _et=window._bfEggTargets[_lei];
                         var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/(1-_et.delay-0.05)));
-                        // Show egg only when its descent begins
-                        _et.egg.mesh.visible=(_eggP>0);
-                        // Arrive from distant void — fly in from far away + descend
-                        var _farDist=200; // start 200 units away
+                        // Hidden until descent starts
+                        if(_eggP<=0){_et.egg.mesh.visible=false;continue;}
+                        _et.egg.mesh.visible=true;
+                        // Smooth ease-in-out
+                        var _easeP=_eggP<0.5?2*_eggP*_eggP:1-Math.pow(-2*_eggP+2,2)/2;
+                        // Fly in from 300 units away, each from different direction
+                        var _farDist=300;
                         var _arriveAngle=_lei*(Math.PI*2/window._bfEggTargets.length);
-                        var _fromX=_et.targetX+Math.cos(_arriveAngle)*_farDist*(1-_eggP);
-                        var _fromZ=_et.targetZ+Math.sin(_arriveAngle)*_farDist*(1-_eggP);
-                        var _eggY=100*(1-_eggP)+_et.targetY*_eggP+Math.sin(_eggP*Math.PI)*20;
+                        var _fromX=_et.targetX+Math.cos(_arriveAngle)*_farDist*(1-_easeP);
+                        var _fromZ=_et.targetZ+Math.sin(_arriveAngle)*_farDist*(1-_easeP);
+                        var _eggY=150*(1-_easeP)+_et.targetY*_easeP+Math.sin(_eggP*Math.PI)*30;
                         _et.egg.mesh.position.set(_fromX,_eggY,_fromZ);
-                        _et.egg.mesh.rotation.y+=0.2*(1-_eggP);
-                        _et.egg.squash=0.5+_eggP*0.5;
+                        _et.egg.mesh.rotation.y+=0.25*(1-_eggP);
+                        // Squash on landing impact
+                        if(_eggP>0.9){_et.egg.squash=0.4+(_eggP-0.9)*6;}else{_et.egg.squash=1;}
                         // Rainbow pillar per egg — beam from sky to egg
                         if(_eggP>0.05&&_eggP<0.95&&!_et._miniPillar){
                             var _mpColor=_bfColors[_lei%7];
