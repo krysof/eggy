@@ -2241,11 +2241,13 @@ function enterRace(raceIndex){
     }
 
     // Light pillars (7 colored cylinders, initially tiny)
+    // One pillar per participant — together they form the big bifrost
+    var _bfPillarCount=total; // total race eggs
     var _bfPillars=[];
-    for(var _bpi=0;_bpi<7;_bpi++){
+    for(var _bpi=0;_bpi<_bfPillarCount;_bpi++){
         var _pillar=new THREE.Mesh(
             new THREE.CylinderGeometry(0.15,0.3,0.1,8),
-            new THREE.MeshBasicMaterial({color:_bfColors[_bpi],transparent:true,opacity:0.6})
+            new THREE.MeshBasicMaterial({color:_bfColors[_bpi%7],transparent:true,opacity:0.6})
         );
         _pillar.position.set(_bfPlayerX,0.05,_bfPlayerZ);
         _bifrostGroup.add(_pillar);
@@ -2282,9 +2284,9 @@ function enterRace(raceIndex){
             _bfOsc1=_bfAudioCtx.createOscillator();_bfGain1=_bfAudioCtx.createGain();
             _bfOsc1.type='sine';_bfOsc1.frequency.setValueAtTime(40,_bft);
             _bfGain1.gain.setValueAtTime(0,_bft);_bfGain1.gain.linearRampToValueAtTime(0.15,_bft+1.5);
-            _bfGain1.gain.linearRampToValueAtTime(0.08,_bft+6);_bfGain1.gain.exponentialRampToValueAtTime(0.001,_bft+8);
+            _bfGain1.gain.linearRampToValueAtTime(0.08,_bft+6);_bfGain1.gain.exponentialRampToValueAtTime(0.001,_bft+10);
             _bfOsc1.connect(_bfGain1);_bfGain1.connect(_bfAudioCtx.destination);
-            _bfOsc1.start(_bft);_bfOsc1.stop(_bft+8);
+            _bfOsc1.start(_bft);_bfOsc1.stop(_bft+10);
             // Phase 2: Rising whoosh (100->3000Hz, 2-6s)
             _bfOsc2=_bfAudioCtx.createOscillator();_bfGain2=_bfAudioCtx.createGain();
             _bfOsc2.type='sawtooth';_bfOsc2.frequency.setValueAtTime(100,_bft+2);
@@ -2296,20 +2298,20 @@ function enterRace(raceIndex){
             _bfGain2.gain.exponentialRampToValueAtTime(0.001,_bft+6.5);
             _bfOsc2.connect(_bfGain2);_bfGain2.connect(_bfAudioCtx.destination);
             _bfOsc2.start(_bft+2);_bfOsc2.stop(_bft+6.5);
-            // Phase 3: Impact boom (6-8s)
+            // Phase 3: Arrival whoosh + multiple impacts (6-10s)
             var _bfOsc3=_bfAudioCtx.createOscillator();var _bfGain3=_bfAudioCtx.createGain();
-            _bfOsc3.type='square';_bfOsc3.frequency.setValueAtTime(60,_bft+6);
-            _bfOsc3.frequency.exponentialRampToValueAtTime(20,_bft+8);
-            _bfGain3.gain.setValueAtTime(0,_bft);_bfGain3.gain.setValueAtTime(0.2,_bft+6);
-            _bfGain3.gain.exponentialRampToValueAtTime(0.001,_bft+8);
+            _bfOsc3.type='sawtooth';_bfOsc3.frequency.setValueAtTime(800,_bft+6.5);
+            _bfOsc3.frequency.exponentialRampToValueAtTime(200,_bft+9);
+            _bfGain3.gain.setValueAtTime(0,_bft);_bfGain3.gain.setValueAtTime(0.1,_bft+6.5);
+            _bfGain3.gain.linearRampToValueAtTime(0.08,_bft+8);_bfGain3.gain.exponentialRampToValueAtTime(0.001,_bft+10);
             _bfOsc3.connect(_bfGain3);_bfGain3.connect(_bfAudioCtx.destination);
-            _bfOsc3.start(_bft+6);_bfOsc3.stop(_bft+8.1);
+            _bfOsc3.start(_bft+6.5);_bfOsc3.stop(_bft+10);
         }
     }
 
     // --- Animation loop ---
     var _bfStart=Date.now();
-    var _bfDuration=8000; // 2s descend + 4s suck up + 2s flash
+    var _bfDuration=10000; // 2s descend + 4s suck up + 4s arrive
     var _bfAnimId=null;
     var _bfCityHidden=false;
 
@@ -2341,19 +2343,19 @@ function enterRace(raceIndex){
             return;
         }
 
-        // --- Phase 1: Rainbow descends from sky (0 - 0.25 = 2s) ---
-        if(t<0.25){
-            var p1=t/0.25;
+        // --- Phase 1: Rainbow descends from sky (0 - 0.2 = 2s) ---
+        if(t<0.2){
+            var p1=t/0.2;
             // Light pillars descend from height 120 down to ground
             var pillarTop=120;
             var pillarBot=pillarTop*(1-p1);
             var pillarH=pillarTop-pillarBot;
             for(var _pp=0;_pp<_bfPillars.length;_pp++){
                 _bfPillars[_pp].geometry.dispose();
-                _bfPillars[_pp].geometry=new THREE.CylinderGeometry(0.2+p1*0.1,0.4+p1*0.2,Math.max(0.1,pillarH),8);
+                _bfPillars[_pp].geometry=new THREE.CylinderGeometry(0.12,0.25,Math.max(0.1,pillarH),6);
                 _bfPillars[_pp].position.y=pillarBot+pillarH/2;
-                var spiralAngle=elapsed*0.003+_pp*(Math.PI*2/7);
-                var spiralR=0.5+_pp*0.2;
+                var spiralAngle=elapsed*0.003+_pp*(Math.PI*2/_bfPillarCount);
+                var spiralR=0.3+(_pp%5)*0.25+Math.floor(_pp/5)*0.4;
                 _bfPillars[_pp].position.x=_bfPlayerX+Math.cos(spiralAngle)*spiralR;
                 _bfPillars[_pp].position.z=_bfPlayerZ+Math.sin(spiralAngle)*spiralR;
                 _bfPillars[_pp].material.opacity=0.3+p1*0.5;
@@ -2383,13 +2385,13 @@ function enterRace(raceIndex){
                 ptc.mesh.material.opacity=0.3+p1*0.5;
             }
         }
-        // --- Phase 2: Rings lock on + Player sucked up (0.25 - 0.75 = 4s) ---
-        else if(t<0.75){
-            var p2=(t-0.25)/0.5;
+        // --- Phase 2: Rings lock on + Player sucked up (0.2 - 0.6 = 4s) ---
+        else if(t<0.6){
+            var p2=(t-0.2)/0.4;
             // Full pillars from ground to sky, pulsing
             for(var _pp2=0;_pp2<_bfPillars.length;_pp2++){
-                var spiralAngle2=elapsed*0.003+_pp2*(Math.PI*2/7);
-                var spiralR2=0.5+_pp2*0.2;
+                var spiralAngle2=elapsed*0.003+_pp2*(Math.PI*2/_bfPillarCount);
+                var spiralR2=0.3+(_pp2%5)*0.25+Math.floor(_pp2/5)*0.4;
                 _bfPillars[_pp2].position.x=_bfPlayerX+Math.cos(spiralAngle2)*spiralR2;
                 _bfPillars[_pp2].position.z=_bfPlayerZ+Math.sin(spiralAngle2)*spiralR2;
                 _bfPillars[_pp2].material.opacity=0.6+Math.sin(elapsed*0.01+_pp2)*0.3;
@@ -2434,9 +2436,9 @@ function enterRace(raceIndex){
             // Camera shake intensifies
             camera.position.x+=Math.sin(elapsed*0.06)*0.15*p2;
         }
-        // --- Phase 3: Fly through sky + descend to race track (0.75 - 1.0 = 2s) ---
+        // --- Phase 3: Arrive from void + descend to race track (0.6 - 1.0 = 4s) ---
         else{
-            var p3=(t-0.75)/0.25;
+            var p3=(t-0.6)/0.4;
             // Hide runes/particles, keep pillars for landing effect
             for(var _hrn=0;_hrn<_bfRunes.length;_hrn++)_bfRunes[_hrn].visible=false;
             for(var _hpt=0;_hpt<_bfParticles.length;_hpt++)_bfParticles[_hpt].mesh.visible=false;
@@ -2483,21 +2485,24 @@ function enterRace(raceIndex){
                     for(var _lei=0;_lei<window._bfEggTargets.length;_lei++){
                         var _et=window._bfEggTargets[_lei];
                         var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/(1-_et.delay-0.05)));
-                        // Arc descent
-                        var _eggY=80*(1-_eggP)+_et.targetY*_eggP+Math.sin(_eggP*Math.PI)*15;
-                        _et.egg.mesh.position.set(_et.targetX,_eggY,_et.targetZ);
-                        _et.egg.mesh.rotation.y+=0.15*(1-_eggP);
+                        // Arrive from distant void — fly in from far away + descend
+                        var _farDist=200; // start 200 units away
+                        var _arriveAngle=_lei*(Math.PI*2/window._bfEggTargets.length);
+                        var _fromX=_et.targetX+Math.cos(_arriveAngle)*_farDist*(1-_eggP);
+                        var _fromZ=_et.targetZ+Math.sin(_arriveAngle)*_farDist*(1-_eggP);
+                        var _eggY=100*(1-_eggP)+_et.targetY*_eggP+Math.sin(_eggP*Math.PI)*20;
+                        _et.egg.mesh.position.set(_fromX,_eggY,_fromZ);
+                        _et.egg.mesh.rotation.y+=0.2*(1-_eggP);
                         _et.egg.squash=0.5+_eggP*0.5;
                         // Rainbow pillar per egg — beam from sky to egg
-                        if(_eggP>0&&_eggP<0.95&&!_et._miniPillar){
+                        if(_eggP>0.05&&_eggP<0.95&&!_et._miniPillar){
                             var _mpColor=_bfColors[_lei%7];
                             _et._miniPillar=new THREE.Mesh(
-                                new THREE.CylinderGeometry(0.3,0.5,100,8),
-                                new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.6})
+                                new THREE.CylinderGeometry(0.3,0.5,120,8),
+                                new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.5})
                             );
-                            _et._miniPillar.position.set(_et.targetX,50,_et.targetZ);
                             _bifrostGroup.add(_et._miniPillar);
-                            // Ground ring where egg will land
+                            // Ground ring at landing spot
                             _et._landRing=new THREE.Mesh(
                                 new THREE.TorusGeometry(1.5,0.15,6,24),
                                 new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.7})
@@ -2507,11 +2512,12 @@ function enterRace(raceIndex){
                             _bifrostGroup.add(_et._landRing);
                         }
                         if(_et._miniPillar){
-                            // Pillar shrinks as egg descends
-                            var _pillarH=Math.max(1,_eggY-_et.targetY+5);
-                            _et._miniPillar.scale.set(1-_eggP*0.5,_pillarH/100,1-_eggP*0.5);
-                            _et._miniPillar.position.y=_eggY+_pillarH*0.5;
-                            _et._miniPillar.material.opacity=0.6*(1-_eggP);
+                            // Pillar follows egg from sky, angled toward landing
+                            var _pillarH=Math.max(1,_eggY+10);
+                            _et._miniPillar.position.set(_fromX,_eggY+_pillarH*0.4,_fromZ);
+                            _et._miniPillar.scale.set(1-_eggP*0.5,_pillarH/120,1-_eggP*0.5);
+                            _et._miniPillar.lookAt(_et.targetX,_et.targetY,_et.targetZ);
+                            _et._miniPillar.material.opacity=0.5*(1-_eggP);
                             if(_eggP>=0.95){
                                 _bifrostGroup.remove(_et._miniPillar);_et._miniPillar=null;
                                 if(_et._landRing){_bifrostGroup.remove(_et._landRing);_et._landRing=null;}
@@ -2534,8 +2540,8 @@ function enterRace(raceIndex){
             }
             for(var _pp4=0;_pp4<_bfPillars.length;_pp4++){
                 _bfPillars[_pp4].visible=true;
-                _bfPillars[_pp4].position.x=Math.cos(elapsed*0.003+_pp4*(Math.PI*2/7))*(0.5+_pp4*0.2);
-                _bfPillars[_pp4].position.z=Math.sin(elapsed*0.003+_pp4*(Math.PI*2/7))*(0.5+_pp4*0.2);
+                _bfPillars[_pp4].position.x=Math.cos(elapsed*0.003+_pp4*(Math.PI*2/_bfPillarCount))*(0.3+(_pp4%5)*0.25);
+                _bfPillars[_pp4].position.z=Math.sin(elapsed*0.003+_pp4*(Math.PI*2/_bfPillarCount))*(0.3+(_pp4%5)*0.25);
                 _bfPillars[_pp4].material.opacity=Math.max(0,0.5-p3*0.8);
             }
             // Fade particles
