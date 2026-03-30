@@ -645,10 +645,13 @@ function _renderIntro(now){
     // ======== PHASE 4: Pan up skyscraper + title (6.5-8.5s) ========
     if(t>6.5){
         var titleAlpha=Math.min(1,(t-7)/1.0);
-        // Main skyscraper (center)
+        // Main skyscraper slides up from below
+        var _slideIn=Math.min(1,(t-6.5)/1.0); // 0→1 over 1 second
+        var _slideEase=_slideIn<0.5?2*_slideIn*_slideIn:1-Math.pow(-2*_slideIn+2,2)/2;
         var bldW=W*0.35,bldH=H*1.8;
         var bldX=(W-bldW)/2;
-        var bldY=H-bldH+panY;
+        var bldY=H-bldH+panY+H*(1-_slideEase); // starts below screen, slides up
+        ctx.globalAlpha=_slideEase;
         _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#1a1028','rgba(255,200,80,0.5)');
         ctx.fillStyle='#2a1838';
         ctx.fillRect(bldX+bldW*0.1,bldY,bldW*0.8,bldH*0.02);
@@ -657,6 +660,7 @@ function _renderIntro(now){
         ctx.fillStyle='rgba(255,215,0,0.08)';
         ctx.fillRect(bldX,bldY,bldW,bldH);
         ctx.shadowBlur=0;
+        ctx.globalAlpha=1;
 
         // Title with screen shake
         if(titleAlpha>0){
