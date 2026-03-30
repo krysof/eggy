@@ -2437,11 +2437,10 @@ function enterRace(raceIndex){
         // --- Phase 3: Fly through sky + descend to race track (0.75 - 1.0 = 2s) ---
         else{
             var p3=(t-0.75)/0.25;
-            // Hide pillars/rings/particles during travel
-            for(var _hp=0;_hp<_bfPillars.length;_hp++)_bfPillars[_hp].visible=false;
-            for(var _hr=0;_hr<_bfRings.length;_hr++)_bfRings[_hr].visible=false;
+            // Hide runes/particles, keep pillars for landing effect
             for(var _hrn=0;_hrn<_bfRunes.length;_hrn++)_bfRunes[_hrn].visible=false;
             for(var _hpt=0;_hpt<_bfParticles.length;_hpt++)_bfParticles[_hpt].mesh.visible=false;
+            for(var _hr=0;_hr<_bfRings.length;_hr++)_bfRings[_hr].visible=false;
             // White flash at start of phase 3 to switch scenes
             _bfFlash.position.copy(camera.position);
             _bfFlash.quaternion.copy(camera.quaternion);
@@ -2489,18 +2488,38 @@ function enterRace(raceIndex){
                         _et.egg.mesh.position.set(_et.targetX,_eggY,_et.targetZ);
                         _et.egg.mesh.rotation.y+=0.15*(1-_eggP);
                         _et.egg.squash=0.5+_eggP*0.5;
-                        // Mini rainbow pillar per egg during descent
-                        if(_eggP>0&&_eggP<0.9&&!_et._miniPillar){
+                        // Rainbow pillar per egg — beam from sky to egg
+                        if(_eggP>0&&_eggP<0.95&&!_et._miniPillar){
+                            var _mpColor=_bfColors[_lei%7];
                             _et._miniPillar=new THREE.Mesh(
-                                new THREE.CylinderGeometry(0.1,0.2,80,6),
-                                new THREE.MeshBasicMaterial({color:_bfColors[_lei%7],transparent:true,opacity:0.3})
+                                new THREE.CylinderGeometry(0.3,0.5,100,8),
+                                new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.6})
                             );
-                            _et._miniPillar.position.set(_et.targetX,40,_et.targetZ);
+                            _et._miniPillar.position.set(_et.targetX,50,_et.targetZ);
                             _bifrostGroup.add(_et._miniPillar);
+                            // Ground ring where egg will land
+                            _et._landRing=new THREE.Mesh(
+                                new THREE.TorusGeometry(1.5,0.15,6,24),
+                                new THREE.MeshBasicMaterial({color:_mpColor,transparent:true,opacity:0.7})
+                            );
+                            _et._landRing.rotation.x=Math.PI/2;
+                            _et._landRing.position.set(_et.targetX,_et.targetY+0.1,_et.targetZ);
+                            _bifrostGroup.add(_et._landRing);
                         }
                         if(_et._miniPillar){
-                            _et._miniPillar.material.opacity=Math.max(0,0.4*(1-_eggP*1.5));
-                            if(_eggP>=0.9){_bifrostGroup.remove(_et._miniPillar);_et._miniPillar=null;}
+                            // Pillar shrinks as egg descends
+                            var _pillarH=Math.max(1,_eggY-_et.targetY+5);
+                            _et._miniPillar.scale.set(1-_eggP*0.5,_pillarH/100,1-_eggP*0.5);
+                            _et._miniPillar.position.y=_eggY+_pillarH*0.5;
+                            _et._miniPillar.material.opacity=0.6*(1-_eggP);
+                            if(_eggP>=0.95){
+                                _bifrostGroup.remove(_et._miniPillar);_et._miniPillar=null;
+                                if(_et._landRing){_bifrostGroup.remove(_et._landRing);_et._landRing=null;}
+                            }
+                        }
+                        if(_et._landRing){
+                            _et._landRing.material.opacity=0.7*(1-_eggP);
+                            _et._landRing.scale.set(1+_eggP,1+_eggP,1);
                         }
                     }
                 }
@@ -2509,12 +2528,15 @@ function enterRace(raceIndex){
                 camera.position.set(0,15+60*(1-_camLandP),14+20*(1-_camLandP));
                 camera.lookAt(0,5,0);
             }
-            // Fade pillars and rings
+            // Main pillars move to race center and fade
             for(var _ri4=0;_ri4<_bfRings.length;_ri4++){
-                _bfRings[_ri4].material.opacity=Math.max(0,1-p3*2);
+                _bfRings[_ri4].material.opacity=Math.max(0,0.5-p3);
             }
             for(var _pp4=0;_pp4<_bfPillars.length;_pp4++){
-                _bfPillars[_pp4].material.opacity=Math.max(0,0.6-p3*1.2);
+                _bfPillars[_pp4].visible=true;
+                _bfPillars[_pp4].position.x=Math.cos(elapsed*0.003+_pp4*(Math.PI*2/7))*(0.5+_pp4*0.2);
+                _bfPillars[_pp4].position.z=Math.sin(elapsed*0.003+_pp4*(Math.PI*2/7))*(0.5+_pp4*0.2);
+                _bfPillars[_pp4].material.opacity=Math.max(0,0.5-p3*0.8);
             }
             // Fade particles
             for(var _pp5=0;_pp5<_bfParticles.length;_pp5++){
