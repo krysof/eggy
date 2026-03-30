@@ -2466,8 +2466,7 @@ function enterRace(raceIndex){
                         for(var _se=0;_se<allEggs.length;_se++){
                             var _egg=allEggs[_se];
                             // Each egg lands one by one — evenly spread across the 4s window
-                            var _totalEggs=allEggs.length;
-                            var _eggDelay=_egg.isPlayer?0:(_se/_totalEggs)*0.85;
+                            var _eggDelay=_egg.isPlayer?0:(_se/allEggs.length)*0.85;
                             window._bfEggTargets.push({
                                 egg:_egg,
                                 targetX:_egg.mesh.position.x,
@@ -2487,7 +2486,8 @@ function enterRace(raceIndex){
                 if(window._bfEggTargets){
                     for(var _lei=0;_lei<window._bfEggTargets.length;_lei++){
                         var _et=window._bfEggTargets[_lei];
-                        var _eggWindow=Math.max(0.15,1/_totalEggs); // each egg gets its own time slice
+                        var _nTargets=window._bfEggTargets.length;
+                        var _eggWindow=Math.max(0.2,1/_nTargets);
                         var _eggP=Math.max(0,Math.min(1,(_landP-_et.delay)/_eggWindow));
                         // Hidden until descent starts
                         if(_eggP<=0){_et.egg.mesh.visible=false;continue;}
