@@ -2486,6 +2486,13 @@ function enterRace(raceIndex){
                                     new THREE.MeshBasicMaterial({color:_bfColors[_dei%7],transparent:true,opacity:0.8})
                                 );
                                 _bifrostGroup.add(_rp2._beam);
+                                // Beam strike sound — descending tone
+                                if(sfxEnabled){var _bsCtx=ensureAudio();if(_bsCtx){var _bst=_bsCtx.currentTime;
+                                    var _bso=_bsCtx.createOscillator();var _bsg=_bsCtx.createGain();
+                                    _bso.type='sine';_bso.frequency.setValueAtTime(1200+_dei*80,_bst);_bso.frequency.exponentialRampToValueAtTime(200,_bst+0.3);
+                                    _bsg.gain.setValueAtTime(0.1,_bst);_bsg.gain.exponentialRampToValueAtTime(0.001,_bst+0.35);
+                                    _bso.connect(_bsg);_bsg.connect(_bsCtx.destination);_bso.start(_bst);_bso.stop(_bst+0.35);
+                                }}
                             }
                             // Beam grows from sky downward to target
                             var _beamH=60*_beamP;
