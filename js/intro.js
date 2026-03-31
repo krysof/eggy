@@ -63,7 +63,7 @@ function _drawFist(ctx,x,y,size,color){
 }
 
 // Draw skyscraper
-// Draw skyscraper with slow-flickering windows
+// Draw skyscraper with fast-flickering windows (original style)
 function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     ctx.fillStyle=color;
     ctx.fillRect(x,y,w,h);
@@ -71,15 +71,11 @@ function _drawBuilding(ctx,x,y,w,h,color,windowColor){
     var ww=w*0.12,wh=h*0.03,gap=w*0.08;
     var cols=Math.floor((w-gap*2)/(ww+gap));
     var rows=Math.floor((h-gap*3)/(wh+gap*1.5));
-    var _t=Math.floor(Date.now()/500); // change every 0.5s, not every frame
     for(var r=0;r<rows;r++){
         for(var c=0;c<cols;c++){
-            // Deterministic per-window, changes slowly
-            var _seed=(r*31+c*17+_t)%100;
-            if(_seed<15)continue; // 15% dark
             var wx=x+gap+c*(ww+gap);
             var wy=y+gap*2+r*(wh+gap*1.5);
-            ctx.fillRect(wx,wy,ww,wh);
+            if(Math.random()>0.15) ctx.fillRect(wx,wy,ww,wh);
         }
     }
 }
@@ -740,11 +736,19 @@ function _startIntro(){
 // Skip intro (tap/click anywhere)
 function _skipIntro(){
     if(_introSkipped)return;
-    _introSkipped=true;
-    _introStart=performance.now()-7500;
-    var btn=document.getElementById('start-btn');
-    if(btn)btn.style.opacity='1';
-    if(_introCanvas)_introCanvas.style.pointerEvents='none';
+    var _now=performance.now?performance.now():Date.now();
+    var _elapsed=(_now-_introStart)/1000;
+    if(_elapsed<5){
+        // Before battle ends: skip to battle end (t=5s), not past it
+        _introStart=_now-5000;
+    } else {
+        // After battle: skip to title (t=7.5s)
+        _introSkipped=true;
+        _introStart=_now-7500;
+        var btn=document.getElementById('start-btn');
+        if(btn)btn.style.opacity='1';
+        if(_introCanvas)_introCanvas.style.pointerEvents='none';
+    }
 }
 
 if(_introCanvas){
@@ -759,10 +763,9 @@ if(_introCanvas){
     });
     _introCanvas.addEventListener('touchstart',function(e){
         if(!_introStart)return;
-        var _elapsed=(Date.now()-_introStart)/1000;
-        if(_elapsed>6){ // only allow skip after 6 seconds (battle scene done)
+        if((Date.now()-_introStart)>500){
             if(!_introSkipped){
-                _skipIntro();
+                _skipIntro(); // skips to battle end or title depending on progress
             } else {
                 var btn=document.getElementById('start-btn');
                 if(btn)btn.click();
@@ -822,12 +825,12 @@ function _onTapStart(){
     document.removeEventListener('keydown',_onTapStartKey);
 }
 function _onTapStartKey(e){
-    if(_introStart&&!_introSkipped&&(Date.now()-_introStart)>6000){_skipIntro();return;}
+    if(_introStart&&!_introSkipped){_skipIntro();return;}
     if(!_introStart)_onTapStart();
 }
 if(_introCanvas){
     _introCanvas.addEventListener('click',function(){
-        if(_introStart&&!_introSkipped&&(Date.now()-_introStart)>6000){_skipIntro();return;}
+        if(_introStart&&!_introSkipped){_skipIntro();return;}
         if(!_introStart)_onTapStart();
     });
     _introCanvas.addEventListener('touchstart',function(){
