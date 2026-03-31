@@ -172,20 +172,53 @@ function buildCity() {
         if(skip) continue;
         const tg=new THREE.Group(); tg.position.set(tx,0,tz);
         if(currentCityStyle===6){
-            // Cherry blossom tree: thinner trunk + pink crown + petal clusters + second crown layer
-            var sakTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.25,TREE_CONFIG.trunkHeight,6),toon(0x8B5E3C));
-            sakTrunk.position.y=TREE_CONFIG.trunkHeight/2;sakTrunk.castShadow=true;tg.add(sakTrunk);
-            var sakCrown=new THREE.Mesh(new THREE.SphereGeometry(TREE_CONFIG.crownRadius*1.15,8,6),toon(0xFFAABB,{transparent:true,opacity:0.9}));
-            sakCrown.position.y=TREE_CONFIG.trunkHeight+1;sakCrown.scale.y=TREE_CONFIG.crownScaleY;sakCrown.castShadow=true;tg.add(sakCrown);
-            // Second smaller pink sphere offset
-            var sakCrown2=new THREE.Mesh(new THREE.SphereGeometry(TREE_CONFIG.crownRadius*0.7,8,6),toon(0xFFBBCC,{transparent:true,opacity:0.85}));
-            sakCrown2.position.set(0.5,TREE_CONFIG.trunkHeight+1.6,-0.3);sakCrown2.scale.y=0.6;sakCrown2.castShadow=true;tg.add(sakCrown2);
-            // Petal clusters around tree
+            // 大樱花树 — tall trunk, wide pink crown, weeping branches (垂樱)
+            var _sakH=4+Math.random()*3; // trunk height 4-7
+            var _sakR=3+Math.random()*2; // crown radius 3-5
+            var sakTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,_sakH,8),toon(0x6B4226));
+            sakTrunk.position.y=_sakH/2;sakTrunk.castShadow=true;tg.add(sakTrunk);
+            // Main branches (2-3 angled trunks)
+            for(var _bri2=0;_bri2<3;_bri2++){
+                var _brA=_bri2*(Math.PI*2/3)+Math.random()*0.5;
+                var branch=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.15,_sakH*0.5,4),toon(0x6B4226));
+                branch.position.set(Math.cos(_brA)*0.3,_sakH*0.7,Math.sin(_brA)*0.3);
+                branch.rotation.z=Math.cos(_brA)*0.5;branch.rotation.x=-Math.sin(_brA)*0.5;
+                tg.add(branch);
+            }
+            // Large pink crown (multiple overlapping spheres for fullness)
             var _petalColors=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA,0xFFDDEE];
-            for(var _pi3=0;_pi3<5+Math.floor(Math.random()*4);_pi3++){
-                var _petM=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),toon(_petalColors[_pi3%_petalColors.length]));
-                _petM.position.set((Math.random()-0.5)*2.5,TREE_CONFIG.trunkHeight+0.5+Math.random()*1.5,(Math.random()-0.5)*2.5);
-                tg.add(_petM);
+            for(var _sci2=0;_sci2<4;_sci2++){
+                var _scOff=_sci2*(Math.PI*2/4);
+                var _scr=_sakR*(0.7+Math.random()*0.3);
+                var sakC=new THREE.Mesh(new THREE.SphereGeometry(_scr,8,6),toon(_petalColors[_sci2%5],{transparent:true,opacity:0.85}));
+                sakC.position.set(Math.cos(_scOff)*_sakR*0.3,_sakH+_sakR*0.4+Math.random(),Math.sin(_scOff)*_sakR*0.3);
+                sakC.scale.y=0.6;sakC.castShadow=true;tg.add(sakC);
+            }
+            // 垂樱 Weeping branches — drooping curves hanging down
+            for(var _wbi=0;_wbi<6+Math.floor(Math.random()*4);_wbi++){
+                var _wbAngle=_wbi*(Math.PI*2/(6+Math.floor(Math.random()*4)))+Math.random()*0.5;
+                var _wbLen=_sakR*0.8+Math.random()*_sakR*0.5;
+                // Create drooping branch as series of small spheres
+                var _wbPts=[];
+                for(var _wpi=0;_wpi<=6;_wpi++){
+                    var _wpt=_wpi/6;
+                    _wbPts.push(new THREE.Vector3(
+                        Math.cos(_wbAngle)*_wbLen*_wpt,
+                        _sakH+_sakR*0.3-_wpt*_wpt*(_sakR*1.5),
+                        Math.sin(_wbAngle)*_wbLen*_wpt
+                    ));
+                }
+                var _wbCurve=new THREE.CatmullRomCurve3(_wbPts);
+                var _wbGeo=new THREE.TubeGeometry(_wbCurve,8,0.06,4,false);
+                var _wbMesh=new THREE.Mesh(_wbGeo,toon(0x6B4226));
+                tg.add(_wbMesh);
+                // Pink petal clusters along weeping branch
+                for(var _wpci=1;_wpci<=4;_wpci++){
+                    var _wpcP=_wpci/5;
+                    var _wpcPos=_wbCurve.getPoint(_wpcP);
+                    var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.3+Math.random()*0.3,4,3),toon(_petalColors[Math.floor(Math.random()*5)],{transparent:true,opacity:0.8}));
+                    _wpc.position.copy(_wpcPos);tg.add(_wpc);
+                }
             }
         } else {
         const trunk=new THREE.Mesh(new THREE.CylinderGeometry(TREE_CONFIG.trunkRadius.min,TREE_CONFIG.trunkRadius.max,TREE_CONFIG.trunkHeight,6),toon(0x8B5E3C));
@@ -824,13 +857,26 @@ function buildCity() {
 
     // ---- Sakura City special features (style 6 only) ----
     if(currentCityStyle===6){
-        // Stone Canal along main east-west path (z=0 axis)
-        var canalLen=CITY_SIZE*1.5;
-        // Water surface
-        var canalWater=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.1,4),toon(0x66AABB,{transparent:true,opacity:0.5}));
-        canalWater.position.set(0,0.15,0);cityGroup.add(canalWater);
-        window._sakuraCanalWater=canalWater;
-        // Stone walls on both sides
+        // Wide winding river (幅広い川)
+        window._sakuraCanalWater=[];
+        var _riverSegs=12;
+        for(var _rsi=0;_rsi<_riverSegs;_rsi++){
+            var _rst=_rsi/_riverSegs;
+            var _rsx=-CITY_SIZE*0.9+CITY_SIZE*1.8*_rst;
+            var _rsz=Math.sin(_rst*Math.PI*1.5)*35; // wide sine curve
+            var _rsAngle=Math.atan2(CITY_SIZE*1.8/_riverSegs,Math.cos(_rst*Math.PI*1.5)*35*Math.PI*1.5/_riverSegs);
+            var _rsW=22; // wide segment
+            var riverSeg=new THREE.Mesh(new THREE.BoxGeometry(_rsW,0.15,14),toon(0x4499AA,{transparent:true,opacity:0.5}));
+            riverSeg.position.set(_rsx,0.1,_rsz);riverSeg.rotation.y=_rsAngle;cityGroup.add(riverSeg);
+            window._sakuraCanalWater.push(riverSeg);
+            // Stone embankment walls
+            [-1,1].forEach(function(side){
+                var embankW=new THREE.Mesh(new THREE.BoxGeometry(_rsW,1.2,1),toon(0x666655));
+                var _wallOff=side*7.5;
+                embankW.position.set(_rsx+Math.cos(_rsAngle+Math.PI/2)*_wallOff,0.6,_rsz+Math.sin(_rsAngle+Math.PI/2)*_wallOff);
+                embankW.rotation.y=_rsAngle;cityGroup.add(embankW);
+            });
+        }
         var wallM=toon(0x777777);
         var wallN=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.6,0.4),wallM);
         wallN.position.set(0,0.3,2.2);cityGroup.add(wallN);
