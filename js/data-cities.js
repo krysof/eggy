@@ -54,7 +54,9 @@ var PORTAL_POSITIONS={
         {x:0,z:-145,targetOffset:0},
         {x:145,z:0,targetOffset:1},
         {x:0,z:145,targetOffset:2},
-        {x:-145,z:0,targetOffset:3}
+        {x:-145,z:0,targetOffset:3},
+        {x:105,z:-105,targetOffset:4},
+        {x:-105,z:105,targetOffset:5}
     ],
     platformerPortal:{x:0,z:-15}
 };

@@ -150,8 +150,8 @@ function buildWarpPipes(){
     }
     // Place pipes at city edges (from config)
     var positions=PORTAL_POSITIONS.warpPipes;
-    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF];
-    for(var pi2=0;pi2<Math.min(targets.length,4);pi2++){
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF,0xFFAABB];
+    for(var pi2=0;pi2<Math.min(targets.length,positions.length);pi2++){
         var tgt=targets[pi2];
         var pos=positions[pi2];
         var tst=CITY_STYLES[tgt];
@@ -302,7 +302,7 @@ function startPipeTravel(fromX,fromZ,targetStyle,fromY){
     _pipeTubeGroup=new THREE.Group();
     var steps=40;
     var tubeColor=CITY_STYLES[targetStyle]?0x44FF88:0x44DD44;
-    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF];
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF,0xFFAABB];
     var pColor=pipeColors[targetStyle]||tubeColor;
     var isMoonTravel=(targetStyle===5);
     if(isMoonTravel)pColor=0x6644CC;
