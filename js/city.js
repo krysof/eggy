@@ -20,7 +20,8 @@ var CITY_STYLES=[
     {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
-    {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null}
+    {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null},
+    {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0xFFDDEE,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:0xFFEEF0}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -152,10 +153,28 @@ function buildCity() {
         if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
         if(skip) continue;
         const tg=new THREE.Group(); tg.position.set(tx,0,tz);
+        if(currentCityStyle===6){
+            // Cherry blossom tree: thinner trunk + pink crown + petal clusters + second crown layer
+            var sakTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.25,TREE_CONFIG.trunkHeight,6),toon(0x8B5E3C));
+            sakTrunk.position.y=TREE_CONFIG.trunkHeight/2;sakTrunk.castShadow=true;tg.add(sakTrunk);
+            var sakCrown=new THREE.Mesh(new THREE.SphereGeometry(TREE_CONFIG.crownRadius*1.15,8,6),toon(0xFFAABB,{transparent:true,opacity:0.9}));
+            sakCrown.position.y=TREE_CONFIG.trunkHeight+1;sakCrown.scale.y=TREE_CONFIG.crownScaleY;sakCrown.castShadow=true;tg.add(sakCrown);
+            // Second smaller pink sphere offset
+            var sakCrown2=new THREE.Mesh(new THREE.SphereGeometry(TREE_CONFIG.crownRadius*0.7,8,6),toon(0xFFBBCC,{transparent:true,opacity:0.85}));
+            sakCrown2.position.set(0.5,TREE_CONFIG.trunkHeight+1.6,-0.3);sakCrown2.scale.y=0.6;sakCrown2.castShadow=true;tg.add(sakCrown2);
+            // Petal clusters around tree
+            var _petalColors=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA,0xFFDDEE];
+            for(var _pi3=0;_pi3<5+Math.floor(Math.random()*4);_pi3++){
+                var _petM=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,3),toon(_petalColors[_pi3%_petalColors.length]));
+                _petM.position.set((Math.random()-0.5)*2.5,TREE_CONFIG.trunkHeight+0.5+Math.random()*1.5,(Math.random()-0.5)*2.5);
+                tg.add(_petM);
+            }
+        } else {
         const trunk=new THREE.Mesh(new THREE.CylinderGeometry(TREE_CONFIG.trunkRadius.min,TREE_CONFIG.trunkRadius.max,TREE_CONFIG.trunkHeight,6),toon(0x8B5E3C));
         trunk.position.y=TREE_CONFIG.trunkHeight/2; trunk.castShadow=true; tg.add(trunk);
         const crown=new THREE.Mesh(new THREE.SphereGeometry(TREE_CONFIG.crownRadius,8,6),toon(st.tree));
         crown.position.y=TREE_CONFIG.trunkHeight+1; crown.scale.y=TREE_CONFIG.crownScaleY; crown.castShadow=true; tg.add(crown);
+        }
         cityGroup.add(tg);
         cityProps.push({group:tg, x:tx, z:tz, radius:TREE_CONFIG.collisionRadius, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:TREE_CONFIG.weight});
     }
@@ -418,17 +437,29 @@ function buildCity() {
         }
     }
 
-    // ---- Lamp posts ----
+    // ---- Lamp posts / Stone lanterns (sakura) ----
     for(let i=0;i<20;i++){
         const lx=(Math.random()-0.5)*CITY_SIZE*1.5, lz=(Math.random()-0.5)*CITY_SIZE*1.5;
         let skip2=false;
         for(const c of cityColliders) if(Math.abs(lx-c.x)<c.hw+1&&Math.abs(lz-c.z)<c.hd+1) skip2=true;
         if(skip2) continue;
         const lg=new THREE.Group(); lg.position.set(lx,0,lz);
+        if(currentCityStyle===6){
+            // Stone lantern (toro) — shorter, stone pillar with warm lantern head
+            var lanBase=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,0.6),toon(0x999999));
+            lanBase.position.y=0.15;lg.add(lanBase);
+            var lanPillar=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,1.5,6),toon(0x999999));
+            lanPillar.position.y=1.05;lg.add(lanPillar);
+            var lanHead=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.4,0.5),toon(0xFFDD88,{emissive:0xFFDD88,emissiveIntensity:0.4}));
+            lanHead.position.y=2.0;lg.add(lanHead);
+            var lanRoof=new THREE.Mesh(new THREE.ConeGeometry(0.45,0.3,4),toon(0x777777));
+            lanRoof.position.y=2.35;lanRoof.rotation.y=Math.PI/4;lg.add(lanRoof);
+        } else {
         const pole=new THREE.Mesh(new THREE.CylinderGeometry(LAMP_CONFIG.poleRadius.top,LAMP_CONFIG.poleRadius.bottom,LAMP_CONFIG.poleHeight,4),toon(0x555555));
         pole.position.y=LAMP_CONFIG.poleHeight/2; lg.add(pole);
         const lamp=new THREE.Mesh(new THREE.SphereGeometry(LAMP_CONFIG.lampRadius,6,4),toon(0xFFEE88,{emissive:0xFFDD44,emissiveIntensity:LAMP_CONFIG.emissiveIntensity}));
         lamp.position.y=LAMP_CONFIG.lampHeight; lg.add(lamp);
+        }
         cityGroup.add(lg);
         cityProps.push({group:lg, x:lx, z:lz, radius:0.5, type:'lamp', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:1.5});
     }
@@ -772,6 +803,63 @@ function buildCity() {
             baseX:ffx,baseZ:ffz});
     }
     // (Hidden entrances removed — moon only reachable from cloud world)
+
+    // ---- Sakura City special features (style 6 only) ----
+    if(currentCityStyle===6){
+        // Stone Canal along main east-west path (z=0 axis)
+        var canalLen=CITY_SIZE*1.5;
+        // Water surface
+        var canalWater=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.1,4),toon(0x66AABB,{transparent:true,opacity:0.5}));
+        canalWater.position.set(0,0.15,0);cityGroup.add(canalWater);
+        window._sakuraCanalWater=canalWater;
+        // Stone walls on both sides
+        var wallM=toon(0x777777);
+        var wallN=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.6,0.4),wallM);
+        wallN.position.set(0,0.3,2.2);cityGroup.add(wallN);
+        var wallS=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.6,0.4),wallM);
+        wallS.position.set(0,0.3,-2.2);cityGroup.add(wallS);
+
+        // Torii Gates (3) at key positions along the canal
+        var toriiPositions=[{x:-40,z:0},{x:0,z:40},{x:40,z:0}];
+        for(var _ti2=0;_ti2<toriiPositions.length;_ti2++){
+            var tp=toriiPositions[_ti2];
+            var toriiG=new THREE.Group();toriiG.position.set(tp.x,0,tp.z);
+            var toriiM=toon(0xCC3333);
+            // Two pillars
+            var tPillarL=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,6,8),toriiM);
+            tPillarL.position.set(-2.5,3,0);toriiG.add(tPillarL);
+            var tPillarR=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,6,8),toriiM);
+            tPillarR.position.set(2.5,3,0);toriiG.add(tPillarR);
+            // Top crossbeam (kasagi)
+            var tTop=new THREE.Mesh(new THREE.BoxGeometry(6,0.3,0.4),toriiM);
+            tTop.position.set(0,6.1,0);toriiG.add(tTop);
+            // Lower crossbeam (nuki)
+            var tLow=new THREE.Mesh(new THREE.BoxGeometry(5.2,0.2,0.3),toriiM);
+            tLow.position.set(0,5.0,0);toriiG.add(tLow);
+            // Rotate torii at z!=0 to face the path
+            if(tp.z!==0)toriiG.rotation.y=Math.PI/2;
+            cityGroup.add(toriiG);
+        }
+
+        // Falling Petal Particles (200 small pink planes)
+        window._sakuraPetals=[];
+        var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
+        for(var _spi=0;_spi<200;_spi++){
+            var _spGeo=new THREE.PlaneGeometry(0.15,0.15);
+            var _spMesh=new THREE.Mesh(_spGeo,_petalMats[_spi%_petalMats.length]);
+            _spMesh.material.side=THREE.DoubleSide;
+            var _spx=(Math.random()-0.5)*CITY_SIZE*1.5;
+            var _spy=5+Math.random()*15;
+            var _spz=(Math.random()-0.5)*CITY_SIZE*1.5;
+            _spMesh.position.set(_spx,_spy,_spz);
+            _spMesh.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+            cityGroup.add(_spMesh);
+            window._sakuraPetals.push({mesh:_spMesh,x:_spx,y:_spy,z:_spz,
+                vx:(Math.random()-0.5)*0.01,vy:-0.015-Math.random()*0.01,vz:(Math.random()-0.5)*0.01,
+                rotSpeed:0.02+Math.random()*0.03});
+        }
+    }
+
     } // end if not moon
 
     // ---- Moon City special decorations (FLAT) ----

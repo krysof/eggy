@@ -237,6 +237,7 @@ function _playBGMLoop(ctx){
     if(currentCityStyle===2)return _playIceBGM(ctx);
     if(currentCityStyle===3)return _playLavaBGM(ctx);
     if(currentCityStyle===4)return _playCandyBGM(ctx);
+    if(currentCityStyle===6)return _playSakuraBGM(ctx);
     return _playDefaultBGM(ctx);
 }
 // Helper: generic looping BGM engine
@@ -359,6 +360,19 @@ function _playCandyBGM(ctx){
               587,659,784,880,784,659,523,587,659,784,880,988,1047,988,880,784,
               659,587,523,587,659,784,880,988,1047,988,880,784,659,523,587,659];
     _bgmEngine(ctx,[melA,melB,melC,melD],chords,0.16,0.14,'triangle',0.08);
+}
+// City 6: Sakura — gentle Japanese pentatonic (C,D,E,G,A), slow and serene
+function _playSakuraBGM(ctx){
+    var chords=[[262,330,392],[220,262,330],[262,330,440],[196,262,330]];
+    var melA=[523,440,392,330,294,262,294,330,392,440,523,587,523,440,392,330,
+              262,294,330,392,440,523,440,392,330,294,262,330,392,440,523,587];
+    var melB=[659,587,523,440,392,330,392,440,523,587,659,523,440,392,330,294,
+              262,294,330,392,440,523,587,523,440,392,330,294,330,392,440,523];
+    var melC=[440,392,330,262,294,330,392,440,523,587,523,440,392,330,262,294,
+              330,392,440,523,587,659,587,523,440,392,330,294,262,294,330,392];
+    var melD=[587,523,440,392,330,294,262,294,330,392,440,523,587,659,587,523,
+              440,392,330,262,294,330,392,440,523,440,392,330,262,294,330,392];
+    _bgmEngine(ctx,[melA,melB,melC,melD],chords,0.25,0.12,'triangle',0.06,'sine');
 }
 function stopBGM(){bgmPlaying=false;if(_bgmTimer){clearTimeout(_bgmTimer);_bgmTimer=null;}bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
 

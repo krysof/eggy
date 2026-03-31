@@ -893,6 +893,23 @@ function updateCity(){
         if(haloChild)haloChild.rotation.z=Math.sin(ca.flapPhase*0.5)*0.1;
         ca.group.position.set(ca.x,ca.y,ca.z);
     }
+    // ---- Sakura petal animation ----
+    if(window._sakuraPetals&&currentCityStyle===6){
+        for(var spi=0;spi<window._sakuraPetals.length;spi++){
+            var sp=window._sakuraPetals[spi];
+            sp.x+=sp.vx+Math.sin(Date.now()*0.001+spi)*0.02;
+            sp.y+=sp.vy;
+            sp.z+=sp.vz+Math.cos(Date.now()*0.001+spi*0.7)*0.02;
+            sp.mesh.rotation.x+=sp.rotSpeed;
+            sp.mesh.rotation.z+=sp.rotSpeed*0.7;
+            if(sp.y<0){sp.y=15+Math.random()*10;sp.x=(Math.random()-0.5)*CITY_SIZE*1.5;sp.z=(Math.random()-0.5)*CITY_SIZE*1.5;}
+            sp.mesh.position.set(sp.x,sp.y,sp.z);
+        }
+    }
+    // Sakura canal water shimmer
+    if(window._sakuraCanalWater&&currentCityStyle===6){
+        window._sakuraCanalWater.position.y=0.15+Math.sin(Date.now()*0.002)*0.02;
+    }
     // ---- Ocean wave animation ----
     if(window._oceanMesh&&window._oceanMesh.geometry){
         var _owt=Date.now()*0.001;
