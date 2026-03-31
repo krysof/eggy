@@ -849,7 +849,7 @@ function buildCity() {
     } // end if not Sakura (fountain/canal/waterwheel/fish/lamp/bench/animals)
 
     // ---- Sakura City special features (style 6 only) ----
-    if(currentCityStyle===6){
+    if(currentCityStyle===6){try{
         // Wide winding river (幅広い川)
         window._sakuraCanalWater=[];
         var _riverSegs=12;
@@ -911,10 +911,11 @@ function buildCity() {
                 vx:(Math.random()-0.5)*0.01,vy:-0.015-Math.random()*0.01,vz:(Math.random()-0.5)*0.01,
                 rotSpeed:0.02+Math.random()*0.03});
         }
+    }catch(e){alert('Sakura features error: '+e.message);}
     }
 
     // ---- Sakura City: Lake, Bathhouse, Fox Shrine ----
-    if(currentCityStyle===6){
+    if(currentCityStyle===6){try{
         // (River already created above in sakura features block)
 
         // === 2. Lake with Lily Pads ===
@@ -1031,6 +1032,7 @@ function buildCity() {
         // Offering box
         var saisen=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.8,0.8),toon(0x442200));
         saisen.position.set(shrineX,0.4,shrineZ+8);cityGroup.add(saisen);
+    }catch(e){alert('Sakura build error: '+e.message);}
     }
 
     } // end if not moon
