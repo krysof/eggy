@@ -178,44 +178,35 @@ function buildCity() {
             var _sakR=3+Math.random()*2; // crown radius 3-5
             var sakTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,_sakH,8),toon(0x6B4226));
             sakTrunk.position.y=_sakH/2;sakTrunk.castShadow=true;tg.add(sakTrunk);
-            // Main branches (2-3 angled trunks)
-            for(var _bri2=0;_bri2<3;_bri2++){
-                var _brA=_bri2*(Math.PI*2/3)+Math.random()*0.5;
+            // Main branches (2 angled trunks)
+            for(var _bri2=0;_bri2<2;_bri2++){
+                var _brA=_bri2*Math.PI+Math.random()*0.5;
                 var branch=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.15,_sakH*0.5,4),toon(0x6B4226));
                 branch.position.set(Math.cos(_brA)*0.3,_sakH*0.7,Math.sin(_brA)*0.3);
                 branch.rotation.z=Math.cos(_brA)*0.5;branch.rotation.x=-Math.sin(_brA)*0.5;
                 tg.add(branch);
             }
-            // Large pink crown (multiple overlapping spheres for fullness)
+            // Large pink crown (2 overlapping spheres)
             var _petalColors=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA,0xFFDDEE];
-            for(var _sci2=0;_sci2<4;_sci2++){
-                var _scOff=_sci2*(Math.PI*2/4);
+            for(var _sci2=0;_sci2<2;_sci2++){
+                var _scOff=_sci2*Math.PI;
                 var _scr=_sakR*(0.7+Math.random()*0.3);
                 var sakC=new THREE.Mesh(new THREE.SphereGeometry(_scr,8,6),toon(_petalColors[_sci2%5],{transparent:true,opacity:0.85}));
                 sakC.position.set(Math.cos(_scOff)*_sakR*0.3,_sakH+_sakR*0.4+Math.random(),Math.sin(_scOff)*_sakR*0.3);
                 sakC.scale.y=0.6;sakC.castShadow=true;tg.add(sakC);
             }
-            // 垂樱 Weeping branches — drooping curves with petal clusters
-            for(var _wbi=0;_wbi<5;_wbi++){
-                var _wbAngle=_wbi*(Math.PI*2/5)+Math.random()*0.5;
-                var _wbLen=_sakR*0.8+Math.random()*_sakR*0.4;
-                var _wbPts=[];
-                for(var _wpi=0;_wpi<=5;_wpi++){
-                    var _wpt=_wpi/5;
-                    _wbPts.push(new THREE.Vector3(
-                        Math.cos(_wbAngle)*_wbLen*_wpt,
-                        _sakH+_sakR*0.3-_wpt*_wpt*(_sakR*1.5),
-                        Math.sin(_wbAngle)*_wbLen*_wpt));
-                }
-                var _wbCurve=new THREE.CatmullRomCurve3(_wbPts);
-                var _wbGeo=new THREE.TubeGeometry(_wbCurve,6,0.05,3,false);
-                tg.add(new THREE.Mesh(_wbGeo,toon(0x6B4226)));
-                // 3 petal clusters along branch
-                for(var _wpci=1;_wpci<=3;_wpci++){
-                    var _wpcPos=_wbCurve.getPoint(_wpci/4);
-                    var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.35+Math.random()*0.3,4,3),toon(_petalColors[Math.floor(Math.random()*5)],{transparent:true,opacity:0.8}));
-                    _wpc.position.copy(_wpcPos);tg.add(_wpc);
-                }
+            // 垂樱 Weeping branches — angled cylinders with petal tips
+            for(var _wbi=0;_wbi<4;_wbi++){
+                var _wbAngle=_wbi*(Math.PI*2/4)+Math.random()*0.5;
+                var _wbLen=_sakR*1.2;
+                var _wbMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.05,_wbLen,3),toon(0x6B4226));
+                _wbMesh.position.set(Math.cos(_wbAngle)*_wbLen*0.4,_sakH-_wbLen*0.3,Math.sin(_wbAngle)*_wbLen*0.4);
+                _wbMesh.rotation.z=Math.cos(_wbAngle)*1.0;_wbMesh.rotation.x=-Math.sin(_wbAngle)*1.0;
+                tg.add(_wbMesh);
+                // Pink petal ball at tip
+                var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.5,4,3),toon(_petalColors[_wbi%5],{transparent:true,opacity:0.8}));
+                _wpc.position.set(Math.cos(_wbAngle)*_wbLen*0.7,_sakH-_wbLen*0.6,Math.sin(_wbAngle)*_wbLen*0.7);
+                tg.add(_wpc);
             }
         } else {
         const trunk=new THREE.Mesh(new THREE.CylinderGeometry(TREE_CONFIG.trunkRadius.min,TREE_CONFIG.trunkRadius.max,TREE_CONFIG.trunkHeight,6),toon(0x8B5E3C));
