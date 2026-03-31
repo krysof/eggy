@@ -870,11 +870,7 @@ function buildCity() {
                 embankW.rotation.y=_rsAngle;cityGroup.add(embankW);
             });
         }
-        var wallM=toon(0x777777);
-        var wallN=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.6,0.4),wallM);
-        wallN.position.set(0,0.3,2.2);cityGroup.add(wallN);
-        var wallS=new THREE.Mesh(new THREE.BoxGeometry(canalLen,0.6,0.4),wallM);
-        wallS.position.set(0,0.3,-2.2);cityGroup.add(wallS);
+        // (old canal walls removed — replaced by river embankments above)
 
         // Torii Gates (3) at key positions along the canal
         var toriiPositions=[{x:-40,z:0},{x:0,z:40},{x:40,z:0}];
@@ -917,41 +913,9 @@ function buildCity() {
         }
     }
 
-    // ---- Sakura City: Winding River + Bridges, Lake, Bathhouse, Fox Shrine ----
+    // ---- Sakura City: Lake, Bathhouse, Fox Shrine ----
     if(currentCityStyle===6){
-        // === 1. Winding River + Bridges ===
-        // River: curved path from (-100,-100) to (100,100)
-        // Use 10 connected rectangular water planes following a sine curve
-        for(var rvi=0;rvi<10;rvi++){
-            var rvt=rvi/10;
-            var rvx=-100+200*rvt;
-            var rvz=-100+200*rvt+Math.sin(rvt*Math.PI*2)*30;
-            var rvWater=new THREE.Mesh(new THREE.BoxGeometry(25,0.2,8),toon(0x4499AA,{transparent:true,opacity:0.5}));
-            rvWater.position.set(rvx,0.2,rvz);rvWater.rotation.y=Math.atan2(200/10,Math.cos(rvt*Math.PI*2)*30*Math.PI*2/10);
-            cityGroup.add(rvWater);
-            // Stone walls on both sides
-            [-1,1].forEach(function(side){
-                var wall=new THREE.Mesh(new THREE.BoxGeometry(25,1.5,0.8),toon(0x777777));
-                wall.position.set(rvx+Math.cos(rvWater.rotation.y+Math.PI/2)*side*4.5,0.75,rvz+Math.sin(rvWater.rotation.y+Math.PI/2)*side*4.5);
-                wall.rotation.y=rvWater.rotation.y;
-                cityGroup.add(wall);
-            });
-        }
-        // 3 arched bridges crossing the river
-        [0.2, 0.5, 0.8].forEach(function(bt){
-            var bx=-100+200*bt,bz=-100+200*bt+Math.sin(bt*Math.PI*2)*30;
-            // Bridge deck
-            var deck=new THREE.Mesh(new THREE.BoxGeometry(4,0.4,12),toon(0x888888));
-            deck.position.set(bx,1.8,bz);cityGroup.add(deck);
-            // Arch (half torus)
-            var arch=new THREE.Mesh(new THREE.TorusGeometry(5,0.3,6,12,Math.PI),toon(0x999999));
-            arch.position.set(bx,1.8,bz);arch.rotation.y=Math.PI/2;cityGroup.add(arch);
-            // Railings
-            [-1,1].forEach(function(s){
-                var rail=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.8,12),toon(0x666666));
-                rail.position.set(bx+s*1.8,2.2,bz);cityGroup.add(rail);
-            });
-        });
+        // (River already created above in sakura features block)
 
         // === 2. Lake with Lily Pads ===
         // Large circular lake at (-60, 60)
@@ -977,77 +941,48 @@ function buildCity() {
             }
         }
 
-        // === 3. Spirited Away Bathhouse ===
-        // Giant multi-tier red bathhouse near the lake
+        // === 3. Spirited Away Bathhouse (simplified) ===
         var bhX=-55,bhZ=35;
-        // Tier 1 (base) - widest
-        var bh1=new THREE.Mesh(new THREE.BoxGeometry(18,8,16),toon(0x8B2500));
-        bh1.position.set(bhX,4,bhZ);cityGroup.add(bh1);
-        cityColliders.push({x:bhX,z:bhZ,hw:9,hd:8,h:8});
-        // Tier 1 balcony rim
-        var rim1=new THREE.Mesh(new THREE.BoxGeometry(20,0.5,18),toon(0xCC3333));
-        rim1.position.set(bhX,8.2,bhZ);cityGroup.add(rim1);
-        // Tier 2
-        var bh2=new THREE.Mesh(new THREE.BoxGeometry(14,7,12),toon(0x7B1F00));
-        bh2.position.set(bhX,11.5,bhZ);cityGroup.add(bh2);
-        var rim2=new THREE.Mesh(new THREE.BoxGeometry(16,0.5,14),toon(0xCC3333));
-        rim2.position.set(bhX,15.2,bhZ);cityGroup.add(rim2);
-        // Tier 3
-        var bh3=new THREE.Mesh(new THREE.BoxGeometry(10,6,9),toon(0x6B1500));
-        bh3.position.set(bhX,18,bhZ);cityGroup.add(bh3);
-        var rim3=new THREE.Mesh(new THREE.BoxGeometry(12,0.5,11),toon(0xCC3333));
-        rim3.position.set(bhX,21.2,bhZ);cityGroup.add(rim3);
-        // Tier 4 (top)
-        var bh4=new THREE.Mesh(new THREE.BoxGeometry(7,5,6),toon(0x5B0F00));
-        bh4.position.set(bhX,23.5,bhZ);cityGroup.add(bh4);
-        // Peaked roof
-        var bhRoof=new THREE.Mesh(new THREE.ConeGeometry(6,4,4),toon(0x224422));
-        bhRoof.position.set(bhX,28,bhZ);bhRoof.rotation.y=Math.PI/4;cityGroup.add(bhRoof);
-        // Windows on all floors (warm yellow emissive)
+        var bh1=new THREE.Mesh(new THREE.BoxGeometry(16,10,14),toon(0x8B2500));
+        bh1.position.set(bhX,5,bhZ);cityGroup.add(bh1);
+        cityColliders.push({x:bhX,z:bhZ,hw:8,hd:7,h:10});
+        var bh2=new THREE.Mesh(new THREE.BoxGeometry(12,8,10),toon(0x7B1F00));
+        bh2.position.set(bhX,14,bhZ);cityGroup.add(bh2);
+        var rim1=new THREE.Mesh(new THREE.BoxGeometry(18,0.5,16),toon(0xCC3333));
+        rim1.position.set(bhX,10.2,bhZ);cityGroup.add(rim1);
+        var rim2=new THREE.Mesh(new THREE.BoxGeometry(14,0.5,12),toon(0xCC3333));
+        rim2.position.set(bhX,18.2,bhZ);cityGroup.add(rim2);
+        var bhRoof=new THREE.Mesh(new THREE.ConeGeometry(8,4,4),toon(0x224422));
+        bhRoof.position.set(bhX,22,bhZ);bhRoof.rotation.y=Math.PI/4;cityGroup.add(bhRoof);
+        // A few warm windows
         var winMat=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.5});
-        for(var bhi=0;bhi<4;bhi++){
-            var tierY=[2,9,16,22][bhi];
-            var tierW=[18,14,10,7][bhi];
-            var tierD=[16,12,9,6][bhi];
-            for(var bwi=0;bwi<6;bwi++){
-                var wx2=bhX-tierW/2+1.5+bwi*(tierW-3)/5;
-                var win2=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,0.2),winMat);
-                win2.position.set(wx2,tierY,bhZ+tierD/2+0.1);cityGroup.add(win2);
-                var win3=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,0.2),winMat);
-                win3.position.set(wx2,tierY,bhZ-tierD/2-0.1);cityGroup.add(win3);
-            }
+        for(var bwi=0;bwi<4;bwi++){
+            var win2=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.5,0.2),winMat);
+            win2.position.set(bhX-6+bwi*4,4,bhZ+7.1);cityGroup.add(win2);
+            var win3=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.5,0.2),winMat);
+            win3.position.set(bhX-4+bwi*3,12,bhZ+5.1);cityGroup.add(win3);
         }
-        // Hanging lanterns on balconies
-        for(var bli=0;bli<12;bli++){
-            var bla=bli/12*Math.PI*2;
-            var blTier=bli%4;
-            var blY=[8.5,15.5,21.5,26][blTier];
-            var blR=[10,8,6,4][blTier];
-            var lantern=new THREE.Mesh(new THREE.SphereGeometry(0.4,6,4),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.6}));
-            lantern.position.set(bhX+Math.cos(bla)*blR,blY,bhZ+Math.sin(bla)*blR);
+        // 4 lanterns
+        for(var bli=0;bli<4;bli++){
+            var lantern=new THREE.Mesh(new THREE.SphereGeometry(0.5,4,3),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.6}));
+            lantern.position.set(bhX+[-8,8,-6,6][bli],[10.5,10.5,18.5,18.5][bli],bhZ+[0,0,0,0][bli]);
             cityGroup.add(lantern);
         }
-        // Red bridge from bathhouse to main area
-        var bridgeLen=15;
-        var bhBridge=new THREE.Mesh(new THREE.BoxGeometry(bridgeLen,0.4,4),toon(0xCC3333));
-        bhBridge.position.set(bhX+9+bridgeLen/2,1.5,bhZ);cityGroup.add(bhBridge);
-        [-1,1].forEach(function(s){
-            var bhRail=new THREE.Mesh(new THREE.BoxGeometry(bridgeLen,1,0.2),toon(0xCC3333));
-            bhRail.position.set(bhX+9+bridgeLen/2,2.2,bhZ+s*1.8);cityGroup.add(bhRail);
-        });
-        // Add to building meshes for camera occlusion
-        cityBuildingMeshes.push({meshes:[bh1,bh2,bh3,bh4,bhRoof],x:bhX,z:bhZ,hw:10,hd:9,h:28});
+        // Red bridge
+        var bhBridge=new THREE.Mesh(new THREE.BoxGeometry(12,0.4,4),toon(0xCC3333));
+        bhBridge.position.set(bhX+14,1.5,bhZ);cityGroup.add(bhBridge);
+        cityBuildingMeshes.push({meshes:[bh1,bh2,bhRoof],x:bhX,z:bhZ,hw:9,hd:8,h:22});
 
         // === 4. Fox Shrine ===
         // Inari fox shrine at (70, -50)
         var shrineX=70,shrineZ=-50;
         // Stone path leading to shrine
-        for(var spi=0;spi<8;spi++){
+        for(var spi=0;spi<4;spi++){
             var step=new THREE.Mesh(new THREE.BoxGeometry(5,0.2,2),toon(0x999999));
             step.position.set(shrineX,0.1+spi*0.1,shrineZ+spi*3-10);cityGroup.add(step);
         }
-        // Row of 5 red torii gates along the path
-        for(var tgi=0;tgi<5;tgi++){
+        // Row of 3 red torii gates along the path
+        for(var tgi=0;tgi<3;tgi++){
             var tgz=shrineZ-8+tgi*4;
             // Two pillars
             [-1,1].forEach(function(s){
