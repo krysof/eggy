@@ -118,6 +118,8 @@ function buildCity() {
         {x:0,z:-130,w:8,d:8,h:11},{x:0,z:130,w:8,d:8,h:13},
     ];
     buildings.forEach((b,i)=>{
+        // Sakura City: low Japanese-style buildings (max height 6, wider)
+        if(currentCityStyle===6){b={x:b.x,z:b.z,w:b.w*1.3,d:b.d*1.3,h:Math.min(6,b.h*0.35)};}
         const col = bColors[i%bColors.length];
         const bm = new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d), toon(col));
         bm.position.set(b.x, b.h/2, b.z); bm.castShadow=true; bm.receiveShadow=true;
