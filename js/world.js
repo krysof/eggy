@@ -574,8 +574,8 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
     return cl;
 }
 function addClouds(){
-    // No clouds on the moon
-    if(currentCityStyle===5)return;
+    // No clouds on the moon or Sakura City (clear sky with petals instead)
+    if(currentCityStyle===5||currentCityStyle===6)return;
     // Cloud above each building roof — reachable with charge jump
     var roofClouds=[];
     for(var bi=0;bi<cityColliders.length;bi++){

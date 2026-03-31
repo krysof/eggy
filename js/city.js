@@ -125,12 +125,28 @@ function buildCity() {
         bm.position.set(b.x, b.h/2, b.z); bm.castShadow=true; bm.receiveShadow=true;
         cityGroup.add(bm);
         const bMeshes = [bm]; // collect all meshes for this building
-        // Roof
+        // Roof — Japanese style for Sakura City
+        if(currentCityStyle===6){
+            // 和式屋根: wide flat overhanging roof (box wider than building)
+            var _jrW=b.w*1.4,_jrD=b.d*1.4,_jrH=0.4;
+            var jRoof=new THREE.Mesh(new THREE.BoxGeometry(_jrW,_jrH,_jrD),toon(0x333333));
+            jRoof.position.set(b.x,b.h+_jrH/2,b.z);jRoof.castShadow=true;cityGroup.add(jRoof);bMeshes.push(jRoof);
+            // Slight upward curve at edges (second thinner layer)
+            var jRoof2=new THREE.Mesh(new THREE.BoxGeometry(_jrW+1,0.15,_jrD+1),toon(0x444444));
+            jRoof2.position.set(b.x,b.h+_jrH+0.08,b.z);cityGroup.add(jRoof2);bMeshes.push(jRoof2);
+            // Ridge beam on top
+            var jRidge=new THREE.Mesh(new THREE.BoxGeometry(_jrW*0.8,0.2,0.2),toon(0x222222));
+            jRidge.position.set(b.x,b.h+_jrH+0.25,b.z);cityGroup.add(jRidge);bMeshes.push(jRidge);
+            // Engawa (wooden porch around base)
+            var engawa=new THREE.Mesh(new THREE.BoxGeometry(b.w+1.5,0.15,b.d+1.5),toon(0xBB9966));
+            engawa.position.set(b.x,0.08,b.z);cityGroup.add(engawa);bMeshes.push(engawa);
+        } else {
         const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, BUILDING_CONFIG.roofHeight, 4), toon(st.roof));
         roof.position.set(b.x, b.h+BUILDING_CONFIG.roofHeight/2, b.z); roof.rotation.y=Math.PI/4; roof.castShadow=true;
         cityGroup.add(roof); bMeshes.push(roof);
-        // Windows
-        const winM = toon(0xAADDFF, {emissive:0x4488AA, emissiveIntensity:0.2});
+        }
+        // Windows — warm shouji for Sakura City, blue glass for others
+        const winM = currentCityStyle===6?toon(0xFFEECC,{emissive:0xFFDD88,emissiveIntensity:0.3}):toon(0xAADDFF, {emissive:0x4488AA, emissiveIntensity:0.2});
         for(let wy=2; wy<b.h-1; wy+=BUILDING_CONFIG.windowSpacingY){
             for(let wx=-b.w/2+1.5; wx<b.w/2-1; wx+=BUILDING_CONFIG.windowSpacingX){
                 const win=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.windowSize.w,BUILDING_CONFIG.windowSize.h,BUILDING_CONFIG.windowSize.d), winM);
