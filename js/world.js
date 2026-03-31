@@ -459,6 +459,12 @@ function updatePipeTravel(){
             playerEgg.onGround=false;
             camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
+        } else if(currentCityStyle===6){
+            playerEgg.mesh.position.set(20,3,20);
+            playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
+            playerEgg.onGround=false;
+            camera.position.set(20,12,34);camera.lookAt(20,0,20);
+            camera.up.set(0,1,0);
         } else {
             playerEgg.mesh.position.set(0,15,0);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
@@ -498,6 +504,11 @@ function switchCity(targetStyle){
         // Moon flat: spawn in battlefield area
         playerEgg.mesh.position.set(50,0.5,0);
         camera.position.set(50,12,19);camera.lookAt(50,0,0);
+        camera.up.set(0,1,0);
+    } else if(currentCityStyle===6){
+        // Sakura: spawn near shrine area (no fountain in center)
+        playerEgg.mesh.position.set(20,3,20);
+        camera.position.set(20,12,34);camera.lookAt(20,0,20);
         camera.up.set(0,1,0);
     } else {
         playerEgg.mesh.position.set(0,15,0);
