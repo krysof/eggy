@@ -167,7 +167,7 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    var _treeCount=currentCityStyle===6?25:80; // fewer but bigger trees for Sakura
+    var _treeCount=currentCityStyle===6?40:80; // sakura trees are bigger so fewer needed
     for(let i=0;i<_treeCount;i++){
         const tx=-CITY_SIZE+Math.random()*CITY_SIZE*2, tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
         let skip=false;
@@ -191,16 +191,16 @@ function buildCity() {
             }
             // Large pink crown (2 overlapping spheres)
             var _petalColors=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA,0xFFDDEE];
-            for(var _sci2=0;_sci2<2;_sci2++){
-                var _scOff=_sci2*Math.PI;
+            for(var _sci2=0;_sci2<3;_sci2++){
+                var _scOff=_sci2*(Math.PI*2/3);
                 var _scr=_sakR*(0.7+Math.random()*0.3);
                 var sakC=new THREE.Mesh(new THREE.SphereGeometry(_scr,8,6),toon(_petalColors[_sci2%5],{transparent:true,opacity:0.85}));
                 sakC.position.set(Math.cos(_scOff)*_sakR*0.3,_sakH+_sakR*0.4+Math.random(),Math.sin(_scOff)*_sakR*0.3);
                 sakC.scale.y=0.6;sakC.castShadow=true;tg.add(sakC);
             }
             // 垂樱 Weeping branches — angled cylinders with petal tips
-            for(var _wbi=0;_wbi<4;_wbi++){
-                var _wbAngle=_wbi*(Math.PI*2/4)+Math.random()*0.5;
+            for(var _wbi=0;_wbi<5;_wbi++){
+                var _wbAngle=_wbi*(Math.PI*2/5)+Math.random()*0.5;
                 var _wbLen=_sakR*1.2;
                 var _wbMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.05,_wbLen,3),toon(0x6B4226));
                 _wbMesh.position.set(Math.cos(_wbAngle)*_wbLen*0.4,_sakH-_wbLen*0.3,Math.sin(_wbAngle)*_wbLen*0.4);
@@ -897,7 +897,7 @@ function buildCity() {
         // Falling Petal Particles (200 small pink planes)
         window._sakuraPetals=[];
         var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
-        for(var _spi=0;_spi<80;_spi++){
+        for(var _spi=0;_spi<150;_spi++){
             var _spGeo=new THREE.PlaneGeometry(0.15,0.15);
             var _spMesh=new THREE.Mesh(_spGeo,_petalMats[_spi%_petalMats.length]);
             _spMesh.material.side=THREE.DoubleSide;
