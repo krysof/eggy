@@ -118,8 +118,11 @@ function buildCity() {
         {x:0,z:-130,w:8,d:8,h:11},{x:0,z:130,w:8,d:8,h:13},
     ];
     buildings.forEach((b,i)=>{
-        // Sakura City: low Japanese-style buildings (max height 6, wider)
-        if(currentCityStyle===6){b={x:b.x,z:b.z,w:b.w*1.3,d:b.d*1.3,h:Math.min(6,b.h*0.35)};}
+        // Sakura City: low Japanese-style buildings, skip far buildings
+        if(currentCityStyle===6){
+            if(Math.abs(b.x)>100||Math.abs(b.z)>100)return; // skip outer/landmark buildings
+            b={x:b.x,z:b.z,w:b.w*1.3,d:b.d*1.3,h:Math.min(6,b.h*0.35)};
+        }
         const col = bColors[i%bColors.length];
         const bm = new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d), toon(col));
         bm.position.set(b.x, b.h/2, b.z); bm.castShadow=true; bm.receiveShadow=true;
@@ -218,7 +221,8 @@ function buildCity() {
         cityProps.push({group:tg, x:tx, z:tz, radius:TREE_CONFIG.collisionRadius, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:TREE_CONFIG.weight});
     }
 
-// ---- Grand Roman Wishing Fountain (Trevi-style) ----
+// ---- Grand Roman Wishing Fountain (Trevi-style) — skip for Sakura City ----
+    if(currentCityStyle!==6){
     var stoneM=toon(0xCCBBAA);var stoneD=toon(0xAA9988);var marbleM=toon(0xEEE8DD);
     var waterM=toon(0x44AADD,{transparent:true,opacity:0.55});
     var goldM=toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
@@ -842,6 +846,7 @@ function buildCity() {
             baseX:ffx,baseZ:ffz});
     }
     // (Hidden entrances removed — moon only reachable from cloud world)
+    } // end if not Sakura (fountain/canal/waterwheel/fish/lamp/bench/animals)
 
     // ---- Sakura City special features (style 6 only) ----
     if(currentCityStyle===6){
