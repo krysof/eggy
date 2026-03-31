@@ -1,4 +1,7 @@
 // gameloop.js — DANBO World
+// Global error handler — shows errors on mobile
+window.onerror=function(msg,url,line){if(!window._errShown){window._errShown=true;alert('Error: '+msg+' (line '+line+')');}};
+window.addEventListener('unhandledrejection',function(e){if(!window._errShown){window._errShown=true;alert('Promise error: '+e.reason);}});
 // ============================================================
 //  CITY UPDATE (portals, coins, NPCs)
 // ============================================================
