@@ -738,6 +738,7 @@ function _skipIntro(){
     if(_introSkipped)return;
     var _now=performance.now?performance.now():Date.now();
     var _elapsed=(_now-_introStart)/1000;
+    if(_elapsed<1)return; // ignore taps in first second (prevents tap-to-start from skipping)
     if(_elapsed<5){
         // Before battle ends: skip to battle end (t=5s), not past it
         _introStart=_now-5000;
