@@ -164,7 +164,8 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    for(let i=0;i<80;i++){
+    var _treeCount=currentCityStyle===6?25:80; // fewer but bigger trees for Sakura
+    for(let i=0;i<_treeCount;i++){
         const tx=-CITY_SIZE+Math.random()*CITY_SIZE*2, tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
         let skip=false;
         for(const c of cityColliders) if(Math.abs(tx-c.x)<c.hw+2&&Math.abs(tz-c.z)<c.hd+2) skip=true;
@@ -194,29 +195,25 @@ function buildCity() {
                 sakC.position.set(Math.cos(_scOff)*_sakR*0.3,_sakH+_sakR*0.4+Math.random(),Math.sin(_scOff)*_sakR*0.3);
                 sakC.scale.y=0.6;sakC.castShadow=true;tg.add(sakC);
             }
-            // 垂樱 Weeping branches — drooping curves hanging down
-            for(var _wbi=0;_wbi<6+Math.floor(Math.random()*4);_wbi++){
-                var _wbAngle=_wbi*(Math.PI*2/(6+Math.floor(Math.random()*4)))+Math.random()*0.5;
-                var _wbLen=_sakR*0.8+Math.random()*_sakR*0.5;
-                // Create drooping branch as series of small spheres
+            // 垂樱 Weeping branches — drooping curves with petal clusters
+            for(var _wbi=0;_wbi<5;_wbi++){
+                var _wbAngle=_wbi*(Math.PI*2/5)+Math.random()*0.5;
+                var _wbLen=_sakR*0.8+Math.random()*_sakR*0.4;
                 var _wbPts=[];
-                for(var _wpi=0;_wpi<=6;_wpi++){
-                    var _wpt=_wpi/6;
+                for(var _wpi=0;_wpi<=5;_wpi++){
+                    var _wpt=_wpi/5;
                     _wbPts.push(new THREE.Vector3(
                         Math.cos(_wbAngle)*_wbLen*_wpt,
                         _sakH+_sakR*0.3-_wpt*_wpt*(_sakR*1.5),
-                        Math.sin(_wbAngle)*_wbLen*_wpt
-                    ));
+                        Math.sin(_wbAngle)*_wbLen*_wpt));
                 }
                 var _wbCurve=new THREE.CatmullRomCurve3(_wbPts);
-                var _wbGeo=new THREE.TubeGeometry(_wbCurve,8,0.06,4,false);
-                var _wbMesh=new THREE.Mesh(_wbGeo,toon(0x6B4226));
-                tg.add(_wbMesh);
-                // Pink petal clusters along weeping branch
-                for(var _wpci=1;_wpci<=4;_wpci++){
-                    var _wpcP=_wpci/5;
-                    var _wpcPos=_wbCurve.getPoint(_wpcP);
-                    var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.3+Math.random()*0.3,4,3),toon(_petalColors[Math.floor(Math.random()*5)],{transparent:true,opacity:0.8}));
+                var _wbGeo=new THREE.TubeGeometry(_wbCurve,6,0.05,3,false);
+                tg.add(new THREE.Mesh(_wbGeo,toon(0x6B4226)));
+                // 3 petal clusters along branch
+                for(var _wpci=1;_wpci<=3;_wpci++){
+                    var _wpcPos=_wbCurve.getPoint(_wpci/4);
+                    var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.35+Math.random()*0.3,4,3),toon(_petalColors[Math.floor(Math.random()*5)],{transparent:true,opacity:0.8}));
                     _wpc.position.copy(_wpcPos);tg.add(_wpc);
                 }
             }
@@ -908,7 +905,7 @@ function buildCity() {
         // Falling Petal Particles (200 small pink planes)
         window._sakuraPetals=[];
         var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
-        for(var _spi=0;_spi<200;_spi++){
+        for(var _spi=0;_spi<80;_spi++){
             var _spGeo=new THREE.PlaneGeometry(0.15,0.15);
             var _spMesh=new THREE.Mesh(_spGeo,_petalMats[_spi%_petalMats.length]);
             _spMesh.material.side=THREE.DoubleSide;
