@@ -1129,13 +1129,8 @@ function buildCity() {
                     }
                 }
             });
-            // Bridge colliders — multiple segments following arch curve for smooth walking
-            for(var _bci=0;_bci<6;_bci++){
-                var _bcT=(_bci+0.5)/6; // center of each segment
-                var _bcX=-_bSpan/2+_bcT*_bSpan;
-                var _bcH=_bBase+Math.sin(_bcT*Math.PI)*_bArch;
-                cityColliders.push({x:_bcX,z:_bgZ,hw:_bSpan/6/2+0.3,hd:3.5,h:_bcH});
-            }
+            // Bridge collider — flat walkway at plateau height, connects both sides
+            cityColliders.push({x:0,z:_bgZ,hw:_bSpan/2+1,hd:3.5,h:_bBase});
             cityGroup.add(_bridgeG);
         }
 
