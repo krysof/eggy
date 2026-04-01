@@ -932,49 +932,86 @@ function buildCity() {
         }
         // Helper: elevated Japanese building (on plateau)
         function _buildJpnElev(x,z,w,d,h,wallColor,baseY,faceDir){
-            // faceDir: 1=face +x (left bank), -1=face -x (right bank), 0/undefined=face +z
-            var col=wallColor||0xDDAA88;
-            var body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(col));
-            body.position.set(x,baseY+h/2,z);body.castShadow=true;body.receiveShadow=true;cityGroup.add(body);
-            var ms=[body];
-            var rW=w*1.4,rD=d*1.4,rH=0.4;
-            var roof=new THREE.Mesh(new THREE.BoxGeometry(rW,rH,rD),_jDarkRoof);
-            roof.position.set(x,baseY+h+rH/2,z);roof.castShadow=true;cityGroup.add(roof);ms.push(roof);
-            var roof2=new THREE.Mesh(new THREE.BoxGeometry(rW+0.8,0.15,rD+0.8),toon(0x444444));
-            roof2.position.set(x,baseY+h+rH+0.08,z);cityGroup.add(roof2);ms.push(roof2);
-            var ridge=new THREE.Mesh(new THREE.BoxGeometry(faceDir?0.18:rW*0.7,0.18,faceDir?rD*0.7:0.18),toon(0x222222));
-            ridge.position.set(x,baseY+h+rH+0.22,z);cityGroup.add(ridge);ms.push(ridge);
-            var eng=new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.12,d+1.2),_jWoodM);
-            eng.position.set(x,baseY+0.06,z);cityGroup.add(eng);ms.push(eng);
-            // Windows face the river (X axis) or default (Z axis)
-            if(faceDir){
-                var _fSide=faceDir>0?1:-1; // which X side has windows
-                for(var wy=1.5;wy<h-0.5;wy+=2){
-                    for(var wz=-d/2+1.2;wz<d/2-0.8;wz+=2){
-                        // River-facing windows (bright, many)
-                        var wn=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
-                        wn.position.set(x+_fSide*(w/2+0.08),baseY+wy,z+wz);cityGroup.add(wn);ms.push(wn);
-                        // Back windows (fewer)
-                        if(Math.random()>0.5){
-                            var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
-                            wn2.position.set(x-_fSide*(w/2+0.08),baseY+wy,z+wz);cityGroup.add(wn2);ms.push(wn2);
-                        }
-                    }
+            var _darkWood=toon(0x3E2723);
+            var _plaster=toon(0xF5F0E8); // white plaster walls
+            var ms=[];
+            var floors=Math.max(2,Math.round(h/3)); // ~3 units per floor
+            var floorH=h/floors;
+            // Per-floor construction (stepped slightly for upper floors)
+            for(var fi=0;fi<floors;fi++){
+                var _fw=w-fi*0.3, _fd=d-fi*0.3; // slight taper
+                var _fy=baseY+fi*floorH;
+                // Wall (white plaster)
+                var wall=new THREE.Mesh(new THREE.BoxGeometry(_fw,floorH-0.15,_fd),_plaster);
+                wall.position.set(x,_fy+floorH/2,z);wall.castShadow=true;wall.receiveShadow=true;
+                cityGroup.add(wall);ms.push(wall);
+                // Dark wood horizontal beam between floors
+                var beam=new THREE.Mesh(new THREE.BoxGeometry(_fw+0.3,0.15,_fd+0.3),_darkWood);
+                beam.position.set(x,_fy+floorH,z);cityGroup.add(beam);ms.push(beam);
+                // Balcony on river-facing side (wooden platform + railing)
+                if(fi>0){
+                    var _balcSide=faceDir||0;
+                    // Balcony extends on all visible sides
+                    var balcony=new THREE.Mesh(new THREE.BoxGeometry(_fw+1.0,0.1,_fd+1.0),_darkWood);
+                    balcony.position.set(x,_fy+0.05,z);cityGroup.add(balcony);ms.push(balcony);
+                    // Railings (horizontal bars)
+                    var _railH=0.8;
+                    // Z-face railings
+                    [-1,1].forEach(function(s){
+                        // Top rail
+                        var topR=new THREE.Mesh(new THREE.BoxGeometry(_fw+1,0.06,0.06),_darkWood);
+                        topR.position.set(x,_fy+_railH,z+s*(_fd/2+0.5));cityGroup.add(topR);ms.push(topR);
+                        // Mid rail
+                        var midR=new THREE.Mesh(new THREE.BoxGeometry(_fw+1,0.06,0.06),_darkWood);
+                        midR.position.set(x,_fy+_railH*0.5,z+s*(_fd/2+0.5));cityGroup.add(midR);ms.push(midR);
+                    });
+                    // X-face railings
+                    [-1,1].forEach(function(s){
+                        var topR2=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,_fd+1),_darkWood);
+                        topR2.position.set(x+s*(_fw/2+0.5),_fy+_railH,z);cityGroup.add(topR2);ms.push(topR2);
+                        var midR2=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.06,_fd+1),_darkWood);
+                        midR2.position.set(x+s*(_fw/2+0.5),_fy+_railH*0.5,z);cityGroup.add(midR2);ms.push(midR2);
+                    });
                 }
-                // Noren on river side
-                var noren=new THREE.Mesh(new THREE.BoxGeometry(0.1,2,1.5),toon(0x884433));
-                noren.position.set(x+_fSide*(w/2+0.1),baseY+1,z);cityGroup.add(noren);ms.push(noren);
+                // Dark wood vertical posts on corners
+                [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(function(c){
+                    var post=new THREE.Mesh(new THREE.BoxGeometry(0.15,floorH,0.15),_darkWood);
+                    post.position.set(x+c[0]*_fw/2,_fy+floorH/2,z+c[1]*_fd/2);cityGroup.add(post);ms.push(post);
+                });
+                // Lattice windows (格子窓) — dark grid over warm glow
+                // Z faces
+                for(var wz=-_fd/2+1.5;wz<_fd/2-1;wz+=2.5){
+                    [-1,1].forEach(function(s){
+                        // Warm glow behind
+                        var glow=new THREE.Mesh(new THREE.BoxGeometry(_fw*0.01,floorH*0.55,1.5),_jWinM);
+                        glow.position.set(x+s*(_fw/2+0.05),_fy+floorH*0.55,z+wz);cityGroup.add(glow);ms.push(glow);
+                    });
+                }
+                // X faces
+                for(var wx=-_fw/2+1.5;wx<_fw/2-1;wx+=2.5){
+                    [-1,1].forEach(function(s){
+                        var glow2=new THREE.Mesh(new THREE.BoxGeometry(1.5,floorH*0.55,_fd*0.01),_jWinM);
+                        glow2.position.set(x+wx,_fy+floorH*0.55,z+s*(_fd/2+0.05));cityGroup.add(glow2);ms.push(glow2);
+                    });
+                }
+            }
+            // Roof — overhanging dark tile
+            var rW=w*1.3,rD=d*1.3;
+            var roof=new THREE.Mesh(new THREE.BoxGeometry(rW,0.4,rD),_jDarkRoof);
+            roof.position.set(x,baseY+h+0.2,z);roof.castShadow=true;cityGroup.add(roof);ms.push(roof);
+            var roof2=new THREE.Mesh(new THREE.BoxGeometry(rW+0.5,0.15,rD+0.5),toon(0x444444));
+            roof2.position.set(x,baseY+h+0.5,z);cityGroup.add(roof2);ms.push(roof2);
+            // Ridge
+            var ridge=new THREE.Mesh(new THREE.BoxGeometry(rW*0.6,0.2,0.2),toon(0x333333));
+            ridge.position.set(x,baseY+h+0.7,z);cityGroup.add(ridge);ms.push(ridge);
+            // Ground floor noren
+            var _norenSide=faceDir>0?1:(faceDir<0?-1:0);
+            if(_norenSide){
+                var noren=new THREE.Mesh(new THREE.BoxGeometry(0.08,1.8,1.2),toon(0x223366));
+                noren.position.set(x+_norenSide*(w/2+0.1),baseY+1.2,z);cityGroup.add(noren);ms.push(noren);
             } else {
-                for(var wy2=1.5;wy2<h-0.5;wy2+=2){
-                    for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
-                        var wn3=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
-                        wn3.position.set(x+wx,baseY+wy2,z+d/2+0.08);cityGroup.add(wn3);ms.push(wn3);
-                        var wn4=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
-                        wn4.position.set(x+wx,baseY+wy2,z-d/2-0.08);cityGroup.add(wn4);ms.push(wn4);
-                    }
-                }
-                var noren2=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.1),toon(0x884433));
-                noren2.position.set(x,baseY+1,z+d/2+0.1);cityGroup.add(noren2);ms.push(noren2);
+                var noren2=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.8,0.08),toon(0x223366));
+                noren2.position.set(x,baseY+1.2,z+d/2+0.1);cityGroup.add(noren2);ms.push(noren2);
             }
             cityColliders.push({x:x,z:z,hw:w/2+0.5,hd:d/2+0.5,h:baseY+h,y:baseY});
             cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2,hd:d/2,h:baseY+h});
