@@ -217,7 +217,7 @@ function _drawCityBG(ctx,W,H,panY){
     ctx.save();
     ctx.translate(0,panY);
 
-    var bColors=['#2d1a3a','#382248','#2a1535','#3d2850','#331d42'];
+    var bColors=['#5a3870','#4d2d65','#6a4080','#553575','#604078'];
     var bx=0;
     for(var bi=0;bi<8;bi++){
         var bw=W*0.12+bi*W*0.02;
