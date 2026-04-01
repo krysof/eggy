@@ -931,7 +931,8 @@ function buildCity() {
             cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2,hd:d/2,h:h});
         }
         // Helper: elevated Japanese building (on plateau)
-        function _buildJpnElev(x,z,w,d,h,wallColor,baseY){
+        function _buildJpnElev(x,z,w,d,h,wallColor,baseY,faceDir){
+            // faceDir: 1=face +x (left bank), -1=face -x (right bank), 0/undefined=face +z
             var col=wallColor||0xDDAA88;
             var body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(col));
             body.position.set(x,baseY+h/2,z);body.castShadow=true;body.receiveShadow=true;cityGroup.add(body);
@@ -941,20 +942,40 @@ function buildCity() {
             roof.position.set(x,baseY+h+rH/2,z);roof.castShadow=true;cityGroup.add(roof);ms.push(roof);
             var roof2=new THREE.Mesh(new THREE.BoxGeometry(rW+0.8,0.15,rD+0.8),toon(0x444444));
             roof2.position.set(x,baseY+h+rH+0.08,z);cityGroup.add(roof2);ms.push(roof2);
-            var ridge=new THREE.Mesh(new THREE.BoxGeometry(rW*0.7,0.18,0.18),toon(0x222222));
+            var ridge=new THREE.Mesh(new THREE.BoxGeometry(faceDir?0.18:rW*0.7,0.18,faceDir?rD*0.7:0.18),toon(0x222222));
             ridge.position.set(x,baseY+h+rH+0.22,z);cityGroup.add(ridge);ms.push(ridge);
             var eng=new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.12,d+1.2),_jWoodM);
             eng.position.set(x,baseY+0.06,z);cityGroup.add(eng);ms.push(eng);
-            for(var wy=1.5;wy<h-0.5;wy+=2){
-                for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
-                    var wn=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
-                    wn.position.set(x+wx,baseY+wy,z+d/2+0.08);cityGroup.add(wn);ms.push(wn);
-                    var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
-                    wn2.position.set(x+wx,baseY+wy,z-d/2-0.08);cityGroup.add(wn2);ms.push(wn2);
+            // Windows face the river (X axis) or default (Z axis)
+            if(faceDir){
+                var _fSide=faceDir>0?1:-1; // which X side has windows
+                for(var wy=1.5;wy<h-0.5;wy+=2){
+                    for(var wz=-d/2+1.2;wz<d/2-0.8;wz+=2){
+                        // River-facing windows (bright, many)
+                        var wn=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
+                        wn.position.set(x+_fSide*(w/2+0.08),baseY+wy,z+wz);cityGroup.add(wn);ms.push(wn);
+                        // Back windows (fewer)
+                        if(Math.random()>0.5){
+                            var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
+                            wn2.position.set(x-_fSide*(w/2+0.08),baseY+wy,z+wz);cityGroup.add(wn2);ms.push(wn2);
+                        }
+                    }
                 }
+                // Noren on river side
+                var noren=new THREE.Mesh(new THREE.BoxGeometry(0.1,2,1.5),toon(0x884433));
+                noren.position.set(x+_fSide*(w/2+0.1),baseY+1,z);cityGroup.add(noren);ms.push(noren);
+            } else {
+                for(var wy2=1.5;wy2<h-0.5;wy2+=2){
+                    for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
+                        var wn3=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                        wn3.position.set(x+wx,baseY+wy2,z+d/2+0.08);cityGroup.add(wn3);ms.push(wn3);
+                        var wn4=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                        wn4.position.set(x+wx,baseY+wy2,z-d/2-0.08);cityGroup.add(wn4);ms.push(wn4);
+                    }
+                }
+                var noren2=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.1),toon(0x884433));
+                noren2.position.set(x,baseY+1,z+d/2+0.1);cityGroup.add(noren2);ms.push(noren2);
             }
-            var noren=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.1),toon(0x884433));
-            noren.position.set(x,baseY+1,z+d/2+0.1);cityGroup.add(noren);ms.push(noren);
             cityColliders.push({x:x,z:z,hw:w/2+0.5,hd:d/2+0.5,h:baseY+h,y:baseY});
             cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2,hd:d/2,h:baseY+h});
         }
@@ -975,12 +996,12 @@ function buildCity() {
         for(var _lbi=0;_lbi<10;_lbi++){
             var _lbz=-90+_lbi*20;
             var _lbh=8+Math.floor(Math.random()*6); // 3-4 story (8-13 units = tall onsen hotels)
-            _leftBlds.push({x:-35,z:_lbz,w:12,d:12,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744][_lbi%4]});
+            _leftBlds.push({x:-35,z:_lbz,w:10,d:14,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744][_lbi%4],face:1});
         }
         for(var _rbi=0;_rbi<10;_rbi++){
             var _rbz=-80+_rbi*20;
             var _rbh=8+Math.floor(Math.random()*6);
-            _rightBlds.push({x:35,z:_rbz,w:12,d:12,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77][_rbi%4]});
+            _rightBlds.push({x:35,z:_rbz,w:10,d:14,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77][_rbi%4],face:-1});
         }
         // Riverside sakura trees (垂桜) along gorge edge
         for(var _rsti=0;_rsti<16;_rsti++){
@@ -998,15 +1019,19 @@ function buildCity() {
                     sakC.position.set(Math.cos(_rscOff)*_rscr*0.3,_rstH+_rscr*0.3,Math.sin(_rscOff)*_rscr*0.3);
                     sakC.scale.y=0.6;_rstG.add(sakC);
                 }
-                // Weeping branches (垂樱)
-                for(var _wbi2=0;_wbi2<4;_wbi2++){
-                    var _wbA=_wbi2*(Math.PI*2/4)+Math.random()*0.5;
-                    var _wbL=2+Math.random()*1.5;
-                    var _wbM=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.04,_wbL,3),toon(0x6B4226));
-                    _wbM.position.set(Math.cos(_wbA)*_wbL*0.3,_rstH-_wbL*0.3,Math.sin(_wbA)*_wbL*0.3);
-                    _wbM.rotation.z=Math.cos(_wbA)*0.8;_wbM.rotation.x=-Math.sin(_wbA)*0.8;_rstG.add(_wbM);
-                    var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.4,4,3),toon(_rstCols[_wbi2%3],{transparent:true,opacity:0.8}));
-                    _wpc.position.set(Math.cos(_wbA)*_wbL*0.6,_rstH-_wbL*0.5,Math.sin(_wbA)*_wbL*0.6);_rstG.add(_wpc);
+                // Weeping branches (垂樱) — long drooping branches with petal clusters
+                for(var _wbi2=0;_wbi2<7;_wbi2++){
+                    var _wbA=_wbi2*(Math.PI*2/7)+Math.random()*0.3;
+                    var _wbL=3+Math.random()*2; // longer branches
+                    var _wbM=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.05,_wbL,3),toon(0x6B4226));
+                    _wbM.position.set(Math.cos(_wbA)*_wbL*0.35,_rstH-_wbL*0.35,Math.sin(_wbA)*_wbL*0.35);
+                    _wbM.rotation.z=Math.cos(_wbA)*1.0;_wbM.rotation.x=-Math.sin(_wbA)*1.0;_rstG.add(_wbM);
+                    // Multiple petal clusters along each branch
+                    for(var _wpc2=0;_wpc2<3;_wpc2++){
+                        var _wpD=0.3+_wpc2*0.25;
+                        var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.4+_wpc2*0.15,4,3),toon(_rstCols[(_wbi2+_wpc2)%3],{transparent:true,opacity:0.8}));
+                        _wpc.position.set(Math.cos(_wbA)*_wbL*_wpD,_rstH-_wbL*_wpD*0.8,Math.sin(_wbA)*_wbL*_wpD);_rstG.add(_wpc);
+                    }
                 }
                 cityGroup.add(_rstG);
                 cityBuildingMeshes.push({meshes:_rstG.children.slice(),x:sx,z:_rstZ,hw:3,hd:3,h:_pH+_rstH});
@@ -1015,7 +1040,7 @@ function buildCity() {
         var _allJpnB=[].concat(_leftBlds,_rightBlds);
         for(var _jbi=0;_jbi<_allJpnB.length;_jbi++){
             var jb=_allJpnB[_jbi];
-            _buildJpnElev(jb.x,jb.z,jb.w,jb.d,jb.h,jb.c,_pH);
+            _buildJpnElev(jb.x,jb.z,jb.w,jb.d,jb.h,jb.c,_pH,jb.face||0);
         }
 
         // === 2. The Bathhouse (油屋) — large building at end of street ===
@@ -1070,6 +1095,21 @@ function buildCity() {
         // Deep canyon floor
         var _canyonFloor=new THREE.Mesh(new THREE.BoxGeometry(16,0.3,260),toon(0x334433));
         _canyonFloor.position.set(0,0.15,0);cityGroup.add(_canyonFloor);
+        // Prominent stone embankment walls (高い石垣)
+        [-1,1].forEach(function(side){
+            // Main wall (full height from ground to plateau)
+            var _embWall=new THREE.Mesh(new THREE.BoxGeometry(1.5,_pH,260),toon(0x887766));
+            _embWall.position.set(side*8,_pH/2,0);_embWall.castShadow=true;cityGroup.add(_embWall);
+            // Stone cap on top
+            var _embCap=new THREE.Mesh(new THREE.BoxGeometry(2,0.4,260),toon(0x999888));
+            _embCap.position.set(side*8,_pH+0.2,0);cityGroup.add(_embCap);
+            // Stone texture detail strips
+            for(var _esi=0;_esi<6;_esi++){
+                var _esY=1+_esi*1.2;
+                var _esLine=new THREE.Mesh(new THREE.BoxGeometry(1.55,0.08,260),toon(0x776655));
+                _esLine.position.set(side*8,_esY,0);cityGroup.add(_esLine);
+            }
+        });
         // Water at bottom of gorge (y=2, plateau at y=8, so 6 units deep)
         for(var _rsi2=0;_rsi2<8;_rsi2++){
             var _rz2=-110+_rsi2*28;
