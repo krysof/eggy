@@ -93,23 +93,20 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
         eo.connect(eg);eg.connect(_planeCtx.destination);eo.start();eo.stop(_planeCtx.currentTime+dur);
         _planeNodes.push(eo);
     }catch(e){}}
-    // Convert map coords to screen position
+    // Start from character's country on map, fly off screen
     var _mapEl=document.getElementById('sf2-map-canvas');
-    var sx,sy,ex,ey;
+    var sx,sy;
     if(_mapEl){
         var _mapRect=_mapEl.getBoundingClientRect();
         var _pcRect=pc.parentElement.getBoundingClientRect();
         sx=_mapRect.left-_pcRect.left+fromX/400*_mapRect.width;
         sy=_mapRect.top-_pcRect.top+fromY/220*_mapRect.height;
-        ex=_mapRect.left-_pcRect.left+toX/400*_mapRect.width;
-        ey=_mapRect.top-_pcRect.top+toY/220*_mapRect.height;
     } else {
         sx=fromX/400*pc.width;sy=fromY/220*pc.height*0.6+pc.height*0.15;
-        ex=toX/400*pc.width;ey=toY/220*pc.height*0.6+pc.height*0.15;
     }
-    // If destination is off-map (>400 or >220), fly off screen edge
-    if(toX>400)ex=pc.width+60;
-    if(toY>220)ey=pc.height+60;
+    // Hardcoded endpoint: fly off screen right
+    var ex=pc.width+60;
+    var ey=pc.height*0.3;
     var t=0;
     _planeAnim=setInterval(function(){
         t+=0.02;

@@ -90,9 +90,9 @@ document.getElementById('confirm-btn').addEventListener('click',()=>{
     _selectConfirmed=true;
     playMenuConfirm();
     stopSelectBGM();
-    // Airplane animation: fly from center to character's country
+    // Airplane animation: fly from character's country outward
     var _selCh=CHARACTERS[selectedChar];
-    _startPlaneAnim(_selCh.mapX,_selCh.mapY,400,220,function(){
+    _startPlaneAnim(_selCh.mapX,_selCh.mapY,0,0,function(){
         showScreen(null);
         spawnCityNPCs();
         enterCity();
