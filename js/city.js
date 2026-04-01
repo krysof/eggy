@@ -21,7 +21,7 @@ var CITY_STYLES=[
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
     {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null},
-    {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0xFFDDEE,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:0xFFEEF0}
+    {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0xFFDDEE,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:null}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -201,22 +201,26 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    var _treeCount=currentCityStyle===6?25:80;
+    var _treeCount=currentCityStyle===6?120:80;
     for(let i=0;i<_treeCount;i++){
         var tx,tz;
         if(currentCityStyle===6){
-            // Sakura: trees on edges and open areas, avoid main street corridor
-            var _treeZones=[[60,70,-30,50],[60,100,-60,60],[-60,-100,-60,60],[-30,50,50,100],[60,100,-60,-30]];
-            var _tz=_treeZones[Math.floor(Math.random()*_treeZones.length)];
-            tx=_tz[0]+Math.random()*(_tz[1]-_tz[0]);tz=_tz[2]+Math.random()*(_tz[3]-_tz[2]);
+            // Sakura: trees on both plateaus (left x:-120~-10, right x:10~120), avoid canyon
+            var _onLeft=Math.random()<0.5;
+            tx=_onLeft?(-15-Math.random()*105):(15+Math.random()*105);
+            tz=(Math.random()-0.5)*240;
         } else {
             tx=-CITY_SIZE+Math.random()*CITY_SIZE*2;tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
         }
         let skip=false;
-        for(const c of cityColliders) if(Math.abs(tx-c.x)<c.hw+2&&Math.abs(tz-c.z)<c.hd+2) skip=true;
-        if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
+        for(const c of cityColliders){
+            if(c.hw>50)continue; // skip huge terrain colliders for tree placement
+            if(Math.abs(tx-c.x)<c.hw+2&&Math.abs(tz-c.z)<c.hd+2) skip=true;
+        }
+        if(Math.abs(tx)<10&&currentCityStyle===6) skip=true; // avoid canyon
+        else if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
         if(skip) continue;
-        const tg=new THREE.Group(); tg.position.set(tx,0,tz);
+        const tg=new THREE.Group(); tg.position.set(tx,currentCityStyle===6?8:0,tz);
         if(currentCityStyle===6){
             // 大樱花树 — tall trunk, wide pink crown, weeping branches (垂樱)
             var _sakH=4+Math.random()*3; // trunk height 4-7
