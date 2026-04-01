@@ -997,7 +997,7 @@ function buildCity() {
             {x:-28,z:-82,w:8,d:10,h:6,c:0xEEDDCC,face:1},   // コンビニ (convenience store)
             {x:-30,z:-66,w:12,d:14,h:14,c:0xA67B4B,face:1},  // 旅館2
             {x:-26,z:-50,w:7,d:9,h:5,c:0xDDCCBB,face:1},    // カフェ (cafe)
-            {x:-30,z:-36,w:12,d:13,h:18,c:0xD4A96A,face:1},  // 大旅館3
+            // 油屋 slot removed — built separately as mega-ryokan at same x
             {x:-27,z:-20,w:8,d:10,h:6,c:0xCCBBAA,face:1},   // 土産屋 (souvenirs)
             {x:-30,z:-4,w:11,d:14,h:12,c:0x8B7355,face:1},   // 旅館4
             {x:-26,z:12,w:7,d:8,h:5,c:0xEECCBB,face:1},     // たこ焼き (takoyaki)
@@ -1068,7 +1068,7 @@ function buildCity() {
         }
 
         // === 2. The Bathhouse (油屋) — large building at end of street ===
-        var _bhX=-45,_bhZ=-30; // behind ryokan row, visible towering over them
+        var _bhX=-30,_bhZ=-36; // in line with other ryokan
         var _by=_pH;
         // Tier 1 — massive base
         var _bh1=new THREE.Mesh(new THREE.BoxGeometry(30,18,24),toon(0x8B2500));
