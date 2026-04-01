@@ -1195,43 +1195,57 @@ function buildCity() {
         }
         // Lanterns on plateau edges
         for(var _gli=0;_gli<14;_gli++){var _glz=-100+_gli*15;_buildToro(-10,_glz,_pH);_buildToro(10,_glz+8,_pH);}
-        // Weeping sakura along gorge edge (垂桜)
-        var _petalCols=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA];
-        for(var _wli=0;_wli<12;_wli++){
-            var _wlZ=-95+_wli*18+((_wli%2)*9);
-            [[-10,0.25],[10,-0.25]].forEach(function(sxl){
+        // Giant weeping sakura along gorge edge (しだれ桜 — cascading curtain style)
+        var _petalCols=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA,0xFFDDEE];
+        for(var _wli=0;_wli<10;_wli++){
+            var _wlZ=-90+_wli*20+((_wli%2)*10);
+            [[-10,0.2],[10,-0.2]].forEach(function(sxl){
                 var _wlG=new THREE.Group();_wlG.position.set(sxl[0],_pH,_wlZ);
-                _wlG.rotation.z=sxl[1]; // lean toward river
-                var _wlH=5+Math.random()*2;
-                // Dark brown trunk
-                var wlTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.35,_wlH,6),toon(0x6B4226));
+                _wlG.rotation.z=sxl[1];
+                var _wlH=7+Math.random()*2; // tall trunk
+                // Thick trunk with fork
+                var wlTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,_wlH,8),toon(0x5C3317));
                 wlTrunk.position.y=_wlH/2;_wlG.add(wlTrunk);
-                // Pink cherry blossom crown (2-3 overlapping spheres)
-                for(var _wci=0;_wci<3;_wci++){
-                    var _wcOff=_wci*(Math.PI*2/3);
-                    var _wcR=2+Math.random();
-                    var wlCrown=new THREE.Mesh(new THREE.SphereGeometry(_wcR,6,5),toon(_petalCols[_wci%4],{transparent:true,opacity:0.85}));
-                    wlCrown.position.set(Math.cos(_wcOff)*_wcR*0.3,_wlH+_wcR*0.3,Math.sin(_wcOff)*_wcR*0.3);
-                    wlCrown.scale.y=0.6;_wlG.add(wlCrown);
+                // Main branches reaching outward (2-3 thick angled branches)
+                for(var _mbi=0;_mbi<3;_mbi++){
+                    var _mbA=_mbi*(Math.PI*2/3)+Math.random()*0.5;
+                    var mbr=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.2,3,4),toon(0x5C3317));
+                    mbr.position.set(Math.cos(_mbA)*0.5,_wlH-1,Math.sin(_mbA)*0.5);
+                    mbr.rotation.z=Math.cos(_mbA)*0.6;mbr.rotation.x=-Math.sin(_mbA)*0.6;
+                    _wlG.add(mbr);
                 }
-                // Long drooping sakura branches with petal clusters
-                for(var _wbi3=0;_wbi3<8;_wbi3++){
-                    var _wbAngle=_wbi3*(Math.PI*2/8)+Math.random()*0.3;
-                    var _wbLen=3.5+Math.random()*2.5;
-                    var _wbStrand=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.04,_wbLen,3),toon(0x6B4226));
-                    _wbStrand.position.set(Math.cos(_wbAngle)*1,_wlH-_wbLen*0.3,Math.sin(_wbAngle)*1);
-                    _wbStrand.rotation.z=Math.cos(_wbAngle)*0.9;
-                    _wbStrand.rotation.x=-Math.sin(_wbAngle)*0.9;
+                // Wide flower canopy (large flat spheres forming umbrella)
+                for(var _wci=0;_wci<5;_wci++){
+                    var _wcOff=_wci*(Math.PI*2/5);
+                    var _wcR=3+Math.random()*1.5;
+                    var wlCrown=new THREE.Mesh(new THREE.SphereGeometry(_wcR,7,5),toon(_petalCols[_wci],{transparent:true,opacity:0.8}));
+                    wlCrown.position.set(Math.cos(_wcOff)*_wcR*0.4,_wlH+0.5,Math.sin(_wcOff)*_wcR*0.4);
+                    wlCrown.scale.y=0.4;_wlG.add(wlCrown);
+                }
+                // Cascading flower curtains — long hanging branches like waterfall
+                for(var _wbi3=0;_wbi3<14;_wbi3++){
+                    var _wbAngle=_wbi3*(Math.PI*2/14)+Math.random()*0.2;
+                    var _wbLen=5+Math.random()*3; // very long (5-8 units)
+                    var _wbStartR=1.5+Math.random(); // start from edge of canopy
+                    // Branch strand
+                    var _wbStrand=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.035,_wbLen,3),toon(0x6B4226));
+                    var _wsx=Math.cos(_wbAngle)*_wbStartR;
+                    var _wsz=Math.sin(_wbAngle)*_wbStartR;
+                    _wbStrand.position.set(_wsx,_wlH-_wbLen*0.4,_wsz);
+                    _wbStrand.rotation.z=Math.cos(_wbAngle)*1.1;
+                    _wbStrand.rotation.x=-Math.sin(_wbAngle)*1.1;
                     _wlG.add(_wbStrand);
-                    for(var _wlci=0;_wlci<3;_wlci++){
-                        var _wld=0.25+_wlci*0.25;
-                        var petal=new THREE.Mesh(new THREE.SphereGeometry(0.35+_wlci*0.1,4,3),toon(_petalCols[(_wbi3+_wlci)%4],{transparent:true,opacity:0.8}));
-                        petal.position.set(Math.cos(_wbAngle)*_wbLen*_wld,_wlH-_wbLen*_wld*0.75,Math.sin(_wbAngle)*_wbLen*_wld);
+                    // Dense petal clusters along each strand (4-5 per branch)
+                    for(var _wlci=0;_wlci<5;_wlci++){
+                        var _wld=0.15+_wlci*0.18;
+                        var _pR=0.4+Math.random()*0.3;
+                        var petal=new THREE.Mesh(new THREE.SphereGeometry(_pR,4,3),toon(_petalCols[(_wbi3+_wlci)%5],{transparent:true,opacity:0.75}));
+                        petal.position.set(Math.cos(_wbAngle)*(_wbStartR+_wbLen*_wld*0.5),_wlH-_wbLen*_wld*0.85,Math.sin(_wbAngle)*(_wbStartR+_wbLen*_wld*0.5));
                         _wlG.add(petal);
                     }
                 }
                 cityGroup.add(_wlG);
-                cityBuildingMeshes.push({meshes:_wlG.children.slice(),x:sxl[0],z:_wlZ,hw:3,hd:3,h:_pH+_wlH});
+                cityBuildingMeshes.push({meshes:_wlG.children.slice(),x:sxl[0],z:_wlZ,hw:5,hd:5,h:_pH+_wlH});
             });
         }
         // SKIP old bridge code
