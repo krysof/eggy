@@ -653,8 +653,8 @@ function _renderIntro(now){
         var bldX=(W-bldW)/2;
         var bldY=H-bldH+panY+H*(1-_slideEase); // starts below screen, slides up
         ctx.globalAlpha=_slideEase;
-        _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#1a1028','rgba(255,200,80,0.5)');
-        ctx.fillStyle='#2a1838';
+        _drawBuilding(ctx,bldX,bldY,bldW,bldH,'#3a2848','rgba(255,220,100,0.85)');
+        ctx.fillStyle='#4a3858';
         ctx.fillRect(bldX+bldW*0.1,bldY,bldW*0.8,bldH*0.02);
         ctx.shadowColor='rgba(255,215,0,0.5)';
         ctx.shadowBlur=30*scale;
