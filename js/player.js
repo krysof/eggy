@@ -1338,14 +1338,16 @@ function handlePlayerInput(){
     playerEgg._extendedRange=(_ct==='cockroach')?MOVE_PARAMS.cockroach.extendedRange:1.0;
     // ---- Zangief Double Lariat: R+T held together ----
     playerEgg._lariatReady=(keys['KeyR']&&keys['KeyT']&&_hasMove(_ct,'RT'));
-    // ---- Piledriver input sequence tracker (forward-back-forward relative to facing) ----
-    if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
-    if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
-    playerEgg._pdTimer--;
-    if(_inputFwdPress&&playerEgg._pdSeq===0){playerEgg._pdSeq=1;playerEgg._pdTimer=40;}
-    else if(_inputBackPress&&playerEgg._pdSeq===1){playerEgg._pdSeq=2;playerEgg._pdTimer=40;}
-    else if(_inputFwdPress&&playerEgg._pdSeq===2){playerEgg._pdSeq=3;playerEgg._pdTimer=40;playerEgg._piledriverReady=true;}
-    if(playerEgg._pdTimer<=0){playerEgg._pdSeq=0;playerEgg._piledriverReady=false;}
+    // ---- Piledriver input sequence tracker (Zangief only: forward-back-forward+F) ----
+    if(_ct==='bear'){
+        if(!playerEgg._pdSeq)playerEgg._pdSeq=0;
+        if(!playerEgg._pdTimer)playerEgg._pdTimer=0;
+        playerEgg._pdTimer--;
+        if(_inputFwdPress&&playerEgg._pdSeq===0){playerEgg._pdSeq=1;playerEgg._pdTimer=40;}
+        else if(_inputBackPress&&playerEgg._pdSeq===1){playerEgg._pdSeq=2;playerEgg._pdTimer=40;}
+        else if(_inputFwdPress&&playerEgg._pdSeq===2){playerEgg._pdSeq=3;playerEgg._pdTimer=40;playerEgg._piledriverReady=true;}
+        if(playerEgg._pdTimer<=0){playerEgg._pdSeq=0;playerEgg._piledriverReady=false;}
+    } else {playerEgg._piledriverReady=false;}
     playerEgg._pdPrevLeft=!!(keys['KeyA']||keys['ArrowLeft']);
     playerEgg._pdPrevRight=!!(keys['KeyD']||keys['ArrowRight']);
     // ---- Body Slam landing impact (height-based damage) ----
