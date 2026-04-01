@@ -104,13 +104,7 @@ function handlePlayerInput(){
     if(keys['KeyW']||keys['ArrowUp'])mz-=1;
     if(keys['KeyS']||keys['ArrowDown'])mz+=1;
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
-    // TPS mode: rotate input relative to camera direction
-    if(_tpsCamMode&&(mx||mz)){
-        var _cos=Math.cos(_tpsCamYaw),_sin=Math.sin(_tpsCamYaw);
-        var _rmx=mx*_cos-mz*_sin;
-        var _rmz=mx*_sin+mz*_cos;
-        mx=_rmx;mz=_rmz;
-    }
+    // TPS mode: direct movement (no rotation transform)
     // Sprint: hold F — gradual speed ramp (only when not holding something)
     var _holdAnything=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     var holdingF=keys['KeyF']&&!_portalConfirmOpen&&!_holdAnything;
