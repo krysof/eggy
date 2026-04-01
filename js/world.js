@@ -524,7 +524,7 @@ function switchCity(targetStyle){
 
 // ---- NPC eggs wandering city ----
 function spawnCityNPCs() {
-    var npcCount=currentCityStyle===5?24:36;
+    var npcCount=currentCityStyle===5?24:(currentCityStyle===6?48:36);
     for(let i=0;i<npcCount;i++){
         var nx2,nz2,spawnY=0;
         if(currentCityStyle===5){
@@ -553,7 +553,14 @@ function spawnCityNPCs() {
             }while(Math.sqrt(nx2*nx2+nz2*nz2)<12);
         }
         const col=AI_COLORS[i%AI_COLORS.length];
-        const npc=createEgg(nx2,nz2,col,AI_COLORS[(i+4)%AI_COLORS.length],false,undefined,CHARACTERS[i%CHARACTERS.length].type);
+        // Weighted character selection: more Zangief
+        var _npcCharIdx=i%CHARACTERS.length;
+        if(currentCityStyle===6){
+            var _wr=Math.random();
+            if(_wr<0.25)_npcCharIdx=6; // 25% Zangief (bear)
+            else _npcCharIdx=Math.floor(Math.random()*CHARACTERS.length);
+        }
+        const npc=createEgg(nx2,nz2,col,AI_COLORS[(i+4)%AI_COLORS.length],false,undefined,CHARACTERS[_npcCharIdx].type);
         if(spawnY>0)npc.mesh.position.y=spawnY+0.5;
         npc.cityNPC=true;
         npc.aiTargetX=nx2; npc.aiTargetZ=nz2;

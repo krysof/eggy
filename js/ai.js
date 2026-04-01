@@ -436,6 +436,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var cdx=other.mesh.position.x-egg.mesh.position.x;
             var cdz=other.mesh.position.z-egg.mesh.position.z;
             var cd=Math.sqrt(cdx*cdx+cdz*cdz);
+            // Prefer attacking NPCs over player (player distance inflated)
+            if(other.isPlayer)cd*=2.5;
             if(cd<closeDist){closeDist=cd;closest=other;}
         }
         if(closest){
@@ -570,8 +572,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                     egg._npcSpecialCD=60;egg._npcTatsuActive=60;egg._npcTatsuDir=Math.atan2(cdx2,cdz2);egg.vy=0;
                     _shoutMove(egg,MOVE_PARAMS.bear.lariat);
                 }
-                // NPC piledriver (very close)
-                if(cd2<2.5&&egg.onGround&&!egg.holding&&Math.random()<0.024&&!closest.heldBy&&!closest._piledriverLocked&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
+                // NPC piledriver (very close — higher chance)
+                if(cd2<2.5&&egg.onGround&&!egg.holding&&Math.random()<0.06&&!closest.heldBy&&!closest._piledriverLocked&&(!egg._npcSpecialCD||egg._npcSpecialCD<=0)){
                     _shoutMove(egg,MOVE_PARAMS.bear.piledriver);
                     egg._npcSpecialCD=80;
                     egg._npcPiledriver=closest;closest._piledriverLocked=true;
