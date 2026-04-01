@@ -256,6 +256,13 @@ function _updateSprintBar(holdingF){
         playerEgg._sprintHoldFrames++;
         if(playerEgg._sprintHoldFrames>=18){
             _sprintCharge=Math.min(_sprintCharge+1,_sprintChargeMax);
+            // Sonic rev-up: squash into ball and vibrate while charging
+            var _chgPct=_sprintCharge/_sprintChargeMax;
+            playerEgg.squash=1.0-_chgPct*0.35; // compress as charge fills
+            playerEgg.mesh.position.x+=(Math.random()-0.5)*_chgPct*0.15; // vibrate
+            playerEgg.vx*=0.1;playerEgg.vz*=0.1; // stay in place while charging
+            var _chgBody=playerEgg.mesh.userData.body;
+            if(_chgBody){_chgBody.scale.set(1+_chgPct*0.2,1-_chgPct*0.3,1+_chgPct*0.2);_chgBody.rotation.x+=_chgPct*0.3;}
         }
         playerEgg._wasSprintHolding=true;
     } else {
@@ -276,6 +283,8 @@ function _updateSprintBar(holdingF){
         playerEgg._wasSprintHolding=false;
         playerEgg._sprintHoldFrames=0;
         _sprintCharge=Math.max(_sprintCharge-2,0);
+        // Reset body shape when not charging and not dashing
+        if(!_spinDashing&&_sprintCharge<=0){playerEgg.squash=1.0;var _rsB=playerEgg.mesh.userData.body;if(_rsB){_rsB.scale.set(1,1,1);}}
     }
     var pct=_sprintCharge/_sprintChargeMax;
     // Sprint sound — faster as charge fills

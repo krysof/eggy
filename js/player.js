@@ -130,7 +130,7 @@ function handlePlayerInput(){
     // ---- Sonic spin dash ----
     if(_spinDashing){
         _spinDashTimer--;
-        if(_spinDashTimer<=0){_spinDashing=false;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;}
+        if(_spinDashTimer<=0){_spinDashing=false;_spinDashSpeed=0;if(_spinDashBar)_spinDashBar.visible=false;playerEgg.squash=1.0;var _sdB2=playerEgg.mesh.userData.body;if(_sdB2){_sdB2.scale.set(1,1,1);_sdB2.rotation.x=0;}}
         else{
             // Steering during spin dash — WASD/joystick can curve the direction
             var sdSteerX=0, sdSteerZ=0;
@@ -159,9 +159,11 @@ function handlePlayerInput(){
             _spinDashBar.visible=true;
             _spinDashBar.position.set(playerEgg.mesh.position.x,playerEgg.mesh.position.y+2.8,playerEgg.mesh.position.z);
             _drawSpinDashBar(_spinDashBar,sdBarPct);
-            // Spin the egg body rapidly
-            playerEgg.mesh.rotation.x+=0.6;
-            playerEgg.squash=1.0; // keep normal scale — no sinking
+            // Sonic ball roll — squash into ball shape, spin along movement direction
+            playerEgg.squash=0.65; // compress into ball
+            var _sdBody=playerEgg.mesh.userData.body;
+            if(_sdBody){_sdBody.scale.set(1.2,0.7,1.2);_sdBody.rotation.x+=0.8;}
+            playerEgg.mesh.rotation.y=Math.atan2(playerEgg._dashDirX,playerEgg._dashDirZ);
             // Keep egg on ground during spin dash
             if(playerEgg.mesh.position.y<0.6)playerEgg.mesh.position.y=0.6;
             playerEgg.vy=0;playerEgg.onGround=true;
@@ -971,11 +973,6 @@ function handlePlayerInput(){
     // ---- Blanka Electric Thunder ----
     if(playerEgg._blankaShock>0){
         playerEgg._blankaShock--;
-        // Pressing R extends electric duration
-        if(keys['KeyR']){
-            playerEgg._blankaShock=Math.max(playerEgg._blankaShock,30);
-            playerEgg._attackCD=0;
-        }
         // Shake and stay still
         playerEgg.vx*=0.1;playerEgg.vz*=0.1;
         playerEgg.mesh.rotation.z=Math.sin(Date.now()*0.05)*0.3;
