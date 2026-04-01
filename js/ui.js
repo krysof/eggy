@@ -93,22 +93,23 @@ function _startPlaneAnim(fromX,fromY,toX,toY,callback){
         eo.connect(eg);eg.connect(_planeCtx.destination);eo.start();eo.stop(_planeCtx.currentTime+dur);
         _planeNodes.push(eo);
     }catch(e){}}
-    // Start from outside screen, fly to target country on the map
-    var sx=-30;
-    var sy=pc.height*0.3;
-    // Map canvas position on screen — find actual map element bounds
+    // Convert map coords to screen position
     var _mapEl=document.getElementById('sf2-map-canvas');
-    var ex,ey;
+    var sx,sy,ex,ey;
     if(_mapEl){
         var _mapRect=_mapEl.getBoundingClientRect();
         var _pcRect=pc.parentElement.getBoundingClientRect();
-        // Convert map coords (400x220) to CSS pixel position relative to plane canvas
-        // No DPR needed — plane canvas matches CSS size (offsetWidth/Height)
+        sx=_mapRect.left-_pcRect.left+fromX/400*_mapRect.width;
+        sy=_mapRect.top-_pcRect.top+fromY/220*_mapRect.height;
         ex=_mapRect.left-_pcRect.left+toX/400*_mapRect.width;
         ey=_mapRect.top-_pcRect.top+toY/220*_mapRect.height;
     } else {
+        sx=fromX/400*pc.width;sy=fromY/220*pc.height*0.6+pc.height*0.15;
         ex=toX/400*pc.width;ey=toY/220*pc.height*0.6+pc.height*0.15;
     }
+    // If destination is off-map (>400 or >220), fly off screen edge
+    if(toX>400)ex=pc.width+60;
+    if(toY>220)ey=pc.height+60;
     var t=0;
     _planeAnim=setInterval(function(){
         t+=0.02;
