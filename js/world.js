@@ -463,7 +463,7 @@ function updatePipeTravel(){
             camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
         } else if(currentCityStyle===6){
-            playerEgg.mesh.position.set(0,13,-30);
+            playerEgg.mesh.position.set(0,14,-30);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
             camera.position.set(0,22,-16);camera.lookAt(0,8,-30);
@@ -510,7 +510,7 @@ function switchCity(targetStyle){
         camera.up.set(0,1,0);
     } else if(currentCityStyle===6){
         // Sakura: spawn near shrine area (no fountain in center)
-        playerEgg.mesh.position.set(0,13,-30);
+        playerEgg.mesh.position.set(0,14,-30);
         camera.position.set(0,22,-16);camera.lookAt(0,8,-30);
         camera.up.set(0,1,0);
     } else {

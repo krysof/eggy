@@ -887,8 +887,8 @@ function updateCity(){
             }
         }
     }
-    // Cherub (cloud world angel) animation — skip for Sakura City
-    if(window._cityAnimals&&currentCityStyle!==6)for(var _ai3=0;_ai3<window._cityAnimals.length;_ai3++){
+    // Cherub (cloud world angel) animation
+    if(window._cityAnimals)for(var _ai3=0;_ai3<window._cityAnimals.length;_ai3++){
         var ca=window._cityAnimals[_ai3];
         if(ca.type!=='cherub')continue;
         ca.flapPhase+=0.15;
@@ -981,10 +981,10 @@ function updateCity(){
     if(window._sakuraCanalWater&&currentCityStyle===6){
         for(var _scwi=0;_scwi<window._sakuraCanalWater.length;_scwi++){
             var _rwt=Date.now()*0.003;
-            window._sakuraCanalWater[_scwi].position.y=2.0+Math.sin(_rwt+_scwi*1.2)*0.06;
-            window._sakuraCanalWater[_scwi].position.z+=0.015;
+            window._sakuraCanalWater[_scwi].position.y=2.0+Math.sin(_rwt+_scwi*1.2)*0.08;
+            window._sakuraCanalWater[_scwi].position.z+=0.02; // flow downstream
             if(window._sakuraCanalWater[_scwi].position.z>130)window._sakuraCanalWater[_scwi].position.z=-130;
-            window._sakuraCanalWater[_scwi].material.opacity=0.55+Math.sin(_rwt*2+_scwi)*0.08;
+            window._sakuraCanalWater[_scwi].material.opacity=0.55+Math.sin(_rwt*2+_scwi)*0.1;
         }
     }
     // ---- Ocean wave animation ----
