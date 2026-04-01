@@ -1088,7 +1088,7 @@ function buildCity() {
             var _bridgeG=new THREE.Group();
             var _bgZ=_bridgeZs[_bzi];
             _bridgeG.position.set(0,0,_bgZ);
-            var _bSegs=12,_bSpan=16,_bBase=8,_bArch=3; // base=plateau height, arch=extra height
+            var _bSegs=12,_bSpan=16,_bBase=7.5,_bArch=1.0; // gentle arch, deck just below collider
             // Arch deck segments
             for(var _bsi=0;_bsi<_bSegs;_bsi++){
                 var _bt=_bsi/_bSegs;
