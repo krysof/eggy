@@ -1,6 +1,6 @@
 // gameloop.js — DANBO World
 // Global error handler — shows errors on mobile
-window.onerror=function(msg,url,line){if(!window._errShown){window._errShown=true;alert('Error: '+msg+' (line '+line+')');}};
+window.onerror=function(msg,url,line){if(!window._errShown){window._errShown=true;var fn=url?url.split('/').pop().split('?')[0]:'?';alert('Error: '+msg+' ('+fn+':'+line+')');}};
 window.addEventListener('unhandledrejection',function(e){if(!window._errShown){window._errShown=true;alert('Promise error: '+e.reason);}});
 // ============================================================
 //  CITY UPDATE (portals, coins, NPCs)
@@ -345,6 +345,7 @@ function updateCity(){
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
     var _nearP=null, _nearD=9999;
+    // Check race portals
     for(var pi=0;pi<portals.length;pi++){
         var _dx=px-portals[pi].x, _dz=pz-portals[pi].z;
         var _ppy=portals[pi].y||0;
@@ -353,6 +354,18 @@ function updateCity(){
         if(Math.abs(_dy)>5)continue;
         var _d=Math.sqrt(_dx*_dx+_dz*_dz);
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
+    }
+    // Check warp pipes (unified into same proximity system)
+    for(var _wpi2=0;_wpi2<warpPipeMeshes.length;_wpi2++){
+        var _wp2=warpPipeMeshes[_wpi2];
+        var _wdx2=px-_wp2.x, _wdz2=pz-_wp2.z;
+        var _wd2=Math.sqrt(_wdx2*_wdx2+_wdz2*_wdz2);
+        if(py>8)continue; // skip if too high
+        if(_wd2<_nearD){
+            var _wpName=CITY_STYLES[_wp2.targetStyle]?CITY_STYLES[_wp2.targetStyle].name:'???';
+            _nearD=_wd2;
+            _nearP={name:_wpName,desc:L('warpDesc')||'Travel to another city!',raceIndex:-1,_targetStyle:_wp2.targetStyle,_isWarpPipe:true,_pipeX:_wp2.x,_pipeZ:_wp2.z};
+        }
     }
     // Only trigger portal when player is walking normally (not thrown, stunned, dashing, spinning, held, etc.)
     var _isVoluntary=playerEgg&&playerEgg.onGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
@@ -912,7 +925,7 @@ function updateCity(){
     // Sakura canal water shimmer
     if(window._sakuraCanalWater&&currentCityStyle===6){
         for(var _scwi=0;_scwi<window._sakuraCanalWater.length;_scwi++){
-            window._sakuraCanalWater[_scwi].position.y=0.15+Math.sin(Date.now()*0.002+_scwi)*0.02;
+            window._sakuraCanalWater[_scwi].position.y=1.0+Math.sin(Date.now()*0.002+_scwi)*0.05;
         }
     }
     // ---- Ocean wave animation ----
@@ -921,7 +934,7 @@ function updateCity(){
         var _opos=window._oceanMesh.geometry.attributes.position;
         for(var _owi=0;_owi<_opos.count;_owi++){
             var _ox=_opos.getX(_owi),_oz=_opos.getY(_owi);
-            _opos.setZ(_owi,Math.sin(_ox*0.02+_owt*1.5)*0.8+Math.sin(_oz*0.03+_owt*1.2)*0.6+Math.sin((_ox+_oz)*0.01+_owt*0.8)*1.2);
+            _opos.setZ(_owi,Math.sin(_ox*0.02+_owt*1.5)*0.5+Math.sin(_oz*0.03+_owt*1.2)*0.4+Math.sin((_ox+_oz)*0.01+_owt*0.8)*0.8);
         }
         _opos.needsUpdate=true;
     }
@@ -929,7 +942,7 @@ function updateCity(){
         var _wrt=Date.now()*0.001;
         for(var _wri2=0;_wri2<window._waveRings.length;_wri2++){
             var wr2=window._waveRings[_wri2];
-            wr2.position.y=-0.3+Math.sin(_wrt*0.8+_wri2*1.5)*0.3;
+            wr2.position.y=-3.5+Math.sin(_wrt*0.8+_wri2*1.5)*0.3;
             wr2.material.opacity=0.2+Math.sin(_wrt*0.6+_wri2)*0.1;
         }
     }

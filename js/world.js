@@ -213,6 +213,8 @@ function clearCity(){
     window._fountainInnerWater=null;
     window._cityFish=null;
     window._waterWheels=null;
+    window._oceanMesh=null;
+    window._waveRings=null;
     if(window._cityAnimals){for(var _cai=0;_cai<window._cityAnimals.length;_cai++){if(window._cityAnimals[_cai]._inScene)scene.remove(window._cityAnimals[_cai].group);}}
     window._cityAnimals=null;
     if(window._allProjectiles){for(var _api2=0;_api2<window._allProjectiles.length;_api2++){MoveProjectile_cleanup(window._allProjectiles[_api2]);}window._allProjectiles=[];}
@@ -460,10 +462,10 @@ function updatePipeTravel(){
             camera.position.set(-200,12,19);camera.lookAt(-200,0,0);
             camera.up.set(0,1,0);
         } else if(currentCityStyle===6){
-            playerEgg.mesh.position.set(20,3,20);
+            playerEgg.mesh.position.set(30,12,20);
             playerEgg.vy=0;playerEgg.vx=0;playerEgg.vz=0;
             playerEgg.onGround=false;
-            camera.position.set(20,12,34);camera.lookAt(20,0,20);
+            camera.position.set(30,20,34);camera.lookAt(30,8,20);
             camera.up.set(0,1,0);
         } else {
             playerEgg.mesh.position.set(0,15,0);
@@ -507,8 +509,8 @@ function switchCity(targetStyle){
         camera.up.set(0,1,0);
     } else if(currentCityStyle===6){
         // Sakura: spawn near shrine area (no fountain in center)
-        playerEgg.mesh.position.set(20,3,20);
-        camera.position.set(20,12,34);camera.lookAt(20,0,20);
+        playerEgg.mesh.position.set(30,12,20);
+        camera.position.set(30,20,34);camera.lookAt(30,8,20);
         camera.up.set(0,1,0);
     } else {
         playerEgg.mesh.position.set(0,15,0);

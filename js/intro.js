@@ -217,17 +217,17 @@ function _drawCityBG(ctx,W,H,panY){
     ctx.save();
     ctx.translate(0,panY);
 
-    var bColors=['#1a1020','#221428','#181022','#251530'];
+    var bColors=['#2d1a3a','#382248','#2a1535','#3d2850','#331d42'];
     var bx=0;
     for(var bi=0;bi<8;bi++){
         var bw=W*0.12+bi*W*0.02;
         var bh=H*0.3+bi*H*0.08+(bi%3)*H*0.05;
         ctx.fillStyle=bColors[bi%bColors.length];
         ctx.fillRect(bx,H-bh-panY*0.3,bw,bh+panY*0.3+H);
-        ctx.fillStyle='rgba(255,200,80,0.5)';
+        ctx.fillStyle='rgba(255,210,90,0.8)';
         for(var wi=0;wi<6;wi++){
             for(var wj=0;wj<Math.floor(bh/(H*0.04));wj++){
-                if(Math.random()>0.35){
+                if(Math.random()>0.25){
                     ctx.fillRect(bx+bw*0.15+wi*bw*0.13,H-bh+wj*H*0.04+H*0.02,bw*0.08,H*0.02);
                 }
             }

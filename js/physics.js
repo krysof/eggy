@@ -26,6 +26,11 @@ function updateEggPhysics(egg, isCity){
     egg._prevY=egg.mesh.position.y;
     egg.mesh.position.x += egg.vx + (egg.conveyorVx||0);
     egg.mesh.position.y += egg.vy;
+    // NaN guard — reset to safe values if position becomes non-finite
+    if(isNaN(egg.mesh.position.x)||isNaN(egg.mesh.position.y)||isNaN(egg.mesh.position.z)){
+        egg.mesh.position.set(currentCityStyle===6?20:0,5,currentCityStyle===6?20:0);
+        egg.vx=0;egg.vy=0;egg.vz=0;
+    }
     // Thrown egg bounce
     if(egg.throwTimer>0&&egg.vy<-0.05){
         var _bFloor=0.01;
@@ -62,6 +67,9 @@ function updateEggPhysics(egg, isCity){
             if(currentCityStyle===5){
                 // Moon: respawn inside Von Braun
                 egg.mesh.position.set(-200,5,0);
+            } else if(currentCityStyle===6){
+                // Sakura: respawn on right plateau
+                egg.mesh.position.set(30,12,20);
             } else {
                 // Ground city: splash into fountain pool
                 egg.mesh.position.set((Math.random()-0.5)*4,8,(Math.random()-0.5)*4);
@@ -279,20 +287,8 @@ function updateEggPhysics(egg, isCity){
             else egg.mesh.position.z+=delta;
         }
         if(!egg.onGround)egg._onCloud=null;
-        // Warp pipe teleport — player only, now with confirm dialog
+        // Warp pipe — now handled in gameloop.js updateCity portal check
         if(egg.isPlayer){
-            for(var wpi=0;wpi<warpPipeMeshes.length;wpi++){
-                var wp=warpPipeMeshes[wpi];
-                var wdx=egg.mesh.position.x-wp.x,wdz=egg.mesh.position.z-wp.z;
-                var wdist=Math.sqrt(wdx*wdx+wdz*wdz);
-                var _wpVoluntary=egg.onGround&&!egg.throwTimer&&!egg._stunTimer&&!egg.heldBy&&!egg._piledriverLocked&&!egg._hondaDash&&!egg._blankaSpinTimer&&!egg._tatsuActive&&!egg._shoryuActive&&!egg._guileSomersault&&!egg._electrocuted&&!egg._elecFlying;
-                if(wdist<PORTAL_CONFIG.confirmDist&&egg.mesh.position.y<4&&!wp._cooldown&&!_pipeTraveling&&!_spinDashing&&!_portalConfirmOpen&&_wpVoluntary){
-                    wp._cooldown=true;
-                    var _tgtName=CITY_STYLES[wp.targetStyle]?CITY_STYLES[wp.targetStyle].name:'???';
-                    showPortalConfirm({name:_tgtName,desc:L('warpDesc')||'Travel to another city!',_targetStyle:wp.targetStyle,_isWarpPipe:true,_pipeX:wp.x,_pipeZ:wp.z});
-                }
-                if(wdist>PORTAL_CONFIG.triggerDist)wp._cooldown=false;
-            }
             // Cloud world moon pipe — proximity prompt
             if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen&&!_spinDashing){
                 var mp=_cloudWorldPipe;

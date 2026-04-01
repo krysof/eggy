@@ -45,7 +45,7 @@ var CITY_THEME_DATA=[
      roof:0x333344,tree:0x556655,fog:0x222233},
     {id:6,nameKey:'city6',ground:0xDDCCBB,path:0xBBAA99,sky:0xFFDDEE,
      bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],
-     roof:0x884444,tree:0xFFAABB,fog:0xFFEEF0}
+     roof:0x884444,tree:0xFFAABB,fog:null}
 ];
 
 // ---- Portal positions per city ----
@@ -95,7 +95,7 @@ var PORTAL_CONFIG={
     ringRadius:2, ringThickness:0.3,
     glowRadius:2.2, glowThickness:0.15,
     baseHeight:2.5, baseRadius:2.5,
-    triggerDist:6.0, confirmDist:2.5,
+    triggerDist:8.0, confirmDist:4.0,
     particleRadius:1.8
 };
 

@@ -61,7 +61,7 @@ function buildCity() {
     }
 
     // Paths (not on moon) — organized grid street system
-    if(currentCityStyle!==5){
+    if(currentCityStyle!==5&&currentCityStyle!==6){
     const pathM = toon(st.path);
     // Main cross avenues (wide)
     [{w:CITY_SIZE*2,d:8,x:0,z:0},{w:8,d:CITY_SIZE*2,x:0,z:0},
@@ -74,6 +74,43 @@ function buildCity() {
     ].forEach(p=>{
         const path=new THREE.Mesh(new THREE.BoxGeometry(p.w,0.06,p.d),pathM);
         path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
+    });
+    }
+    // Sakura City: Mountain terrain with deep ravine (山地峡谷)
+    if(currentCityStyle===6){
+    var _sPathM=toon(0xBBAA88);
+    var _cliffM=toon(0x665544);
+    var _grassM=toon(0x88AA66);
+    var _plateauH=8; // plateau height
+    // === Left plateau (west side, x < -8) ===
+    var _leftPlat=new THREE.Mesh(new THREE.BoxGeometry(120,_plateauH,280),_cliffM);
+    _leftPlat.position.set(-68,_plateauH/2,0);_leftPlat.castShadow=true;_leftPlat.receiveShadow=true;cityGroup.add(_leftPlat);
+    // Grass surface on left
+    var _leftGrass=new THREE.Mesh(new THREE.BoxGeometry(120,0.3,280),_grassM);
+    _leftGrass.position.set(-68,_plateauH+0.15,0);_leftGrass.receiveShadow=true;cityGroup.add(_leftGrass);
+    cityColliders.push({x:-68,z:0,hw:60,hd:140,h:_plateauH});
+    // === Right plateau (east side, x > 8) ===
+    var _rightPlat=new THREE.Mesh(new THREE.BoxGeometry(120,_plateauH,280),_cliffM);
+    _rightPlat.position.set(68,_plateauH/2,0);_rightPlat.castShadow=true;_rightPlat.receiveShadow=true;cityGroup.add(_rightPlat);
+    var _rightGrass=new THREE.Mesh(new THREE.BoxGeometry(120,0.3,280),_grassM);
+    _rightGrass.position.set(68,_plateauH+0.15,0);_rightGrass.receiveShadow=true;cityGroup.add(_rightGrass);
+    cityColliders.push({x:68,z:0,hw:60,hd:140,h:_plateauH});
+    // === Canyon floor (dark earth/rock) ===
+    var _canyonFloor=new THREE.Mesh(new THREE.BoxGeometry(16,0.2,280),toon(0x443322));
+    _canyonFloor.position.set(0,0.1,0);_canyonFloor.receiveShadow=true;cityGroup.add(_canyonFloor);
+    // === Paths on plateaus ===
+    // Left side path (north-south)
+    var _leftPath=new THREE.Mesh(new THREE.BoxGeometry(6,0.06,200),_sPathM);
+    _leftPath.position.set(-40,_plateauH+0.03,0);cityGroup.add(_leftPath);
+    // Right side path
+    var _rightPath=new THREE.Mesh(new THREE.BoxGeometry(6,0.06,200),_sPathM);
+    _rightPath.position.set(40,_plateauH+0.03,0);cityGroup.add(_rightPath);
+    // Bridge approach paths (east-west, connecting to bridges)
+    [-40,0,40].forEach(function(bz){
+        var _appL=new THREE.Mesh(new THREE.BoxGeometry(60,0.06,5),_sPathM);
+        _appL.position.set(-38,_plateauH+0.03,bz);cityGroup.add(_appL);
+        var _appR=new THREE.Mesh(new THREE.BoxGeometry(60,0.06,5),_sPathM);
+        _appR.position.set(38,_plateauH+0.03,bz);cityGroup.add(_appR);
     });
     }
 
@@ -118,11 +155,8 @@ function buildCity() {
         {x:0,z:-130,w:8,d:8,h:11},{x:0,z:130,w:8,d:8,h:13},
     ];
     buildings.forEach((b,i)=>{
-        // Sakura City: low Japanese-style buildings, skip far buildings
-        if(currentCityStyle===6){
-            if(Math.abs(b.x)>100||Math.abs(b.z)>100)return; // skip outer/landmark buildings
-            b={x:b.x,z:b.z,w:b.w*1.3,d:b.d*1.3,h:Math.min(6,b.h*0.35)};
-        }
+        // Sakura City: skip ALL default buildings — custom onsen town layout built below
+        if(currentCityStyle===6)return;
         const col = bColors[i%bColors.length];
         const bm = new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d), toon(col));
         bm.position.set(b.x, b.h/2, b.z); bm.castShadow=true; bm.receiveShadow=true;
@@ -167,9 +201,17 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    var _treeCount=currentCityStyle===6?40:80; // sakura trees are bigger so fewer needed
+    var _treeCount=currentCityStyle===6?25:80;
     for(let i=0;i<_treeCount;i++){
-        const tx=-CITY_SIZE+Math.random()*CITY_SIZE*2, tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
+        var tx,tz;
+        if(currentCityStyle===6){
+            // Sakura: trees on edges and open areas, avoid main street corridor
+            var _treeZones=[[60,70,-30,50],[60,100,-60,60],[-60,-100,-60,60],[-30,50,50,100],[60,100,-60,-30]];
+            var _tz=_treeZones[Math.floor(Math.random()*_treeZones.length)];
+            tx=_tz[0]+Math.random()*(_tz[1]-_tz[0]);tz=_tz[2]+Math.random()*(_tz[3]-_tz[2]);
+        } else {
+            tx=-CITY_SIZE+Math.random()*CITY_SIZE*2;tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
+        }
         let skip=false;
         for(const c of cityColliders) if(Math.abs(tx-c.x)<c.hw+2&&Math.abs(tz-c.z)<c.hd+2) skip=true;
         if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
@@ -777,12 +819,12 @@ function buildCity() {
         _dAnimal._propRef=_dProp;
         cityProps.push(_dProp);
     }
-    // ---- Ocean with waves ----
+    // ---- Ocean with waves (below city ground, waves must NOT reach y=0) ----
     var oceanGeo = new THREE.PlaneGeometry(CITY_SIZE*8, CITY_SIZE*8, 40, 40);
     var oceanMat = toon(0x2266AA, {transparent:true, opacity:0.7});
     var ocean = new THREE.Mesh(oceanGeo, oceanMat);
     ocean.rotation.x = -Math.PI/2;
-    ocean.position.y = -0.5;
+    ocean.position.y = -4;
     window._oceanMesh = ocean;
     // Wave foam rings at different radii
     var _waveRings=[];
@@ -790,7 +832,7 @@ function buildCity() {
         var wr=CITY_SIZE+10+_wri*40;
         var wring=new THREE.Mesh(new THREE.TorusGeometry(wr,0.8,4,48),
             toon(0xAADDFF,{transparent:true,opacity:0.3+_wri*0.05}));
-        wring.rotation.x=Math.PI/2;wring.position.y=-0.3;
+        wring.rotation.x=Math.PI/2;wring.position.y=-3.5;
         cityGroup.add(wring);_waveRings.push(wring);
     }
     window._waveRings=_waveRings;
@@ -814,10 +856,10 @@ function buildCity() {
         // Flag
         var flag=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.4,0.03),toon(0xFF4444));
         flag.position.set(0.4,3.0,0.5);btg.add(flag);
-        btg.position.set(bx2,-0.2,bz2);
+        btg.position.set(bx2,-3.5,bz2);
         btg.rotation.y=boatAngle+Math.PI/2;
         cityGroup.add(btg);
-        window._cityAnimals.push({group:btg,type:'boat',x:bx2,y:-0.2,z:bz2,
+        window._cityAnimals.push({group:btg,type:'boat',x:bx2,y:-3.5,z:bz2,
             vx:0,vy:0,vz:0,state:'drift',stateTimer:9999,
             circleAngle:boatAngle,circleDist:boatDist,rockPhase:Math.random()*Math.PI*2});
     }
@@ -838,9 +880,9 @@ function buildCity() {
             var ffin=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.02,0.1),toon(0x88BBDD));
             ffin.position.set(s*0.1,0,0.05);ffin.userData._side=s;ffg.add(ffin);
         });
-        ffg.position.set(ffx,-0.5,ffz);
+        ffg.position.set(ffx,-3.5,ffz);
         cityGroup.add(ffg);
-        window._cityAnimals.push({group:ffg,type:'flyingFish',x:ffx,y:-0.5,z:ffz,
+        window._cityAnimals.push({group:ffg,type:'flyingFish',x:ffx,y:-3.5,z:ffz,
             vx:0,vy:0,vz:0,state:'underwater',stateTimer:30+Math.floor(Math.random()*120),
             jumpPhase:0,moveDir:Math.random()*Math.PI*2,jumpSpeed:0.08+Math.random()*0.04,
             baseX:ffx,baseZ:ffz});
@@ -848,190 +890,318 @@ function buildCity() {
     // (Hidden entrances removed — moon only reachable from cloud world)
     } // end if not Sakura (fountain/canal/waterwheel/fish/lamp/bench/animals)
 
-    // ---- Sakura City special features (style 6 only) ----
+    // ===============================================================
+    //  Sakura City — Mountain Gorge Town (山地峡谷温泉街)
+    // ===============================================================
     if(currentCityStyle===6){try{
-        // Wide winding river (幅広い川)
+        var _jWinM=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.5});
+        var _jStoneM=toon(0x888888);
+        var _jRedM=toon(0xCC3333);
+        var _jDarkRoof=toon(0x333333);
+        var _jWoodM=toon(0xBB9966);
+        // Helper: build a Japanese building with roof, engawa, windows, collider
+        function _buildJpn(x,z,w,d,h,wallColor){
+            var col=wallColor||0xDDAA88;
+            var body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(col));
+            body.position.set(x,h/2,z);body.castShadow=true;body.receiveShadow=true;cityGroup.add(body);
+            var ms=[body];
+            // Flat overhanging roof
+            var rW=w*1.4,rD=d*1.4,rH=0.4;
+            var roof=new THREE.Mesh(new THREE.BoxGeometry(rW,rH,rD),_jDarkRoof);
+            roof.position.set(x,h+rH/2,z);roof.castShadow=true;cityGroup.add(roof);ms.push(roof);
+            var roof2=new THREE.Mesh(new THREE.BoxGeometry(rW+0.8,0.15,rD+0.8),toon(0x444444));
+            roof2.position.set(x,h+rH+0.08,z);cityGroup.add(roof2);ms.push(roof2);
+            // Ridge beam
+            var ridge=new THREE.Mesh(new THREE.BoxGeometry(rW*0.7,0.18,0.18),toon(0x222222));
+            ridge.position.set(x,h+rH+0.22,z);cityGroup.add(ridge);ms.push(ridge);
+            // Engawa porch
+            var eng=new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.12,d+1.2),_jWoodM);
+            eng.position.set(x,0.06,z);cityGroup.add(eng);ms.push(eng);
+            // Warm shouji windows
+            for(var wy=1.5;wy<h-0.5;wy+=2){
+                for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
+                    var wn=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                    wn.position.set(x+wx,wy,z+d/2+0.08);cityGroup.add(wn);ms.push(wn);
+                    var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                    wn2.position.set(x+wx,wy,z-d/2-0.08);cityGroup.add(wn2);ms.push(wn2);
+                }
+            }
+            // Noren curtain (door)
+            var noren=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.1),toon(0x884433));
+            noren.position.set(x,1,z+d/2+0.1);cityGroup.add(noren);ms.push(noren);
+            cityColliders.push({x:x,z:z,hw:w/2+0.5,hd:d/2+0.5,h:h});
+            cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2,hd:d/2,h:h});
+        }
+        // Helper: elevated Japanese building (on plateau)
+        function _buildJpnElev(x,z,w,d,h,wallColor,baseY){
+            var col=wallColor||0xDDAA88;
+            var body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(col));
+            body.position.set(x,baseY+h/2,z);body.castShadow=true;body.receiveShadow=true;cityGroup.add(body);
+            var ms=[body];
+            var rW=w*1.4,rD=d*1.4,rH=0.4;
+            var roof=new THREE.Mesh(new THREE.BoxGeometry(rW,rH,rD),_jDarkRoof);
+            roof.position.set(x,baseY+h+rH/2,z);roof.castShadow=true;cityGroup.add(roof);ms.push(roof);
+            var roof2=new THREE.Mesh(new THREE.BoxGeometry(rW+0.8,0.15,rD+0.8),toon(0x444444));
+            roof2.position.set(x,baseY+h+rH+0.08,z);cityGroup.add(roof2);ms.push(roof2);
+            var ridge=new THREE.Mesh(new THREE.BoxGeometry(rW*0.7,0.18,0.18),toon(0x222222));
+            ridge.position.set(x,baseY+h+rH+0.22,z);cityGroup.add(ridge);ms.push(ridge);
+            var eng=new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.12,d+1.2),_jWoodM);
+            eng.position.set(x,baseY+0.06,z);cityGroup.add(eng);ms.push(eng);
+            for(var wy=1.5;wy<h-0.5;wy+=2){
+                for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
+                    var wn=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                    wn.position.set(x+wx,baseY+wy,z+d/2+0.08);cityGroup.add(wn);ms.push(wn);
+                    var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                    wn2.position.set(x+wx,baseY+wy,z-d/2-0.08);cityGroup.add(wn2);ms.push(wn2);
+                }
+            }
+            var noren=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.1),toon(0x884433));
+            noren.position.set(x,baseY+1,z+d/2+0.1);cityGroup.add(noren);ms.push(noren);
+            cityColliders.push({x:x,z:z,hw:w/2+0.5,hd:d/2+0.5,h:baseY+h,y:baseY});
+            cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2,hd:d/2,h:baseY+h});
+        }
+        // Helper: stone lantern (toro), optionally elevated
+        function _buildToro(x,z,elev){
+            var _ty=elev||0;
+            var tg=new THREE.Group();tg.position.set(x,_ty,z);
+            tg.add(new THREE.Mesh(new THREE.BoxGeometry(0.5,0.25,0.5),_jStoneM));tg.children[0].position.y=0.12;
+            tg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,1.4,6),_jStoneM));tg.children[1].position.y=0.95;
+            tg.add(new THREE.Mesh(new THREE.BoxGeometry(0.45,0.35,0.45),toon(0xFFDD88,{emissive:0xFFDD88,emissiveIntensity:0.5})));tg.children[2].position.y=1.85;
+            tg.add(new THREE.Mesh(new THREE.ConeGeometry(0.4,0.3,4),_jStoneM));tg.children[3].position.y=2.2;tg.children[3].rotation.y=Math.PI/4;
+            cityGroup.add(tg);
+        }
+
+        // === 1. Buildings on both plateaus (elevated at y=8) ===
+        var _pH=8; // plateau surface height
+        // Left plateau buildings (west side, x < -8)
+        var _leftBlds=[
+            {x:-30,z:50,w:10,d:8,h:5,c:0xDDAA88},
+            {x:-50,z:50,w:8,d:7,h:4,c:0xCCBB99},
+            {x:-30,z:30,w:8,d:7,h:5,c:0xEEBBAA},
+            {x:-50,z:30,w:7,d:6,h:4,c:0xDDBB99},
+            {x:-70,z:30,w:10,d:8,h:5.5,c:0xAA8866},// 釜爺
+            {x:-30,z:10,w:9,d:7,h:4,c:0xCCAA88},
+            {x:-55,z:10,w:8,d:8,h:5,c:0xBBAA88},
+            {x:-30,z:-10,w:7,d:6,h:4,c:0xEEBB99},
+            {x:-55,z:-10,w:8,d:7,h:4.5,c:0xDDAA88},
+            {x:-30,z:-30,w:10,d:8,h:5,c:0xCCAA88},
+            {x:-55,z:-30,w:8,d:6,h:4,c:0xDDCC99},
+            {x:-30,z:-50,w:8,d:7,h:4,c:0xCCBBAA},
+            {x:-55,z:-50,w:9,d:8,h:5,c:0xBBAA88}
+        ];
+        // Right plateau buildings (east side, x > 8)
+        var _rightBlds=[
+            {x:30,z:50,w:10,d:8,h:5,c:0xCCBB99},
+            {x:50,z:50,w:8,d:7,h:4.5,c:0xDDAA88},
+            {x:30,z:30,w:8,d:6,h:4,c:0xDDBBAA},
+            {x:50,z:30,w:9,d:7,h:5,c:0xCCAA88},
+            {x:30,z:10,w:7,d:6,h:4,c:0xEEBBAA},
+            {x:55,z:10,w:8,d:8,h:5,c:0xBBAA88},
+            {x:30,z:-10,w:10,d:8,h:5,c:0xDDAA88},
+            {x:55,z:-10,w:8,d:7,h:4,c:0xCCBB99},
+            {x:30,z:-30,w:8,d:7,h:4.5,c:0xCCBB88},
+            {x:55,z:-30,w:7,d:6,h:4,c:0xDDBB99},
+            {x:30,z:-50,w:9,d:7,h:5,c:0xEEBB99},
+            {x:55,z:-50,w:8,d:6,h:4,c:0xDDCC99}
+        ];
+        var _allJpnB=[].concat(_leftBlds,_rightBlds);
+        for(var _jbi=0;_jbi<_allJpnB.length;_jbi++){
+            var jb=_allJpnB[_jbi];
+            _buildJpnElev(jb.x,jb.z,jb.w,jb.d,jb.h,jb.c,_pH);
+        }
+
+        // === 2. The Bathhouse (油屋 Aburaya) — on left plateau overlooking canyon ===
+        var _bhX=-50,_bhZ=-80;
+        // Tier 1 — base (on plateau at y=8)
+        var _by=8;
+        var _bh1=new THREE.Mesh(new THREE.BoxGeometry(24,14,20),toon(0x8B2500));
+        _bh1.position.set(_bhX,_by+7,_bhZ);_bh1.castShadow=true;cityGroup.add(_bh1);
+        cityColliders.push({x:_bhX,z:_bhZ,hw:13,hd:11,h:_by+14});
+        var _bhR1=new THREE.Mesh(new THREE.BoxGeometry(26,0.6,22),_jRedM);
+        _bhR1.position.set(_bhX,_by+14.3,_bhZ);cityGroup.add(_bhR1);
+        var _bh2=new THREE.Mesh(new THREE.BoxGeometry(18,10,14),toon(0x7B1F00));
+        _bh2.position.set(_bhX,_by+19,_bhZ);_bh2.castShadow=true;cityGroup.add(_bh2);
+        var _bhR2=new THREE.Mesh(new THREE.BoxGeometry(20,0.6,16),_jRedM);
+        _bhR2.position.set(_bhX,_by+24.3,_bhZ);cityGroup.add(_bhR2);
+        var _bhRoof=new THREE.Mesh(new THREE.ConeGeometry(12,5,4),toon(0x224422));
+        _bhRoof.position.set(_bhX,_by+27,_bhZ);_bhRoof.rotation.y=Math.PI/4;_bhRoof.castShadow=true;cityGroup.add(_bhRoof);
+        for(var _bwi2=0;_bwi2<6;_bwi2++){
+            var _bwx=-10+_bwi2*4;
+            var wn1=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.2),_jWinM);
+            wn1.position.set(_bhX+_bwx,_by+5,_bhZ+10.1);cityGroup.add(wn1);
+            var wn1b=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.2),_jWinM);
+            wn1b.position.set(_bhX+_bwx,_by+10,_bhZ+10.1);cityGroup.add(wn1b);
+        }
+        for(var _bwi3=0;_bwi3<4;_bwi3++){
+            var _bwx2=-6+_bwi3*4;
+            var wn2=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.2),_jWinM);
+            wn2.position.set(_bhX+_bwx2,_by+17,_bhZ+7.1);cityGroup.add(wn2);
+            var wn2b=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.2),_jWinM);
+            wn2b.position.set(_bhX+_bwx2,_by+21,_bhZ+7.1);cityGroup.add(wn2b);
+        }
+        var _bhLP=[[-13,_by+14.5,10],[-13,_by+14.5,-10],[13,_by+14.5,10],[13,_by+14.5,-10],
+                   [-10,_by+24.5,7],[-10,_by+24.5,-7],[10,_by+24.5,7],[10,_by+24.5,-7]];
+        for(var _bli2=0;_bli2<_bhLP.length;_bli2++){
+            var lp=_bhLP[_bli2];
+            var bLan=new THREE.Mesh(new THREE.SphereGeometry(0.6,6,4),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.6}));
+            bLan.position.set(_bhX+lp[0],lp[1],_bhZ+lp[2]);cityGroup.add(bLan);
+        }
+        // Bathhouse name sign
+        var _bhSignC=document.createElement('canvas');_bhSignC.width=256;_bhSignC.height=64;
+        var _bhCtx=_bhSignC.getContext('2d');
+        _bhCtx.fillStyle='rgba(80,20,0,0.8)';_bhCtx.fillRect(0,0,256,64);
+        _bhCtx.fillStyle='#FFD700';_bhCtx.font='bold 40px serif';_bhCtx.textAlign='center';
+        _bhCtx.fillText('\u6CB9\u5C4B',128,46);
+        var _bhTex=new THREE.CanvasTexture(_bhSignC);
+        var _bhSign=new THREE.Sprite(new THREE.SpriteMaterial({map:_bhTex,transparent:true}));
+        _bhSign.scale.set(6,1.5,1);_bhSign.position.set(_bhX,_by+16,_bhZ+10.5);cityGroup.add(_bhSign);
+        cityBuildingMeshes.push({meshes:[_bh1,_bh2,_bhRoof],x:_bhX,z:_bhZ,hw:13,hd:11,h:_by+14});
+
+        // === 3. Deep Canyon Stream running through the gorge (x=-8 to x=8) ===
         window._sakuraCanalWater=[];
-        var _riverSegs=12;
-        for(var _rsi=0;_rsi<_riverSegs;_rsi++){
-            var _rst=_rsi/_riverSegs;
-            var _rsx=-CITY_SIZE*0.9+CITY_SIZE*1.8*_rst;
-            var _rsz=Math.sin(_rst*Math.PI*1.5)*35; // wide sine curve
-            var _rsAngle=Math.atan2(CITY_SIZE*1.8/_riverSegs,Math.cos(_rst*Math.PI*1.5)*35*Math.PI*1.5/_riverSegs);
-            var _rsW=22; // wide segment
-            var riverSeg=new THREE.Mesh(new THREE.BoxGeometry(_rsW,0.15,14),toon(0x4499AA,{transparent:true,opacity:0.5}));
-            riverSeg.position.set(_rsx,0.1,_rsz);riverSeg.rotation.y=_rsAngle;cityGroup.add(riverSeg);
-            window._sakuraCanalWater.push(riverSeg);
-            // Stone embankment walls
-            [-1,1].forEach(function(side){
-                var embankW=new THREE.Mesh(new THREE.BoxGeometry(_rsW,1.2,1),toon(0x666655));
-                var _wallOff=side*7.5;
-                embankW.position.set(_rsx+Math.cos(_rsAngle+Math.PI/2)*_wallOff,0.6,_rsz+Math.sin(_rsAngle+Math.PI/2)*_wallOff);
-                embankW.rotation.y=_rsAngle;cityGroup.add(embankW);
+        // Water surface at the bottom of canyon (y=1)
+        for(var _rsi2=0;_rsi2<8;_rsi2++){
+            var _rt=_rsi2/8;
+            var _rz2=-120+_rt*240;
+            var rSeg=new THREE.Mesh(new THREE.BoxGeometry(14,0.15,32),toon(0x225566,{transparent:true,opacity:0.7}));
+            rSeg.position.set(0,1,_rz2);cityGroup.add(rSeg);
+            window._sakuraCanalWater.push(rSeg);
+        }
+        // Rocks in the stream
+        for(var _rki=0;_rki<20;_rki++){
+            var _rkx=(Math.random()-0.5)*10;
+            var _rkz=(Math.random()-0.5)*240;
+            var _rkr=0.5+Math.random()*1.2;
+            var sRock=new THREE.Mesh(new THREE.SphereGeometry(_rkr,5,4),toon(0x556655));
+            sRock.position.set(_rkx,0.5+_rkr*0.3,_rkz);sRock.scale.set(1,0.5,1);cityGroup.add(sRock);
+        }
+
+        // === Arched Red Bridges connecting left & right plateaus ===
+        // Three bridges at z=-40, z=0, z=40
+        var _bridgeZs=[-40,0,40];
+        for(var _bzi=0;_bzi<_bridgeZs.length;_bzi++){
+            var _bridgeG=new THREE.Group();
+            var _bgZ=_bridgeZs[_bzi];
+            _bridgeG.position.set(0,0,_bgZ);
+            // Arch deck spans from x=-8 to x=8 (16 units), peak at plateau height (y=8)
+            var _bSegs=12,_bSpan=16,_bPeak=8,_bBase=2;
+            for(var _bsi=0;_bsi<_bSegs;_bsi++){
+                var _bt=_bsi/_bSegs;
+                var _bx2=-_bSpan/2+_bt*_bSpan;
+                var _by2=_bBase+Math.sin(_bt*Math.PI)*(_bPeak-_bBase);
+                var _bNext=(_bsi+1)/_bSegs;
+                var _bnx=-_bSpan/2+_bNext*_bSpan;
+                var _bny2=_bBase+Math.sin(_bNext*Math.PI)*(_bPeak-_bBase);
+                var _bAngle=Math.atan2(_bny2-_by2,_bnx-_bx2);
+                var _bLen=Math.sqrt((_bnx-_bx2)*(_bnx-_bx2)+(_bny2-_by2)*(_bny2-_by2));
+                var plank=new THREE.Mesh(new THREE.BoxGeometry(_bLen+0.3,0.3,7),_jRedM);
+                plank.position.set((_bx2+_bnx)/2,(_by2+_bny2)/2,0);
+                plank.rotation.z=_bAngle;_bridgeG.add(plank);
+            }
+            // Railings
+            [-1,1].forEach(function(s){
+                for(var _rli=0;_rli<=8;_rli++){
+                    var _rlt=_rli/8;
+                    var _rlx=-_bSpan/2+_rlt*_bSpan;
+                    var _rly=_bBase+Math.sin(_rlt*Math.PI)*(_bPeak-_bBase);
+                    var rPost=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,1.5,6),_jRedM);
+                    rPost.position.set(_rlx,_rly+0.75,s*3.2);_bridgeG.add(rPost);
+                    if(_rli<8){
+                        var rBall=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,3),_jRedM);
+                        rBall.position.set(_rlx,_rly+1.5,s*3.2);_bridgeG.add(rBall);
+                    }
+                }
             });
-        }
-        // (old canal walls removed — replaced by river embankments above)
-
-        // Torii Gates (3) at key positions along the canal
-        var toriiPositions=[{x:-40,z:0},{x:0,z:40},{x:40,z:0}];
-        for(var _ti2=0;_ti2<toriiPositions.length;_ti2++){
-            var tp=toriiPositions[_ti2];
-            var toriiG=new THREE.Group();toriiG.position.set(tp.x,0,tp.z);
-            var toriiM=toon(0xCC3333);
-            // Two pillars
-            var tPillarL=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,6,8),toriiM);
-            tPillarL.position.set(-2.5,3,0);toriiG.add(tPillarL);
-            var tPillarR=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,6,8),toriiM);
-            tPillarR.position.set(2.5,3,0);toriiG.add(tPillarR);
-            // Top crossbeam (kasagi)
-            var tTop=new THREE.Mesh(new THREE.BoxGeometry(6,0.3,0.4),toriiM);
-            tTop.position.set(0,6.1,0);toriiG.add(tTop);
-            // Lower crossbeam (nuki)
-            var tLow=new THREE.Mesh(new THREE.BoxGeometry(5.2,0.2,0.3),toriiM);
-            tLow.position.set(0,5.0,0);toriiG.add(tLow);
-            // Rotate torii at z!=0 to face the path
-            if(tp.z!==0)toriiG.rotation.y=Math.PI/2;
-            cityGroup.add(toriiG);
+            // Bridge collider (flat at peak height for walking)
+            cityColliders.push({x:0,z:_bgZ,hw:8,hd:3.5,h:_bPeak});
+            cityGroup.add(_bridgeG);
         }
 
-        // Falling Petal Particles (200 small pink planes)
+        // === 4. Hot Spring Pool on right plateau ===
+        var _onsenX=70,_onsenZ=-60;
+        var _pool1=new THREE.Mesh(new THREE.CylinderGeometry(8,8,0.3,20),toon(0x66BBBB,{transparent:true,opacity:0.55}));
+        _pool1.position.set(_onsenX,8.15,_onsenZ);cityGroup.add(_pool1);
+        var _pEdge1=new THREE.Mesh(new THREE.TorusGeometry(9,0.7,6,20),_jStoneM);
+        _pEdge1.position.set(_onsenX,8.4,_onsenZ);_pEdge1.rotation.x=Math.PI/2;cityGroup.add(_pEdge1);
+        for(var _ori=0;_ori<8;_ori++){
+            var _oa=_ori/8*Math.PI*2;
+            var rock=new THREE.Mesh(new THREE.SphereGeometry(0.5+Math.random()*0.6,5,4),toon(0x777766));
+            rock.position.set(_onsenX+Math.cos(_oa)*9.5,8.3,_onsenZ+Math.sin(_oa)*9.5);
+            rock.scale.set(1,0.6,1);cityGroup.add(rock);
+        }
+
+        // === 5. Fox Shrine (稲荷神社) — on right plateau ===
+        var _shX=80,_shZ=-30,_shY=8;
+        // Stone path to shrine
+        for(var _spi2=0;_spi2<8;_spi2++){
+            var _spStep=new THREE.Mesh(new THREE.BoxGeometry(4,0.15,1.5),_jStoneM);
+            _spStep.position.set(_shX,_shY+0.08,_shZ-20+_spi2*3);cityGroup.add(_spStep);
+        }
+        // 4 red torii gates — facing screen (+z direction)
+        for(var _tgi2=0;_tgi2<4;_tgi2++){
+            var _tgz2=_shZ-18+_tgi2*4;
+            var _toriiG=new THREE.Group();_toriiG.position.set(_shX,_shY,_tgz2);
+            [-1,1].forEach(function(s){
+                var pil=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,5,8),_jRedM);
+                pil.position.set(s*2,2.5,0);_toriiG.add(pil);
+            });
+            var tBeam=new THREE.Mesh(new THREE.BoxGeometry(5.5,0.3,0.4),_jRedM);
+            tBeam.position.set(0,4.8,0);_toriiG.add(tBeam);
+            var tBeam2=new THREE.Mesh(new THREE.BoxGeometry(4.5,0.2,0.3),_jRedM);
+            tBeam2.position.set(0,4.2,0);_toriiG.add(tBeam2);
+            cityGroup.add(_toriiG);
+        }
+        // Main shrine
+        var _shrBody=new THREE.Mesh(new THREE.BoxGeometry(8,5,6),_jRedM);
+        _shrBody.position.set(_shX,_shY+2.5,_shZ);cityGroup.add(_shrBody);
+        cityColliders.push({x:_shX,z:_shZ,hw:4,hd:3,h:_shY+5});
+        var _shrRoof=new THREE.Mesh(new THREE.ConeGeometry(6,3,4),_jDarkRoof);
+        _shrRoof.position.set(_shX,_shY+6.5,_shZ);_shrRoof.rotation.y=Math.PI/4;cityGroup.add(_shrRoof);
+        // Fox statues
+        [-1,1].forEach(function(s){
+            var fb=new THREE.Mesh(new THREE.ConeGeometry(0.4,1.5,6),toon(0xDDDDDD));
+            fb.position.set(_shX+s*3,_shY+0.75,_shZ-10);cityGroup.add(fb);
+            var fh=new THREE.Mesh(new THREE.SphereGeometry(0.35,6,4),toon(0xDDDDDD));
+            fh.position.set(_shX+s*3,_shY+1.7,_shZ-10);cityGroup.add(fh);
+            [-0.15,0.15].forEach(function(ex){
+                var ear=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.25,4),toon(0xDDDDDD));
+                ear.position.set(_shX+s*3+ex,_shY+2.0,_shZ-10);cityGroup.add(ear);
+            });
+            var feye=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),toon(0xCC0000));
+            feye.position.set(_shX+s*3+s*0.15,_shY+1.75,_shZ-9.65);cityGroup.add(feye);
+        });
+        _buildToro(_shX-4,_shZ-12,_shY);_buildToro(_shX+4,_shZ-12,_shY);
+        var _saisen=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.8,0.8),toon(0x442200));
+        _saisen.position.set(_shX,_shY+0.4,_shZ-6);cityGroup.add(_saisen);
+        cityBuildingMeshes.push({meshes:[_shrBody,_shrRoof],x:_shX,z:_shZ,hw:4,hd:3,h:_shY+5});
+
+        // === 6. Stone Lanterns on plateaus ===
+        for(var _sli=0;_sli<8;_sli++){
+            _buildToro(-22,_sli*15-50,8);
+            _buildToro(22,_sli*15-45,8);
+        }
+        // Bridge approach lanterns (on plateau edges)
+        [-40,0,40].forEach(function(bz){
+            _buildToro(-10,bz,8);_buildToro(10,bz,8);
+        });
+
+        // === 7. Falling Petal Particles ===
         window._sakuraPetals=[];
         var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
-        for(var _spi=0;_spi<150;_spi++){
-            var _spGeo=new THREE.PlaneGeometry(0.15,0.15);
-            var _spMesh=new THREE.Mesh(_spGeo,_petalMats[_spi%_petalMats.length]);
-            _spMesh.material.side=THREE.DoubleSide;
-            var _spx=(Math.random()-0.5)*CITY_SIZE*1.5;
-            var _spy=5+Math.random()*15;
-            var _spz=(Math.random()-0.5)*CITY_SIZE*1.5;
-            _spMesh.position.set(_spx,_spy,_spz);
-            _spMesh.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
-            cityGroup.add(_spMesh);
-            window._sakuraPetals.push({mesh:_spMesh,x:_spx,y:_spy,z:_spz,
+        for(var _spi3=0;_spi3<150;_spi3++){
+            var _spGeo2=new THREE.PlaneGeometry(0.15,0.15);
+            var _spMesh2=new THREE.Mesh(_spGeo2,_petalMats[_spi3%_petalMats.length]);
+            _spMesh2.material.side=THREE.DoubleSide;
+            var _spx2=(Math.random()-0.5)*CITY_SIZE*1.5;
+            var _spy2=5+Math.random()*15;
+            var _spz2=(Math.random()-0.5)*CITY_SIZE*1.5;
+            _spMesh2.position.set(_spx2,_spy2,_spz2);
+            _spMesh2.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+            cityGroup.add(_spMesh2);
+            window._sakuraPetals.push({mesh:_spMesh2,x:_spx2,y:_spy2,z:_spz2,
                 vx:(Math.random()-0.5)*0.01,vy:-0.015-Math.random()*0.01,vz:(Math.random()-0.5)*0.01,
                 rotSpeed:0.02+Math.random()*0.03});
         }
-    }catch(e){alert('Sakura features error: '+e.message);}
-    }
-
-    // ---- Sakura City: Lake, Bathhouse, Fox Shrine ----
-    if(currentCityStyle===6){try{
-        // (River already created above in sakura features block)
-
-        // === 2. Lake with Lily Pads ===
-        // Large circular lake at (-60, 60)
-        var lakeX=-60,lakeZ=60,lakeR=22;
-        var lakeWater=new THREE.Mesh(new THREE.CylinderGeometry(lakeR,lakeR,0.3,32),toon(0x4499AA,{transparent:true,opacity:0.55}));
-        lakeWater.position.set(lakeX,0.15,lakeZ);cityGroup.add(lakeWater);
-        // Stone edge
-        var lakeEdge=new THREE.Mesh(new THREE.TorusGeometry(lakeR+1,0.8,6,32),toon(0x777777));
-        lakeEdge.position.set(lakeX,0.4,lakeZ);lakeEdge.rotation.x=Math.PI/2;cityGroup.add(lakeEdge);
-        // 8 lily pads
-        for(var lpi=0;lpi<8;lpi++){
-            var lpa=lpi/8*Math.PI*2;
-            var lpr=5+Math.random()*12;
-            var lily=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.05,8),toon(0x33AA44));
-            lily.position.set(lakeX+Math.cos(lpa)*lpr,0.32,lakeZ+Math.sin(lpa)*lpr);
-            cityGroup.add(lily);
-            // Pink lotus flower on some
-            if(Math.random()>0.4){
-                var lotus=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),toon(0xFF88AA));
-                lotus.position.set(lakeX+Math.cos(lpa)*lpr,0.5,lakeZ+Math.sin(lpa)*lpr);
-                lotus.scale.set(1,0.5,1);
-                cityGroup.add(lotus);
-            }
-        }
-
-        // === 3. Spirited Away Bathhouse (simplified) ===
-        var bhX=-55,bhZ=35;
-        var bh1=new THREE.Mesh(new THREE.BoxGeometry(16,10,14),toon(0x8B2500));
-        bh1.position.set(bhX,5,bhZ);cityGroup.add(bh1);
-        cityColliders.push({x:bhX,z:bhZ,hw:8,hd:7,h:10});
-        var bh2=new THREE.Mesh(new THREE.BoxGeometry(12,8,10),toon(0x7B1F00));
-        bh2.position.set(bhX,14,bhZ);cityGroup.add(bh2);
-        var rim1=new THREE.Mesh(new THREE.BoxGeometry(18,0.5,16),toon(0xCC3333));
-        rim1.position.set(bhX,10.2,bhZ);cityGroup.add(rim1);
-        var rim2=new THREE.Mesh(new THREE.BoxGeometry(14,0.5,12),toon(0xCC3333));
-        rim2.position.set(bhX,18.2,bhZ);cityGroup.add(rim2);
-        var bhRoof=new THREE.Mesh(new THREE.ConeGeometry(8,4,4),toon(0x224422));
-        bhRoof.position.set(bhX,22,bhZ);bhRoof.rotation.y=Math.PI/4;cityGroup.add(bhRoof);
-        // A few warm windows
-        var winMat=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.5});
-        for(var bwi=0;bwi<4;bwi++){
-            var win2=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.5,0.2),winMat);
-            win2.position.set(bhX-6+bwi*4,4,bhZ+7.1);cityGroup.add(win2);
-            var win3=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.5,0.2),winMat);
-            win3.position.set(bhX-4+bwi*3,12,bhZ+5.1);cityGroup.add(win3);
-        }
-        // 4 lanterns
-        for(var bli=0;bli<4;bli++){
-            var lantern=new THREE.Mesh(new THREE.SphereGeometry(0.5,4,3),toon(0xFF6644,{emissive:0xFF4422,emissiveIntensity:0.6}));
-            lantern.position.set(bhX+[-8,8,-6,6][bli],[10.5,10.5,18.5,18.5][bli],bhZ+[0,0,0,0][bli]);
-            cityGroup.add(lantern);
-        }
-        // Red bridge
-        var bhBridge=new THREE.Mesh(new THREE.BoxGeometry(12,0.4,4),toon(0xCC3333));
-        bhBridge.position.set(bhX+14,1.5,bhZ);cityGroup.add(bhBridge);
-        cityBuildingMeshes.push({meshes:[bh1,bh2,bhRoof],x:bhX,z:bhZ,hw:9,hd:8,h:22});
-
-        // === 4. Fox Shrine ===
-        // Inari fox shrine at (70, -50)
-        var shrineX=70,shrineZ=-50;
-        // Stone path leading to shrine
-        for(var spi=0;spi<4;spi++){
-            var step=new THREE.Mesh(new THREE.BoxGeometry(5,0.2,2),toon(0x999999));
-            step.position.set(shrineX,0.1+spi*0.1,shrineZ+spi*3-10);cityGroup.add(step);
-        }
-        // Row of 3 red torii gates along the path
-        for(var tgi=0;tgi<3;tgi++){
-            var tgz=shrineZ-8+tgi*4;
-            // Two pillars
-            [-1,1].forEach(function(s){
-                var pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,5,8),toon(0xCC3333));
-                pillar.position.set(shrineX+s*2,2.5,tgz);cityGroup.add(pillar);
-            });
-            // Top beam
-            var beam=new THREE.Mesh(new THREE.BoxGeometry(5.5,0.3,0.3),toon(0xCC3333));
-            beam.position.set(shrineX,4.8,tgz);cityGroup.add(beam);
-            // Second beam
-            var beam2=new THREE.Mesh(new THREE.BoxGeometry(4.5,0.25,0.25),toon(0xCC3333));
-            beam2.position.set(shrineX,4.2,tgz);cityGroup.add(beam2);
-        }
-        // Main shrine building
-        var shrine=new THREE.Mesh(new THREE.BoxGeometry(8,5,6),toon(0xCC3333));
-        shrine.position.set(shrineX,2.5,shrineZ+12);cityGroup.add(shrine);
-        cityColliders.push({x:shrineX,z:shrineZ+12,hw:4,hd:3,h:5});
-        var shrineRoof=new THREE.Mesh(new THREE.ConeGeometry(6,3,4),toon(0x333333));
-        shrineRoof.position.set(shrineX,6.5,shrineZ+12);shrineRoof.rotation.y=Math.PI/4;cityGroup.add(shrineRoof);
-        // 2 fox statues (kitsune) at entrance
-        [-1,1].forEach(function(s){
-            var foxBody=new THREE.Mesh(new THREE.ConeGeometry(0.4,1.5,6),toon(0xDDDDDD));
-            foxBody.position.set(shrineX+s*3,0.75,shrineZ-4);cityGroup.add(foxBody);
-            var foxHead=new THREE.Mesh(new THREE.SphereGeometry(0.35,6,4),toon(0xDDDDDD));
-            foxHead.position.set(shrineX+s*3,1.7,shrineZ-4);cityGroup.add(foxHead);
-            // Fox ears
-            [-0.15,0.15].forEach(function(ex){
-                var ear=new THREE.Mesh(new THREE.ConeGeometry(0.1,0.25,4),toon(0xDDDDDD));
-                ear.position.set(shrineX+s*3+ex,2.0,shrineZ-4);cityGroup.add(ear);
-            });
-            // Fox eyes (red)
-            var foxEye=new THREE.Mesh(new THREE.SphereGeometry(0.06,4,3),toon(0xCC0000));
-            foxEye.position.set(shrineX+s*3+s*0.15,1.75,shrineZ-3.65);cityGroup.add(foxEye);
-        });
-        // Stone lanterns at shrine entrance
-        [-1,1].forEach(function(s){
-            var slBase=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.3,0.6),toon(0x888888));
-            slBase.position.set(shrineX+s*4,0.15,shrineZ-2);cityGroup.add(slBase);
-            var slPillar=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.18,1.5,6),toon(0x999999));
-            slPillar.position.set(shrineX+s*4,1.05,shrineZ-2);cityGroup.add(slPillar);
-            var slHead=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.5,0.7),toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.4}));
-            slHead.position.set(shrineX+s*4,2,shrineZ-2);cityGroup.add(slHead);
-            var slRoof=new THREE.Mesh(new THREE.ConeGeometry(0.5,0.4,4),toon(0x888888));
-            slRoof.position.set(shrineX+s*4,2.45,shrineZ-2);cityGroup.add(slRoof);
-        });
-        // Offering box
-        var saisen=new THREE.Mesh(new THREE.BoxGeometry(1.5,0.8,0.8),toon(0x442200));
-        saisen.position.set(shrineX,0.4,shrineZ+8);cityGroup.add(saisen);
     }catch(e){alert('Sakura build error: '+e.message);}
     }
 

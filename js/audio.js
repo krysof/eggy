@@ -824,8 +824,10 @@ function playStepSound(){
 // ---- Distance-based volume attenuation ----
 function _sfxVolume(worldX,worldZ){
     if(!playerEgg||!playerEgg.mesh)return 1;
+    if(isNaN(worldX)||isNaN(worldZ))return 0;
     var dx=worldX-playerEgg.mesh.position.x,dz=worldZ-playerEgg.mesh.position.z;
     var dist=Math.sqrt(dx*dx+dz*dz);
+    if(isNaN(dist))return 0;
     if(dist<3)return 1;        // very close = full volume
     if(dist>60)return 0;       // 2x screen distance = silent
     if(dist>30)return 0.5*(1-(dist-30)/30); // beyond screen = fade to 0
