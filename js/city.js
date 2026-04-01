@@ -945,33 +945,29 @@ function buildCity() {
             ridge.position.set(x,baseY+h+rH+0.22,z);cityGroup.add(ridge);ms.push(ridge);
             var eng=new THREE.Mesh(new THREE.BoxGeometry(w+1.2,0.12,d+1.2),_jWoodM);
             eng.position.set(x,baseY+0.06,z);cityGroup.add(eng);ms.push(eng);
-            // Windows face the river (X axis) or default (Z axis)
-            if(faceDir){
-                var _fSide=faceDir>0?1:-1; // which X side has windows
-                for(var wy=1.5;wy<h-0.5;wy+=2){
-                    for(var wz=-d/2+1.2;wz<d/2-0.8;wz+=2){
-                        // River-facing windows (bright, many)
-                        var wn=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
-                        wn.position.set(x+_fSide*(w/2+0.08),baseY+wy,z+wz);cityGroup.add(wn);ms.push(wn);
-                        // Back windows (fewer)
-                        if(Math.random()>0.5){
-                            var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
-                            wn2.position.set(x-_fSide*(w/2+0.08),baseY+wy,z+wz);cityGroup.add(wn2);ms.push(wn2);
-                        }
-                    }
+            // Windows on ALL four faces (warm shouji glow)
+            for(var wy=1.5;wy<h-0.5;wy+=2.5){
+                // Z faces (front/back)
+                for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
+                    var wnF=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                    wnF.position.set(x+wx,baseY+wy,z+d/2+0.08);cityGroup.add(wnF);ms.push(wnF);
+                    var wnB=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
+                    wnB.position.set(x+wx,baseY+wy,z-d/2-0.08);cityGroup.add(wnB);ms.push(wnB);
                 }
-                // Noren on river side
+                // X faces (river side / back side)
+                for(var wz=-d/2+1.2;wz<d/2-0.8;wz+=2){
+                    var wnL=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
+                    wnL.position.set(x+w/2+0.08,baseY+wy,z+wz);cityGroup.add(wnL);ms.push(wnL);
+                    var wnR=new THREE.Mesh(new THREE.BoxGeometry(0.15,1.2,0.8),_jWinM);
+                    wnR.position.set(x-w/2-0.08,baseY+wy,z+wz);cityGroup.add(wnR);ms.push(wnR);
+                }
+            }
+            // Noren curtain
+            var _norenSide=faceDir>0?1:(faceDir<0?-1:0);
+            if(_norenSide){
                 var noren=new THREE.Mesh(new THREE.BoxGeometry(0.1,2,1.5),toon(0x884433));
-                noren.position.set(x+_fSide*(w/2+0.1),baseY+1,z);cityGroup.add(noren);ms.push(noren);
+                noren.position.set(x+_norenSide*(w/2+0.1),baseY+1,z);cityGroup.add(noren);ms.push(noren);
             } else {
-                for(var wy2=1.5;wy2<h-0.5;wy2+=2){
-                    for(var wx=-w/2+1.2;wx<w/2-0.8;wx+=2){
-                        var wn3=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
-                        wn3.position.set(x+wx,baseY+wy2,z+d/2+0.08);cityGroup.add(wn3);ms.push(wn3);
-                        var wn4=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.2,0.15),_jWinM);
-                        wn4.position.set(x+wx,baseY+wy2,z-d/2-0.08);cityGroup.add(wn4);ms.push(wn4);
-                    }
-                }
                 var noren2=new THREE.Mesh(new THREE.BoxGeometry(1.5,2,0.1),toon(0x884433));
                 noren2.position.set(x,baseY+1,z+d/2+0.1);cityGroup.add(noren2);ms.push(noren2);
             }

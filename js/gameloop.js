@@ -887,8 +887,8 @@ function updateCity(){
             }
         }
     }
-    // Cherub (cloud world angel) animation
-    if(window._cityAnimals)for(var _ai3=0;_ai3<window._cityAnimals.length;_ai3++){
+    // Cherub (cloud world angel) animation — skip for Sakura City
+    if(window._cityAnimals&&currentCityStyle!==6)for(var _ai3=0;_ai3<window._cityAnimals.length;_ai3++){
         var ca=window._cityAnimals[_ai3];
         if(ca.type!=='cherub')continue;
         ca.flapPhase+=0.15;
