@@ -21,7 +21,7 @@ var CITY_STYLES=[
     {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
     {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null},
-    {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0xFFDDEE,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:null}
+    {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0x7BC8F6,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:null}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -1202,7 +1202,26 @@ function buildCity() {
             _buildToro(-10,bz,8);_buildToro(10,bz,8);
         });
 
-        // === 7. Massive Falling Petal Particles (満開の桜吹雪) ===
+        // === 7. Decorative high clouds (薄雲) ===
+        for(var _dci=0;_dci<12;_dci++){
+            var _dcg=new THREE.Group();
+            var _dcx=(Math.random()-0.5)*300;
+            var _dcy=40+Math.random()*30;
+            var _dcz=(Math.random()-0.5)*300;
+            var _dcParts=3+Math.floor(Math.random()*3);
+            for(var _dcp=0;_dcp<_dcParts;_dcp++){
+                var _dcr=6+Math.random()*8;
+                var _dcm=new THREE.Mesh(new THREE.SphereGeometry(_dcr,6,4),
+                    new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.25+Math.random()*0.15}));
+                _dcm.position.set((Math.random()-0.5)*_dcr*2,Math.random()*2,(Math.random()-0.5)*_dcr);
+                _dcm.scale.set(1.5,0.3,1);
+                _dcg.add(_dcm);
+            }
+            _dcg.position.set(_dcx,_dcy,_dcz);
+            cityGroup.add(_dcg);
+        }
+
+        // === 8. Massive Falling Petal Particles (満開の桜吹雪) ===
         window._sakuraPetals=[];
         var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
         for(var _spi3=0;_spi3<400;_spi3++){
