@@ -95,10 +95,11 @@ function buildCity() {
     _rightGrass.position.set(68,_pH+0.15,0);cityGroup.add(_rightGrass);
     cityColliders.push({x:68,z:0,hw:60,hd:140,h:_pH});
     // === Paths on plateaus ===
-    var _lpth=new THREE.Mesh(new THREE.BoxGeometry(6,0.06,240),_sPathM);
-    _lpth.position.set(-15,_pH+0.03,0);cityGroup.add(_lpth);
-    var _rpth=new THREE.Mesh(new THREE.BoxGeometry(6,0.06,240),_sPathM);
-    _rpth.position.set(15,_pH+0.03,0);cityGroup.add(_rpth);
+    // Paths between trees and ryokan
+    var _lpth=new THREE.Mesh(new THREE.BoxGeometry(8,0.06,240),_sPathM);
+    _lpth.position.set(-22,_pH+0.03,0);cityGroup.add(_lpth);
+    var _rpth=new THREE.Mesh(new THREE.BoxGeometry(8,0.06,240),_sPathM);
+    _rpth.position.set(22,_pH+0.03,0);cityGroup.add(_rpth);
     // === Background mountains ===
     var _hillM=toon(0x447744);
     [[-90,0,-60,30,40],[-110,0,50,35,45],[90,0,-50,32,42],[100,0,60,28,35]].forEach(function(hp){
@@ -968,17 +969,48 @@ function buildCity() {
             cityGroup.add(tg);
         }
 
-        // === 1. Ryokan on plateau edges facing the gorge ===
+        // === 1. Tall ryokan set back from gorge (河辺→垂桜→道→旅館) ===
+        // Layout: gorge edge x=±8 → sakura trees x=±12 → path x=±18 → ryokan x=±35
         var _leftBlds=[],_rightBlds=[];
-        for(var _lbi=0;_lbi<12;_lbi++){
-            var _lbz=-100+_lbi*17;
-            var _lbh=4+Math.floor(Math.random()*4);
-            _leftBlds.push({x:-15,z:_lbz,w:8,d:10,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744][_lbi%4]});
+        for(var _lbi=0;_lbi<10;_lbi++){
+            var _lbz=-90+_lbi*20;
+            var _lbh=8+Math.floor(Math.random()*6); // 3-4 story (8-13 units = tall onsen hotels)
+            _leftBlds.push({x:-35,z:_lbz,w:12,d:12,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744][_lbi%4]});
         }
-        for(var _rbi=0;_rbi<12;_rbi++){
-            var _rbz=-92+_rbi*17;
-            var _rbh=4+Math.floor(Math.random()*4);
-            _rightBlds.push({x:15,z:_rbz,w:8,d:10,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77][_rbi%4]});
+        for(var _rbi=0;_rbi<10;_rbi++){
+            var _rbz=-80+_rbi*20;
+            var _rbh=8+Math.floor(Math.random()*6);
+            _rightBlds.push({x:35,z:_rbz,w:12,d:12,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77][_rbi%4]});
+        }
+        // Riverside sakura trees (垂桜) along gorge edge
+        for(var _rsti=0;_rsti<16;_rsti++){
+            var _rstZ=-110+_rsti*15;
+            [-12,12].forEach(function(sx){
+                var _rstG=new THREE.Group();_rstG.position.set(sx,_pH,_rstZ+(Math.random()-0.5)*5);
+                var _rstH=4+Math.random()*2;
+                var rstTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.35,_rstH,6),toon(0x6B4226));
+                rstTrunk.position.y=_rstH/2;_rstG.add(rstTrunk);
+                var _rstCols=[0xFFAABB,0xFFBBCC,0xFFCCDD];
+                for(var _rsci=0;_rsci<3;_rsci++){
+                    var _rscr=2+Math.random()*1.5;
+                    var _rscOff=_rsci*(Math.PI*2/3);
+                    var sakC=new THREE.Mesh(new THREE.SphereGeometry(_rscr,6,5),toon(_rstCols[_rsci],{transparent:true,opacity:0.85}));
+                    sakC.position.set(Math.cos(_rscOff)*_rscr*0.3,_rstH+_rscr*0.3,Math.sin(_rscOff)*_rscr*0.3);
+                    sakC.scale.y=0.6;_rstG.add(sakC);
+                }
+                // Weeping branches (垂樱)
+                for(var _wbi2=0;_wbi2<4;_wbi2++){
+                    var _wbA=_wbi2*(Math.PI*2/4)+Math.random()*0.5;
+                    var _wbL=2+Math.random()*1.5;
+                    var _wbM=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.04,_wbL,3),toon(0x6B4226));
+                    _wbM.position.set(Math.cos(_wbA)*_wbL*0.3,_rstH-_wbL*0.3,Math.sin(_wbA)*_wbL*0.3);
+                    _wbM.rotation.z=Math.cos(_wbA)*0.8;_wbM.rotation.x=-Math.sin(_wbA)*0.8;_rstG.add(_wbM);
+                    var _wpc=new THREE.Mesh(new THREE.SphereGeometry(0.4,4,3),toon(_rstCols[_wbi2%3],{transparent:true,opacity:0.8}));
+                    _wpc.position.set(Math.cos(_wbA)*_wbL*0.6,_rstH-_wbL*0.5,Math.sin(_wbA)*_wbL*0.6);_rstG.add(_wpc);
+                }
+                cityGroup.add(_rstG);
+                cityBuildingMeshes.push({meshes:_rstG.children.slice(),x:sx,z:_rstZ,hw:3,hd:3,h:_pH+_rstH});
+            });
         }
         var _allJpnB=[].concat(_leftBlds,_rightBlds);
         for(var _jbi=0;_jbi<_allJpnB.length;_jbi++){
@@ -1057,10 +1089,11 @@ function buildCity() {
         var _woodBridgeZs=[-60,0,60];
         for(var _wbi=0;_wbi<_woodBridgeZs.length;_wbi++){
             var _wbZ=_woodBridgeZs[_wbi];
+            var _wbMeshes=[];
             var _wDeck=new THREE.Mesh(new THREE.BoxGeometry(18,0.4,6),_jWoodM);
-            _wDeck.position.set(0,_pH-0.2,_wbZ);cityGroup.add(_wDeck);
+            _wDeck.position.set(0,_pH-0.2,_wbZ);cityGroup.add(_wDeck);_wbMeshes.push(_wDeck);
             var _wSupport=new THREE.Mesh(new THREE.BoxGeometry(16,0.3,4),toon(0x775533));
-            _wSupport.position.set(0,_pH-0.55,_wbZ);cityGroup.add(_wSupport);
+            _wSupport.position.set(0,_pH-0.55,_wbZ);cityGroup.add(_wSupport);_wbMeshes.push(_wSupport);
             // Support pillars from ground
             [-5,0,5].forEach(function(px){
                 var _pil=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,_pH,6),toon(0x664422));
@@ -1076,6 +1109,7 @@ function buildCity() {
                 }
             });
             cityColliders.push({x:0,z:_wbZ,hw:9,hd:3,h:_pH,_bridge:true});
+            cityBuildingMeshes.push({meshes:_wbMeshes,x:0,z:_wbZ,hw:9,hd:3,h:_pH});
         }
         // Red arched bridges (big, spanning gorge)
         var _redBridgeZs=[-30,30];
