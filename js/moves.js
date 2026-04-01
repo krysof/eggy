@@ -527,11 +527,7 @@ function MoveRapidHit_update(egg, limbType, holdKey, inputFn){
     timer--;tick++;
     if(isPunch){egg._hyakuretsuTimer=timer;egg._hyakuretsuTick=tick;}
     else{egg._hyakuretsuKickTimer=timer;egg._hyakuretsuKickTick=tick;}
-    // Extend if hold key pressed
-    if(holdKey){
-        if(isPunch){egg._hyakuretsuTimer=Math.max(egg._hyakuretsuTimer,30);egg._attackCD=0;}
-        else{egg._hyakuretsuKickTimer=Math.max(egg._hyakuretsuKickTimer,30);egg._attackCD=0;}
-    }
+    // No hold-to-extend — each press triggers one burst
     // Limb animation
     if(isPunch){
         var hSlot=Math.floor(tick/3)%3;
