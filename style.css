@@ -103,6 +103,8 @@ h1{font-size:clamp(32px,8vw,56px);color:#fff;text-shadow:3px 3px 0 #FF8800,6px 6
 .touch-punch{position:absolute;right:78px;bottom:calc(var(--nav-offset) + 62px);width:46px;height:46px;border-radius:50%;background:rgba(255,150,50,.3);border:2px solid rgba(255,150,50,.45);color:#fff;font-size:14px;font-weight:700;pointer-events:auto;cursor:pointer}
 .touch-kick{position:absolute;right:14px;bottom:calc(var(--nav-offset) + 62px);width:46px;height:46px;border-radius:50%;background:rgba(50,200,150,.3);border:2px solid rgba(50,200,150,.45);color:#fff;font-size:14px;font-weight:700;pointer-events:auto;cursor:pointer}
 .touch-chat{position:absolute;right:46px;bottom:calc(var(--nav-offset) + 116px);width:36px;height:36px;border-radius:50%;background:rgba(100,200,255,.3);border:2px solid rgba(100,200,255,.45);color:#fff;font-size:16px;pointer-events:auto;cursor:pointer}
+.touch-tps{position:absolute;right:142px;bottom:calc(var(--nav-offset) + 62px);width:46px;height:46px;border-radius:50%;background:rgba(100,100,220,.35);border:2px solid rgba(130,130,255,.5);color:#fff;font-size:16px;font-weight:700;pointer-events:auto;cursor:pointer}
+.touch-tps-re{position:absolute;right:142px;bottom:var(--nav-offset);width:54px;height:54px;border-radius:50%;background:rgba(80,200,100,.35);border:2px solid rgba(120,230,140,.5);color:#fff;font-size:16px;font-weight:700;pointer-events:auto;cursor:pointer}
 
 /* SOTN area name reveal */
 .area-name-overlay{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;pointer-events:none}
