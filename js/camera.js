@@ -12,8 +12,8 @@ var _spectatorMode=false;
 // Third-person (RE5 style) camera
 var _tpsCamMode=false;
 var _tpsCamYaw=0; // horizontal orbit around player
-var _tpsCamPitch=0.4; // vertical angle (0=level, higher=above)
-var _tpsCamDist=8; // distance behind player
+var _tpsCamPitch=0.15; // low angle — near eye level
+var _tpsCamDist=5; // close behind player
 var _tpsDragging=false;
 var _tpsLastX=0,_tpsLastY=0;
 var _specCamX=0,_specCamY=50,_specCamZ=0;
@@ -96,7 +96,7 @@ function _toggleTPS(){
     if(_tpsBtn)_tpsBtn.textContent=_tpsCamMode?'🎥':'📷';
 }
 document.addEventListener('keydown',function(e){
-    if(e.code==='Digit1'&&gameState==='city')_toggleTPS();
+    if(e.code==='Digit2'&&gameState==='city')_toggleTPS();
 });
 var _tpsBtnEl=document.getElementById('tps-btn');
 if(_tpsBtnEl){
@@ -191,19 +191,22 @@ function updateCamera(){
     const p=playerEgg.mesh.position;
     // Third-person (RE5 style) camera — over-the-shoulder
     if(_tpsCamMode){
-        // Right stick / mouse controls yaw/pitch, scroll controls distance
-        _tpsCamDist=Math.max(3,Math.min(20,_tpsCamDist));
-        var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist*Math.cos(_tpsCamPitch);
-        var _tpy=p.y+1.5+_tpsCamDist*Math.sin(_tpsCamPitch);
-        var _tpz=p.z+Math.cos(_tpsCamYaw)*_tpsCamDist*Math.cos(_tpsCamPitch);
-        // Slight right offset for over-the-shoulder feel
-        _tpx+=Math.cos(_tpsCamYaw)*1.2;
-        _tpz-=Math.sin(_tpsCamYaw)*1.2;
-        camera.position.x+=(_tpx-camera.position.x)*0.15;
-        camera.position.y+=(_tpy-camera.position.y)*0.15;
-        camera.position.z+=(_tpz-camera.position.z)*0.15;
-        if(camera.position.y<p.y+1)camera.position.y=p.y+1;
-        camera.lookAt(p.x,p.y+1.2,p.z);
+        _tpsCamDist=Math.max(2,Math.min(15,_tpsCamDist));
+        // TPS: grab button adjusts camera angle
+        if(keys['KeyF']){
+            if(joyActive){_tpsCamYaw-=joyVec.x*0.04;_tpsCamPitch-=joyVec.y*0.03;}
+            if(_tpsCamPitch<0.0)_tpsCamPitch=0.0;
+            if(_tpsCamPitch>1.0)_tpsCamPitch=1.0;
+        }
+        // Camera behind and slightly above player eye level
+        var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
+        var _tpy=p.y+1.8+_tpsCamDist*Math.sin(_tpsCamPitch)*0.5;
+        var _tpz=p.z+Math.cos(_tpsCamYaw)*_tpsCamDist;
+        camera.position.x+=(_tpx-camera.position.x)*0.12;
+        camera.position.y+=(_tpy-camera.position.y)*0.12;
+        camera.position.z+=(_tpz-camera.position.z)*0.12;
+        if(camera.position.y<p.y+0.8)camera.position.y=p.y+0.8;
+        camera.lookAt(p.x,p.y+1.5,p.z);
         // Scroll wheel adjusts distance
         // Player faces camera direction when moving
         if(Math.abs(playerEgg.vx)>0.01||Math.abs(playerEgg.vz)>0.01){
