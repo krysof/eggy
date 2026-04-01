@@ -918,8 +918,52 @@ function updateCity(){
             sp.z+=sp.vz+Math.cos(Date.now()*0.001+spi*0.7)*0.02;
             sp.mesh.rotation.x+=sp.rotSpeed;
             sp.mesh.rotation.z+=sp.rotSpeed*0.7;
-            if(sp.y<0){sp.y=15+Math.random()*10;sp.x=(Math.random()-0.5)*CITY_SIZE*1.5;sp.z=(Math.random()-0.5)*CITY_SIZE*1.5;}
+            if(sp.y<(currentCityStyle===6?-1:0)){sp.y=20+Math.random()*15;sp.x=(Math.random()-0.5)*CITY_SIZE*2;sp.z=(Math.random()-0.5)*CITY_SIZE*2;}
             sp.mesh.position.set(sp.x,sp.y,sp.z);
+        }
+    }
+    // Sakura stream animals animation
+    if(window._sakuraStreamAnimals&&currentCityStyle===6){
+        for(var _sai2=0;_sai2<window._sakuraStreamAnimals.length;_sai2++){
+            var sa=window._sakuraStreamAnimals[_sai2];
+            if(sa.type==='duck'){
+                sa.wobble+=0.08;
+                sa.x+=Math.sin(sa.moveDir)*sa.speed;
+                sa.z+=Math.cos(sa.moveDir)*sa.speed;
+                if(Math.abs(sa.x)>6){sa.moveDir=Math.atan2(-sa.x,sa.z);}
+                if(Math.abs(sa.z)>110){sa.moveDir=Math.atan2(sa.x,-sa.z);}
+                if(Math.random()<0.005)sa.moveDir+=(Math.random()-0.5)*1.5;
+                sa.group.position.set(sa.x,sa.y+Math.sin(sa.wobble)*0.05,sa.z);
+                sa.group.rotation.y=sa.moveDir;
+            } else if(sa.type==='koi'){
+                sa.phase+=sa.speed;
+                sa.x=Math.cos(sa.phase)*sa.radius;
+                sa.z+=Math.sin(sa.phase)*0.3;
+                if(Math.abs(sa.z)>110)sa.z*=-0.9;
+                sa.group.position.set(sa.x,sa.y+Math.sin(sa.phase*3)*0.1,sa.z);
+                sa.group.rotation.y=sa.phase+Math.PI/2;
+                if(sa.group.children[1])sa.group.children[1].rotation.y=Math.sin(sa.phase*5)*0.4;
+            } else if(sa.type==='turtle'){
+                sa.timer--;
+                sa.x+=Math.sin(sa.moveDir)*sa.speed;
+                sa.z+=Math.cos(sa.moveDir)*sa.speed;
+                if(Math.abs(sa.x)>6)sa.moveDir=Math.atan2(-sa.x,sa.z);
+                if(sa.timer<=0){sa.moveDir+=(Math.random()-0.5)*2;sa.timer=200+Math.floor(Math.random()*300);}
+                sa.group.position.set(sa.x,sa.y,sa.z);
+                sa.group.rotation.y=sa.moveDir;
+            } else if(sa.type==='heron'){
+                sa.timer--;
+                if(sa.timer<=0){sa.timer=100+Math.floor(Math.random()*300);
+                    if(sa.state==='stand'){sa.state='peck';} else {sa.state='stand';}
+                }
+                if(sa.state==='peck'&&sa.group.children[2]){
+                    sa.group.children[1].rotation.x=Math.sin(Date.now()*0.01)*0.3;
+                    sa.group.children[2].position.y=1.5+Math.sin(Date.now()*0.01)*0.4;
+                } else if(sa.group.children[1]){
+                    sa.group.children[1].rotation.x=0;
+                    if(sa.group.children[2])sa.group.children[2].position.y=1.9;
+                }
+            }
         }
     }
     // Sakura canal water shimmer

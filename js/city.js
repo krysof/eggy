@@ -1202,22 +1202,105 @@ function buildCity() {
             _buildToro(-10,bz,8);_buildToro(10,bz,8);
         });
 
-        // === 7. Falling Petal Particles ===
+        // === 7. Massive Falling Petal Particles (満開の桜吹雪) ===
         window._sakuraPetals=[];
         var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
-        for(var _spi3=0;_spi3<150;_spi3++){
-            var _spGeo2=new THREE.PlaneGeometry(0.15,0.15);
+        for(var _spi3=0;_spi3<400;_spi3++){
+            var _spGeo2=new THREE.PlaneGeometry(0.2+Math.random()*0.15,0.2+Math.random()*0.15);
             var _spMesh2=new THREE.Mesh(_spGeo2,_petalMats[_spi3%_petalMats.length]);
             _spMesh2.material.side=THREE.DoubleSide;
-            var _spx2=(Math.random()-0.5)*CITY_SIZE*1.5;
-            var _spy2=5+Math.random()*15;
-            var _spz2=(Math.random()-0.5)*CITY_SIZE*1.5;
+            var _spx2=(Math.random()-0.5)*CITY_SIZE*2;
+            var _spy2=10+Math.random()*25;
+            var _spz2=(Math.random()-0.5)*CITY_SIZE*2;
             _spMesh2.position.set(_spx2,_spy2,_spz2);
             _spMesh2.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
             cityGroup.add(_spMesh2);
             window._sakuraPetals.push({mesh:_spMesh2,x:_spx2,y:_spy2,z:_spz2,
-                vx:(Math.random()-0.5)*0.01,vy:-0.015-Math.random()*0.01,vz:(Math.random()-0.5)*0.01,
+                vx:(Math.random()-0.5)*0.015,vy:-0.012-Math.random()*0.008,vz:(Math.random()-0.5)*0.015,
                 rotSpeed:0.02+Math.random()*0.03});
+        }
+        // Some petals floating on water surface (static decoration)
+        for(var _wpi=0;_wpi<60;_wpi++){
+            var _wpx=(Math.random()-0.5)*14;
+            var _wpz=(Math.random()-0.5)*240;
+            var _wpMesh=new THREE.Mesh(new THREE.PlaneGeometry(0.25,0.25),_petalMats[_wpi%5]);
+            _wpMesh.material.side=THREE.DoubleSide;
+            _wpMesh.position.set(_wpx,1.15,_wpz);
+            _wpMesh.rotation.x=-Math.PI/2+Math.random()*0.3;
+            _wpMesh.rotation.z=Math.random()*Math.PI*2;
+            cityGroup.add(_wpMesh);
+        }
+
+        // === 8. Stream Animals (溪流の生き物) ===
+        window._sakuraStreamAnimals=[];
+        // Ducks (8) swimming in the stream
+        for(var _dki2=0;_dki2<8;_dki2++){
+            var _dkg=new THREE.Group();
+            var _dkBody=new THREE.Mesh(new THREE.SphereGeometry(0.22,6,4),toon(0x8B6914));
+            _dkBody.scale.set(0.8,0.7,1.3);_dkBody.position.y=0.15;_dkg.add(_dkBody);
+            var _dkHead=new THREE.Mesh(new THREE.SphereGeometry(0.12,6,4),toon(_dki2<4?0x006633:0xFFFFFF));
+            _dkHead.position.set(0,0.3,0.2);_dkg.add(_dkHead);
+            var _dkBeak=new THREE.Mesh(new THREE.ConeGeometry(0.04,0.1,4),toon(0xFF8800));
+            _dkBeak.position.set(0,0.26,0.32);_dkBeak.rotation.x=-Math.PI/2;_dkg.add(_dkBeak);
+            var _dkx=(Math.random()-0.5)*10,_dkz=(Math.random()-0.5)*200;
+            _dkg.position.set(_dkx,1.3,_dkz);
+            cityGroup.add(_dkg);
+            window._sakuraStreamAnimals.push({group:_dkg,type:'duck',x:_dkx,y:1.3,z:_dkz,
+                moveDir:Math.random()*Math.PI*2,speed:0.02+Math.random()*0.01,wobble:Math.random()*Math.PI*2});
+        }
+        // Koi fish (10) — visible through the water
+        for(var _kfi=0;_kfi<10;_kfi++){
+            var _kfg=new THREE.Group();
+            var _kfBody=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,4),toon([0xFF6600,0xFFFFFF,0xFF3333,0xFFAA00,0xFF8844][_kfi%5]));
+            _kfBody.scale.set(0.5,0.4,1.5);_kfg.add(_kfBody);
+            var _kfTail=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.1,0.1),toon([0xFF6600,0xFFFFFF,0xFF3333,0xFFAA00,0xFF8844][_kfi%5]));
+            _kfTail.position.set(0,0,-0.25);_kfg.add(_kfTail);
+            var _kfx=(Math.random()-0.5)*10,_kfz=(Math.random()-0.5)*200;
+            _kfg.position.set(_kfx,0.7,_kfz);
+            cityGroup.add(_kfg);
+            window._sakuraStreamAnimals.push({group:_kfg,type:'koi',x:_kfx,y:0.7,z:_kfz,
+                angle:Math.random()*Math.PI*2,radius:2+Math.random()*4,speed:0.01+Math.random()*0.008,phase:Math.random()*Math.PI*2});
+        }
+        // Turtles (5) — on rocks or floating
+        for(var _tti=0;_tti<5;_tti++){
+            var _ttg=new THREE.Group();
+            var _ttShell=new THREE.Mesh(new THREE.SphereGeometry(0.3,6,4),toon(0x556B2F));
+            _ttShell.scale.set(1,0.5,1.2);_ttShell.position.y=0.15;_ttg.add(_ttShell);
+            var _ttHead=new THREE.Mesh(new THREE.SphereGeometry(0.1,5,3),toon(0x8B8B00));
+            _ttHead.position.set(0,0.15,0.3);_ttg.add(_ttHead);
+            // 4 tiny legs
+            [[-0.15,0,0.1],[0.15,0,0.1],[-0.15,0,-0.15],[0.15,0,-0.15]].forEach(function(lp){
+                var leg=new THREE.Mesh(new THREE.SphereGeometry(0.05,4,3),toon(0x8B8B00));
+                leg.position.set(lp[0],lp[1],lp[2]);_ttg.add(leg);
+            });
+            var _ttx=(Math.random()-0.5)*10,_ttz=(Math.random()-0.5)*180;
+            _ttg.position.set(_ttx,1.1,_ttz);
+            cityGroup.add(_ttg);
+            window._sakuraStreamAnimals.push({group:_ttg,type:'turtle',x:_ttx,y:1.1,z:_ttz,
+                moveDir:Math.random()*Math.PI*2,speed:0.005,timer:200+Math.floor(Math.random()*300)});
+        }
+        // Herons/cranes (3) — standing at stream edge
+        for(var _hri=0;_hri<3;_hri++){
+            var _hrg=new THREE.Group();
+            var _hrBody=new THREE.Mesh(new THREE.SphereGeometry(0.25,6,4),toon(0xFFFFFF));
+            _hrBody.scale.set(0.6,0.8,1);_hrBody.position.y=1.0;_hrg.add(_hrBody);
+            var _hrNeck=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,0.8,4),toon(0xFFFFFF));
+            _hrNeck.position.set(0,1.5,0.1);_hrg.add(_hrNeck);
+            var _hrHead=new THREE.Mesh(new THREE.SphereGeometry(0.08,5,3),toon(0xFFFFFF));
+            _hrHead.position.set(0,1.9,0.15);_hrg.add(_hrHead);
+            var _hrBeak=new THREE.Mesh(new THREE.ConeGeometry(0.03,0.2,4),toon(0xFFAA00));
+            _hrBeak.position.set(0,1.85,0.3);_hrBeak.rotation.x=-Math.PI/2;_hrg.add(_hrBeak);
+            // Legs
+            [-0.08,0.08].forEach(function(lx){
+                var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.8,4),toon(0x444444));
+                leg.position.set(lx,0.4,0);_hrg.add(leg);
+            });
+            var _hrSide=(_hri%2===0)?-7.5:7.5;
+            var _hrz=(Math.random()-0.5)*160;
+            _hrg.position.set(_hrSide,1.0,_hrz);
+            cityGroup.add(_hrg);
+            window._sakuraStreamAnimals.push({group:_hrg,type:'heron',x:_hrSide,y:1.0,z:_hrz,
+                timer:100+Math.floor(Math.random()*200),state:'stand'});
         }
     }catch(e){alert('Sakura build error: '+e.message);}
     }
