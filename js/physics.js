@@ -69,7 +69,7 @@ function updateEggPhysics(egg, isCity){
                 egg.mesh.position.set(-200,5,0);
             } else if(currentCityStyle===6){
                 // Sakura: respawn above red bridge
-                egg.mesh.position.set(0,14,-30);
+                egg.mesh.position.set(0,13,-30);
             } else {
                 // Ground city: splash into fountain pool
                 egg.mesh.position.set((Math.random()-0.5)*4,8,(Math.random()-0.5)*4);
