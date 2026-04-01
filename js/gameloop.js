@@ -1610,6 +1610,13 @@ function _processChatCommand(msg){
         }
         return true;
     }
+    // /sakura — teleport to Sakura City
+    if(cmd==='/sakura'||cmd==='sakura'){
+        if(playerEgg&&currentCityStyle!==6&&gameState==='city'){
+            startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,6,playerEgg.mesh.position.y);
+        }
+        return true;
+    }
     // Commands start with / are hidden
     if(msg.charAt(0)==='/') return true;
     return false;
