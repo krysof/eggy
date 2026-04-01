@@ -540,6 +540,12 @@ function spawnCityNPCs() {
                 nx2=30+Math.random()*300;
                 nz2=(Math.random()-0.5)*400;
             }
+        } else if(currentCityStyle===6){
+            // Sakura: spawn on plateaus (x<-10 or x>10), on paths
+            var _onL=Math.random()<0.5;
+            nx2=_onL?(-15-Math.random()*30):(15+Math.random()*30);
+            nz2=(Math.random()-0.5)*180;
+            spawnY=8;
         } else {
             // Avoid fountain area (center, radius 10)
             do{
@@ -548,6 +554,7 @@ function spawnCityNPCs() {
         }
         const col=AI_COLORS[i%AI_COLORS.length];
         const npc=createEgg(nx2,nz2,col,AI_COLORS[(i+4)%AI_COLORS.length],false,undefined,CHARACTERS[i%CHARACTERS.length].type);
+        if(spawnY>0)npc.mesh.position.y=spawnY+0.5;
         npc.cityNPC=true;
         npc.aiTargetX=nx2; npc.aiTargetZ=nz2;
         npc.aiWanderTimer=60+Math.random()*120;

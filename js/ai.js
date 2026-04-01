@@ -375,9 +375,13 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         if(egg.aiWanderTimer<=0){
             egg.aiWanderTimer=60+Math.random()*120;
             if(currentCityStyle===5){
-                // Moon flat: wander across the city
                 egg.aiTargetX=(Math.random()-0.5)*MOON_CITY_SIZE*1.5;
                 egg.aiTargetZ=(Math.random()-0.5)*MOON_CITY_SIZE*1.5;
+            } else if(currentCityStyle===6){
+                // Sakura: stay on plateaus (avoid gorge x=-8 to 8)
+                var _aiOnL=egg.mesh.position.x<0;
+                egg.aiTargetX=_aiOnL?(-12-Math.random()*40):(12+Math.random()*40);
+                egg.aiTargetZ=(Math.random()-0.5)*180;
             } else {
                 egg.aiTargetX=(Math.random()-0.5)*CITY_SIZE*0.7;
                 egg.aiTargetZ=(Math.random()-0.5)*CITY_SIZE*0.7;
