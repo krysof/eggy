@@ -1088,29 +1088,50 @@ function buildCity() {
             var _bridgeG=new THREE.Group();
             var _bgZ=_bridgeZs[_bzi];
             _bridgeG.position.set(0,0,_bgZ);
-            var _bSpan=16,_bDeckY=8; // flat deck at plateau height
-            // Flat bridge deck
-            var _deck=new THREE.Mesh(new THREE.BoxGeometry(_bSpan+2,0.4,7),_jRedM);
-            _deck.position.set(0,_bDeckY-0.2,0);_bridgeG.add(_deck);
-            // Bottom support beam
-            var _support=new THREE.Mesh(new THREE.BoxGeometry(_bSpan,0.3,5),toon(0x882222));
-            _support.position.set(0,_bDeckY-0.55,0);_bridgeG.add(_support);
-            // Railings with handrails
+            var _bSegs=10,_bSpan=18,_bBase=7.8,_bArch=1.8;
+            // Arched deck segments
+            for(var _bsi=0;_bsi<_bSegs;_bsi++){
+                var _bt=_bsi/_bSegs;
+                var _bx2=-_bSpan/2+_bt*_bSpan;
+                var _by2=_bBase+Math.sin(_bt*Math.PI)*_bArch;
+                var _bNext=(_bsi+1)/_bSegs;
+                var _bnx=-_bSpan/2+_bNext*_bSpan;
+                var _bny2=_bBase+Math.sin(_bNext*Math.PI)*_bArch;
+                var _bAngle=Math.atan2(_bny2-_by2,_bnx-_bx2);
+                var _bLen=Math.sqrt((_bnx-_bx2)*(_bnx-_bx2)+(_bny2-_by2)*(_bny2-_by2));
+                var plank=new THREE.Mesh(new THREE.BoxGeometry(_bLen+0.3,0.35,7),_jRedM);
+                plank.position.set((_bx2+_bnx)/2,(_by2+_bny2)/2,0);
+                plank.rotation.z=_bAngle;_bridgeG.add(plank);
+            }
+            // Railings with handrails following arch
             [-1,1].forEach(function(s){
-                // Horizontal top rail
-                var topRail=new THREE.Mesh(new THREE.BoxGeometry(_bSpan+2,0.15,0.15),_jRedM);
-                topRail.position.set(0,_bDeckY+1.3,s*3.3);_bridgeG.add(topRail);
-                // Posts + balls
-                for(var _rli=0;_rli<9;_rli++){
-                    var _rlx=-_bSpan/2+_rli*(_bSpan/8);
+                for(var _rli=0;_rli<=8;_rli++){
+                    var _rlt=_rli/8;
+                    var _rlx=-_bSpan/2+_rlt*_bSpan;
+                    var _rly=_bBase+Math.sin(_rlt*Math.PI)*_bArch;
                     var rPost=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,1.5,6),_jRedM);
-                    rPost.position.set(_rlx,_bDeckY+0.55,s*3.3);_bridgeG.add(rPost);
+                    rPost.position.set(_rlx,_rly+0.75,s*3.2);_bridgeG.add(rPost);
                     var rBall=new THREE.Mesh(new THREE.SphereGeometry(0.18,5,4),_jRedM);
-                    rBall.position.set(_rlx,_bDeckY+1.3,s*3.3);_bridgeG.add(rBall);
+                    rBall.position.set(_rlx,_rly+1.5,s*3.2);_bridgeG.add(rBall);
+                    if(_rli<8){
+                        var _nlt2=(_rli+1)/8;
+                        var _nlx2=-_bSpan/2+_nlt2*_bSpan;
+                        var _nly2=_bBase+Math.sin(_nlt2*Math.PI)*_bArch;
+                        var _hLen2=Math.sqrt((_nlx2-_rlx)*(_nlx2-_rlx)+(_nly2-_rly)*(_nly2-_rly));
+                        var _hAng2=Math.atan2(_nly2-_rly,_nlx2-_rlx);
+                        var hRail2=new THREE.Mesh(new THREE.BoxGeometry(_hLen2,0.12,0.12),_jRedM);
+                        hRail2.position.set((_rlx+_nlx2)/2,(_rly+_nly2)/2+1.4,s*3.2);
+                        hRail2.rotation.z=_hAng2;_bridgeG.add(hRail2);
+                    }
                 }
             });
-            // Collider matches deck
-            cityColliders.push({x:0,z:_bgZ,hw:_bSpan/2+1,hd:3.5,h:_bDeckY});
+            // Step colliders following arch — 8 overlapping segments
+            for(var _bci=0;_bci<8;_bci++){
+                var _bcT=(_bci+0.5)/8;
+                var _bcX=-_bSpan/2+_bcT*_bSpan;
+                var _bcH=_bBase+Math.sin(_bcT*Math.PI)*_bArch;
+                cityColliders.push({x:_bcX,z:_bgZ,hw:_bSpan/8/2+0.8,hd:3.5,h:_bcH,_bridge:true});
+            }
             cityGroup.add(_bridgeG);
         }
 

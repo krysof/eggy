@@ -201,7 +201,7 @@ function updateEggPhysics(egg, isCity){
             if(inX&&inZ){
                 var roofY=(c.y||0)+(c.h||6);
                 // Babel tower: skip roof snap if player is on/near clouds (above roofY)
-                var landBelow=1.0;
+                var landBelow=c._bridge?2.5:1.0; // bridges allow smooth stepping up
                 var skipBabelSnap=false;
                 if(c._babel&&egg.mesh.position.y>roofY-2){skipBabelSnap=true;}
                 // On top of building body — land on roof (penetration correction only)
@@ -211,6 +211,10 @@ function updateEggPhysics(egg, isCity){
                 // Jumping upward past building — let egg phase through walls while going up
                 else if(egg.vy>0.05){
                     // Allow vertical movement, no horizontal push
+                }
+                // Bridge colliders: no horizontal push-out, only land on top
+                else if(c._bridge){
+                    // skip — bridges don't push eggs sideways
                 }
                 // Below roof — push out horizontally (but not for Babel tower when falling from above)
                 else if(egg.mesh.position.y<roofY-0.3){
