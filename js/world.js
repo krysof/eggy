@@ -216,7 +216,7 @@ function clearCity(){
     window._waterWheels=null;
     window._oceanMesh=null;
     window._waveRings=null;
-    if(window._cityAnimals){for(var _cai=0;_cai<window._cityAnimals.length;_cai++){if(window._cityAnimals[_cai]._inScene)scene.remove(window._cityAnimals[_cai].group);}}
+    if(window._cityAnimals){for(var _cai=0;_cai<window._cityAnimals.length;_cai++){var _ca=window._cityAnimals[_cai];if(_ca._inScene)scene.remove(_ca.group);else if(_ca.group&&_ca.group.parent)_ca.group.parent.remove(_ca.group);}}
     window._cityAnimals=null;
     if(window._allProjectiles){for(var _api2=0;_api2<window._allProjectiles.length;_api2++){MoveProjectile_cleanup(window._allProjectiles[_api2]);}window._allProjectiles=[];}
     window._playerHadouken=null;
