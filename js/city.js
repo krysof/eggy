@@ -1224,7 +1224,7 @@ function buildCity() {
         // === 8. Massive Falling Petal Particles (満開の桜吹雪) ===
         window._sakuraPetals=[];
         var _petalMats=[toon(0xFFAABB),toon(0xFFBBCC),toon(0xFFCCDD),toon(0xFF99AA),toon(0xFFDDEE)];
-        for(var _spi3=0;_spi3<400;_spi3++){
+        for(var _spi3=0;_spi3<3000;_spi3++){
             var _spGeo2=new THREE.PlaneGeometry(0.2+Math.random()*0.15,0.2+Math.random()*0.15);
             var _spMesh2=new THREE.Mesh(_spGeo2,_petalMats[_spi3%_petalMats.length]);
             _spMesh2.material.side=THREE.DoubleSide;

@@ -909,17 +909,28 @@ function updateCity(){
         if(haloChild)haloChild.rotation.z=Math.sin(ca.flapPhase*0.5)*0.1;
         ca.group.position.set(ca.x,ca.y,ca.z);
     }
-    // ---- Sakura petal animation ----
+    // ---- Sakura petal animation with wind ----
     if(window._sakuraPetals&&currentCityStyle===6){
+        var _wt=Date.now()*0.0003;
+        var _windX=Math.sin(_wt)*0.06+Math.sin(_wt*2.7)*0.03; // gusting wind X
+        var _windZ=Math.cos(_wt*0.8)*0.04+Math.sin(_wt*1.5)*0.02; // gusting wind Z
         for(var spi=0;spi<window._sakuraPetals.length;spi++){
             var sp=window._sakuraPetals[spi];
-            sp.x+=sp.vx+Math.sin(Date.now()*0.001+spi)*0.02;
+            sp.x+=sp.vx+_windX+Math.sin(_wt*3+spi*0.1)*0.02;
             sp.y+=sp.vy;
-            sp.z+=sp.vz+Math.cos(Date.now()*0.001+spi*0.7)*0.02;
+            sp.z+=sp.vz+_windZ+Math.cos(_wt*2.5+spi*0.07)*0.02;
             sp.mesh.rotation.x+=sp.rotSpeed;
             sp.mesh.rotation.z+=sp.rotSpeed*0.7;
-            if(sp.y<(currentCityStyle===6?-1:0)){sp.y=20+Math.random()*15;sp.x=(Math.random()-0.5)*CITY_SIZE*2;sp.z=(Math.random()-0.5)*CITY_SIZE*2;}
+            sp.mesh.rotation.y+=sp.rotSpeed*0.5;
+            if(sp.y<-1){sp.y=18+Math.random()*20;sp.x=(Math.random()-0.5)*CITY_SIZE*2;sp.z=(Math.random()-0.5)*CITY_SIZE*2;}
             sp.mesh.position.set(sp.x,sp.y,sp.z);
+        }
+        // Trees sway in the wind
+        for(var _tsi=0;_tsi<cityProps.length;_tsi++){
+            var _tp=cityProps[_tsi];
+            if(_tp.type!=='tree')continue;
+            _tp.group.rotation.x=Math.sin(_wt*2+_tp.x*0.1)*0.03+_windX*0.3;
+            _tp.group.rotation.z=Math.cos(_wt*1.5+_tp.z*0.1)*0.03+_windZ*0.3;
         }
     }
     // Sakura stream animals animation
