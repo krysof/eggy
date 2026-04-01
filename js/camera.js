@@ -99,16 +99,18 @@ function _recenterTPS(){
     if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.15;}
 }
 document.addEventListener('keydown',function(e){
-    if(e.code==='Digit2'&&gameState==='city'){
-        if(_tpsCamMode)_recenterTPS(); // already in TPS: recenter
-        else _toggleTPS(); // not in TPS: enter TPS
-    }
-    if(e.code==='Digit3'&&gameState==='city'&&_tpsCamMode)_toggleTPS(); // exit TPS
+    if(e.code==='Digit1'&&gameState==='city')_toggleTPS();
+    if(e.code==='Digit2'&&gameState==='city')_recenterTPS();
 });
 var _tpsBtnEl=document.getElementById('tps-btn');
 if(_tpsBtnEl){
     _tpsBtnEl.addEventListener('click',function(){if(gameState==='city')_toggleTPS();});
     _tpsBtnEl.addEventListener('touchend',function(e){e.preventDefault();if(gameState==='city')_toggleTPS();},{passive:false});
+}
+var _tpsRecBtn=document.getElementById('tps-recenter-btn');
+if(_tpsRecBtn){
+    _tpsRecBtn.addEventListener('click',function(){_recenterTPS();});
+    _tpsRecBtn.addEventListener('touchend',function(e){e.preventDefault();_recenterTPS();},{passive:false});
 }
 // Spectator button for mobile
 var _specBtn=document.getElementById('spectator-btn');
