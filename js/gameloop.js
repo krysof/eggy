@@ -980,7 +980,7 @@ function updateCity(){
     // Sakura canal water shimmer
     if(window._sakuraCanalWater&&currentCityStyle===6){
         for(var _scwi=0;_scwi<window._sakuraCanalWater.length;_scwi++){
-            window._sakuraCanalWater[_scwi].position.y=1.0+Math.sin(Date.now()*0.002+_scwi)*0.05;
+            window._sakuraCanalWater[_scwi].position.y=-0.02+Math.sin(Date.now()*0.002+_scwi)*0.02;
         }
     }
     // ---- Ocean wave animation ----

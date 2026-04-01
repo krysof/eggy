@@ -76,42 +76,31 @@ function buildCity() {
         path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
     });
     }
-    // Sakura City: Mountain terrain with deep ravine (山地峡谷)
+    // Sakura City: Ginzan Onsen style (銀山温泉 — river through center, ryokan on both banks)
     if(currentCityStyle===6){
-    var _sPathM=toon(0xBBAA88);
-    var _cliffM=toon(0x665544);
-    var _grassM=toon(0x88AA66);
-    var _plateauH=8; // plateau height
-    // === Left plateau (west side, x < -8) ===
-    var _leftPlat=new THREE.Mesh(new THREE.BoxGeometry(120,_plateauH,280),_cliffM);
-    _leftPlat.position.set(-68,_plateauH/2,0);_leftPlat.castShadow=true;_leftPlat.receiveShadow=true;cityGroup.add(_leftPlat);
-    // Grass surface on left
-    var _leftGrass=new THREE.Mesh(new THREE.BoxGeometry(120,0.3,280),_grassM);
-    _leftGrass.position.set(-68,_plateauH+0.15,0);_leftGrass.receiveShadow=true;cityGroup.add(_leftGrass);
-    cityColliders.push({x:-68,z:0,hw:60,hd:140,h:_plateauH});
-    // === Right plateau (east side, x > 8) ===
-    var _rightPlat=new THREE.Mesh(new THREE.BoxGeometry(120,_plateauH,280),_cliffM);
-    _rightPlat.position.set(68,_plateauH/2,0);_rightPlat.castShadow=true;_rightPlat.receiveShadow=true;cityGroup.add(_rightPlat);
-    var _rightGrass=new THREE.Mesh(new THREE.BoxGeometry(120,0.3,280),_grassM);
-    _rightGrass.position.set(68,_plateauH+0.15,0);_rightGrass.receiveShadow=true;cityGroup.add(_rightGrass);
-    cityColliders.push({x:68,z:0,hw:60,hd:140,h:_plateauH});
-    // === Canyon floor (dark earth/rock) ===
-    var _canyonFloor=new THREE.Mesh(new THREE.BoxGeometry(16,0.2,280),toon(0x443322));
-    _canyonFloor.position.set(0,0.1,0);_canyonFloor.receiveShadow=true;cityGroup.add(_canyonFloor);
-    // === Paths on plateaus ===
-    // Left side path (north-south)
-    var _leftPath=new THREE.Mesh(new THREE.BoxGeometry(6,0.06,200),_sPathM);
-    _leftPath.position.set(-40,_plateauH+0.03,0);cityGroup.add(_leftPath);
-    // Right side path
-    var _rightPath=new THREE.Mesh(new THREE.BoxGeometry(6,0.06,200),_sPathM);
-    _rightPath.position.set(40,_plateauH+0.03,0);cityGroup.add(_rightPath);
-    // Bridge approach paths (east-west, connecting to bridges)
-    [-40,0,40].forEach(function(bz){
-        var _appL=new THREE.Mesh(new THREE.BoxGeometry(60,0.06,5),_sPathM);
-        _appL.position.set(-38,_plateauH+0.03,bz);cityGroup.add(_appL);
-        var _appR=new THREE.Mesh(new THREE.BoxGeometry(60,0.06,5),_sPathM);
-        _appR.position.set(38,_plateauH+0.03,bz);cityGroup.add(_appR);
-    });
+    var _sPathM=toon(0xAA9977); // stone walkway
+    // === Riverside stone walkways on both banks ===
+    var _leftWalk=new THREE.Mesh(new THREE.BoxGeometry(5,0.08,260),_sPathM);
+    _leftWalk.position.set(-5.5,0.04,0);_leftWalk.receiveShadow=true;cityGroup.add(_leftWalk);
+    var _rightWalk=new THREE.Mesh(new THREE.BoxGeometry(5,0.08,260),_sPathM);
+    _rightWalk.position.set(5.5,0.04,0);_rightWalk.receiveShadow=true;cityGroup.add(_rightWalk);
+    // Cross streets connecting to outer areas
+    for(var _csi=0;_csi<5;_csi++){
+        var _csz=-80+_csi*40;
+        var _csL=new THREE.Mesh(new THREE.BoxGeometry(40,0.06,3),_sPathM);
+        _csL.position.set(-28,0.03,_csz);cityGroup.add(_csL);
+        var _csR=new THREE.Mesh(new THREE.BoxGeometry(40,0.06,3),_sPathM);
+        _csR.position.set(28,0.03,_csz);cityGroup.add(_csR);
+    }
+    // === Background hills/mountains ===
+    var _hillM=toon(0x447744);
+    var _hillPositions=[[-80,0,-60,25,35],[-100,0,40,30,40],[80,0,-50,28,38],[95,0,50,22,30],
+                        [-70,0,100,20,28],[90,0,100,18,25],[-90,0,-100,24,32],[85,0,-100,20,26]];
+    for(var _hli=0;_hli<_hillPositions.length;_hli++){
+        var hp=_hillPositions[_hli];
+        var hill=new THREE.Mesh(new THREE.ConeGeometry(hp[3],hp[4],6),_hillM);
+        hill.position.set(hp[0],hp[4]/2,hp[2]);cityGroup.add(hill);
+    }
     }
 
     // ---- Buildings (not on moon) — organized blocks along streets ----
@@ -205,10 +194,10 @@ function buildCity() {
     for(let i=0;i<_treeCount;i++){
         var tx,tz;
         if(currentCityStyle===6){
-            // Sakura: trees on both plateaus (left x:-120~-10, right x:10~120), avoid canyon
+            // Sakura: trees on hillsides and outer areas, avoid river corridor
             var _onLeft=Math.random()<0.5;
-            tx=_onLeft?(-15-Math.random()*105):(15+Math.random()*105);
-            tz=(Math.random()-0.5)*240;
+            tx=_onLeft?(-25-Math.random()*80):(25+Math.random()*80);
+            tz=(Math.random()-0.5)*220;
         } else {
             tx=-CITY_SIZE+Math.random()*CITY_SIZE*2;tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
         }
@@ -220,7 +209,7 @@ function buildCity() {
         if(Math.abs(tx)<10&&currentCityStyle===6) skip=true; // avoid canyon
         else if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
         if(skip) continue;
-        const tg=new THREE.Group(); tg.position.set(tx,currentCityStyle===6?8:0,tz);
+        const tg=new THREE.Group(); tg.position.set(tx,0,tz);
         if(currentCityStyle===6){
             // 大樱花树 — tall trunk, wide pink crown, weeping branches (垂樱)
             var _sakH=4+Math.random()*3; // trunk height 4-7
@@ -895,7 +884,7 @@ function buildCity() {
     } // end if not Sakura (fountain/canal/waterwheel/fish/lamp/bench/animals)
 
     // ===============================================================
-    //  Sakura City — Mountain Gorge Town (山地峡谷温泉街)
+    //  Sakura City — Ginzan Onsen (銀山温泉)
     // ===============================================================
     if(currentCityStyle===6){try{
         var _jWinM=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.5});
@@ -975,49 +964,31 @@ function buildCity() {
             cityGroup.add(tg);
         }
 
-        // === 1. Buildings on both plateaus (elevated at y=8) ===
-        var _pH=8; // plateau surface height
-        // Left plateau buildings (west side, x < -8)
-        var _leftBlds=[
-            {x:-30,z:50,w:10,d:8,h:5,c:0xDDAA88},
-            {x:-50,z:50,w:8,d:7,h:4,c:0xCCBB99},
-            {x:-30,z:30,w:8,d:7,h:5,c:0xEEBBAA},
-            {x:-50,z:30,w:7,d:6,h:4,c:0xDDBB99},
-            {x:-70,z:30,w:10,d:8,h:5.5,c:0xAA8866},// 釜爺
-            {x:-30,z:10,w:9,d:7,h:4,c:0xCCAA88},
-            {x:-55,z:10,w:8,d:8,h:5,c:0xBBAA88},
-            {x:-30,z:-10,w:7,d:6,h:4,c:0xEEBB99},
-            {x:-55,z:-10,w:8,d:7,h:4.5,c:0xDDAA88},
-            {x:-30,z:-30,w:10,d:8,h:5,c:0xCCAA88},
-            {x:-55,z:-30,w:8,d:6,h:4,c:0xDDCC99},
-            {x:-30,z:-50,w:8,d:7,h:4,c:0xCCBBAA},
-            {x:-55,z:-50,w:9,d:8,h:5,c:0xBBAA88}
-        ];
-        // Right plateau buildings (east side, x > 8)
-        var _rightBlds=[
-            {x:30,z:50,w:10,d:8,h:5,c:0xCCBB99},
-            {x:50,z:50,w:8,d:7,h:4.5,c:0xDDAA88},
-            {x:30,z:30,w:8,d:6,h:4,c:0xDDBBAA},
-            {x:50,z:30,w:9,d:7,h:5,c:0xCCAA88},
-            {x:30,z:10,w:7,d:6,h:4,c:0xEEBBAA},
-            {x:55,z:10,w:8,d:8,h:5,c:0xBBAA88},
-            {x:30,z:-10,w:10,d:8,h:5,c:0xDDAA88},
-            {x:55,z:-10,w:8,d:7,h:4,c:0xCCBB99},
-            {x:30,z:-30,w:8,d:7,h:4.5,c:0xCCBB88},
-            {x:55,z:-30,w:7,d:6,h:4,c:0xDDBB99},
-            {x:30,z:-50,w:9,d:7,h:5,c:0xEEBB99},
-            {x:55,z:-50,w:8,d:6,h:4,c:0xDDCC99}
-        ];
+        // === 1. Ryokan buildings on both banks facing the river ===
+        // Left bank (x<0, doors face +x toward river)
+        var _leftBlds=[];
+        for(var _lbi=0;_lbi<12;_lbi++){
+            var _lbz=-100+_lbi*17;
+            var _lbh=4+Math.floor(Math.random()*4); // 2-3 story (4-7 height)
+            _leftBlds.push({x:-13,z:_lbz,w:8,d:10,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744][_lbi%4]});
+        }
+        // Right bank (x>0, doors face -x toward river)
+        var _rightBlds=[];
+        for(var _rbi=0;_rbi<12;_rbi++){
+            var _rbz=-92+_rbi*17;
+            var _rbh=4+Math.floor(Math.random()*4);
+            _rightBlds.push({x:13,z:_rbz,w:8,d:10,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77][_rbi%4]});
+        }
         var _allJpnB=[].concat(_leftBlds,_rightBlds);
         for(var _jbi=0;_jbi<_allJpnB.length;_jbi++){
             var jb=_allJpnB[_jbi];
-            _buildJpnElev(jb.x,jb.z,jb.w,jb.d,jb.h,jb.c,_pH);
+            _buildJpn(jb.x,jb.z,jb.w,jb.d,jb.h,jb.c);
         }
 
-        // === 2. The Bathhouse (油屋 Aburaya) — on left plateau overlooking canyon ===
-        var _bhX=-50,_bhZ=-80;
-        // Tier 1 — base (on plateau at y=8)
-        var _by=8;
+        // === 2. The Bathhouse (油屋) — large building at end of street ===
+        var _bhX=0,_bhZ=-120;
+        // Tier 1 — base (ground level)
+        var _by=0;
         var _bh1=new THREE.Mesh(new THREE.BoxGeometry(24,14,20),toon(0x8B2500));
         _bh1.position.set(_bhX,_by+7,_bhZ);_bh1.castShadow=true;cityGroup.add(_bh1);
         cityColliders.push({x:_bhX,z:_bhZ,hw:13,hd:11,h:_by+14});
@@ -1061,26 +1032,80 @@ function buildCity() {
         _bhSign.scale.set(6,1.5,1);_bhSign.position.set(_bhX,_by+16,_bhZ+10.5);cityGroup.add(_bhSign);
         cityBuildingMeshes.push({meshes:[_bh1,_bh2,_bhRoof],x:_bhX,z:_bhZ,hw:13,hd:11,h:_by+14});
 
-        // === 3. Deep Canyon Stream running through the gorge (x=-8 to x=8) ===
+        // === 3. Shallow river through center (銀山温泉の川) ===
         window._sakuraCanalWater=[];
-        // Water surface at the bottom of canyon (y=1)
+        var _riverBed=new THREE.Mesh(new THREE.BoxGeometry(6,0.5,260),toon(0x445544));
+        _riverBed.position.set(0,-0.3,0);cityGroup.add(_riverBed);
+        [-1,1].forEach(function(side){
+            var bank=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.8,260),_jStoneM);
+            bank.position.set(side*3,0.2,0);cityGroup.add(bank);
+        });
+        // Water surface
         for(var _rsi2=0;_rsi2<8;_rsi2++){
-            var _rt=_rsi2/8;
-            var _rz2=-120+_rt*240;
-            var rSeg=new THREE.Mesh(new THREE.BoxGeometry(14,0.15,32),toon(0x225566,{transparent:true,opacity:0.7}));
-            rSeg.position.set(0,1,_rz2);cityGroup.add(rSeg);
+            var _rz2=-110+_rsi2*28;
+            var rSeg=new THREE.Mesh(new THREE.BoxGeometry(5.5,0.1,30),toon(0x336688,{transparent:true,opacity:0.6}));
+            rSeg.position.set(0,-0.02,_rz2);cityGroup.add(rSeg);
             window._sakuraCanalWater.push(rSeg);
         }
-        // Rocks in the stream
-        for(var _rki=0;_rki<20;_rki++){
-            var _rkx=(Math.random()-0.5)*10;
-            var _rkz=(Math.random()-0.5)*240;
-            var _rkr=0.5+Math.random()*1.2;
-            var sRock=new THREE.Mesh(new THREE.SphereGeometry(_rkr,5,4),toon(0x556655));
-            sRock.position.set(_rkx,0.5+_rkr*0.3,_rkz);sRock.scale.set(1,0.5,1);cityGroup.add(sRock);
+        // Rocks in stream
+        for(var _rki=0;_rki<30;_rki++){
+            var _rkx=(Math.random()-0.5)*4,_rkz=(Math.random()-0.5)*240;
+            var sRock=new THREE.Mesh(new THREE.SphereGeometry(0.2+Math.random()*0.3,5,4),toon(0x667766));
+            sRock.position.set(_rkx,-0.05,_rkz);sRock.scale.set(1,0.5,1);cityGroup.add(sRock);
         }
 
-        // === Arched Red Bridges connecting left & right plateaus ===
+        // === 4. Bridges — wooden flat + red arched (Ginzan style) ===
+        // Wooden flat bridges
+        var _woodBridgeZs=[-70,-20,30,80];
+        for(var _wbi=0;_wbi<_woodBridgeZs.length;_wbi++){
+            var _wbZ=_woodBridgeZs[_wbi];
+            var _wDeck=new THREE.Mesh(new THREE.BoxGeometry(8,0.2,3),_jWoodM);
+            _wDeck.position.set(0,0.25,_wbZ);cityGroup.add(_wDeck);
+            [-1,1].forEach(function(s){
+                var _wRail=new THREE.Mesh(new THREE.BoxGeometry(8,0.08,0.08),_jWoodM);
+                _wRail.position.set(0,0.9,_wbZ+s*1.3);cityGroup.add(_wRail);
+                for(var _wpi3=0;_wpi3<5;_wpi3++){
+                    var _wpx2=-3.5+_wpi3*1.75;
+                    var _wPost=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.7,4),_jWoodM);
+                    _wPost.position.set(_wpx2,0.6,_wbZ+s*1.3);cityGroup.add(_wPost);
+                }
+            });
+            cityColliders.push({x:0,z:_wbZ,hw:4,hd:1.5,h:0.25,_bridge:true});
+        }
+        // Red arched bridges
+        var _redBridgeZs=[-45,55];
+        for(var _rbzi=0;_rbzi<_redBridgeZs.length;_rbzi++){
+            var _rbG=new THREE.Group();var _rbZ=_redBridgeZs[_rbzi];
+            _rbG.position.set(0,0,_rbZ);
+            var _rbSegs=8,_rbSpan=8,_rbArch=1.2;
+            for(var _rbsi=0;_rbsi<_rbSegs;_rbsi++){
+                var _rbt=_rbsi/_rbSegs;var _rbnt=(_rbsi+1)/_rbSegs;
+                var _rbx=-_rbSpan/2+_rbt*_rbSpan,_rby=Math.sin(_rbt*Math.PI)*_rbArch;
+                var _rbnx=-_rbSpan/2+_rbnt*_rbSpan,_rbny=Math.sin(_rbnt*Math.PI)*_rbArch;
+                var _rbAng=Math.atan2(_rbny-_rby,_rbnx-_rbx);
+                var _rbLen=Math.sqrt((_rbnx-_rbx)*(_rbnx-_rbx)+(_rbny-_rby)*(_rbny-_rby));
+                var _rbPlk=new THREE.Mesh(new THREE.BoxGeometry(_rbLen+0.15,0.2,3.5),_jRedM);
+                _rbPlk.position.set((_rbx+_rbnx)/2,(_rby+_rbny)/2,0);_rbPlk.rotation.z=_rbAng;_rbG.add(_rbPlk);
+            }
+            [-1,1].forEach(function(s){
+                for(var _rri=0;_rri<=6;_rri++){
+                    var _rrt=_rri/6;var _rrx=-_rbSpan/2+_rrt*_rbSpan,_rry=Math.sin(_rrt*Math.PI)*_rbArch;
+                    var rp=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1,5),_jRedM);
+                    rp.position.set(_rrx,_rry+0.5,s*1.5);_rbG.add(rp);
+                    if(_rri<6){var _nrt2=(_rri+1)/6;var _nrx2=-_rbSpan/2+_nrt2*_rbSpan,_nry2=Math.sin(_nrt2*Math.PI)*_rbArch;
+                    var _hrL2=Math.sqrt((_nrx2-_rrx)*(_nrx2-_rrx)+(_nry2-_rry)*(_nry2-_rry));var _hrA2=Math.atan2(_nry2-_rry,_nrx2-_rrx);
+                    var hr2=new THREE.Mesh(new THREE.BoxGeometry(_hrL2,0.06,0.06),_jRedM);
+                    hr2.position.set((_rrx+_nrx2)/2,(_rry+_nry2)/2+0.9,s*1.5);hr2.rotation.z=_hrA2;_rbG.add(hr2);}
+                }
+            });
+            cityGroup.add(_rbG);
+            for(var _rbci=0;_rbci<4;_rbci++){var _rbcT=(_rbci+0.5)/4;
+                cityColliders.push({x:-_rbSpan/2+_rbcT*_rbSpan,z:_rbZ,hw:_rbSpan/4/2+0.5,hd:2,h:Math.sin(_rbcT*Math.PI)*_rbArch,_bridge:true});}
+        }
+        // Gas lamps along both banks
+        for(var _gli=0;_gli<16;_gli++){var _glz=-105+_gli*14;_buildToro(-7,_glz);_buildToro(7,_glz+7);}
+        // SKIP old bridge code
+        if(false){
         // Three bridges at z=-40, z=0, z=40
         // Plateaus are at y=8, bridge starts at y=8 on both ends, arches to y=11
         var _bridgeZs=[-40,0,40];
@@ -1135,21 +1160,22 @@ function buildCity() {
             cityGroup.add(_bridgeG);
         }
 
-        // === 4. Hot Spring Pool on right plateau ===
-        var _onsenX=70,_onsenZ=-60;
-        var _pool1=new THREE.Mesh(new THREE.CylinderGeometry(8,8,0.3,20),toon(0x66BBBB,{transparent:true,opacity:0.55}));
-        _pool1.position.set(_onsenX,8.15,_onsenZ);cityGroup.add(_pool1);
-        var _pEdge1=new THREE.Mesh(new THREE.TorusGeometry(9,0.7,6,20),_jStoneM);
-        _pEdge1.position.set(_onsenX,8.4,_onsenZ);_pEdge1.rotation.x=Math.PI/2;cityGroup.add(_pEdge1);
-        for(var _ori=0;_ori<8;_ori++){
-            var _oa=_ori/8*Math.PI*2;
-            var rock=new THREE.Mesh(new THREE.SphereGeometry(0.5+Math.random()*0.6,5,4),toon(0x777766));
-            rock.position.set(_onsenX+Math.cos(_oa)*9.5,8.3,_onsenZ+Math.sin(_oa)*9.5);
-            rock.scale.set(1,0.6,1);cityGroup.add(rock);
+        } // end if(false) skip old bridges
+        // === Hot Spring Pool beside river ===
+        var _onsenX=-30,_onsenZ=90;
+        var _pool1=new THREE.Mesh(new THREE.CylinderGeometry(6,6,0.3,16),toon(0x66BBBB,{transparent:true,opacity:0.55}));
+        _pool1.position.set(_onsenX,0.15,_onsenZ);cityGroup.add(_pool1);
+        var _pEdge1=new THREE.Mesh(new THREE.TorusGeometry(7,0.6,6,16),_jStoneM);
+        _pEdge1.position.set(_onsenX,0.35,_onsenZ);_pEdge1.rotation.x=Math.PI/2;cityGroup.add(_pEdge1);
+        for(var _ori=0;_ori<6;_ori++){
+            var _oa=_ori/6*Math.PI*2;
+            var rock=new THREE.Mesh(new THREE.SphereGeometry(0.4+Math.random()*0.5,5,4),toon(0x777766));
+            rock.position.set(_onsenX+Math.cos(_oa)*7.5,0.2,_onsenZ+Math.sin(_oa)*7.5);
+            rock.scale.set(1,0.5,1);cityGroup.add(rock);
         }
 
-        // === 5. Fox Shrine (稲荷神社) — on right plateau ===
-        var _shX=80,_shZ=-30,_shY=8;
+        // === Fox Shrine (稲荷神社) — at far south end ===
+        var _shX=0,_shZ=110,_shY=0;
         // Stone path to shrine
         for(var _spi2=0;_spi2<8;_spi2++){
             var _spStep=new THREE.Mesh(new THREE.BoxGeometry(4,0.15,1.5),_jStoneM);
@@ -1193,15 +1219,7 @@ function buildCity() {
         _saisen.position.set(_shX,_shY+0.4,_shZ-6);cityGroup.add(_saisen);
         cityBuildingMeshes.push({meshes:[_shrBody,_shrRoof],x:_shX,z:_shZ,hw:4,hd:3,h:_shY+5});
 
-        // === 6. Stone Lanterns on plateaus ===
-        for(var _sli=0;_sli<8;_sli++){
-            _buildToro(-22,_sli*15-50,8);
-            _buildToro(22,_sli*15-45,8);
-        }
-        // Bridge approach lanterns (on plateau edges)
-        [-40,0,40].forEach(function(bz){
-            _buildToro(-10,bz,8);_buildToro(10,bz,8);
-        });
+        // (Lanterns already placed above with bridges)
 
         // === 7. Decorative high clouds (薄雲) ===
         for(var _dci=0;_dci<12;_dci++){
