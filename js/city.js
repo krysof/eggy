@@ -1051,7 +1051,7 @@ function buildCity() {
         }
 
         // === 2. The Bathhouse (油屋) — large building at end of street ===
-        var _bhX=-22,_bhZ=-30;
+        var _bhX=-55,_bhZ=-30;
         // Tier 1 — base (on plateau)
         var _by=8;
         var _bh1=new THREE.Mesh(new THREE.BoxGeometry(24,14,20),toon(0x8B2500));
