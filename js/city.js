@@ -1078,42 +1078,55 @@ function buildCity() {
 
         // === Arched Red Bridges connecting left & right plateaus ===
         // Three bridges at z=-40, z=0, z=40
+        // Plateaus are at y=8, bridge starts at y=8 on both ends, arches to y=11
         var _bridgeZs=[-40,0,40];
         for(var _bzi=0;_bzi<_bridgeZs.length;_bzi++){
             var _bridgeG=new THREE.Group();
             var _bgZ=_bridgeZs[_bzi];
             _bridgeG.position.set(0,0,_bgZ);
-            // Arch deck spans from x=-8 to x=8 (16 units), peak at plateau height (y=8)
-            var _bSegs=12,_bSpan=16,_bPeak=8,_bBase=2;
+            var _bSegs=12,_bSpan=16,_bBase=8,_bArch=3; // base=plateau height, arch=extra height
+            // Arch deck segments
             for(var _bsi=0;_bsi<_bSegs;_bsi++){
                 var _bt=_bsi/_bSegs;
                 var _bx2=-_bSpan/2+_bt*_bSpan;
-                var _by2=_bBase+Math.sin(_bt*Math.PI)*(_bPeak-_bBase);
+                var _by2=_bBase+Math.sin(_bt*Math.PI)*_bArch;
                 var _bNext=(_bsi+1)/_bSegs;
                 var _bnx=-_bSpan/2+_bNext*_bSpan;
-                var _bny2=_bBase+Math.sin(_bNext*Math.PI)*(_bPeak-_bBase);
+                var _bny2=_bBase+Math.sin(_bNext*Math.PI)*_bArch;
                 var _bAngle=Math.atan2(_bny2-_by2,_bnx-_bx2);
                 var _bLen=Math.sqrt((_bnx-_bx2)*(_bnx-_bx2)+(_bny2-_by2)*(_bny2-_by2));
-                var plank=new THREE.Mesh(new THREE.BoxGeometry(_bLen+0.3,0.3,7),_jRedM);
+                var plank=new THREE.Mesh(new THREE.BoxGeometry(_bLen+0.3,0.35,7),_jRedM);
                 plank.position.set((_bx2+_bnx)/2,(_by2+_bny2)/2,0);
                 plank.rotation.z=_bAngle;_bridgeG.add(plank);
             }
-            // Railings
+            // Railings with handrails (横杆连接)
             [-1,1].forEach(function(s){
-                for(var _rli=0;_rli<=8;_rli++){
-                    var _rlt=_rli/8;
+                var _postCount=9;
+                for(var _rli=0;_rli<_postCount;_rli++){
+                    var _rlt=_rli/(_postCount-1);
                     var _rlx=-_bSpan/2+_rlt*_bSpan;
-                    var _rly=_bBase+Math.sin(_rlt*Math.PI)*(_bPeak-_bBase);
-                    var rPost=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,1.5,6),_jRedM);
-                    rPost.position.set(_rlx,_rly+0.75,s*3.2);_bridgeG.add(rPost);
-                    if(_rli<8){
-                        var rBall=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,3),_jRedM);
-                        rBall.position.set(_rlx,_rly+1.5,s*3.2);_bridgeG.add(rBall);
+                    var _rly=_bBase+Math.sin(_rlt*Math.PI)*_bArch;
+                    // Vertical post
+                    var rPost=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,1.6,6),_jRedM);
+                    rPost.position.set(_rlx,_rly+0.8,s*3.2);_bridgeG.add(rPost);
+                    // Top ball
+                    var rBall=new THREE.Mesh(new THREE.SphereGeometry(0.18,5,4),_jRedM);
+                    rBall.position.set(_rlx,_rly+1.6,s*3.2);_bridgeG.add(rBall);
+                    // Horizontal handrail connecting to next post
+                    if(_rli<_postCount-1){
+                        var _nlt=(_rli+1)/(_postCount-1);
+                        var _nlx=-_bSpan/2+_nlt*_bSpan;
+                        var _nly=_bBase+Math.sin(_nlt*Math.PI)*_bArch;
+                        var _hLen=Math.sqrt((_nlx-_rlx)*(_nlx-_rlx)+(_nly-_rly)*(_nly-_rly));
+                        var _hAng=Math.atan2(_nly-_rly,_nlx-_rlx);
+                        var hRail=new THREE.Mesh(new THREE.BoxGeometry(_hLen,0.12,0.12),_jRedM);
+                        hRail.position.set((_rlx+_nlx)/2,(_rly+_nly)/2+1.5,s*3.2);
+                        hRail.rotation.z=_hAng;_bridgeG.add(hRail);
                     }
                 }
             });
-            // Bridge collider (flat at peak height for walking)
-            cityColliders.push({x:0,z:_bgZ,hw:8,hd:3.5,h:_bPeak});
+            // Bridge collider — walkable at peak+base height
+            cityColliders.push({x:0,z:_bgZ,hw:8,hd:3.5,h:_bBase+_bArch});
             cityGroup.add(_bridgeG);
         }
 
