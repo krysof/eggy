@@ -68,8 +68,8 @@ function updateEggPhysics(egg, isCity){
                 // Moon: respawn inside Von Braun
                 egg.mesh.position.set(-200,5,0);
             } else if(currentCityStyle===6){
-                // Sakura: respawn on right bank
-                egg.mesh.position.set(6,3,20);
+                // Sakura: respawn on right plateau
+                egg.mesh.position.set(20,12,20);
             } else {
                 // Ground city: splash into fountain pool
                 egg.mesh.position.set((Math.random()-0.5)*4,8,(Math.random()-0.5)*4);
