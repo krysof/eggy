@@ -1140,6 +1140,8 @@ function buildCity() {
                 }
             });
             cityGroup.add(_rbG);
+            // Add all bridge meshes for camera occlusion (transparency when underneath)
+            cityBuildingMeshes.push({meshes:_rbG.children.slice(),x:0,z:_rbZ,hw:9,hd:3,h:_rbBase+_rbArch});
             for(var _rbci=0;_rbci<6;_rbci++){var _rbcT=(_rbci+0.5)/6;
                 var _rbcH=_rbBase+Math.sin(_rbcT*Math.PI)*_rbArch;
                 cityColliders.push({x:-_rbSpan/2+_rbcT*_rbSpan,z:_rbZ,hw:_rbSpan/6/2+0.8,hd:3,h:_rbcH,_bridge:true});}

@@ -177,6 +177,10 @@ function updateCamera(){
             }
             if(valid&&tmin<tmax&&tmax>0.05&&tmin<0.95) shouldFade=true;
             }
+            // Also fade if player is directly underneath (bridges, overhangs)
+            if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
+                shouldFade=true;
+            }
 
             const targetOp=shouldFade?0.2:1.0;
             for(const m of bld.meshes){
