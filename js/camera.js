@@ -91,12 +91,19 @@ document.addEventListener('touchend',function(e){
 // Toggle TPS with key 1 or button
 function _toggleTPS(){
     _tpsCamMode=!_tpsCamMode;
-    if(_tpsCamMode&&playerEgg)_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;
+    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.15;}
     var _tpsBtn=document.getElementById('tps-btn');
     if(_tpsBtn)_tpsBtn.textContent=_tpsCamMode?'🎥':'📷';
 }
+function _recenterTPS(){
+    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.15;}
+}
 document.addEventListener('keydown',function(e){
-    if(e.code==='Digit2'&&gameState==='city')_toggleTPS();
+    if(e.code==='Digit2'&&gameState==='city'){
+        if(_tpsCamMode)_recenterTPS(); // already in TPS: recenter
+        else _toggleTPS(); // not in TPS: enter TPS
+    }
+    if(e.code==='Digit3'&&gameState==='city'&&_tpsCamMode)_toggleTPS(); // exit TPS
 });
 var _tpsBtnEl=document.getElementById('tps-btn');
 if(_tpsBtnEl){
