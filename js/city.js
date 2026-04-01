@@ -124,9 +124,9 @@ function buildCity() {
 
         // ===== Mid-ring residential (medium height) =====
         // North street
-        {x:-25,z:-60,w:12,d:8,h:10},{x:-8,z:-60,w:10,d:8,h:12},{x:10,z:-60,w:10,d:8,h:9},{x:28,z:-60,w:12,d:8,h:11},
+        {x:-30,z:-60,w:12,d:8,h:10},{x:-8,z:-60,w:10,d:8,h:12},{x:10,z:-60,w:10,d:8,h:9},{x:28,z:-60,w:12,d:8,h:11},
         // South street
-        {x:-25,z:60,w:12,d:8,h:11},{x:-8,z:60,w:10,d:8,h:9},{x:10,z:60,w:10,d:8,h:13},{x:28,z:60,w:12,d:8,h:10},
+        {x:-30,z:60,w:12,d:8,h:11},{x:-8,z:60,w:10,d:8,h:9},{x:10,z:60,w:10,d:8,h:13},{x:28,z:60,w:12,d:8,h:10},
         // West street
         {x:-60,z:-25,w:8,d:12,h:12},{x:-60,z:-8,w:8,d:10,h:10},{x:-60,z:10,w:8,d:10,h:14},{x:-60,z:28,w:8,d:12,h:11},
         // East street
@@ -1030,36 +1030,36 @@ function buildCity() {
         // === 1. Mixed buildings — ryokan, shops, cafes (温泉街の建物) ===
         var _leftBlds=[
             // Left bank: all in one line (x=-25), alternating ryokan + shops
-            {x:-25,z:-100,w:13,d:14,h:15,c:0,face:1},       // 能登屋旅館
-            {x:-25,z:-85,w:10,d:11,h:8,c:0xEEDDBB,face:1},  // 伊豆の華 (warm wood shop)
-            {x:-25,z:-70,w:13,d:14,h:14,c:0,face:1},        // 古山閣
-            {x:-25,z:-55,w:10,d:11,h:8,c:0xDDCCAA,face:1},  // はいからさん通り
+            {x:-30,z:-100,w:13,d:14,h:15,c:0,face:1},       // 能登屋旅館
+            {x:-30,z:-85,w:10,d:11,h:8,c:0xEEDDBB,face:1},  // 伊豆の華 (warm wood shop)
+            {x:-30,z:-70,w:13,d:14,h:14,c:0,face:1},        // 古山閣
+            {x:-30,z:-55,w:10,d:11,h:8,c:0xDDCCAA,face:1},  // はいからさん通り
             // z=-36: 油屋 (built separately)
-            {x:-25,z:-20,w:10,d:11,h:8,c:0xCCBB99,face:1},  // 酒茶房
-            {x:-25,z:-5,w:13,d:14,h:13,c:0,face:1},         // 瀧見館
-            {x:-25,z:10,w:10,d:11,h:8,c:0xEECCBB,face:1},   // 野川とうふ屋
-            {x:-25,z:25,w:13,d:14,h:15,c:0,face:1},         // 永澤平八
-            {x:-25,z:40,w:10,d:11,h:8,c:0xDDBBAA,face:1},   // 大正ロマン館
-            {x:-25,z:55,w:13,d:14,h:12,c:0,face:1},         // 昭和館
-            {x:-25,z:70,w:10,d:11,h:8,c:0xEEDDCC,face:1},   // カリー屋
-            {x:-25,z:85,w:13,d:14,h:14,c:0,face:1},         // 銀山荘
-            {x:-25,z:100,w:10,d:11,h:8,c:0xCCBBAA,face:1}   // まんじゅう屋
+            {x:-30,z:-20,w:10,d:11,h:8,c:0xCCBB99,face:1},  // 酒茶房
+            {x:-30,z:-5,w:13,d:14,h:13,c:0,face:1},         // 瀧見館
+            {x:-30,z:10,w:10,d:11,h:8,c:0xEECCBB,face:1},   // 野川とうふ屋
+            {x:-30,z:25,w:13,d:14,h:15,c:0,face:1},         // 永澤平八
+            {x:-30,z:40,w:10,d:11,h:8,c:0xDDBBAA,face:1},   // 大正ロマン館
+            {x:-30,z:55,w:13,d:14,h:12,c:0,face:1},         // 昭和館
+            {x:-30,z:70,w:10,d:11,h:8,c:0xEEDDCC,face:1},   // カリー屋
+            {x:-30,z:85,w:13,d:14,h:14,c:0,face:1},         // 銀山荘
+            {x:-30,z:100,w:10,d:11,h:8,c:0xCCBBAA,face:1}   // まんじゅう屋
         ];
         var _rightBlds=[
-            {x:25,z:-95,w:13,d:14,h:14,c:0,face:-1},        // 古勢起屋
-            {x:25,z:-80,w:10,d:11,h:8,c:0xDDCCAA,face:-1},  // そば処
-            {x:25,z:-65,w:13,d:14,h:13,c:0,face:-1},        // 仙峡の宿
-            {x:25,z:-50,w:10,d:11,h:8,c:0xEECCBB,face:-1},  // 煎餅屋
-            {x:25,z:-35,w:13,d:14,h:15,c:0,face:-1},        // 旅館藤屋
-            {x:25,z:-20,w:10,d:11,h:8,c:0xCCBB99,face:-1},  // 足湯カフェ
-            {x:25,z:-5,w:13,d:14,h:12,c:0,face:-1},         // 味よし旅館
-            {x:25,z:10,w:10,d:11,h:8,c:0xDDBBAA,face:-1},   // だんご屋
-            {x:25,z:25,w:13,d:14,h:15,c:0,face:-1},         // しろがね湯
-            {x:25,z:40,w:10,d:11,h:8,c:0xEEDDBB,face:-1},   // 漬物屋
-            {x:25,z:55,w:13,d:14,h:13,c:0,face:-1},         // 春木屋
-            {x:25,z:70,w:10,d:11,h:8,c:0xDDCCAA,face:-1},   // アイス屋
-            {x:25,z:85,w:13,d:14,h:14,c:0,face:-1},         // 小関館
-            {x:25,z:100,w:10,d:11,h:8,c:0xCCBBAA,face:-1}   // 甘酒屋
+            {x:30,z:-95,w:13,d:14,h:14,c:0,face:-1},        // 古勢起屋
+            {x:30,z:-80,w:10,d:11,h:8,c:0xDDCCAA,face:-1},  // そば処
+            {x:30,z:-65,w:13,d:14,h:13,c:0,face:-1},        // 仙峡の宿
+            {x:30,z:-50,w:10,d:11,h:8,c:0xEECCBB,face:-1},  // 煎餅屋
+            {x:30,z:-35,w:13,d:14,h:15,c:0,face:-1},        // 旅館藤屋
+            {x:30,z:-20,w:10,d:11,h:8,c:0xCCBB99,face:-1},  // 足湯カフェ
+            {x:30,z:-5,w:13,d:14,h:12,c:0,face:-1},         // 味よし旅館
+            {x:30,z:10,w:10,d:11,h:8,c:0xDDBBAA,face:-1},   // だんご屋
+            {x:30,z:25,w:13,d:14,h:15,c:0,face:-1},         // しろがね湯
+            {x:30,z:40,w:10,d:11,h:8,c:0xEEDDBB,face:-1},   // 漬物屋
+            {x:30,z:55,w:13,d:14,h:13,c:0,face:-1},         // 春木屋
+            {x:30,z:70,w:10,d:11,h:8,c:0xDDCCAA,face:-1},   // アイス屋
+            {x:30,z:85,w:13,d:14,h:14,c:0,face:-1},         // 小関館
+            {x:30,z:100,w:10,d:11,h:8,c:0xCCBBAA,face:-1}   // 甘酒屋
         ];
         // Riverside weeping sakura (垂桜) — one row per side, staggered, leaning over gorge
         for(var _rsti=0;_rsti<14;_rsti++){
@@ -1104,7 +1104,7 @@ function buildCity() {
         }
 
         // === 2. The Bathhouse (油屋) — large building at end of street ===
-        var _bhX=-25,_bhZ=-40;
+        var _bhX=-30,_bhZ=-40;
         // Build 油屋 using _buildJpnElev (same style as other ryokan but 8-story)
         _buildJpnElev(_bhX,_bhZ,14,14,24,0x8B2500,_pH,1);
         // Add red trim layers at 1/3 and 2/3 height (千と千寻 signature)
