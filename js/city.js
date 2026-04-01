@@ -1068,7 +1068,7 @@ function buildCity() {
         }
 
         // === 2. The Bathhouse (油屋) — large building at end of street ===
-        var _bhX=-18,_bhZ=-30; // gorge edge, facing river
+        var _bhX=-45,_bhZ=-30; // behind ryokan row, visible towering over them
         var _by=_pH;
         // Tier 1 — massive base
         var _bh1=new THREE.Mesh(new THREE.BoxGeometry(30,18,24),toon(0x8B2500));
