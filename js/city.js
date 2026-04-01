@@ -1195,6 +1195,45 @@ function buildCity() {
         }
         // Lanterns on plateau edges
         for(var _gli=0;_gli<14;_gli++){var _glz=-100+_gli*15;_buildToro(-10,_glz,_pH);_buildToro(10,_glz+8,_pH);}
+        // Weeping sakura along gorge edge (垂桜)
+        var _petalCols=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA];
+        for(var _wli=0;_wli<12;_wli++){
+            var _wlZ=-95+_wli*18+((_wli%2)*9);
+            [[-10,0.25],[10,-0.25]].forEach(function(sxl){
+                var _wlG=new THREE.Group();_wlG.position.set(sxl[0],_pH,_wlZ);
+                _wlG.rotation.z=sxl[1]; // lean toward river
+                var _wlH=5+Math.random()*2;
+                // Dark brown trunk
+                var wlTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.35,_wlH,6),toon(0x6B4226));
+                wlTrunk.position.y=_wlH/2;_wlG.add(wlTrunk);
+                // Pink cherry blossom crown (2-3 overlapping spheres)
+                for(var _wci=0;_wci<3;_wci++){
+                    var _wcOff=_wci*(Math.PI*2/3);
+                    var _wcR=2+Math.random();
+                    var wlCrown=new THREE.Mesh(new THREE.SphereGeometry(_wcR,6,5),toon(_petalCols[_wci%4],{transparent:true,opacity:0.85}));
+                    wlCrown.position.set(Math.cos(_wcOff)*_wcR*0.3,_wlH+_wcR*0.3,Math.sin(_wcOff)*_wcR*0.3);
+                    wlCrown.scale.y=0.6;_wlG.add(wlCrown);
+                }
+                // Long drooping sakura branches with petal clusters
+                for(var _wbi3=0;_wbi3<8;_wbi3++){
+                    var _wbAngle=_wbi3*(Math.PI*2/8)+Math.random()*0.3;
+                    var _wbLen=3.5+Math.random()*2.5;
+                    var _wbStrand=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.04,_wbLen,3),toon(0x6B4226));
+                    _wbStrand.position.set(Math.cos(_wbAngle)*1,_wlH-_wbLen*0.3,Math.sin(_wbAngle)*1);
+                    _wbStrand.rotation.z=Math.cos(_wbAngle)*0.9;
+                    _wbStrand.rotation.x=-Math.sin(_wbAngle)*0.9;
+                    _wlG.add(_wbStrand);
+                    for(var _wlci=0;_wlci<3;_wlci++){
+                        var _wld=0.25+_wlci*0.25;
+                        var petal=new THREE.Mesh(new THREE.SphereGeometry(0.35+_wlci*0.1,4,3),toon(_petalCols[(_wbi3+_wlci)%4],{transparent:true,opacity:0.8}));
+                        petal.position.set(Math.cos(_wbAngle)*_wbLen*_wld,_wlH-_wbLen*_wld*0.75,Math.sin(_wbAngle)*_wbLen*_wld);
+                        _wlG.add(petal);
+                    }
+                }
+                cityGroup.add(_wlG);
+                cityBuildingMeshes.push({meshes:_wlG.children.slice(),x:sxl[0],z:_wlZ,hw:3,hd:3,h:_pH+_wlH});
+            });
+        }
         // SKIP old bridge code
         if(false){
         // Three bridges at z=-40, z=0, z=40

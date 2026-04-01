@@ -399,6 +399,12 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg.aiTargetX=(Math.random()-0.5)*30;
             egg.aiTargetZ=(Math.random()-0.5)*30;
         }
+        // Sakura City: NPC fell into gorge — jump back to plateau
+        if(currentCityStyle===6&&egg.mesh.position.y<7&&egg.onGround){
+            egg.vy=JUMP_FORCE*2.5;egg.squash=0.4;
+            egg.aiTargetX=(egg.mesh.position.x<0)?(-20-Math.random()*20):(20+Math.random()*20);
+            egg.vx+=(egg.aiTargetX-egg.mesh.position.x)*0.05;
+        }
         var dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
         var dist=Math.sqrt(dx*dx+dz*dz);
         // NPC sprint burst
