@@ -99,7 +99,10 @@ document.addEventListener('keydown',function(e){
     if(e.code==='Digit1'&&gameState==='city')_toggleTPS();
 });
 var _tpsBtnEl=document.getElementById('tps-btn');
-if(_tpsBtnEl)_tpsBtnEl.addEventListener('click',function(){if(gameState==='city')_toggleTPS();});
+if(_tpsBtnEl){
+    _tpsBtnEl.addEventListener('click',function(){if(gameState==='city')_toggleTPS();});
+    _tpsBtnEl.addEventListener('touchend',function(e){e.preventDefault();if(gameState==='city')_toggleTPS();},{passive:false});
+}
 // Spectator button for mobile
 var _specBtn=document.getElementById('spectator-btn');
 if(_specBtn){_specBtn.addEventListener('click',function(){
