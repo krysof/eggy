@@ -222,13 +222,14 @@ function _drawCityBG(ctx,W,H,panY){
     for(var bi=0;bi<8;bi++){
         var bw=W*0.12+bi*W*0.02;
         var bh=H*0.3+bi*H*0.08+(bi%3)*H*0.05;
+        var bTop=H-bh-panY*0.3; // building top Y (accounts for pan)
         ctx.fillStyle=bColors[bi%bColors.length];
-        ctx.fillRect(bx,H-bh-panY*0.3,bw,bh+panY*0.3+H);
+        ctx.fillRect(bx,bTop,bw,bh+panY*0.3+H);
         ctx.fillStyle='rgba(255,210,90,0.8)';
         for(var wi=0;wi<6;wi++){
             for(var wj=0;wj<Math.floor(bh/(H*0.04));wj++){
                 if(Math.random()>0.25){
-                    ctx.fillRect(bx+bw*0.15+wi*bw*0.13,H-bh+wj*H*0.04+H*0.02,bw*0.08,H*0.02);
+                    ctx.fillRect(bx+bw*0.15+wi*bw*0.13,bTop+H*0.02+wj*H*0.04,bw*0.08,H*0.02);
                 }
             }
         }
