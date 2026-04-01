@@ -993,15 +993,15 @@ function buildCity() {
         // === 1. Tall ryokan set back from gorge (河辺→垂桜→道→旅館) ===
         // Layout: gorge edge x=±8 → sakura trees x=±12 → path x=±18 → ryokan x=±35
         var _leftBlds=[],_rightBlds=[];
-        for(var _lbi=0;_lbi<10;_lbi++){
-            var _lbz=-90+_lbi*20;
-            var _lbh=8+Math.floor(Math.random()*6); // 3-4 story (8-13 units = tall onsen hotels)
-            _leftBlds.push({x:-35,z:_lbz,w:10,d:14,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744][_lbi%4],face:1});
+        for(var _lbi=0;_lbi<16;_lbi++){
+            var _lbz=-110+_lbi*14; // tight spacing (14 units apart)
+            var _lbh=10+Math.floor(Math.random()*8); // 3-5 story tall (10-17)
+            _leftBlds.push({x:-30,z:_lbz,w:10,d:13,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744,0xBBAA77,0xAA9966][_lbi%6],face:1});
         }
-        for(var _rbi=0;_rbi<10;_rbi++){
-            var _rbz=-80+_rbi*20;
-            var _rbh=8+Math.floor(Math.random()*6);
-            _rightBlds.push({x:35,z:_rbz,w:10,d:14,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77][_rbi%4],face:-1});
+        for(var _rbi=0;_rbi<16;_rbi++){
+            var _rbz=-103+_rbi*14;
+            var _rbh=10+Math.floor(Math.random()*8);
+            _rightBlds.push({x:30,z:_rbz,w:10,d:13,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77,0xAA9966,0xBBAA77][_rbi%6],face:-1});
         }
         // Riverside sakura trees (垂桜) along gorge edge
         for(var _rsti=0;_rsti<16;_rsti++){
