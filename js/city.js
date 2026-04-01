@@ -933,7 +933,8 @@ function buildCity() {
         // Helper: elevated Japanese building (on plateau)
         function _buildJpnElev(x,z,w,d,h,wallColor,baseY,faceDir){
             var _darkWood=toon(0x3E2723);
-            var _plaster=toon(0xF5F0E8); // white plaster walls
+            var _isSpecial=(wallColor&&wallColor<0x900000); // special color like bathhouse red
+            var _plaster=_isSpecial?toon(wallColor):toon(0xF5F0E8); // white plaster unless special
             var ms=[];
             var floors=Math.max(2,Math.round(h/3)); // ~3 units per floor
             var floorH=h/floors;
