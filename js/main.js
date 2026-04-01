@@ -92,7 +92,7 @@ document.getElementById('confirm-btn').addEventListener('click',()=>{
     stopSelectBGM();
     // Airplane animation: fly from center to character's country
     var _selCh=CHARACTERS[selectedChar];
-    _startPlaneAnim(200,110,_selCh.mapX,_selCh.mapY,function(){
+    _startPlaneAnim(_selCh.mapX,_selCh.mapY,400,220,function(){
         showScreen(null);
         spawnCityNPCs();
         enterCity();
