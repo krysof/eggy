@@ -1088,49 +1088,29 @@ function buildCity() {
             var _bridgeG=new THREE.Group();
             var _bgZ=_bridgeZs[_bzi];
             _bridgeG.position.set(0,0,_bgZ);
-            var _bSegs=12,_bSpan=16,_bBase=7.5,_bArch=1.0; // gentle arch, deck just below collider
-            // Arch deck segments
-            for(var _bsi=0;_bsi<_bSegs;_bsi++){
-                var _bt=_bsi/_bSegs;
-                var _bx2=-_bSpan/2+_bt*_bSpan;
-                var _by2=_bBase+Math.sin(_bt*Math.PI)*_bArch;
-                var _bNext=(_bsi+1)/_bSegs;
-                var _bnx=-_bSpan/2+_bNext*_bSpan;
-                var _bny2=_bBase+Math.sin(_bNext*Math.PI)*_bArch;
-                var _bAngle=Math.atan2(_bny2-_by2,_bnx-_bx2);
-                var _bLen=Math.sqrt((_bnx-_bx2)*(_bnx-_bx2)+(_bny2-_by2)*(_bny2-_by2));
-                var plank=new THREE.Mesh(new THREE.BoxGeometry(_bLen+0.3,0.35,7),_jRedM);
-                plank.position.set((_bx2+_bnx)/2,(_by2+_bny2)/2,0);
-                plank.rotation.z=_bAngle;_bridgeG.add(plank);
-            }
-            // Railings with handrails (横杆连接)
+            var _bSpan=16,_bDeckY=8; // flat deck at plateau height
+            // Flat bridge deck
+            var _deck=new THREE.Mesh(new THREE.BoxGeometry(_bSpan+2,0.4,7),_jRedM);
+            _deck.position.set(0,_bDeckY-0.2,0);_bridgeG.add(_deck);
+            // Bottom support beam
+            var _support=new THREE.Mesh(new THREE.BoxGeometry(_bSpan,0.3,5),toon(0x882222));
+            _support.position.set(0,_bDeckY-0.55,0);_bridgeG.add(_support);
+            // Railings with handrails
             [-1,1].forEach(function(s){
-                var _postCount=9;
-                for(var _rli=0;_rli<_postCount;_rli++){
-                    var _rlt=_rli/(_postCount-1);
-                    var _rlx=-_bSpan/2+_rlt*_bSpan;
-                    var _rly=_bBase+Math.sin(_rlt*Math.PI)*_bArch;
-                    // Vertical post
-                    var rPost=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,1.6,6),_jRedM);
-                    rPost.position.set(_rlx,_rly+0.8,s*3.2);_bridgeG.add(rPost);
-                    // Top ball
+                // Horizontal top rail
+                var topRail=new THREE.Mesh(new THREE.BoxGeometry(_bSpan+2,0.15,0.15),_jRedM);
+                topRail.position.set(0,_bDeckY+1.3,s*3.3);_bridgeG.add(topRail);
+                // Posts + balls
+                for(var _rli=0;_rli<9;_rli++){
+                    var _rlx=-_bSpan/2+_rli*(_bSpan/8);
+                    var rPost=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.12,1.5,6),_jRedM);
+                    rPost.position.set(_rlx,_bDeckY+0.55,s*3.3);_bridgeG.add(rPost);
                     var rBall=new THREE.Mesh(new THREE.SphereGeometry(0.18,5,4),_jRedM);
-                    rBall.position.set(_rlx,_rly+1.6,s*3.2);_bridgeG.add(rBall);
-                    // Horizontal handrail connecting to next post
-                    if(_rli<_postCount-1){
-                        var _nlt=(_rli+1)/(_postCount-1);
-                        var _nlx=-_bSpan/2+_nlt*_bSpan;
-                        var _nly=_bBase+Math.sin(_nlt*Math.PI)*_bArch;
-                        var _hLen=Math.sqrt((_nlx-_rlx)*(_nlx-_rlx)+(_nly-_rly)*(_nly-_rly));
-                        var _hAng=Math.atan2(_nly-_rly,_nlx-_rlx);
-                        var hRail=new THREE.Mesh(new THREE.BoxGeometry(_hLen,0.12,0.12),_jRedM);
-                        hRail.position.set((_rlx+_nlx)/2,(_rly+_nly)/2+1.5,s*3.2);
-                        hRail.rotation.z=_hAng;_bridgeG.add(hRail);
-                    }
+                    rBall.position.set(_rlx,_bDeckY+1.3,s*3.3);_bridgeG.add(rBall);
                 }
             });
-            // Bridge collider — flat walkway at plateau height, connects both sides
-            cityColliders.push({x:0,z:_bgZ,hw:_bSpan/2+1,hd:3.5,h:_bBase});
+            // Collider matches deck
+            cityColliders.push({x:0,z:_bgZ,hw:_bSpan/2+1,hd:3.5,h:_bDeckY});
             cityGroup.add(_bridgeG);
         }
 
