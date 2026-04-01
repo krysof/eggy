@@ -195,13 +195,13 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    var _treeCount=currentCityStyle===6?120:80;
+    var _treeCount=currentCityStyle===6?40:80; // sakura: fewer random trees (river trees are separate)
     for(let i=0;i<_treeCount;i++){
         var tx,tz;
         if(currentCityStyle===6){
-            // Sakura: trees on plateaus, avoid canyon
+            // Sakura: background trees on outer plateau, away from path and buildings
             var _onLeft=Math.random()<0.5;
-            tx=_onLeft?(-15-Math.random()*95):(15+Math.random()*95);
+            tx=_onLeft?(-50-Math.random()*60):(50+Math.random()*60);
             tz=(Math.random()-0.5)*220;
         } else {
             tx=-CITY_SIZE+Math.random()*CITY_SIZE*2;tz=-CITY_SIZE+Math.random()*CITY_SIZE*2;
@@ -993,22 +993,29 @@ function buildCity() {
         // === 1. Tall ryokan set back from gorge (河辺→垂桜→道→旅館) ===
         // Layout: gorge edge x=±8 → sakura trees x=±12 → path x=±18 → ryokan x=±35
         var _leftBlds=[],_rightBlds=[];
+        // Japanese onsen hotel colors — warm wood tones, each building unique
+        var _ryokanColors=[0xC49A6C,0xA67B4B,0xD4A96A,0x8B7355,0xBB9060,0x9E8258,0xCBA26E,0xB08B57,
+                           0xD9B675,0xA88B5E,0xC4985A,0x9A7C50,0xDDAA70,0xB89462,0xAF8648,0xC89E68];
         for(var _lbi=0;_lbi<16;_lbi++){
-            var _lbz=-110+_lbi*14; // tight spacing (14 units apart)
-            var _lbh=10+Math.floor(Math.random()*8); // 3-5 story tall (10-17)
-            _leftBlds.push({x:-30,z:_lbz,w:10,d:13,h:_lbh,c:[0xBB9966,0xAA8855,0xCCAA77,0x997744,0xBBAA77,0xAA9966][_lbi%6],face:1});
+            var _lbz=-110+_lbi*14;
+            var _lbh=10+Math.floor(Math.random()*8);
+            var _lbw=8+Math.floor(Math.random()*4); // varied width
+            _leftBlds.push({x:-30,z:_lbz,w:_lbw,d:13,h:_lbh,c:_ryokanColors[_lbi],face:1});
         }
         for(var _rbi=0;_rbi<16;_rbi++){
             var _rbz=-103+_rbi*14;
             var _rbh=10+Math.floor(Math.random()*8);
-            _rightBlds.push({x:30,z:_rbz,w:10,d:13,h:_rbh,c:[0xAA8855,0xBB9966,0x997744,0xCCAA77,0xAA9966,0xBBAA77][_rbi%6],face:-1});
+            var _rbw=8+Math.floor(Math.random()*4);
+            _rightBlds.push({x:30,z:_rbz,w:_rbw,d:13,h:_rbh,c:_ryokanColors[15-_rbi],face:-1});
         }
-        // Riverside sakura trees (垂桜) along gorge edge
-        for(var _rsti=0;_rsti<16;_rsti++){
-            var _rstZ=-110+_rsti*15;
-            [-12,12].forEach(function(sx){
-                var _rstG=new THREE.Group();_rstG.position.set(sx,_pH,_rstZ+(Math.random()-0.5)*5);
-                var _rstH=4+Math.random()*2;
+        // Riverside weeping sakura (垂桜) — one row per side, staggered, leaning over gorge
+        for(var _rsti=0;_rsti<14;_rsti++){
+            var _rstZ=-100+_rsti*15+((_rsti%2)*7); // staggered positions
+            [[-11,0.3],[11,-0.3]].forEach(function(sxr){ // x pos + lean angle toward river
+                var sx=sxr[0],_lean=sxr[1];
+                var _rstG=new THREE.Group();_rstG.position.set(sx,_pH,_rstZ);
+                _rstG.rotation.z=_lean; // lean toward river
+                var _rstH=5+Math.random()*2;
                 var rstTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.35,_rstH,6),toon(0x6B4226));
                 rstTrunk.position.y=_rstH/2;_rstG.add(rstTrunk);
                 var _rstCols=[0xFFAABB,0xFFBBCC,0xFFCCDD];

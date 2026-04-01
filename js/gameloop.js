@@ -980,7 +980,11 @@ function updateCity(){
     // Sakura canal water shimmer
     if(window._sakuraCanalWater&&currentCityStyle===6){
         for(var _scwi=0;_scwi<window._sakuraCanalWater.length;_scwi++){
-            window._sakuraCanalWater[_scwi].position.y=2.0+Math.sin(Date.now()*0.002+_scwi)*0.04;
+            var _rwt=Date.now()*0.003;
+            window._sakuraCanalWater[_scwi].position.y=2.0+Math.sin(_rwt+_scwi*1.2)*0.08;
+            window._sakuraCanalWater[_scwi].position.z+=0.02; // flow downstream
+            if(window._sakuraCanalWater[_scwi].position.z>130)window._sakuraCanalWater[_scwi].position.z=-130;
+            window._sakuraCanalWater[_scwi].material.opacity=0.55+Math.sin(_rwt*2+_scwi)*0.1;
         }
     }
     // ---- Ocean wave animation ----
