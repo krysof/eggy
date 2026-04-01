@@ -12,8 +12,8 @@ var _spectatorMode=false;
 // Third-person (RE5 style) camera
 var _tpsCamMode=false;
 var _tpsCamYaw=0; // horizontal orbit around player
-var _tpsCamPitch=0.15; // low angle — near eye level
-var _tpsCamDist=5; // close behind player
+var _tpsCamPitch=0.2;
+var _tpsCamDist=8;
 var _tpsDragging=false;
 var _tpsLastX=0,_tpsLastY=0;
 var _specCamX=0,_specCamY=50,_specCamZ=0;
@@ -50,7 +50,7 @@ document.addEventListener('mousemove',function(e){
     if(_tpsDragging){
         _tpsCamYaw-=(e.clientX-_tpsLastX)*0.005;
         _tpsCamPitch+=(e.clientY-_tpsLastY)*0.005;
-        if(_tpsCamPitch<0.05)_tpsCamPitch=0.05;
+        if(_tpsCamPitch<-0.5)_tpsCamPitch=-0.5;
         if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         _tpsLastX=e.clientX;_tpsLastY=e.clientY;
     }
@@ -73,7 +73,7 @@ document.addEventListener('touchmove',function(e){
                 var t=e.touches[ti];
                 _tpsCamYaw-=(t.clientX-_tpsLastX)*0.008;
                 _tpsCamPitch+=(t.clientY-_tpsLastY)*0.008;
-                if(_tpsCamPitch<0.05)_tpsCamPitch=0.05;
+                if(_tpsCamPitch<-0.5)_tpsCamPitch=-0.5;
                 if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
                 _tpsLastX=t.clientX;_tpsLastY=t.clientY;
                 break;
@@ -91,12 +91,12 @@ document.addEventListener('touchend',function(e){
 // Toggle TPS with key 1 or button
 function _toggleTPS(){
     _tpsCamMode=!_tpsCamMode;
-    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.15;}
+    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.2;}
     var _tpsBtn=document.getElementById('tps-btn');
     if(_tpsBtn)_tpsBtn.textContent=_tpsCamMode?'🎥':'📷';
 }
 function _recenterTPS(){
-    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.15;}
+    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.2;}
 }
 document.addEventListener('keydown',function(e){
     if(e.code==='Digit1'&&gameState==='city')_toggleTPS();
@@ -204,8 +204,8 @@ function updateCamera(){
         // TPS: grab button adjusts camera angle
         if(keys['KeyF']){
             if(joyActive){_tpsCamYaw-=joyVec.x*0.04;_tpsCamPitch-=joyVec.y*0.03;}
-            if(_tpsCamPitch<0.0)_tpsCamPitch=0.0;
-            if(_tpsCamPitch>1.0)_tpsCamPitch=1.0;
+            if(_tpsCamPitch<-0.5)_tpsCamPitch=-0.5; // can look up
+            if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         }
         // Camera behind and slightly above player eye level
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
