@@ -933,8 +933,7 @@ function buildCity() {
         // Helper: elevated Japanese building (on plateau)
         function _buildJpnElev(x,z,w,d,h,wallColor,baseY,faceDir){
             var _darkWood=toon(0x3E2723);
-            var _isSpecial=(wallColor&&wallColor<0x900000); // special color like bathhouse red
-            var _plaster=_isSpecial?toon(wallColor):toon(0xF5F0E8); // white plaster unless special
+            var _plaster=(wallColor&&wallColor>0x100)?toon(wallColor):toon(0xF5F0E8); // white plaster unless special color
             var ms=[];
             var floors=Math.max(2,Math.round(h/3)); // ~3 units per floor
             var floorH=h/floors;
@@ -1030,37 +1029,37 @@ function buildCity() {
 
         // === 1. Mixed buildings — ryokan, shops, cafes (温泉街の建物) ===
         var _leftBlds=[
-            // Left bank: 4-5 story ryokan (h=12-15) + small shops (h=8-10)
-            {x:-30,z:-100,w:12,d:14,h:15,c:0xC49A6C,face:1}, // 旅館
-            {x:-28,z:-84,w:8,d:10,h:8,c:0xEEDDCC,face:1},   // コンビニ
-            {x:-30,z:-68,w:12,d:14,h:13,c:0xA67B4B,face:1},  // 旅館
-            {x:-28,z:-52,w:8,d:10,h:9,c:0xDDCCBB,face:1},   // カフェ
-            // z=-36: 油屋 (built separately)
-            {x:-28,z:-20,w:8,d:10,h:8,c:0xCCBBAA,face:1},   // 土産屋
-            {x:-30,z:-4,w:12,d:14,h:14,c:0x8B7355,face:1},   // 旅館
-            {x:-28,z:12,w:8,d:10,h:9,c:0xEECCBB,face:1},    // たこ焼き
-            {x:-30,z:28,w:12,d:14,h:15,c:0xBB9060,face:1},   // 旅館
-            {x:-28,z:44,w:8,d:10,h:8,c:0xDDBB99,face:1},    // 串焼き
-            {x:-30,z:60,w:12,d:14,h:12,c:0x9E8258,face:1},   // 旅館
-            {x:-28,z:76,w:8,d:10,h:9,c:0xEEDDCC,face:1},    // アイス
-            {x:-30,z:92,w:12,d:14,h:14,c:0xCBA26E,face:1},   // 旅館
-            {x:-28,z:108,w:8,d:10,h:8,c:0xCCBB99,face:1}    // まんじゅう
+            // Left bank: famous Ginzan ryokan + shops
+            {x:-30,z:-100,w:13,d:14,h:15,c:0,face:1},       // 能登屋旅館 (Notoya — 4-story tower, Taisho era)
+            {x:-28,z:-84,w:8,d:10,h:8,c:0,face:1},          // 伊豆の華 (Izunohana — cafe/soba shop)
+            {x:-30,z:-68,w:12,d:14,h:14,c:0,face:1},        // 古山閣 (Kozankaku — classic Showa ryokan)
+            {x:-28,z:-52,w:8,d:10,h:9,c:0,face:1},          // はいからさん通り (Retro cafe)
+            // z=-36: 油屋 (built separately — the landmark)
+            {x:-28,z:-20,w:8,d:10,h:8,c:0,face:1},          // 酒茶房 (Sake tea house)
+            {x:-30,z:-4,w:13,d:14,h:13,c:0,face:1},         // 瀧見館 (Takimikan — waterfall view inn)
+            {x:-28,z:12,w:8,d:10,h:9,c:0,face:1},           // 野川とうふ屋 (Tofu shop)
+            {x:-30,z:28,w:12,d:14,h:15,c:0,face:1},         // 永澤平八 (Nagasawa — grand ryokan)
+            {x:-28,z:44,w:8,d:10,h:8,c:0,face:1},           // 大正ロマン館 (Taisho Roman hall — souvenirs)
+            {x:-30,z:60,w:12,d:14,h:12,c:0,face:1},         // 昭和館 (Showakan — retro ryokan)
+            {x:-28,z:76,w:8,d:10,h:9,c:0,face:1},           // カリー屋 (Curry shop)
+            {x:-30,z:92,w:13,d:14,h:14,c:0,face:1},         // 銀山荘 (Ginzanso — large ryokan)
+            {x:-28,z:108,w:8,d:10,h:8,c:0,face:1}           // まんじゅう屋 (Manju sweets)
         ];
         var _rightBlds=[
-            {x:30,z:-95,w:12,d:14,h:14,c:0xB08B57,face:-1},  // 旅館
-            {x:28,z:-79,w:8,d:10,h:9,c:0xDDCCBB,face:-1},   // 蕎麦屋
-            {x:30,z:-63,w:12,d:14,h:13,c:0xD9B675,face:-1},  // 旅館
-            {x:28,z:-47,w:8,d:10,h:8,c:0xEECCBB,face:-1},   // 饅頭屋
-            {x:30,z:-31,w:12,d:14,h:15,c:0xA88B5E,face:-1},  // 旅館
-            {x:28,z:-15,w:8,d:10,h:9,c:0xEEDDCC,face:-1},   // 漬物屋
-            {x:30,z:1,w:12,d:14,h:12,c:0xC4985A,face:-1},    // 旅館
-            {x:28,z:17,w:8,d:10,h:8,c:0xDDBBAA,face:-1},    // だんご
-            {x:30,z:33,w:12,d:14,h:15,c:0x9A7C50,face:-1},   // 旅館
-            {x:28,z:49,w:8,d:10,h:9,c:0xCCBB99,face:-1},    // 足湯カフェ
-            {x:30,z:65,w:12,d:14,h:13,c:0xDDAA70,face:-1},   // 旅館
-            {x:28,z:81,w:8,d:10,h:8,c:0xEECCBB,face:-1},    // 煎餅屋
-            {x:30,z:97,w:12,d:14,h:14,c:0xB89462,face:-1},   // 旅館
-            {x:28,z:113,w:8,d:10,h:9,c:0xDDCCBB,face:-1}    // 甘酒屋
+            {x:30,z:-95,w:13,d:14,h:14,c:0,face:-1},        // 古勢起屋 (Kosekiya — Art Deco style)
+            {x:28,z:-79,w:8,d:10,h:9,c:0,face:-1},          // そば処 (Soba restaurant)
+            {x:30,z:-63,w:12,d:14,h:13,c:0,face:-1},        // 仙峡の宿 (Senkyo no Yado — gorge view)
+            {x:28,z:-47,w:8,d:10,h:8,c:0,face:-1},          // 煎餅屋 (Senbei crackers)
+            {x:30,z:-31,w:13,d:14,h:15,c:0,face:-1},        // 旅館藤屋 (Fujiya — Kengo Kuma design)
+            {x:28,z:-15,w:8,d:10,h:9,c:0,face:-1},          // 足湯カフェ (Foot bath cafe)
+            {x:30,z:1,w:12,d:14,h:12,c:0,face:-1},          // 味よし旅館 (Ajiyoshi — family ryokan)
+            {x:28,z:17,w:8,d:10,h:8,c:0,face:-1},           // だんご屋 (Dango sweets)
+            {x:30,z:33,w:13,d:14,h:15,c:0,face:-1},         // しろがね湯 (Shirogane-yu — public bath)
+            {x:28,z:49,w:8,d:10,h:9,c:0,face:-1},           // 漬物屋 (Pickles shop)
+            {x:30,z:65,w:12,d:14,h:13,c:0,face:-1},         // 春木屋 (Harukiya — wooden classic)
+            {x:28,z:81,w:8,d:10,h:8,c:0,face:-1},           // アイス屋 (Ice cream)
+            {x:30,z:97,w:13,d:14,h:14,c:0,face:-1},         // 小関館 (Kosekikan — small classic inn)
+            {x:28,z:113,w:8,d:10,h:9,c:0,face:-1}           // 甘酒屋 (Amazake — sweet sake)
         ];
         // Riverside weeping sakura (垂桜) — one row per side, staggered, leaning over gorge
         for(var _rsti=0;_rsti<14;_rsti++){
