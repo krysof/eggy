@@ -1135,15 +1135,17 @@ function buildCity() {
         // Deep canyon floor
         var _canyonFloor=new THREE.Mesh(new THREE.BoxGeometry(16,0.3,260),toon(0x334433));
         _canyonFloor.position.set(0,0.15,0);cityGroup.add(_canyonFloor);
-        // Prominent stone embankment walls (高い石垣)
+        // Prominent stone embankment walls (高い石垣) with collision guardrails
         [-1,1].forEach(function(side){
-            // Main wall (full height from ground to plateau)
             var _embWall=new THREE.Mesh(new THREE.BoxGeometry(1.5,_pH,260),toon(0x887766));
             _embWall.position.set(side*8,_pH/2,0);_embWall.castShadow=true;cityGroup.add(_embWall);
-            // Stone cap on top
             var _embCap=new THREE.Mesh(new THREE.BoxGeometry(2,0.4,260),toon(0x999888));
             _embCap.position.set(side*8,_pH+0.2,0);cityGroup.add(_embCap);
-            // Stone texture detail strips
+            // Raised stone guardrail on top (prevents walking off edge)
+            var _guard=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,260),toon(0x887766));
+            _guard.position.set(side*8,_pH+0.8,0);cityGroup.add(_guard);
+            // Guardrail collider — tall enough to block walking
+            cityColliders.push({x:side*8,z:0,hw:1,hd:130,h:_pH+1.5});
             for(var _esi=0;_esi<6;_esi++){
                 var _esY=1+_esi*1.2;
                 var _esLine=new THREE.Mesh(new THREE.BoxGeometry(1.55,0.08,260),toon(0x776655));
@@ -1189,6 +1191,9 @@ function buildCity() {
                 }
             });
             cityColliders.push({x:0,z:_wbZ,hw:9,hd:3,h:_pH,_bridge:true});
+            // Bridge railing colliders (prevent falling off sides)
+            cityColliders.push({x:0,z:_wbZ+2.7,hw:9,hd:0.3,h:_pH+1.2});
+            cityColliders.push({x:0,z:_wbZ-2.7,hw:9,hd:0.3,h:_pH+1.2});
             cityBuildingMeshes.push({meshes:_wbMeshes,x:0,z:_wbZ,hw:9,hd:3,h:_pH});
         }
         // Red arched bridges (big, spanning gorge)
@@ -1225,6 +1230,9 @@ function buildCity() {
             for(var _rbci=0;_rbci<6;_rbci++){var _rbcT=(_rbci+0.5)/6;
                 var _rbcH=_rbBase+Math.sin(_rbcT*Math.PI)*_rbArch;
                 cityColliders.push({x:-_rbSpan/2+_rbcT*_rbSpan,z:_rbZ,hw:_rbSpan/6/2+0.8,hd:3,h:_rbcH,_bridge:true});}
+            // Red bridge railing colliders
+            cityColliders.push({x:0,z:_rbZ+2.8,hw:9,hd:0.3,h:_rbBase+_rbArch+1.5});
+            cityColliders.push({x:0,z:_rbZ-2.8,hw:9,hd:0.3,h:_rbBase+_rbArch+1.5});
         }
         // Lanterns on plateau edges
         for(var _gli=0;_gli<14;_gli++){var _glz=-100+_gli*15;_buildToro(-10,_glz,_pH);_buildToro(10,_glz+8,_pH);}
