@@ -1323,7 +1323,10 @@ function handlePlayerInput(){
     if(playerEgg._ffTimer<=0){playerEgg._ffSeq=0;playerEgg._ffReady=false;}
     // ---- Unified move direction: used by all directional specials ----
     // bf moves use second press direction, ff moves use second press direction
-    if(playerEgg._bfReady&&playerEgg._bfMoveAngle!==undefined)playerEgg._moveDir=playerEgg._bfMoveAngle;
+    if(_tpsCamMode){
+        // TPS: all skills fire in character's facing direction
+        playerEgg._moveDir=playerEgg.mesh.rotation.y;
+    } else if(playerEgg._bfReady&&playerEgg._bfMoveAngle!==undefined)playerEgg._moveDir=playerEgg._bfMoveAngle;
     else if(playerEgg._ffReady&&playerEgg._ffMoveAngle!==undefined)playerEgg._moveDir=playerEgg._ffMoveAngle;
     else playerEgg._moveDir=playerEgg.mesh.rotation.y;
     // ---- Tatsumaki (旋风腿): 後+前+T (back-forward-kick) ----
