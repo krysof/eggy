@@ -216,6 +216,9 @@ function clearCity(){
     window._waterWheels=null;
     window._oceanMesh=null;
     window._waveRings=null;
+    window._snowParticles=null;
+    window._snowCitySteam=null;
+    window._snowCityWater=null;
     if(window._cityAnimals){for(var _cai=0;_cai<window._cityAnimals.length;_cai++){var _ca=window._cityAnimals[_cai];if(_ca._inScene)scene.remove(_ca.group);else if(_ca.group&&_ca.group.parent)_ca.group.parent.remove(_ca.group);}}
     window._cityAnimals=null;
     if(window._allProjectiles){for(var _api2=0;_api2<window._allProjectiles.length;_api2++){MoveProjectile_cleanup(window._allProjectiles[_api2]);}window._allProjectiles=[];}
@@ -602,8 +605,8 @@ function _makeCloud(cx,cy,cz,minParts,maxParts,minS,maxS){
     return cl;
 }
 function addClouds(){
-    // No clouds on the moon or Sakura City (clear sky with petals instead)
-    if(currentCityStyle===5||currentCityStyle===6)return;
+    // No clouds on moon, sakura, or snow village
+    if(currentCityStyle===5||currentCityStyle===6||currentCityStyle===7)return;
     // Cloud above each building roof — reachable with charge jump
     var roofClouds=[];
     for(var bi=0;bi<cityColliders.length;bi++){

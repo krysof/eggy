@@ -993,6 +993,34 @@ function updateCity(){
             _ws.position.x=Math.sin(_rwt*0.7+_scwi*2)*0.3;
         }
     }
+    // ---- Snow Village animations ----
+    if(window._snowParticles&&currentCityStyle===7){
+        var _swt=Date.now()*0.0003;
+        var _sWindX=Math.sin(_swt)*0.03+Math.sin(_swt*1.8)*0.015;
+        var _sWindZ=Math.cos(_swt*0.6)*0.02+Math.sin(_swt*1.2)*0.01;
+        for(var _spi8=0;_spi8<window._snowParticles.length;_spi8++){
+            var sp8=window._snowParticles[_spi8];
+            sp8.x+=sp8.vx+_sWindX;sp8.y+=sp8.vy;sp8.z+=sp8.vz+_sWindZ;
+            sp8.mesh.rotation.x+=sp8.rotSpeed;sp8.mesh.rotation.z+=sp8.rotSpeed*0.7;
+            if(sp8.y<-1){sp8.y=30+Math.random()*15;sp8.x=(Math.random()-0.5)*320;sp8.z=(Math.random()-0.5)*320;}
+            sp8.mesh.position.set(sp8.x,sp8.y,sp8.z);
+        }
+    }
+    if(window._snowCitySteam&&currentCityStyle===7){
+        for(var _sti3=0;_sti3<window._snowCitySteam.length;_sti3++){
+            var st3=window._snowCitySteam[_sti3];
+            st3.y+=st3.vy;st3.x+=(Math.random()-0.5)*0.02;st3.z+=(Math.random()-0.5)*0.02;
+            var _sScale=1+(st3.y-0.5)*0.15;st3.mesh.scale.setScalar(Math.max(0.3,_sScale));
+            st3.mesh.material.opacity=Math.max(0,0.35-st3.y*0.03);
+            if(st3.y>10){st3.y=0.5;st3.x=st3.baseX+(Math.random()-0.5)*st3.radius;st3.z=st3.baseZ+(Math.random()-0.5)*st3.radius;}
+            st3.mesh.position.set(st3.x,st3.y,st3.z);
+        }
+    }
+    if(window._snowCityWater&&currentCityStyle===7){
+        for(var _swi2=0;_swi2<window._snowCityWater.length;_swi2++){
+            window._snowCityWater[_swi2].position.y=0.15+Math.sin(Date.now()*0.001+_swi2)*0.03;
+        }
+    }
     // ---- Ocean wave animation ----
     if(window._oceanMesh&&window._oceanMesh.geometry){
         var _owt=Date.now()*0.001;
@@ -1624,6 +1652,13 @@ function _processChatCommand(msg){
     if(cmd==='/sakura'||cmd==='sakura'){
         if(playerEgg&&currentCityStyle!==6&&gameState==='city'){
             startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,6,playerEgg.mesh.position.y);
+        }
+        return true;
+    }
+    // /snow — teleport to Snow Village
+    if(cmd==='/snow'||cmd==='snow'){
+        if(playerEgg&&currentCityStyle!==7&&gameState==='city'){
+            startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,7,playerEgg.mesh.position.y);
         }
         return true;
     }
