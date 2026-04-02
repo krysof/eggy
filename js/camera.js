@@ -219,17 +219,15 @@ function updateCamera(){
                 if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
-        // Player faces movement direction only when moving forward (not backward)
-        if(!window._tpsBackward){
-            var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-            if(_mvSpd>0.03){
-                var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
-                // Smooth turn toward movement direction
-                var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
-                while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
-                while(_faceDy<-Math.PI)_faceDy+=Math.PI*2;
-                playerEgg.mesh.rotation.y+=_faceDy*0.1;
-            }
+        // All directions: player smoothly faces movement direction
+        // Backward: no turn, just retreat
+        var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+        if(_mvSpd>0.03&&!window._tpsBackward){
+            var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
+            var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
+            while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
+            while(_faceDy<-Math.PI)_faceDy+=Math.PI*2;
+            playerEgg.mesh.rotation.y+=_faceDy*0.08; // stable smooth turn
         }
         // Camera position: behind and above player
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
