@@ -86,13 +86,13 @@ function buildCity() {
     var _leftPlat=new THREE.Mesh(new THREE.BoxGeometry(120,_pH,280),_cliffM);
     _leftPlat.position.set(-68,_pH/2,0);_leftPlat.castShadow=true;cityGroup.add(_leftPlat);
     var _leftGrass=new THREE.Mesh(new THREE.BoxGeometry(120,0.3,280),_grassM);
-    _leftGrass.position.set(-68,_pH+0.15,0);cityGroup.add(_leftGrass);
+    _leftGrass.position.set(-68,_pH-0.05,0);cityGroup.add(_leftGrass);
     cityColliders.push({x:-68,z:0,hw:60,hd:140,h:_pH});
     // === Right plateau ===
     var _rightPlat=new THREE.Mesh(new THREE.BoxGeometry(120,_pH,280),_cliffM);
     _rightPlat.position.set(68,_pH/2,0);_rightPlat.castShadow=true;cityGroup.add(_rightPlat);
     var _rightGrass=new THREE.Mesh(new THREE.BoxGeometry(120,0.3,280),_grassM);
-    _rightGrass.position.set(68,_pH+0.15,0);cityGroup.add(_rightGrass);
+    _rightGrass.position.set(68,_pH-0.05,0);cityGroup.add(_rightGrass);
     cityColliders.push({x:68,z:0,hw:60,hd:140,h:_pH});
     // === Paths on plateaus ===
     // Paths between trees and ryokan
