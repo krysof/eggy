@@ -322,13 +322,20 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // TPS mode: fade everything near player that could block the view
+            // TPS mode: fade everything near player OR camera that could block view
             if(_tpsCamMode&&!shouldFade){
+                // Check distance to player
                 var _bdx=bld.x-px2, _bdz=bld.z-pz2;
                 var _bDist=Math.sqrt(_bdx*_bdx+_bdz*_bdz);
-                // Fade if building is within camera distance of player AND tall enough to block
                 if(_bDist<_tpsCamDist+bld.hw+bld.hd+2&&bld.h>py2+1){
                     shouldFade=true;
+                }
+                // Check if camera is inside or very close to building
+                if(!shouldFade){
+                    var _cdx=bld.x-cx, _cdz=bld.z-cz;
+                    if(Math.abs(_cdx)<bld.hw+2&&Math.abs(_cdz)<bld.hd+2){
+                        shouldFade=true;
+                    }
                 }
             }
 
