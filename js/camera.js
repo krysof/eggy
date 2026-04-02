@@ -246,13 +246,40 @@ function updateCamera(){
             }
         }
         // Camera position: spherical coordinates around player
-        var _hDist=_tpsCamDist*Math.cos(_tpsCamPitch); // horizontal distance
+        var _hDist=_tpsCamDist*Math.cos(_tpsCamPitch);
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_hDist;
         var _tpy=p.y+1.5+_tpsCamDist*Math.sin(_tpsCamPitch);
         var _tpz=p.z+Math.cos(_tpsCamYaw)*_hDist;
-        camera.position.x+=(_tpx-camera.position.x)*0.04; // slower position follow
-        camera.position.y+=(_tpy-camera.position.y)*0.04;
-        camera.position.z+=(_tpz-camera.position.z)*0.04;
+        // Camera collision: raycast from player to target, pull in if blocked
+        var _actDist=_tpsCamDist;
+        for(var _cci=0;_cci<cityColliders.length;_cci++){
+            var _cc=cityColliders[_cci];
+            if(_cc._bridge)continue; // skip bridge colliders
+            if((_cc.h||6)<p.y+1)continue; // skip low things
+            // Check if target camera pos is inside this collider
+            if(Math.abs(_tpx-_cc.x)<_cc.hw+1&&Math.abs(_tpz-_cc.z)<_cc.hd+1){
+                // Pull camera closer to player
+                var _dx2=_tpx-p.x, _dz2=_tpz-p.z;
+                var _dl=Math.sqrt(_dx2*_dx2+_dz2*_dz2)||1;
+                // Find safe distance (just outside the collider)
+                for(var _t=0.9;_t>0.1;_t-=0.1){
+                    var _tx=p.x+_dx2*_t, _tz=p.z+_dz2*_t;
+                    if(!(Math.abs(_tx-_cc.x)<_cc.hw+1&&Math.abs(_tz-_cc.z)<_cc.hd+1)){
+                        _actDist=_tpsCamDist*_t;
+                        break;
+                    }
+                }
+            }
+        }
+        if(_actDist<_tpsCamDist){
+            _hDist=_actDist*Math.cos(_tpsCamPitch);
+            _tpx=p.x+Math.sin(_tpsCamYaw)*_hDist;
+            _tpy=p.y+1.5+_actDist*Math.sin(_tpsCamPitch);
+            _tpz=p.z+Math.cos(_tpsCamYaw)*_hDist;
+        }
+        camera.position.x+=(_tpx-camera.position.x)*0.12;
+        camera.position.y+=(_tpy-camera.position.y)*0.12;
+        camera.position.z+=(_tpz-camera.position.z)*0.12;
         if(camera.position.y<p.y+0.8)camera.position.y=p.y+0.8;
         camera.lookAt(p.x,p.y+0.3,p.z);
         sun.position.set(p.x+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,p.z+RENDER_CONFIG.sunPos.z);
