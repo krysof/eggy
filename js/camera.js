@@ -219,9 +219,17 @@ function updateCamera(){
                 if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
-        // Player faces camera forward (not movement direction) — keeps facing front
-        if(!window._tpsBackward&&(Math.abs(playerEgg.vx)>0.02||Math.abs(playerEgg.vz)>0.02)){
-            playerEgg.mesh.rotation.y=_tpsCamYaw-Math.PI; // always face away from camera
+        // Player faces movement direction only when moving forward (not backward)
+        if(!window._tpsBackward){
+            var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+            if(_mvSpd>0.03){
+                var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
+                // Smooth turn toward movement direction
+                var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
+                while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
+                while(_faceDy<-Math.PI)_faceDy+=Math.PI*2;
+                playerEgg.mesh.rotation.y+=_faceDy*0.1;
+            }
         }
         // Camera position: behind and above player
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
