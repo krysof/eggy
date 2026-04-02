@@ -211,26 +211,26 @@ function updateCamera(){
         // Auto-follow: camera smoothly rotates to stay behind player when moving
         if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null){
             var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-            if(_spd>0.02){
-                var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI; // behind player
-                // Smooth angle lerp (handle wrapping)
+            if(_spd>0.05){ // higher threshold to ignore micro-movements
+                var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI;
                 var _dy=_targetYaw-_tpsCamYaw;
                 while(_dy>Math.PI)_dy-=Math.PI*2;
                 while(_dy<-Math.PI)_dy+=Math.PI*2;
-                _tpsCamYaw+=_dy*0.05; // smooth follow
+                // Only follow if angle difference is significant (dead zone)
+                if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02; // very slow follow
             }
         }
         // Player faces movement direction
-        if(Math.abs(playerEgg.vx)>0.01||Math.abs(playerEgg.vz)>0.01){
+        if(Math.abs(playerEgg.vx)>0.02||Math.abs(playerEgg.vz)>0.02){
             playerEgg.mesh.rotation.y=Math.atan2(playerEgg.vx,playerEgg.vz);
         }
         // Camera position: behind and above player
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
         var _tpy=p.y+2.0+_tpsCamDist*Math.sin(_tpsCamPitch)*0.5;
         var _tpz=p.z+Math.cos(_tpsCamYaw)*_tpsCamDist;
-        camera.position.x+=(_tpx-camera.position.x)*0.08;
-        camera.position.y+=(_tpy-camera.position.y)*0.08;
-        camera.position.z+=(_tpz-camera.position.z)*0.08;
+        camera.position.x+=(_tpx-camera.position.x)*0.04; // slower position follow
+        camera.position.y+=(_tpy-camera.position.y)*0.04;
+        camera.position.z+=(_tpz-camera.position.z)*0.04;
         if(camera.position.y<p.y+0.8)camera.position.y=p.y+0.8;
         camera.lookAt(p.x,p.y+1.5,p.z);
         sun.position.set(p.x+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,p.z+RENDER_CONFIG.sunPos.z);
