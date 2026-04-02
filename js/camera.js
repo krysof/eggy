@@ -254,7 +254,7 @@ function updateCamera(){
         camera.position.y+=(_tpy-camera.position.y)*0.04;
         camera.position.z+=(_tpz-camera.position.z)*0.04;
         if(camera.position.y<p.y+0.8)camera.position.y=p.y+0.8;
-        camera.lookAt(p.x,p.y+0.5,p.z);
+        camera.lookAt(p.x,p.y+0.8,p.z);
         sun.position.set(p.x+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,p.z+RENDER_CONFIG.sunPos.z);
         sun.target.position.set(p.x,0,p.z);
         _sunMesh.position.set(p.x+180,240,p.z+120);

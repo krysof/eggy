@@ -1174,14 +1174,18 @@ function buildCity() {
                 var _hRail=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,3),toon(0x887766));
                 _hRail.position.set(side*8,_pH+1.0,_rz2+1.5);cityGroup.add(_hRail);
             }
-            // Railing colliders — segmented, skip at bridges
-            for(var _rcz=-120;_rcz<=120;_rcz+=10){
-                var _atBr=false;
-                for(var _bci4=0;_bci4<_bridgeZones.length;_bci4++){
-                    if(Math.abs((_rcz+5)-_bridgeZones[_bci4])<8)_atBr=true;
+            // Railing colliders — continuous thin walls, gap only at bridges
+            // Sort bridge zones and create wall segments between them
+            var _sortedBZ=_bridgeZones.slice().sort(function(a,b){return a-b;});
+            var _wallStart=-125;
+            for(var _bwi4=0;_bwi4<=_sortedBZ.length;_bwi4++){
+                var _wallEnd=(_bwi4<_sortedBZ.length)?_sortedBZ[_bwi4]-5:125;
+                if(_wallEnd>_wallStart+1){
+                    var _wMid=(_wallStart+_wallEnd)/2;
+                    var _wHalf=(_wallEnd-_wallStart)/2;
+                    cityColliders.push({x:side*8,z:_wMid,hw:1.5,hd:_wHalf,h:_pH+1.3});
                 }
-                if(_atBr)continue;
-                cityColliders.push({x:side*8,z:_rcz+5,hw:0.8,hd:5,h:_pH+1.3});
+                _wallStart=(_bwi4<_sortedBZ.length)?_sortedBZ[_bwi4]+5:999;
             }
         });
         // Water at bottom of gorge (y=2, plateau at y=8, so 6 units deep)
