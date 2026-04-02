@@ -349,18 +349,13 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // TPS mode: fade anything between camera and player, or near either
+            // TPS mode: fade any tall building close to the camera
             if(_tpsCamMode&&!shouldFade){
-                var _pad=3; // generous padding
-                var _bx0=bld.x-bld.hw-_pad, _bx1=bld.x+bld.hw+_pad;
-                var _bz0=bld.z-bld.hd-_pad, _bz1=bld.z+bld.hd+_pad;
-                // Camera inside/near building bounds
-                if(cx>_bx0&&cx<_bx1&&cz>_bz0&&cz<_bz1) shouldFade=true;
-                // Building AABB overlaps camera↔player bounding box
-                if(!shouldFade&&bld.h>py2+0.5){
-                    var _minX=Math.min(cx,px2)-_pad, _maxX=Math.max(cx,px2)+_pad;
-                    var _minZ=Math.min(cz,pz2)-_pad, _maxZ=Math.max(cz,pz2)+_pad;
-                    if(_bx1>_minX&&_bx0<_maxX&&_bz1>_minZ&&_bz0<_maxZ) shouldFade=true;
+                var _cdx2=bld.x-cx, _cdz2=bld.z-cz;
+                var _camBldDist=Math.sqrt(_cdx2*_cdx2+_cdz2*_cdz2);
+                // Anything within camera distance + building size → transparent
+                if(_camBldDist<_tpsCamDist+bld.hw+bld.hd+4&&bld.h>py2+0.5){
+                    shouldFade=true;
                 }
             }
 
