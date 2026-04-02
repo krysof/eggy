@@ -353,7 +353,7 @@ function updateCamera(){
             if(!_tpsCamMode&&!shouldFade&&bld.h>py2+0.5){
                 var _bodyW=1.5; // ~egg radius × 3 body widths each side
                 // Rectangle: x within ±3 body widths of player, z >= player z (downward on screen)
-                if(bld.z+bld.hd>pz2-2&&Math.abs(bld.x-px2)<_bodyW*3+bld.hw){
+                if(bld.z-bld.hd>pz2-2&&Math.abs(bld.x-px2)<_bodyW*3+bld.hw){
                     shouldFade=true;
                 }
             }
