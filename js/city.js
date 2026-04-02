@@ -217,7 +217,7 @@ function buildCity() {
         const tg=new THREE.Group(); tg.position.set(tx,currentCityStyle===6?8:0,tz);
         if(currentCityStyle===6){
             // 大樱花树 — tall trunk, wide pink crown, weeping branches (垂樱)
-            var _sakH=4+Math.random()*3; // trunk height 4-7
+            var _sakH=10+Math.random()*4; // tall trunk (above TPS camera)
             var _sakR=3+Math.random()*2; // crown radius 3-5
             var sakTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.4,_sakH,8),toon(0x6B4226));
             sakTrunk.position.y=_sakH/2;sakTrunk.castShadow=true;tg.add(sakTrunk);
@@ -1235,7 +1235,7 @@ function buildCity() {
             [[-10,0.2],[10,-0.2]].forEach(function(sxl){
                 var _wlG=new THREE.Group();_wlG.position.set(sxl[0],_pH,_wlZ);
                 _wlG.rotation.z=sxl[1];
-                var _wlH=7+Math.random()*2; // tall trunk
+                var _wlH=12+Math.random()*3; // very tall trunk (above TPS camera)
                 // Thick trunk with fork
                 var wlTrunk=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,_wlH,8),toon(0x5C3317));
                 wlTrunk.position.y=_wlH/2;_wlG.add(wlTrunk);
