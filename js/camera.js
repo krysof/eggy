@@ -349,14 +349,16 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // Normal mode: wide front half-circle detection (doubled radius)
+            // Normal mode: lower half-circle from player center (toward camera = screen bottom)
             if(!_tpsCamMode&&!shouldFade){
-                var _cdx2=bld.x-cx, _cdz2=bld.z-cz;
-                var _camBldDist=Math.sqrt(_cdx2*_cdx2+_cdz2*_cdz2);
+                var _pdx=bld.x-px2, _pdz=bld.z-pz2;
+                var _pBldDist=Math.sqrt(_pdx*_pdx+_pdz*_pdz);
                 var _fadeR=(bld.hw+bld.hd+20)*2;
-                var _cpDx=px2-cx, _cpDz=pz2-cz;
-                var _dot=_cdx2*_cpDx+_cdz2*_cpDz;
-                if(_camBldDist<_fadeR&&_dot>0&&bld.h>py2+0.5){
+                // Direction from player toward camera (screen bottom direction)
+                var _pcDx=cx-px2, _pcDz=cz-pz2;
+                var _dot=_pdx*_pcDx+_pdz*_pcDz;
+                // Only lower half: building is on the camera side of the player
+                if(_pBldDist<_fadeR&&_dot>0&&bld.h>py2+0.5){
                     shouldFade=true;
                 }
             }
