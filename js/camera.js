@@ -321,22 +321,22 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // TPS mode: also fade anything close to the camera-player line (wider detection)
-            if(_tpsCamMode&&!shouldFade&&!onRoof){
-                // Check if building is between camera and player with generous width
-                var _midX=(cx+px2)/2, _midZ=(cz+pz2)/2;
-                var _halfLen=Math.sqrt((px2-cx)*(px2-cx)+(pz2-cz)*(pz2-cz))/2;
-                var _bldDist=Math.sqrt((bld.x-_midX)*(bld.x-_midX)+(bld.z-_midZ)*(bld.z-_midZ));
-                if(_bldDist<_halfLen+bld.hw+bld.hd){
-                    // Building is in the zone — check if it's above ground and could block view
-                    var _camY=camera.position.y;
-                    if(bld.h>py2+0.5&&bld.h>_camY*0.3){
-                        // Check perpendicular distance to camera→player line
-                        var _lineLen=Math.sqrt((px2-cx)*(px2-cx)+(pz2-cz)*(pz2-cz))||1;
-                        var _perpDist=Math.abs((pz2-cz)*(bld.x-cx)-(px2-cx)*(bld.z-cz))/_lineLen;
-                        if(_perpDist<bld.hw+bld.hd+3) shouldFade=true;
-                    }
-                }
+            // TPS mode: fade anything between camera and player (generous zone)
+            if(_tpsCamMode&&!shouldFade){
+                // Vector from camera to player
+                var _cpx=px2-cx, _cpz=pz2-cz;
+                var _cpLen=Math.sqrt(_cpx*_cpx+_cpz*_cpz)||1;
+                // Vector from camera to building
+                var _cbx=bld.x-cx, _cbz=bld.z-cz;
+                // Project building onto camera→player line
+                var _proj=(_cbx*_cpx+_cbz*_cpz)/(_cpLen*_cpLen);
+                // Perpendicular distance from building to line
+                var _perpX=_cbx-_proj*_cpx, _perpZ=_cbz-_proj*_cpz;
+                var _perpD=Math.sqrt(_perpX*_perpX+_perpZ*_perpZ);
+                // Fade if: building is between camera and player (0<proj<1.1)
+                // AND within generous perpendicular distance
+                var _fadeR=bld.hw+bld.hd+5; // generous radius
+                if(_proj>-0.2&&_proj<1.2&&_perpD<_fadeR) shouldFade=true;
             }
 
             const targetOp=shouldFade?(_tpsCamMode?0.0:0.2):1.0;
