@@ -220,8 +220,8 @@ function updateCamera(){
                 if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02; // very slow follow
             }
         }
-        // Player faces movement direction
-        if(Math.abs(playerEgg.vx)>0.02||Math.abs(playerEgg.vz)>0.02){
+        // Player faces movement direction (but not when walking backward)
+        if(!window._tpsBackward&&(Math.abs(playerEgg.vx)>0.02||Math.abs(playerEgg.vz)>0.02)){
             playerEgg.mesh.rotation.y=Math.atan2(playerEgg.vx,playerEgg.vz);
         }
         // Camera position: behind and above player

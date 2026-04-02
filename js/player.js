@@ -104,13 +104,22 @@ function handlePlayerInput(){
     if(keys['KeyW']||keys['ArrowUp'])mz-=1;
     if(keys['KeyS']||keys['ArrowDown'])mz+=1;
     if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
-    // TPS mode: movement relative to camera so controls feel natural
+    // TPS mode: movement relative to camera, S=slow backward without turning
     if(_tpsCamMode&&(mx||mz)){
         var _tcos=Math.cos(_tpsCamYaw),_tsin=Math.sin(_tpsCamYaw);
         var _tmx=mx*_tcos+mz*_tsin;
         var _tmz=-mx*_tsin+mz*_tcos;
+        // Detect backward input (S/down/joystick down)
+        var _rawBack=(keys['KeyS']||keys['ArrowDown'])||(joyActive&&joyVec.y>0.3);
+        var _rawFwd=(keys['KeyW']||keys['ArrowUp'])||(joyActive&&joyVec.y<-0.3);
+        if(_rawBack&&!_rawFwd){
+            _tmx*=0.4;_tmz*=0.4; // slow backward
+            window._tpsBackward=true;
+        } else {
+            window._tpsBackward=false;
+        }
         mx=_tmx;mz=_tmz;
-    }
+    } else {window._tpsBackward=false;}
     // Sprint: hold F — gradual speed ramp (only when not holding something)
     var _holdAnything=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     var holdingF=keys['KeyF']&&!_portalConfirmOpen&&!_holdAnything;
