@@ -349,16 +349,25 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // TPS mode: fade tall buildings in front half-circle of camera (toward player)
-            if(_tpsCamMode&&!shouldFade){
+            // Normal mode: wide front half-circle detection (doubled radius)
+            if(!_tpsCamMode&&!shouldFade){
                 var _cdx2=bld.x-cx, _cdz2=bld.z-cz;
                 var _camBldDist=Math.sqrt(_cdx2*_cdx2+_cdz2*_cdz2);
-                var _fadeR=(_tpsCamDist+bld.hw+bld.hd+4)*2; // double radius
-                // Only front half: dot product of (cam→building) and (cam→player) > 0
+                var _fadeR=(bld.hw+bld.hd+20)*2;
                 var _cpDx=px2-cx, _cpDz=pz2-cz;
                 var _dot=_cdx2*_cpDx+_cdz2*_cpDz;
                 if(_camBldDist<_fadeR&&_dot>0&&bld.h>py2+0.5){
                     shouldFade=true;
+                }
+            }
+            // TPS mode: fade buildings near camera or between camera and player
+            if(_tpsCamMode&&!shouldFade){
+                var _cdx3=bld.x-cx, _cdz3=bld.z-cz;
+                if(Math.abs(_cdx3)<bld.hw+3&&Math.abs(_cdz3)<bld.hd+3) shouldFade=true;
+                if(!shouldFade){
+                    var _bdx2=bld.x-px2, _bdz2=bld.z-pz2;
+                    var _bDist2=Math.sqrt(_bdx2*_bdx2+_bdz2*_bdz2);
+                    if(_bDist2<_tpsCamDist+bld.hw+bld.hd+4&&bld.h>py2+0.5) shouldFade=true;
                 }
             }
 
