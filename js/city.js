@@ -1135,21 +1135,53 @@ function buildCity() {
         // Deep canyon floor
         var _canyonFloor=new THREE.Mesh(new THREE.BoxGeometry(16,0.3,260),toon(0x334433));
         _canyonFloor.position.set(0,0.15,0);cityGroup.add(_canyonFloor);
-        // Prominent stone embankment walls (高い石垣) with collision guardrails
+        // Stone embankment walls + railing posts with bridge gaps
+        var _bridgeZones=[-60,-30,0,30,60]; // z positions of all bridges
         [-1,1].forEach(function(side){
+            // Cliff wall (visual)
             var _embWall=new THREE.Mesh(new THREE.BoxGeometry(1.5,_pH,260),toon(0x887766));
             _embWall.position.set(side*8,_pH/2,0);_embWall.castShadow=true;cityGroup.add(_embWall);
             var _embCap=new THREE.Mesh(new THREE.BoxGeometry(2,0.4,260),toon(0x999888));
             _embCap.position.set(side*8,_pH+0.2,0);cityGroup.add(_embCap);
-            // Raised stone guardrail on top (prevents walking off edge)
-            var _guard=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,260),toon(0x887766));
-            _guard.position.set(side*8,_pH+0.8,0);cityGroup.add(_guard);
-            // Guardrail collider — tall enough to block walking
-            cityColliders.push({x:side*8,z:0,hw:1,hd:130,h:_pH+1.5});
+            // Stone texture strips
             for(var _esi=0;_esi<6;_esi++){
-                var _esY=1+_esi*1.2;
                 var _esLine=new THREE.Mesh(new THREE.BoxGeometry(1.55,0.08,260),toon(0x776655));
-                _esLine.position.set(side*8,_esY,0);cityGroup.add(_esLine);
+                _esLine.position.set(side*8,1+_esi*1.2,0);cityGroup.add(_esLine);
+            }
+            // Railing posts along edge — skip at bridge positions
+            for(var _rz=-120;_rz<=120;_rz+=3){
+                // Check if this position overlaps a bridge
+                var _atBridge=false;
+                for(var _bci2=0;_bci2<_bridgeZones.length;_bci2++){
+                    if(Math.abs(_rz-_bridgeZones[_bci2])<5)_atBridge=true;
+                }
+                if(_atBridge)continue;
+                // Vertical post
+                var _post=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.2,4),toon(0x887766));
+                _post.position.set(side*8,_pH+0.6,_rz);cityGroup.add(_post);
+                // Top ball
+                var _ball=new THREE.Mesh(new THREE.SphereGeometry(0.18,4,3),toon(0x999888));
+                _ball.position.set(side*8,_pH+1.2,_rz);cityGroup.add(_ball);
+            }
+            // Horizontal rail between posts (skip bridge gaps)
+            for(var _rz2=-120;_rz2<=117;_rz2+=3){
+                var _atB1=false,_atB2=false;
+                for(var _bci3=0;_bci3<_bridgeZones.length;_bci3++){
+                    if(Math.abs(_rz2-_bridgeZones[_bci3])<5)_atB1=true;
+                    if(Math.abs((_rz2+3)-_bridgeZones[_bci3])<5)_atB2=true;
+                }
+                if(_atB1||_atB2)continue;
+                var _hRail=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,3),toon(0x887766));
+                _hRail.position.set(side*8,_pH+1.0,_rz2+1.5);cityGroup.add(_hRail);
+            }
+            // Railing colliders — segmented, skip at bridges
+            for(var _rcz=-120;_rcz<=120;_rcz+=10){
+                var _atBr=false;
+                for(var _bci4=0;_bci4<_bridgeZones.length;_bci4++){
+                    if(Math.abs((_rcz+5)-_bridgeZones[_bci4])<8)_atBr=true;
+                }
+                if(_atBr)continue;
+                cityColliders.push({x:side*8,z:_rcz+5,hw:0.8,hd:5,h:_pH+1.3});
             }
         });
         // Water at bottom of gorge (y=2, plateau at y=8, so 6 units deep)
