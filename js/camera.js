@@ -371,7 +371,7 @@ function updateCamera(){
                 }
             }
 
-            const targetOp=shouldFade?(_tpsCamMode?0.0:0.2):1.0;
+            const targetOp=shouldFade?0.0:1.0;
             for(const m of bld.meshes){
                 const mat=m.material;
                 if(!mat.hasOwnProperty('_origOpacity')){mat._origOpacity=mat.opacity||1;mat._origTransparent=mat.transparent||false;mat._origDepthWrite=mat.depthWrite!==undefined?mat.depthWrite:true;}
