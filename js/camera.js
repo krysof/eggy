@@ -349,17 +349,15 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // Normal mode: lower half-circle from player center (toward camera = screen bottom)
-            if(!_tpsCamMode&&!shouldFade){
-                var _pdx=bld.x-px2, _pdz=bld.z-pz2;
-                var _pBldDist=Math.sqrt(_pdx*_pdx+_pdz*_pdz);
-                var _fadeR=(bld.hw+bld.hd+20)*2;
-                // Direction from player toward camera (screen bottom direction)
-                var _pcDx=cx-px2, _pcDz=cz-pz2;
-                var _dot=_pdx*_pcDx+_pdz*_pcDz;
-                // Only lower half: building is on the camera side of the player
-                if(_pBldDist<_fadeR&&_dot>0&&bld.h>py2+0.5){
-                    shouldFade=true;
+            // Normal mode: fade buildings with screen Z > player screen Z (lower half of screen)
+            if(!_tpsCamMode&&!shouldFade&&bld.h>py2+0.5){
+                // In normal mode camera looks from +z toward -z, so buildings with
+                // higher world z than player appear lower on screen
+                if(bld.z>pz2-2){
+                    // Building is at same z or behind player (lower on screen)
+                    var _pdx=bld.x-px2, _pdz=bld.z-pz2;
+                    var _pBldDist=Math.sqrt(_pdx*_pdx+_pdz*_pdz);
+                    if(_pBldDist<(bld.hw+bld.hd+20)*2) shouldFade=true;
                 }
             }
             // TPS mode: fade buildings near camera or between camera and player
