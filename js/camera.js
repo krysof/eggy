@@ -50,7 +50,7 @@ document.addEventListener('mousemove',function(e){
     if(_tpsDragging){
         _tpsCamYaw-=(e.clientX-_tpsLastX)*0.005;
         _tpsCamPitch+=(e.clientY-_tpsLastY)*0.005;
-        if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
+        if(_tpsCamPitch<-1.57)_tpsCamPitch=-1.57;
         if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         _tpsLastX=e.clientX;_tpsLastY=e.clientY;
     }
@@ -73,7 +73,7 @@ document.addEventListener('touchmove',function(e){
                 var t=e.touches[ti];
                 _tpsCamYaw-=(t.clientX-_tpsLastX)*0.008;
                 _tpsCamPitch+=(t.clientY-_tpsLastY)*0.008;
-                if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
+                if(_tpsCamPitch<-1.57)_tpsCamPitch=-1.57;
                 if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
                 _tpsLastX=t.clientX;_tpsLastY=t.clientY;
                 break;
@@ -205,7 +205,7 @@ function updateCamera(){
         var _tpsManual=false;
         if(keys['KeyF']){
             if(joyActive){_tpsCamYaw-=joyVec.x*0.04;_tpsCamPitch-=joyVec.y*0.03;_tpsManual=true;}
-            if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
+            if(_tpsCamPitch<-1.57)_tpsCamPitch=-1.57;
             if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         }
         // ---- TPS State Machine: facing + camera follow ----
