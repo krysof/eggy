@@ -349,12 +349,15 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // TPS mode: fade any tall building close to the camera
+            // TPS mode: fade tall buildings in front half-circle of camera (toward player)
             if(_tpsCamMode&&!shouldFade){
                 var _cdx2=bld.x-cx, _cdz2=bld.z-cz;
                 var _camBldDist=Math.sqrt(_cdx2*_cdx2+_cdz2*_cdz2);
-                // Anything within camera distance + building size → transparent
-                if(_camBldDist<_tpsCamDist+bld.hw+bld.hd+4&&bld.h>py2+0.5){
+                var _fadeR=(_tpsCamDist+bld.hw+bld.hd+4)*2; // double radius
+                // Only front half: dot product of (cam→building) and (cam→player) > 0
+                var _cpDx=px2-cx, _cpDz=pz2-cz;
+                var _dot=_cdx2*_cpDx+_cdz2*_cpDz;
+                if(_camBldDist<_fadeR&&_dot>0&&bld.h>py2+0.5){
                     shouldFade=true;
                 }
             }
