@@ -245,10 +245,11 @@ function updateCamera(){
                 if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
-        // Camera position: behind and above player
-        var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
-        var _tpy=p.y+2.0+_tpsCamDist*Math.sin(_tpsCamPitch)*0.5;
-        var _tpz=p.z+Math.cos(_tpsCamYaw)*_tpsCamDist;
+        // Camera position: spherical coordinates around player
+        var _hDist=_tpsCamDist*Math.cos(_tpsCamPitch); // horizontal distance
+        var _tpx=p.x+Math.sin(_tpsCamYaw)*_hDist;
+        var _tpy=p.y+1.5+_tpsCamDist*Math.sin(_tpsCamPitch);
+        var _tpz=p.z+Math.cos(_tpsCamYaw)*_hDist;
         camera.position.x+=(_tpx-camera.position.x)*0.04; // slower position follow
         camera.position.y+=(_tpy-camera.position.y)*0.04;
         camera.position.z+=(_tpz-camera.position.z)*0.04;
