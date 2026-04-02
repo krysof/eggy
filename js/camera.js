@@ -201,26 +201,38 @@ function updateCamera(){
     // Third-person (RE5 style) camera — over-the-shoulder
     if(_tpsCamMode){
         _tpsCamDist=Math.max(2,Math.min(15,_tpsCamDist));
-        // TPS: grab button adjusts camera angle
+        // TPS: grab button adjusts camera angle manually
+        var _tpsManual=false;
         if(keys['KeyF']){
-            if(joyActive){_tpsCamYaw-=joyVec.x*0.04;_tpsCamPitch-=joyVec.y*0.03;}
-            if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0; // can look up
+            if(joyActive){_tpsCamYaw-=joyVec.x*0.04;_tpsCamPitch-=joyVec.y*0.03;_tpsManual=true;}
+            if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
             if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         }
-        // Camera behind and slightly above player eye level
-        var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
-        var _tpy=p.y+1.8+_tpsCamDist*Math.sin(_tpsCamPitch)*0.5;
-        var _tpz=p.z+Math.cos(_tpsCamYaw)*_tpsCamDist;
-        camera.position.x+=(_tpx-camera.position.x)*0.12;
-        camera.position.y+=(_tpy-camera.position.y)*0.12;
-        camera.position.z+=(_tpz-camera.position.z)*0.12;
-        if(camera.position.y<p.y+0.8)camera.position.y=p.y+0.8;
-        camera.lookAt(p.x,p.y+1.5,p.z);
-        // Scroll wheel adjusts distance
-        // Player faces camera direction when moving
+        // Auto-follow: camera smoothly rotates to stay behind player when moving
+        if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null){
+            var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+            if(_spd>0.02){
+                var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI; // behind player
+                // Smooth angle lerp (handle wrapping)
+                var _dy=_targetYaw-_tpsCamYaw;
+                while(_dy>Math.PI)_dy-=Math.PI*2;
+                while(_dy<-Math.PI)_dy+=Math.PI*2;
+                _tpsCamYaw+=_dy*0.05; // smooth follow
+            }
+        }
+        // Player faces movement direction
         if(Math.abs(playerEgg.vx)>0.01||Math.abs(playerEgg.vz)>0.01){
             playerEgg.mesh.rotation.y=Math.atan2(playerEgg.vx,playerEgg.vz);
         }
+        // Camera position: behind and above player
+        var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
+        var _tpy=p.y+2.0+_tpsCamDist*Math.sin(_tpsCamPitch)*0.5;
+        var _tpz=p.z+Math.cos(_tpsCamYaw)*_tpsCamDist;
+        camera.position.x+=(_tpx-camera.position.x)*0.08;
+        camera.position.y+=(_tpy-camera.position.y)*0.08;
+        camera.position.z+=(_tpz-camera.position.z)*0.08;
+        if(camera.position.y<p.y+0.8)camera.position.y=p.y+0.8;
+        camera.lookAt(p.x,p.y+1.5,p.z);
         sun.position.set(p.x+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,p.z+RENDER_CONFIG.sunPos.z);
         sun.target.position.set(p.x,0,p.z);
         _sunMesh.position.set(p.x+180,240,p.z+120);
