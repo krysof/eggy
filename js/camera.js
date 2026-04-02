@@ -349,15 +349,12 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // Normal mode: fade buildings with screen Z > player screen Z (lower half of screen)
+            // Normal mode: fade buildings in a narrow rectangle below player (3 body widths)
             if(!_tpsCamMode&&!shouldFade&&bld.h>py2+0.5){
-                // In normal mode camera looks from +z toward -z, so buildings with
-                // higher world z than player appear lower on screen
-                if(bld.z>pz2-2){
-                    // Building is at same z or behind player (lower on screen)
-                    var _pdx=bld.x-px2, _pdz=bld.z-pz2;
-                    var _pBldDist=Math.sqrt(_pdx*_pdx+_pdz*_pdz);
-                    if(_pBldDist<(bld.hw+bld.hd+20)*2) shouldFade=true;
+                var _bodyW=1.5; // ~egg radius × 3 body widths each side
+                // Rectangle: x within ±3 body widths of player, z >= player z (downward on screen)
+                if(bld.z+bld.hd>pz2-2&&Math.abs(bld.x-px2)<_bodyW*3+bld.hw){
+                    shouldFade=true;
                 }
             }
             // TPS mode: fade buildings near camera or between camera and player
