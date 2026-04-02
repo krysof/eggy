@@ -321,13 +321,30 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
+            // TPS mode: also fade anything close to the camera-player line (wider detection)
+            if(_tpsCamMode&&!shouldFade&&!onRoof){
+                // Check if building is between camera and player with generous width
+                var _midX=(cx+px2)/2, _midZ=(cz+pz2)/2;
+                var _halfLen=Math.sqrt((px2-cx)*(px2-cx)+(pz2-cz)*(pz2-cz))/2;
+                var _bldDist=Math.sqrt((bld.x-_midX)*(bld.x-_midX)+(bld.z-_midZ)*(bld.z-_midZ));
+                if(_bldDist<_halfLen+bld.hw+bld.hd){
+                    // Building is in the zone — check if it's above ground and could block view
+                    var _camY=camera.position.y;
+                    if(bld.h>py2+0.5&&bld.h>_camY*0.3){
+                        // Check perpendicular distance to camera→player line
+                        var _lineLen=Math.sqrt((px2-cx)*(px2-cx)+(pz2-cz)*(pz2-cz))||1;
+                        var _perpDist=Math.abs((pz2-cz)*(bld.x-cx)-(px2-cx)*(bld.z-cz))/_lineLen;
+                        if(_perpDist<bld.hw+bld.hd+3) shouldFade=true;
+                    }
+                }
+            }
 
             const targetOp=shouldFade?(_tpsCamMode?0.0:0.2):1.0;
             for(const m of bld.meshes){
                 const mat=m.material;
                 if(!mat.hasOwnProperty('_origOpacity')){mat._origOpacity=mat.opacity||1;mat._origTransparent=mat.transparent||false;mat._origDepthWrite=mat.depthWrite!==undefined?mat.depthWrite:true;}
                 const goal=targetOp*mat._origOpacity;
-                mat.opacity+=(goal-mat.opacity)*0.15;
+                mat.opacity+=(goal-mat.opacity)*(_tpsCamMode?0.3:0.15);
                 mat.transparent=true;
                 mat.depthWrite=mat.opacity>0.95;
                 mat.needsUpdate=true;
