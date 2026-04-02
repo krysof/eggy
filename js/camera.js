@@ -349,20 +349,18 @@ function updateCamera(){
             if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
                 shouldFade=true;
             }
-            // TPS mode: fade everything near player OR camera that could block view
+            // TPS mode: fade anything between camera and player, or near either
             if(_tpsCamMode&&!shouldFade){
-                // Check distance to player
-                var _bdx=bld.x-px2, _bdz=bld.z-pz2;
-                var _bDist=Math.sqrt(_bdx*_bdx+_bdz*_bdz);
-                if(_bDist<_tpsCamDist+bld.hw+bld.hd+2&&bld.h>py2+1){
-                    shouldFade=true;
-                }
-                // Check if camera is inside or very close to building
-                if(!shouldFade){
-                    var _cdx=bld.x-cx, _cdz=bld.z-cz;
-                    if(Math.abs(_cdx)<bld.hw+2&&Math.abs(_cdz)<bld.hd+2){
-                        shouldFade=true;
-                    }
+                var _pad=3; // generous padding
+                var _bx0=bld.x-bld.hw-_pad, _bx1=bld.x+bld.hw+_pad;
+                var _bz0=bld.z-bld.hd-_pad, _bz1=bld.z+bld.hd+_pad;
+                // Camera inside/near building bounds
+                if(cx>_bx0&&cx<_bx1&&cz>_bz0&&cz<_bz1) shouldFade=true;
+                // Building AABB overlaps camera↔player bounding box
+                if(!shouldFade&&bld.h>py2+0.5){
+                    var _minX=Math.min(cx,px2)-_pad, _maxX=Math.max(cx,px2)+_pad;
+                    var _minZ=Math.min(cz,pz2)-_pad, _maxZ=Math.max(cz,pz2)+_pad;
+                    if(_bx1>_minX&&_bx0<_maxX&&_bz1>_minZ&&_bz0<_maxZ) shouldFade=true;
                 }
             }
 
