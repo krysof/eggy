@@ -516,6 +516,11 @@ function switchCity(targetStyle){
         playerEgg.mesh.position.set(0,14,-30);
         camera.position.set(0,22,-16);camera.lookAt(0,8,-30);
         camera.up.set(0,1,0);
+    } else if(currentCityStyle===7){
+        // Snow Village: spawn on island
+        playerEgg.mesh.position.set(0,5,0);
+        camera.position.set(0,12,14);camera.lookAt(0,0,0);
+        camera.up.set(0,1,0);
     } else {
         playerEgg.mesh.position.set(0,15,0);
         camera.position.set(0,12,19);camera.lookAt(0,0,5);
