@@ -224,13 +224,20 @@ function updateCamera(){
                 if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
-        var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-        if(_mvSpd>0.03&&!_tpsBack2&&!window._tpsBackward){
-            var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
-            var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
-            while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
-            while(_faceDy<-Math.PI)_faceDy+=Math.PI*2;
-            playerEgg.mesh.rotation.y+=_faceDy*0.08; // stable smooth turn
+        if(_anyBack){
+            // Backward: save and lock facing direction
+            if(!playerEgg._tpsSavedFace)playerEgg._tpsSavedFace=playerEgg.mesh.rotation.y;
+            playerEgg.mesh.rotation.y=playerEgg._tpsSavedFace;
+        } else {
+            playerEgg._tpsSavedFace=null;
+            var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+            if(_mvSpd>0.03){
+                var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
+                var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
+                while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
+                while(_faceDy<-Math.PI)_faceDy+=Math.PI*2;
+                playerEgg.mesh.rotation.y+=_faceDy*0.08;
+            }
         }
         // Camera position: behind and above player
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
