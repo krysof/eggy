@@ -208,34 +208,12 @@ function updateCamera(){
             if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
             if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         }
-        // Detect backward directly in camera code
-        var _isBack=!!((keys['KeyS']||keys['ArrowDown'])||(joyActive&&joyVec.y>0.3));
-        var _isFwd=!!((keys['KeyW']||keys['ArrowUp'])||(joyActive&&joyVec.y<-0.3));
-        var _tpsBack2=_isBack&&!_isFwd;
-        var _anyBack=window._tpsBackward||_tpsBack2;
-        // Auto-follow: camera smoothly rotates to stay behind player (skip when backward)
-        if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null&&!_anyBack){
-            var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-            if(_spd>0.05){
-                var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI;
-                var _dy=_targetYaw-_tpsCamYaw;
-                while(_dy>Math.PI)_dy-=Math.PI*2;
-                while(_dy<-Math.PI)_dy+=Math.PI*2;
-                if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
-            }
-        }
-        if(_anyBack){
-            // Backward: save and lock facing direction
-            if(!playerEgg._tpsSavedFace)playerEgg._tpsSavedFace=playerEgg.mesh.rotation.y;
-            playerEgg.mesh.rotation.y=playerEgg._tpsSavedFace;
-            playerEgg._tpsWasBack=true;
-        } else {
-            // Just released backward — kill residual velocity to prevent snap turn
-            if(playerEgg._tpsWasBack){
-                playerEgg.vx*=0.1;playerEgg.vz*=0.1;
-                playerEgg._tpsWasBack=false;
-            }
-            playerEgg._tpsSavedFace=null;
+        // ---- TPS State Machine: facing + camera follow ----
+        var _st=window._tpsMoveState||'idle';
+
+        // 1. Character facing
+        if(_st==='forward'){
+            // Moving forward/side: smoothly turn to face velocity direction
             var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
             if(_mvSpd>0.03){
                 var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
@@ -243,6 +221,24 @@ function updateCamera(){
                 while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
                 while(_faceDy<-Math.PI)_faceDy+=Math.PI*2;
                 playerEgg.mesh.rotation.y+=_faceDy*0.08;
+            }
+            playerEgg._tpsLastFace=playerEgg.mesh.rotation.y;
+        } else {
+            // Backward or idle: hold last known facing direction
+            if(playerEgg._tpsLastFace!==undefined){
+                playerEgg.mesh.rotation.y=playerEgg._tpsLastFace;
+            }
+        }
+
+        // 2. Camera auto-follow (only when moving forward, not manual/backward)
+        if(_st==='forward'&&!_tpsManual&&!_tpsDragging&&_tpsTouchId===null){
+            var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+            if(_spd>0.05){
+                var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI;
+                var _dy=_targetYaw-_tpsCamYaw;
+                while(_dy>Math.PI)_dy-=Math.PI*2;
+                while(_dy<-Math.PI)_dy+=Math.PI*2;
+                if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
         // Camera position: behind and above player

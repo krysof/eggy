@@ -98,28 +98,38 @@ function handlePlayerInput(){
         if(playerEgg._electrocuted>0)playerEgg.vy=0;
         return;
     }
-    let mx=0,mz=0;
-    if(keys['KeyA']||keys['ArrowLeft'])mx-=1;
-    if(keys['KeyD']||keys['ArrowRight'])mx+=1;
-    if(keys['KeyW']||keys['ArrowUp'])mz-=1;
-    if(keys['KeyS']||keys['ArrowDown'])mz+=1;
-    if(joyActive){mx+=joyVec.x;mz+=joyVec.y;}
-    // TPS mode: movement relative to camera, S=slow backward without turning
-    if(_tpsCamMode&&(mx||mz)){
+    // ---- TPS Input State (clean state machine) ----
+    // Raw input
+    var _rawMX=0,_rawMZ=0;
+    if(keys['KeyA']||keys['ArrowLeft'])_rawMX-=1;
+    if(keys['KeyD']||keys['ArrowRight'])_rawMX+=1;
+    if(keys['KeyW']||keys['ArrowUp'])_rawMZ-=1;
+    if(keys['KeyS']||keys['ArrowDown'])_rawMZ+=1;
+    if(joyActive){_rawMX+=joyVec.x;_rawMZ+=joyVec.y;}
+
+    var mx=_rawMX,mz=_rawMZ;
+    // TPS state: idle / forward / backward
+    window._tpsMoveState='idle'; // default
+
+    if(_tpsCamMode&&(_rawMX||_rawMZ)){
+        // Transform raw input to camera-relative world coordinates
         var _tcos=Math.cos(_tpsCamYaw),_tsin=Math.sin(_tpsCamYaw);
-        var _tmx=mx*_tcos+mz*_tsin;
-        var _tmz=-mx*_tsin+mz*_tcos;
-        // Detect backward input (S/down/joystick down)
-        var _rawBack=(keys['KeyS']||keys['ArrowDown'])||(joyActive&&joyVec.y>0.3);
-        var _rawFwd=(keys['KeyW']||keys['ArrowUp'])||(joyActive&&joyVec.y<-0.3);
-        if(_rawBack&&!_rawFwd){
-            _tmx*=0.4;_tmz*=0.4; // slow backward
-            window._tpsBackward=true;
+        mx=_rawMX*_tcos+_rawMZ*_tsin;
+        mz=-_rawMX*_tsin+_rawMZ*_tcos;
+
+        // Determine move state from raw (untransformed) input
+        var _hasBack=_rawMZ>0.3;
+        var _hasFwd=_rawMZ<-0.3;
+        var _hasSide=Math.abs(_rawMX)>0.3;
+
+        if(_hasBack&&!_hasFwd&&!_hasSide){
+            // Pure backward: slow retreat, no turn
+            mx*=0.4;mz*=0.4;
+            window._tpsMoveState='backward';
         } else {
-            window._tpsBackward=false;
+            window._tpsMoveState='forward';
         }
-        mx=_tmx;mz=_tmz;
-    } else {window._tpsBackward=false;}
+    }
     // Sprint: hold F — gradual speed ramp (only when not holding something)
     var _holdAnything=playerEgg.holding||playerEgg.holdingProp||playerEgg.holdingObs;
     var holdingF=keys['KeyF']&&!_portalConfirmOpen&&!_holdAnything;
