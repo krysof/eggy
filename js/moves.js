@@ -230,11 +230,10 @@ function MoveSpin_execute(egg, dir, params){
 function MoveSpin_update(egg, inputFn){
     egg._tatsuActive--;
     var ct=egg.mesh.userData._charType||'egg';
-    // Body rotation — spin body child, only rotate mesh in non-TPS
+    // Body rotation
     var body=egg.mesh.userData.body;
     if(body) body.rotation.y+=0.8;
-    if(!window._tpsCamMode) egg.mesh.rotation.y+=0.8;
-    else { if(!egg._tatsuBaseY)egg._tatsuBaseY=egg.mesh.rotation.y; }
+    egg.mesh.rotation.y+=0.8;
     // Chun-Li / monkey: flip upside-down
     if(ct==='monkey'){
         egg.mesh.scale.y=-1;

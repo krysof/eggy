@@ -210,9 +210,13 @@ function updateCamera(){
         }
         // ---- TPS State Machine: facing + camera follow ----
         var _st=window._tpsMoveState||'idle';
+        // Skip facing control during special moves (let moves handle their own rotation)
+        var _inMove=!!(playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._blankaSpinFalling||playerEgg._guileSomersault||playerEgg._yogaFlame||playerEgg._piledriverTarget);
 
-        // 1. Character facing
-        if(_st==='forward'){
+        // 1. Character facing (skip during special moves)
+        if(_inMove){
+            // Moves control their own rotation — just update last face when done
+        } else if(_st==='forward'){
             // Moving forward/side: smoothly turn to face velocity direction
             var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
             if(_mvSpd>0.03){
