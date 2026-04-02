@@ -1061,10 +1061,15 @@ function buildCity() {
             {x:30,z:85,w:13,d:14,h:14,c:0,face:-1},         // 小関館
             {x:30,z:100,w:10,d:11,h:8,c:0xCCBBAA,face:-1}   // 甘酒屋
         ];
-        // Riverside weeping sakura (垂桜) — one row per side, staggered, leaning over gorge
+        // Riverside weeping sakura (垂桜) — skip at bridge entrances
+        var _allBridgeZ=[-60,-30,0,30,60];
         for(var _rsti=0;_rsti<14;_rsti++){
-            var _rstZ=-100+_rsti*15+((_rsti%2)*7); // staggered positions
-            [[-11,0.3],[11,-0.3]].forEach(function(sxr){ // x pos + lean angle toward river
+            var _rstZ=-100+_rsti*15+((_rsti%2)*7);
+            // Skip if too close to any bridge
+            var _nearBridge=false;
+            for(var _nbi=0;_nbi<_allBridgeZ.length;_nbi++){if(Math.abs(_rstZ-_allBridgeZ[_nbi])<8)_nearBridge=true;}
+            if(_nearBridge)continue;
+            [[-11,0.3],[11,-0.3]].forEach(function(sxr){
                 var sx=sxr[0],_lean=sxr[1];
                 var _rstG=new THREE.Group();_rstG.position.set(sx,_pH,_rstZ);
                 _rstG.rotation.z=_lean; // lean toward river
@@ -1228,8 +1233,14 @@ function buildCity() {
             });
             cityColliders.push({x:0,z:_wbZ,hw:9,hd:3,h:_pH,_bridge:true});
             // Bridge railing colliders (prevent falling off sides)
-            cityColliders.push({x:0,z:_wbZ+2.7,hw:9,hd:0.3,h:_pH+1.2});
-            cityColliders.push({x:0,z:_wbZ-2.7,hw:9,hd:0.3,h:_pH+1.2});
+            cityColliders.push({x:0,z:_wbZ+2.7,hw:9,hd:0.3,h:_pH+1.5});
+            cityColliders.push({x:0,z:_wbZ-2.7,hw:9,hd:0.3,h:_pH+1.5});
+            // Side walls at bridge entrance (fill gap between gorge railing and bridge)
+            [-1,1].forEach(function(side){
+                [-1,1].forEach(function(zs){
+                    cityColliders.push({x:side*8,z:_wbZ+zs*3.5,hw:1.5,hd:1.5,h:_pH+1.5});
+                });
+            });
             cityBuildingMeshes.push({meshes:_wbMeshes,x:0,z:_wbZ,hw:9,hd:3,h:_pH});
         }
         // Red arched bridges (big, spanning gorge)
@@ -1269,6 +1280,12 @@ function buildCity() {
             // Red bridge railing colliders
             cityColliders.push({x:0,z:_rbZ+2.8,hw:9,hd:0.3,h:_rbBase+_rbArch+1.5});
             cityColliders.push({x:0,z:_rbZ-2.8,hw:9,hd:0.3,h:_rbBase+_rbArch+1.5});
+            // Side walls at bridge entrance
+            [-1,1].forEach(function(side){
+                [-1,1].forEach(function(zs){
+                    cityColliders.push({x:side*8,z:_rbZ+zs*3.5,hw:1.5,hd:1.5,h:_pH+1.5});
+                });
+            });
         }
         // Lanterns on plateau edges
         for(var _gli=0;_gli<14;_gli++){var _glz=-100+_gli*15;_buildToro(-10,_glz,_pH);_buildToro(10,_glz+8,_pH);}
@@ -1276,6 +1293,9 @@ function buildCity() {
         var _petalCols=[0xFFAABB,0xFFBBCC,0xFFCCDD,0xFF99AA,0xFFDDEE];
         for(var _wli=0;_wli<10;_wli++){
             var _wlZ=-90+_wli*20+((_wli%2)*10);
+            var _wlNearBr=false;
+            for(var _wnbi=0;_wnbi<_allBridgeZ.length;_wnbi++){if(Math.abs(_wlZ-_allBridgeZ[_wnbi])<10)_wlNearBr=true;}
+            if(_wlNearBr)continue;
             [[-10,0.2],[10,-0.2]].forEach(function(sxl){
                 var _wlG=new THREE.Group();_wlG.position.set(sxl[0],_pH,_wlZ);
                 _wlG.rotation.z=sxl[1];
