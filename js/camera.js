@@ -228,7 +228,13 @@ function updateCamera(){
             // Backward: save and lock facing direction
             if(!playerEgg._tpsSavedFace)playerEgg._tpsSavedFace=playerEgg.mesh.rotation.y;
             playerEgg.mesh.rotation.y=playerEgg._tpsSavedFace;
+            playerEgg._tpsWasBack=true;
         } else {
+            // Just released backward — kill residual velocity to prevent snap turn
+            if(playerEgg._tpsWasBack){
+                playerEgg.vx*=0.1;playerEgg.vz*=0.1;
+                playerEgg._tpsWasBack=false;
+            }
             playerEgg._tpsSavedFace=null;
             var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
             if(_mvSpd>0.03){
