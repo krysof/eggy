@@ -208,21 +208,20 @@ function updateCamera(){
             if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
             if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         }
-        // Auto-follow: camera smoothly rotates to stay behind player when moving
-        if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null){
+        // Auto-follow: camera smoothly rotates to stay behind player (skip when backward)
+        if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null&&!window._tpsBackward){
             var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-            if(_spd>0.05){ // higher threshold to ignore micro-movements
+            if(_spd>0.05){
                 var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI;
                 var _dy=_targetYaw-_tpsCamYaw;
                 while(_dy>Math.PI)_dy-=Math.PI*2;
                 while(_dy<-Math.PI)_dy+=Math.PI*2;
-                // Only follow if angle difference is significant (dead zone)
-                if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02; // very slow follow
+                if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
-        // Player faces movement direction (but not when walking backward)
+        // Player faces camera forward (not movement direction) — keeps facing front
         if(!window._tpsBackward&&(Math.abs(playerEgg.vx)>0.02||Math.abs(playerEgg.vz)>0.02)){
-            playerEgg.mesh.rotation.y=Math.atan2(playerEgg.vx,playerEgg.vz);
+            playerEgg.mesh.rotation.y=_tpsCamYaw-Math.PI; // always face away from camera
         }
         // Camera position: behind and above player
         var _tpx=p.x+Math.sin(_tpsCamYaw)*_tpsCamDist;
