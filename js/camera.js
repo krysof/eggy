@@ -208,8 +208,13 @@ function updateCamera(){
             if(_tpsCamPitch<-1.0)_tpsCamPitch=-1.0;
             if(_tpsCamPitch>1.2)_tpsCamPitch=1.2;
         }
+        // Detect backward directly in camera code
+        var _isBack=!!((keys['KeyS']||keys['ArrowDown'])||(joyActive&&joyVec.y>0.3));
+        var _isFwd=!!((keys['KeyW']||keys['ArrowUp'])||(joyActive&&joyVec.y<-0.3));
+        var _tpsBack2=_isBack&&!_isFwd;
+        var _anyBack=window._tpsBackward||_tpsBack2;
         // Auto-follow: camera smoothly rotates to stay behind player (skip when backward)
-        if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null&&!window._tpsBackward){
+        if(!_tpsManual&&!_tpsDragging&&_tpsTouchId===null&&!_anyBack){
             var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
             if(_spd>0.05){
                 var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI;
@@ -219,10 +224,8 @@ function updateCamera(){
                 if(Math.abs(_dy)>0.1)_tpsCamYaw+=_dy*0.02;
             }
         }
-        // All directions: player smoothly faces movement direction
-        // Backward: no turn, just retreat
         var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
-        if(_mvSpd>0.03&&!window._tpsBackward){
+        if(_mvSpd>0.03&&!_tpsBack2&&!window._tpsBackward){
             var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
             var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
             while(_faceDy>Math.PI)_faceDy-=Math.PI*2;
