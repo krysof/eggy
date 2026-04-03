@@ -150,8 +150,8 @@ function buildCity() {
         {x:0,z:-130,w:8,d:8,h:11},{x:0,z:130,w:8,d:8,h:13},
     ];
     buildings.forEach((b,i)=>{
-        // Sakura City: skip ALL default buildings — custom onsen town layout built below
-        if(currentCityStyle===6)return;
+        // Sakura/Snow: skip ALL default buildings — custom layout built below
+        if(currentCityStyle===6||currentCityStyle===7)return;
         const col = bColors[i%bColors.length];
         const bm = new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d), toon(col));
         bm.position.set(b.x, b.h/2, b.z); bm.castShadow=true; bm.receiveShadow=true;
@@ -263,7 +263,7 @@ function buildCity() {
     }
 
 // ---- Grand Roman Wishing Fountain (Trevi-style) — skip for Sakura City ----
-    if(currentCityStyle!==6){
+    if(currentCityStyle!==6&&currentCityStyle!==7){
     var stoneM=toon(0xCCBBAA);var stoneD=toon(0xAA9988);var marbleM=toon(0xEEE8DD);
     var waterM=toon(0x44AADD,{transparent:true,opacity:0.55});
     var goldM=toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
@@ -1586,14 +1586,13 @@ function buildCity() {
     }
 
     // ===============================================================
-    //  Snow Village — 雪之乡 (湖心岛白川郷 + 外围温泉街)
+    //  Snow Village — 雪之乡 (地面=白川郷岛, 海=洞爺湖, 外围=温泉街)
     // ===============================================================
     if(currentCityStyle===7){try{
         var _snowM=toon(0xF0F4F8);
         var _woodM7=toon(0x8B7355);
         var _stoneM2=toon(0x999999);
         var _winM7=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.6});
-        var _lakeR=140; // massive lake — covers almost entire map
 
         // Helper: Gassho-zukuri house (合掌造り)
         function _buildGassho(x,z,w,d,h){
@@ -1624,107 +1623,59 @@ function buildCity() {
             cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2+1,hd:d/2+1,h:h});
         }
 
-        // === 1. Deep Blue Lake (洞爺湖 — volcanic caldera, never freezes) ===
-        // Deep dark blue water surface
-        var lakeWater=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,0.3,48),toon(0x0A1A3A));
-        lakeWater.position.set(0,0.05,0);cityGroup.add(lakeWater);
-        // Slightly lighter sheen on top
-        var lakeSheen=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR-0.5,_lakeR-0.5,0.05,48),toon(0x152844,{transparent:true,opacity:0.6}));
-        lakeSheen.position.set(0,0.22,0);cityGroup.add(lakeSheen);
-        // Snowy white shore bank
-        var lakeBank=new THREE.Mesh(new THREE.TorusGeometry(_lakeR+2,3,8,48),_snowM);
-        lakeBank.position.set(0,0.3,0);lakeBank.rotation.x=Math.PI/2;cityGroup.add(lakeBank);
+        // === 1. Deep Blue Lake replacing ocean (洞爺湖) ===
+        var _lakeSize=CITY_SIZE*4;
+        var lakeWater=new THREE.Mesh(new THREE.PlaneGeometry(_lakeSize,_lakeSize),toon(0x0A1A3A));
+        lakeWater.rotation.x=-Math.PI/2;lakeWater.position.y=-0.3;cityGroup.add(lakeWater);
+        window._snowCityWater=[lakeWater];
 
-        // === 2. Lake Island (中島) with Shirakawa-go village ===
-        var _islandR=30;
-        // Rocky/earthy island base rising from water
-        var islandBase=new THREE.Mesh(new THREE.CylinderGeometry(_islandR,_islandR+5,3,24),toon(0x667755));
-        islandBase.position.set(0,1,0);cityGroup.add(islandBase);
-        // Snow-dusted green top
-        var islandTop=new THREE.Mesh(new THREE.CylinderGeometry(_islandR-1,_islandR,0.4,24),toon(0x88AA77));
-        islandTop.position.set(0,2.5,0);cityGroup.add(islandTop);
-        var islandSnow=new THREE.Mesh(new THREE.CylinderGeometry(_islandR-2,_islandR-1,0.15,24),_snowM);
-        islandSnow.position.set(0,2.75,0);cityGroup.add(islandSnow);
-        // Island collider — walkable surface at top of island
-        cityColliders.push({x:0,z:0,hw:_islandR,hd:_islandR,h:2.7});
-        // Gassho houses on island
-        var _islandHouses=[
-            {x:-12,z:-12,w:8,d:10,h:9},{x:8,z:-14,w:9,d:11,h:10},
-            {x:-8,z:5,w:10,d:12,h:11},{x:12,z:8,w:8,d:10,h:8},
-            {x:0,z:-5,w:7,d:8,h:8},{x:-15,z:8,w:7,d:9,h:7},
-            {x:0,z:15,w:9,d:11,h:10},{x:15,z:-3,w:7,d:8,h:7}
+        // === 2. Gassho-zukuri village on main ground (白川郷) ===
+        var _gasshoList=[
+            {x:-30,z:-50,w:10,d:12,h:10},{x:-10,z:-55,w:8,d:10,h:8},
+            {x:15,z:-50,w:9,d:11,h:9},{x:35,z:-55,w:10,d:12,h:10},
+            {x:-35,z:-25,w:7,d:9,h:7},{x:-12,z:-28,w:8,d:10,h:8},
+            {x:10,z:-22,w:10,d:13,h:11},{x:30,z:-25,w:8,d:10,h:8},
+            {x:-25,z:0,w:9,d:11,h:9},{x:0,z:5,w:7,d:8,h:7},
+            {x:25,z:0,w:8,d:10,h:8},{x:-30,z:25,w:10,d:12,h:10},
+            {x:-5,z:30,w:8,d:10,h:8},{x:20,z:28,w:9,d:11,h:9},
+            {x:40,z:25,w:7,d:9,h:7},{x:-15,z:55,w:8,d:10,h:8}
         ];
-        for(var _gi2=0;_gi2<_islandHouses.length;_gi2++){
-            var g2=_islandHouses[_gi2];
+        for(var _gi2=0;_gi2<_gasshoList.length;_gi2++){
+            var g2=_gasshoList[_gi2];
             _buildGassho(g2.x,g2.z,g2.w,g2.d,g2.h);
         }
-        // Torii gate on island
-        var torii7=new THREE.Group();torii7.position.set(0,1.2,-22);
+        // Torii gate
+        var torii7=new THREE.Group();torii7.position.set(0,0,-70);
         [-1,1].forEach(function(s){
-            var tp=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,5,6),toon(0xCC3333));
-            tp.position.set(s*2,2.5,0);torii7.add(tp);
+            var tp=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,5,6),toon(0xCC3333));
+            tp.position.set(s*2.5,2.5,0);torii7.add(tp);
         });
-        torii7.add(new THREE.Mesh(new THREE.BoxGeometry(5.5,0.3,0.4),toon(0xCC3333)));torii7.children[2].position.y=4.8;
+        torii7.add(new THREE.Mesh(new THREE.BoxGeometry(6,0.3,0.4),toon(0xCC3333)));torii7.children[2].position.y=4.8;
         cityGroup.add(torii7);
 
-        // === 3. Bridges to island (4 directions) ===
-        window._snowCityWater=[];
-        [0,Math.PI/2,Math.PI,Math.PI*1.5].forEach(function(angle){
-            var bx1=Math.sin(angle)*(_islandR-2),bz1=Math.cos(angle)*(_islandR-2);
-            var bx2=Math.sin(angle)*(_lakeR-2),bz2=Math.cos(angle)*(_lakeR-2);
-            var bLen=Math.sqrt((bx2-bx1)*(bx2-bx1)+(bz2-bz1)*(bz2-bz1));
-            var bMidX=(bx1+bx2)/2,bMidZ=(bz1+bz2)/2;
-            // Bridge deck at island height
-            var _brY=2.7;
-            var br=new THREE.Mesh(new THREE.BoxGeometry(5,0.4,bLen),_woodM7);
-            br.position.set(bMidX,_brY,bMidZ);br.rotation.y=-angle;cityGroup.add(br);
-            // Support pillars
-            for(var _bpi=0;_bpi<Math.floor(bLen/15);_bpi++){
-                var _bpt=(_bpi+1)/(Math.floor(bLen/15)+1);
-                var _bpx=bx1+(bx2-bx1)*_bpt,_bpz=bz1+(bz2-bz1)*_bpt;
-                var pil=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,_brY+0.5,6),toon(0x664422));
-                pil.position.set(_bpx,_brY/2,_bpz);cityGroup.add(pil);
-            }
-            // Railings
-            [-1,1].forEach(function(s){
-                var rail=new THREE.Mesh(new THREE.BoxGeometry(0.12,1.2,bLen),_woodM7);
-                rail.position.set(bMidX+Math.cos(angle)*s*2.3,_brY+0.6,bMidZ-Math.sin(angle)*s*2.3);
-                rail.rotation.y=-angle;cityGroup.add(rail);
-            });
-            cityColliders.push({x:bMidX,z:bMidZ,hw:Math.abs(Math.cos(angle))*2.5+Math.abs(Math.sin(angle))*bLen/2,
-                hd:Math.abs(Math.sin(angle))*2.5+Math.abs(Math.cos(angle))*bLen/2,h:_brY,_bridge:true});
-        });
-
-        // === 4. Outer shore — 温泉街 (ring of buildings around lake) ===
-        for(var _osi=0;_osi<20;_osi++){
-            var _oa7=_osi/20*Math.PI*2;
-            var _ox7=Math.sin(_oa7)*(_lakeR+15);
-            var _oz7=Math.cos(_oa7)*(_lakeR+15);
-            // Alternate large ryokan and small shops
+        // === 3. Onsen town on far shore (温泉街) ===
+        for(var _osi=0;_osi<24;_osi++){
+            var _oa7=_osi/24*Math.PI*2;
+            var _ox7=Math.sin(_oa7)*(CITY_SIZE+25);
+            var _oz7=Math.cos(_oa7)*(CITY_SIZE+25);
             if(_osi%3===0){
-                // Large ryokan (use buildJpnElev style but simpler)
                 var _rh7=8+Math.floor(Math.random()*5);
                 var ms7=[];
                 var wall7=new THREE.Mesh(new THREE.BoxGeometry(10,_rh7,12),toon(0xF5F0E8));
                 wall7.position.set(_ox7,_rh7/2,_oz7);wall7.castShadow=true;cityGroup.add(wall7);ms7.push(wall7);
                 var roof7=new THREE.Mesh(new THREE.BoxGeometry(12,0.4,14),toon(0x555555));
                 roof7.position.set(_ox7,_rh7+0.2,_oz7);cityGroup.add(roof7);ms7.push(roof7);
-                // Snow on roof
                 var srf7=new THREE.Mesh(new THREE.BoxGeometry(12,0.2,14),_snowM);
                 srf7.position.set(_ox7,_rh7+0.5,_oz7);cityGroup.add(srf7);ms7.push(srf7);
-                // Windows
                 for(var _wy7=2;_wy7<_rh7-1;_wy7+=3){
                     for(var _wx7=-3;_wx7<=3;_wx7+=3){
                         var wn7=new THREE.Mesh(new THREE.BoxGeometry(1,1.5,0.15),_winM7);
                         wn7.position.set(_ox7+_wx7,_wy7,_oz7+6.1);cityGroup.add(wn7);ms7.push(wn7);
-                        var wn7b=new THREE.Mesh(new THREE.BoxGeometry(1,1.5,0.15),_winM7);
-                        wn7b.position.set(_ox7+_wx7,_wy7,_oz7-6.1);cityGroup.add(wn7b);ms7.push(wn7b);
                     }
                 }
                 cityColliders.push({x:_ox7,z:_oz7,hw:6,hd:7,h:_rh7});
                 cityBuildingMeshes.push({meshes:ms7,x:_ox7,z:_oz7,hw:6,hd:7,h:_rh7});
             } else {
-                // Small shop
                 var sh7=new THREE.Mesh(new THREE.BoxGeometry(6,5,8),toon([0xEEDDBB,0xDDCCAA,0xCCBB99][_osi%3]));
                 sh7.position.set(_ox7,2.5,_oz7);sh7.castShadow=true;cityGroup.add(sh7);
                 var shR7=new THREE.Mesh(new THREE.BoxGeometry(7,0.3,9),toon(0x555555));
@@ -1736,9 +1687,9 @@ function buildCity() {
             }
         }
 
-        // === 5. Hot Spring Pools (温泉) along shore ===
+        // === 4. Hot Springs on shore ===
         window._snowCitySteam=[];
-        [[_lakeR+8,30,6],[_lakeR+6,-40,4],[-_lakeR-8,20,5],[-_lakeR-6,-30,4]].forEach(function(sp){
+        [[CITY_SIZE+10,40,6],[CITY_SIZE+8,-50,4],[-CITY_SIZE-10,30,5],[-CITY_SIZE-8,-40,4]].forEach(function(sp){
             var pool=new THREE.Mesh(new THREE.CylinderGeometry(sp[2],sp[2],0.3,16),toon(0x66BBAA,{transparent:true,opacity:0.7}));
             pool.position.set(sp[0],0.2,sp[1]);cityGroup.add(pool);
             var edge=new THREE.Mesh(new THREE.TorusGeometry(sp[2]+0.5,0.5,6,16),_stoneM2);
@@ -1746,34 +1697,32 @@ function buildCity() {
             for(var _sti2=0;_sti2<12;_sti2++){
                 var steam=new THREE.Mesh(new THREE.SphereGeometry(0.3+Math.random()*0.3,4,3),
                     new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.3}));
-                var sx2=sp[0]+(Math.random()-0.5)*sp[2];
-                var sz2=sp[1]+(Math.random()-0.5)*sp[2];
+                var sx2=sp[0]+(Math.random()-0.5)*sp[2],sz2=sp[1]+(Math.random()-0.5)*sp[2];
                 steam.position.set(sx2,0.5+Math.random()*3,sz2);cityGroup.add(steam);
                 window._snowCitySteam.push({mesh:steam,x:sx2,y:0.5+Math.random()*3,z:sz2,
                     baseX:sp[0],baseZ:sp[1],radius:sp[2],vy:0.01+Math.random()*0.01});
             }
         });
 
-        // === 6. Mountains (surrounding) ===
+        // === 5. Mountains (far surrounding) ===
         var _mtM=toon(0x667788);
         for(var _mi7=0;_mi7<10;_mi7++){
             var _ma7=_mi7/10*Math.PI*2;
-            var _mr7=130+Math.random()*30;
-            var _mh7=40+Math.random()*30;
+            var _mr7=CITY_SIZE+60+Math.random()*40;
+            var _mh7=40+Math.random()*35;
             var mt=new THREE.Mesh(new THREE.ConeGeometry(25+Math.random()*15,_mh7,6),_mtM);
             mt.position.set(Math.sin(_ma7)*_mr7,_mh7/2,Math.cos(_ma7)*_mr7);cityGroup.add(mt);
             var cap=new THREE.Mesh(new THREE.ConeGeometry(10+Math.random()*5,_mh7*0.2,6),_snowM);
             cap.position.set(Math.sin(_ma7)*_mr7,_mh7*0.85,Math.cos(_ma7)*_mr7);cityGroup.add(cap);
         }
 
-        // === 7. Snow-covered conifers ===
-        for(var _ti7=0;_ti7<80;_ti7++){
-            var _ta7=Math.random()*Math.PI*2;
-            var _tr7=_lakeR+3+Math.random()*20;
-            var tx7=Math.sin(_ta7)*_tr7,tz7=Math.cos(_ta7)*_tr7;
+        // === 6. Snow-covered conifers on island ===
+        for(var _ti7=0;_ti7<40;_ti7++){
+            var tx7=(Math.random()-0.5)*240,tz7=(Math.random()-0.5)*240;
+            if(Math.abs(tx7)>CITY_SIZE-5||Math.abs(tz7)>CITY_SIZE-5)continue;
             var skip7=false;
             for(var _ci7=0;_ci7<cityColliders.length;_ci7++){
-                var c7=cityColliders[_ci7];if(c7.hw>30)continue;
+                var c7=cityColliders[_ci7];if(c7.hw>50)continue;
                 if(Math.abs(tx7-c7.x)<c7.hw+3&&Math.abs(tz7-c7.z)<c7.hd+3)skip7=true;
             }
             if(skip7)continue;
@@ -1782,29 +1731,28 @@ function buildCity() {
             tg7.add(new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.25,_th7,6),toon(0x5C4033)));tg7.children[0].position.y=_th7/2;
             for(var _cl7=0;_cl7<3;_cl7++){
                 var _cr7=2.2-_cl7*0.5,_cy7=_th7-0.5+_cl7*1.5;
-                var c7m=new THREE.Mesh(new THREE.ConeGeometry(_cr7,2.2,6),toon(0x2D5A3D));c7m.position.y=_cy7;tg7.add(c7m);
+                tg7.add(new THREE.Mesh(new THREE.ConeGeometry(_cr7,2.2,6),toon(0x2D5A3D)));tg7.children[tg7.children.length-1].position.y=_cy7;
                 var sc7=new THREE.Mesh(new THREE.SphereGeometry(_cr7*0.7,4,3),_snowM);sc7.position.y=_cy7+0.9;sc7.scale.y=0.3;tg7.add(sc7);
             }
             cityGroup.add(tg7);
         }
 
-        // === 8. Falling Snow (3000 particles) ===
+        // === 7. Falling Snow ===
         window._snowParticles=[];
         for(var _spi7=0;_spi7<3000;_spi7++){
             var _spG7=new THREE.PlaneGeometry(0.12,0.12);
             var _spM7=new THREE.Mesh(_spG7,new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.8,side:THREE.DoubleSide}));
-            var _sx7=(Math.random()-0.5)*320,_sy7=5+Math.random()*35,_sz7=(Math.random()-0.5)*320;
+            var _sx7=(Math.random()-0.5)*400,_sy7=5+Math.random()*35,_sz7=(Math.random()-0.5)*400;
             _spM7.position.set(_sx7,_sy7,_sz7);cityGroup.add(_spM7);
             window._snowParticles.push({mesh:_spM7,x:_sx7,y:_sy7,z:_sz7,
                 vx:(Math.random()-0.5)*0.008,vy:-0.008-Math.random()*0.007,vz:(Math.random()-0.5)*0.008,
                 rotSpeed:0.01+Math.random()*0.01});
         }
 
-        // === 9. Lanterns around lake shore ===
-        for(var _sli7=0;_sli7<16;_sli7++){
-            var _sla7=_sli7/16*Math.PI*2;
-            var _slx7=Math.sin(_sla7)*(_lakeR+5),_slz7=Math.cos(_sla7)*(_lakeR+5);
-            var tg8=new THREE.Group();tg8.position.set(_slx7,0,_slz7);
+        // === 8. Lanterns ===
+        for(var _sli7=0;_sli7<12;_sli7++){
+            var _slz7=-55+_sli7*10;
+            var tg8=new THREE.Group();tg8.position.set(5,0,_slz7);
             tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.2,0.4),_stoneM2));tg8.children[0].position.y=0.1;
             tg8.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.2,6),_stoneM2));tg8.children[1].position.y=0.8;
             tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.4),toon(0xFFDD88,{emissive:0xFFDD88,emissiveIntensity:0.5})));tg8.children[2].position.y=1.6;
