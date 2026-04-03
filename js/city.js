@@ -1624,31 +1624,29 @@ function buildCity() {
             cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2+1,hd:d/2+1,h:h});
         }
 
-        // === 1. Frozen Lake (大きな湖) — center of map ===
-        // Dark lake bed (visible through ice)
-        var lakeBed=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,2,48),toon(0x223344));
-        lakeBed.position.set(0,-1,0);cityGroup.add(lakeBed);
-        // Ice surface — sits ON the ground, distinct blue-white color
-        var iceTop=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,0.15,48),toon(0x88BBDD,{transparent:true,opacity:0.75}));
-        iceTop.position.set(0,0.08,0);cityGroup.add(iceTop);
-        // Shore rim — dark stone ring marking lake edge
-        var lakeRim=new THREE.Mesh(new THREE.TorusGeometry(_lakeR+1,1.5,6,48),toon(0x556666));
-        lakeRim.position.set(0,0.5,0);lakeRim.rotation.x=Math.PI/2;cityGroup.add(lakeRim);
-        // Ice crack lines for visual detail
-        for(var _ici=0;_ici<12;_ici++){
-            var _ica=_ici/12*Math.PI*2;
-            var _icLen=20+Math.random()*40;
-            var crack=new THREE.Mesh(new THREE.BoxGeometry(_icLen,0.02,0.08),toon(0xCCEEFF,{transparent:true,opacity:0.4}));
-            crack.position.set(Math.sin(_ica)*_icLen*0.3,0.16,Math.cos(_ica)*_icLen*0.3);
-            crack.rotation.y=_ica+Math.random()*0.5;cityGroup.add(crack);
-        }
+        // === 1. Deep Blue Lake (洞爺湖 — volcanic caldera, never freezes) ===
+        // Deep dark blue water surface
+        var lakeWater=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,0.3,48),toon(0x0A1A3A));
+        lakeWater.position.set(0,0.05,0);cityGroup.add(lakeWater);
+        // Slightly lighter sheen on top
+        var lakeSheen=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR-0.5,_lakeR-0.5,0.05,48),toon(0x152844,{transparent:true,opacity:0.6}));
+        lakeSheen.position.set(0,0.22,0);cityGroup.add(lakeSheen);
+        // Snowy white shore bank
+        var lakeBank=new THREE.Mesh(new THREE.TorusGeometry(_lakeR+2,3,8,48),_snowM);
+        lakeBank.position.set(0,0.3,0);lakeBank.rotation.x=Math.PI/2;cityGroup.add(lakeBank);
 
-        // === 2. Lake Island (湖心岛) with Shirakawa-go village ===
+        // === 2. Lake Island (中島) with Shirakawa-go village ===
         var _islandR=30;
-        var islandMesh=new THREE.Mesh(new THREE.CylinderGeometry(_islandR,_islandR+3,1.5,24),toon(0xE8EEF0));
-        islandMesh.position.set(0,0.5,0);cityGroup.add(islandMesh);
-        // Island collider — walkable surface
-        cityColliders.push({x:0,z:0,hw:_islandR,hd:_islandR,h:1.2});
+        // Rocky/earthy island base rising from water
+        var islandBase=new THREE.Mesh(new THREE.CylinderGeometry(_islandR,_islandR+5,3,24),toon(0x667755));
+        islandBase.position.set(0,1,0);cityGroup.add(islandBase);
+        // Snow-dusted green top
+        var islandTop=new THREE.Mesh(new THREE.CylinderGeometry(_islandR-1,_islandR,0.4,24),toon(0x88AA77));
+        islandTop.position.set(0,2.5,0);cityGroup.add(islandTop);
+        var islandSnow=new THREE.Mesh(new THREE.CylinderGeometry(_islandR-2,_islandR-1,0.15,24),_snowM);
+        islandSnow.position.set(0,2.75,0);cityGroup.add(islandSnow);
+        // Island collider — walkable surface at top of island
+        cityColliders.push({x:0,z:0,hw:_islandR,hd:_islandR,h:2.7});
         // Gassho houses on island
         var _islandHouses=[
             {x:-12,z:-12,w:8,d:10,h:9},{x:8,z:-14,w:9,d:11,h:10},
