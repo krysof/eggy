@@ -54,19 +54,33 @@ function updateEggPhysics(egg, isCity){
             egg.onGround=false; // will be set by collider checks below
         } else {
         // City ground — only within city bounds
-        var _inBounds=Math.abs(egg.mesh.position.x)<(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE)&&Math.abs(egg.mesh.position.z)<(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
+        var _cityBound=currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*4:CITY_SIZE);
+        var _inBounds=Math.abs(egg.mesh.position.x)<_cityBound&&Math.abs(egg.mesh.position.z)<_cityBound;
         if(_inBounds&&egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         }else if(!_inBounds){egg.onGround=false;}
         else{egg.onGround=false;}
         }
+        // Snow Village: fall into lake = respawn (lake is between island and outer shore)
+        if(currentCityStyle===7){
+            var _snowDist=Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
+            var _snowIslandR2=CITY_SIZE*2; // island radius
+            if(_snowDist>_snowIslandR2&&egg.mesh.position.y<0.5){
+                egg.mesh.position.set(0,3,0);egg.vx=0;egg.vy=0;egg.vz=0;
+                egg.onGround=false;egg.squash=0.5;
+                if(egg.isPlayer){playHitSound();playSplashSound();}
+            }
+        }
         // City bounds — no wall, can fall off edge
-        const bound=(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE);
+        const bound=(currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*4:CITY_SIZE));
         // Fall respawn: if egg falls below -5, respawn at center
         if(egg.mesh.position.y<-5){
             if(currentCityStyle===5){
                 // Moon: respawn inside Von Braun
                 egg.mesh.position.set(-200,5,0);
+            } else if(currentCityStyle===7){
+                // Snow Village: respawn on island center
+                egg.mesh.position.set(0,3,0);
             } else if(currentCityStyle===6){
                 // Sakura: respawn above red bridge
                 egg.mesh.position.set(0,14,-30);

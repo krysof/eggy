@@ -55,7 +55,8 @@ function buildCity() {
             cityGroup.add(patch);
         }
     } else {
-    const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
+    var _gSize=currentCityStyle===7?CITY_SIZE*4:CITY_SIZE; // snow village 4x bigger
+    const groundGeo = new THREE.PlaneGeometry(_gSize*2, _gSize*2, 16, 16);
     const ground = new THREE.Mesh(groundGeo, toon(st.ground));
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     cityGroup.add(ground);
@@ -1623,23 +1624,28 @@ function buildCity() {
             cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2+1,hd:d/2+1,h:h});
         }
 
-        // === 1. Deep Blue Lake replacing ocean (洞爺湖) ===
-        var _lakeSize=CITY_SIZE*4;
+        // === 1. Deep Blue Lake (洞爺湖) — ring between island and outer shore ===
+        var _snowIslandR=CITY_SIZE*2; // island radius (4x = 320)
+        var _snowOuterR=CITY_SIZE*3; // outer shore inner edge (480)
+        var _snowOuterW=80; // outer shore width
+        // Lake water fills everything below ground
+        var _lakeSize=CITY_SIZE*8;
         var lakeWater=new THREE.Mesh(new THREE.PlaneGeometry(_lakeSize,_lakeSize),toon(0x0A1A3A));
-        lakeWater.rotation.x=-Math.PI/2;lakeWater.position.y=-0.3;cityGroup.add(lakeWater);
+        lakeWater.rotation.x=-Math.PI/2;lakeWater.position.y=-0.5;cityGroup.add(lakeWater);
         window._snowCityWater=[lakeWater];
 
-        // === 2. Gassho-zukuri village on main ground (白川郷) ===
-        var _gasshoList=[
-            {x:-30,z:-50,w:10,d:12,h:10},{x:-10,z:-55,w:8,d:10,h:8},
-            {x:15,z:-50,w:9,d:11,h:9},{x:35,z:-55,w:10,d:12,h:10},
-            {x:-35,z:-25,w:7,d:9,h:7},{x:-12,z:-28,w:8,d:10,h:8},
-            {x:10,z:-22,w:10,d:13,h:11},{x:30,z:-25,w:8,d:10,h:8},
-            {x:-25,z:0,w:9,d:11,h:9},{x:0,z:5,w:7,d:8,h:7},
-            {x:25,z:0,w:8,d:10,h:8},{x:-30,z:25,w:10,d:12,h:10},
-            {x:-5,z:30,w:8,d:10,h:8},{x:20,z:28,w:9,d:11,h:9},
-            {x:40,z:25,w:7,d:9,h:7},{x:-15,z:55,w:8,d:10,h:8}
-        ];
+        // === 2. Gassho-zukuri village — spread across big island ===
+        var _gasshoList=[];
+        // Generate houses in a grid pattern across the island
+        for(var _gx=-200;_gx<=200;_gx+=50){
+            for(var _gz=-200;_gz<=200;_gz+=50){
+                if(Math.sqrt(_gx*_gx+_gz*_gz)>_snowIslandR-30)continue; // stay within island
+                var _gw=7+Math.floor(Math.random()*5);
+                var _gd=8+Math.floor(Math.random()*5);
+                var _gh=7+Math.floor(Math.random()*5);
+                _gasshoList.push({x:_gx+(Math.random()-0.5)*20,z:_gz+(Math.random()-0.5)*20,w:_gw,d:_gd,h:_gh});
+            }
+        }
         for(var _gi2=0;_gi2<_gasshoList.length;_gi2++){
             var g2=_gasshoList[_gi2];
             _buildGassho(g2.x,g2.z,g2.w,g2.d,g2.h);
@@ -1654,8 +1660,8 @@ function buildCity() {
         cityGroup.add(torii7);
 
         // === 3. Outer shore land ring (外围陆地) ===
-        var _outerR=CITY_SIZE+20; // inner edge of outer land
-        var _outerW=60; // width of outer land ring
+        var _outerR=_snowOuterR;
+        var _outerW=_snowOuterW;
         // Ring of snowy ground beyond the lake
         for(var _ori7=0;_ori7<32;_ori7++){
             var _orA=_ori7/32*Math.PI*2;
@@ -1718,11 +1724,11 @@ function buildCity() {
             }
         });
 
-        // === 5. Mountains (far surrounding) ===
+        // === 6. Mountains (far surrounding) ===
         var _mtM=toon(0x667788);
-        for(var _mi7=0;_mi7<10;_mi7++){
-            var _ma7=_mi7/10*Math.PI*2;
-            var _mr7=CITY_SIZE+60+Math.random()*40;
+        for(var _mi7=0;_mi7<12;_mi7++){
+            var _ma7=_mi7/12*Math.PI*2;
+            var _mr7=_snowOuterR+_outerW+30+Math.random()*50;
             var _mh7=40+Math.random()*35;
             var mt=new THREE.Mesh(new THREE.ConeGeometry(25+Math.random()*15,_mh7,6),_mtM);
             mt.position.set(Math.sin(_ma7)*_mr7,_mh7/2,Math.cos(_ma7)*_mr7);cityGroup.add(mt);
@@ -1730,10 +1736,11 @@ function buildCity() {
             cap.position.set(Math.sin(_ma7)*_mr7,_mh7*0.85,Math.cos(_ma7)*_mr7);cityGroup.add(cap);
         }
 
-        // === 6. Snow-covered conifers on island ===
-        for(var _ti7=0;_ti7<40;_ti7++){
-            var tx7=(Math.random()-0.5)*240,tz7=(Math.random()-0.5)*240;
-            if(Math.abs(tx7)>CITY_SIZE-5||Math.abs(tz7)>CITY_SIZE-5)continue;
+        // === 7. Snow-covered conifers on island ===
+        for(var _ti7=0;_ti7<100;_ti7++){
+            var _ta7b=Math.random()*Math.PI*2;
+            var _tr7b=Math.random()*(_snowIslandR-20);
+            var tx7=Math.sin(_ta7b)*_tr7b,tz7=Math.cos(_ta7b)*_tr7b;
             var skip7=false;
             for(var _ci7=0;_ci7<cityColliders.length;_ci7++){
                 var c7=cityColliders[_ci7];if(c7.hw>50)continue;
@@ -1751,21 +1758,21 @@ function buildCity() {
             cityGroup.add(tg7);
         }
 
-        // === 7. Falling Snow ===
+        // === 8. Falling Snow ===
         window._snowParticles=[];
         for(var _spi7=0;_spi7<3000;_spi7++){
             var _spG7=new THREE.PlaneGeometry(0.12,0.12);
             var _spM7=new THREE.Mesh(_spG7,new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.8,side:THREE.DoubleSide}));
-            var _sx7=(Math.random()-0.5)*400,_sy7=5+Math.random()*35,_sz7=(Math.random()-0.5)*400;
+            var _sx7=(Math.random()-0.5)*_snowIslandR*3,_sy7=5+Math.random()*35,_sz7=(Math.random()-0.5)*_snowIslandR*3;
             _spM7.position.set(_sx7,_sy7,_sz7);cityGroup.add(_spM7);
             window._snowParticles.push({mesh:_spM7,x:_sx7,y:_sy7,z:_sz7,
                 vx:(Math.random()-0.5)*0.008,vy:-0.008-Math.random()*0.007,vz:(Math.random()-0.5)*0.008,
                 rotSpeed:0.01+Math.random()*0.01});
         }
 
-        // === 8. Lanterns ===
-        for(var _sli7=0;_sli7<12;_sli7++){
-            var _slz7=-55+_sli7*10;
+        // === 9. Lanterns ===
+        for(var _sli7=0;_sli7<20;_sli7++){
+            var _slz7=-190+_sli7*20;
             var tg8=new THREE.Group();tg8.position.set(5,0,_slz7);
             tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.2,0.4),_stoneM2));tg8.children[0].position.y=0.1;
             tg8.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.2,6),_stoneM2));tg8.children[1].position.y=0.8;
