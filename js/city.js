@@ -1625,10 +1625,23 @@ function buildCity() {
         }
 
         // === 1. Frozen Lake (大きな湖) — center of map ===
-        var lakeBed=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,0.3,48),toon(0x334455));
-        lakeBed.position.set(0,-0.5,0);cityGroup.add(lakeBed);
-        var iceTop=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR-1,_lakeR-1,0.08,48),toon(0xAADDEE,{transparent:true,opacity:0.55}));
-        iceTop.position.set(0,-0.02,0);cityGroup.add(iceTop);
+        // Dark lake bed (visible through ice)
+        var lakeBed=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,2,48),toon(0x223344));
+        lakeBed.position.set(0,-1,0);cityGroup.add(lakeBed);
+        // Ice surface — sits ON the ground, distinct blue-white color
+        var iceTop=new THREE.Mesh(new THREE.CylinderGeometry(_lakeR,_lakeR,0.15,48),toon(0x88BBDD,{transparent:true,opacity:0.75}));
+        iceTop.position.set(0,0.08,0);cityGroup.add(iceTop);
+        // Shore rim — dark stone ring marking lake edge
+        var lakeRim=new THREE.Mesh(new THREE.TorusGeometry(_lakeR+1,1.5,6,48),toon(0x556666));
+        lakeRim.position.set(0,0.5,0);lakeRim.rotation.x=Math.PI/2;cityGroup.add(lakeRim);
+        // Ice crack lines for visual detail
+        for(var _ici=0;_ici<12;_ici++){
+            var _ica=_ici/12*Math.PI*2;
+            var _icLen=20+Math.random()*40;
+            var crack=new THREE.Mesh(new THREE.BoxGeometry(_icLen,0.02,0.08),toon(0xCCEEFF,{transparent:true,opacity:0.4}));
+            crack.position.set(Math.sin(_ica)*_icLen*0.3,0.16,Math.cos(_ica)*_icLen*0.3);
+            crack.rotation.y=_ica+Math.random()*0.5;cityGroup.add(crack);
+        }
 
         // === 2. Lake Island (湖心岛) with Shirakawa-go village ===
         var _islandR=30;
