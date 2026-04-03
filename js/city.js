@@ -1653,11 +1653,24 @@ function buildCity() {
         torii7.add(new THREE.Mesh(new THREE.BoxGeometry(6,0.3,0.4),toon(0xCC3333)));torii7.children[2].position.y=4.8;
         cityGroup.add(torii7);
 
-        // === 3. Onsen town on far shore (温泉街) ===
+        // === 3. Outer shore land ring (外围陆地) ===
+        var _outerR=CITY_SIZE+20; // inner edge of outer land
+        var _outerW=60; // width of outer land ring
+        // Ring of snowy ground beyond the lake
+        for(var _ori7=0;_ori7<32;_ori7++){
+            var _orA=_ori7/32*Math.PI*2;
+            var _orR=_outerR+_outerW/2;
+            var _orX=Math.sin(_orA)*_orR,_orZ=Math.cos(_orA)*_orR;
+            var _orGround=new THREE.Mesh(new THREE.BoxGeometry(25,0.5,_outerW),toon(0xE8EEF0));
+            _orGround.position.set(_orX,0.25,_orZ);_orGround.rotation.y=-_orA;
+            _orGround.receiveShadow=true;cityGroup.add(_orGround);
+        }
+
+        // === 4. Onsen town on outer shore (温泉街) ===
         for(var _osi=0;_osi<24;_osi++){
             var _oa7=_osi/24*Math.PI*2;
-            var _ox7=Math.sin(_oa7)*(CITY_SIZE+25);
-            var _oz7=Math.cos(_oa7)*(CITY_SIZE+25);
+            var _ox7=Math.sin(_oa7)*(_outerR+_outerW/2);
+            var _oz7=Math.cos(_oa7)*(_outerR+_outerW/2);
             if(_osi%3===0){
                 var _rh7=8+Math.floor(Math.random()*5);
                 var ms7=[];
@@ -1689,7 +1702,8 @@ function buildCity() {
 
         // === 4. Hot Springs on shore ===
         window._snowCitySteam=[];
-        [[CITY_SIZE+10,40,6],[CITY_SIZE+8,-50,4],[-CITY_SIZE-10,30,5],[-CITY_SIZE-8,-40,4]].forEach(function(sp){
+        var _spR=_outerR+_outerW/2;
+        [[_spR,40,6],[_spR,-50,4],[-_spR,30,5],[-_spR,-40,4]].forEach(function(sp){
             var pool=new THREE.Mesh(new THREE.CylinderGeometry(sp[2],sp[2],0.3,16),toon(0x66BBAA,{transparent:true,opacity:0.7}));
             pool.position.set(sp[0],0.2,sp[1]);cityGroup.add(pool);
             var edge=new THREE.Mesh(new THREE.TorusGeometry(sp[2]+0.5,0.5,6,16),_stoneM2);
