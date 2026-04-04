@@ -28,7 +28,7 @@ function buildPortals() {
     portals.length=0;
     RACES.forEach((race,i)=>{
         const g = new THREE.Group();
-        var portalX=race.x, portalY=0, portalZ=race.z;
+        var portalX=race.x, portalY=currentCityStyle===7?3:0, portalZ=race.z;
         g.position.set(portalX,portalY,portalZ);
 
         // Moon-style portals: silver/blue tones
@@ -189,9 +189,10 @@ function buildWarpPipes(){
         var sign=new THREE.Sprite(signMat);
         sign.scale.set(5,1.2,1);sign.position.y=10.5;
         g.add(sign);
-        g.position.set(pos.x,0,pos.z);
+        var _pipeY=currentCityStyle===7?3:0;
+        g.position.set(pos.x,_pipeY,pos.z);
         cityGroup.add(g);
-        warpPipeMeshes.push({group:g,x:pos.x,z:pos.z,targetStyle:tgt,_cooldown:false});
+        warpPipeMeshes.push({group:g,x:pos.x,z:pos.z,y:_pipeY,targetStyle:tgt,_cooldown:false});
     }
 }
 
