@@ -238,6 +238,7 @@ function _playBGMLoop(ctx){
     if(currentCityStyle===3)return _playLavaBGM(ctx);
     if(currentCityStyle===4)return _playCandyBGM(ctx);
     if(currentCityStyle===6)return _playSakuraBGM(ctx);
+    if(currentCityStyle===7)return _playSnowBGM(ctx);
     return _playDefaultBGM(ctx);
 }
 // Helper: generic looping BGM engine
@@ -385,6 +386,38 @@ function _playSakuraBGM(ctx){
               784,698,554,523,415,392,349,277, 349,392,415,523,554,523,415,392,
               349,277,262,277,349,392,415,523];
     _bgmEngine(ctx,[melA,melB,melC,melD,melE,melF],chords,0.28,0.1,'triangle',0.05,'sine');
+}
+function _playSnowBGM(ctx){
+    // Inspired by 雪の華 (Yuki no Hana) — D major, gentle flowing melody
+    // D=294,E=330,F#=370,G=392,A=440,B=494,C#=554,D5=587,E5=659,F#5=740,G5=784,A5=880
+    var D=294,E=330,Fs=370,G=392,A=440,B=494,Cs=554,D5=587,E5=659,Fs5=740,G5=784,A5=880;
+    var chords=[[D,Fs,A],[G,B,D5],[A,Cs,E5],[D,Fs,A],[B,D5,Fs5],[G,B,D5]];
+    // 8 melody patterns × 40 notes = 320 notes total, ~70+ seconds at noteLen=0.22
+    var melA=[D5,Cs,B,A,B,Cs,D5,E5, D5,Cs,B,A,G,A,B,Cs,
+              D5,E5,Fs5,E5,D5,Cs,B,A, G,A,B,Cs,D5,Cs,B,A,
+              G,Fs,E,Fs,G,A,B,Cs];
+    var melB=[A,B,Cs,D5,E5,D5,Cs,B, A,G,Fs,G,A,B,Cs,D5,
+              E5,Fs5,E5,D5,Cs,D5,E5,Fs5, G5,Fs5,E5,D5,Cs,B,A,B,
+              Cs,D5,E5,D5,Cs,B,A,G];
+    var melC=[Fs5,E5,D5,Cs,D5,E5,Fs5,G5, Fs5,E5,D5,Cs,B,A,B,Cs,
+              D5,E5,Fs5,G5,A5,G5,Fs5,E5, D5,Cs,B,A,G,Fs,G,A,
+              B,Cs,D5,E5,D5,Cs,B,A];
+    var melD=[G,A,B,Cs,D5,Cs,B,A, G,Fs,E,D,E,Fs,G,A,
+              B,Cs,D5,E5,Fs5,E5,D5,Cs, B,A,G,A,B,Cs,D5,E5,
+              Fs5,G5,Fs5,E5,D5,Cs,D5,E5];
+    var melE=[A5,G5,Fs5,E5,D5,Cs,D5,E5, Fs5,G5,Fs5,E5,D5,Cs,B,A,
+              G,A,B,Cs,D5,E5,Fs5,E5, D5,Cs,B,A,G,Fs,E,Fs,
+              G,A,B,Cs,D5,E5,Fs5,G5];
+    var melF=[D5,E5,Fs5,E5,D5,Cs,B,Cs, D5,Cs,B,A,G,Fs,G,A,
+              B,Cs,D5,Cs,B,A,G,A, B,Cs,D5,E5,Fs5,E5,D5,Cs,
+              B,A,G,Fs,E,Fs,G,A];
+    var melG=[B,Cs,D5,E5,Fs5,G5,Fs5,E5, D5,Cs,B,Cs,D5,E5,Fs5,E5,
+              D5,Cs,B,A,G,A,B,Cs, D5,E5,D5,Cs,B,A,G,Fs,
+              E,Fs,G,A,B,Cs,D5,E5];
+    var melH=[Fs5,G5,A5,G5,Fs5,E5,D5,Cs, B,A,B,Cs,D5,E5,Fs5,G5,
+              A5,G5,Fs5,E5,D5,Cs,B,A, G,Fs,G,A,B,Cs,D5,Cs,
+              B,A,G,Fs,E,D,E,Fs];
+    _bgmEngine(ctx,[melA,melB,melC,melD,melE,melF,melG,melH],chords,0.22,0.08,'sine',0.04,'triangle');
 }
 function stopBGM(){bgmPlaying=false;if(_bgmTimer){clearTimeout(_bgmTimer);_bgmTimer=null;}bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
 
