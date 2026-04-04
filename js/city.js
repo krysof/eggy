@@ -55,21 +55,51 @@ function buildCity() {
             cityGroup.add(patch);
         }
     } else if(currentCityStyle===7){
-    // Snow Village: circular island rising from dark lake
+    // Snow Village: irregular island rising from dark lake
     var _snowGR=CITY_SIZE*0.8; // island radius ~128
-    // Thick island base (clearly above water)
-    var snowGround=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR,_snowGR+8,4,48),toon(0x887766));
-    snowGround.position.y=1;snowGround.receiveShadow=true;snowGround.castShadow=true;
-    cityGroup.add(snowGround);
-    // Bright white snow surface on top
-    var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR+1,_snowGR+1,0.3,48),
-        new THREE.MeshBasicMaterial({color:0xF8F8FF}));
-    snowSurface.position.y=3.1;snowSurface.receiveShadow=true;
-    cityGroup.add(snowSurface);
-    // Shore beach ring (snow/sand transition)
-    var shoreRing=new THREE.Mesh(new THREE.TorusGeometry(_snowGR+2,3,6,48),toon(0xCCBBAA));
-    shoreRing.position.y=2.5;shoreRing.rotation.x=Math.PI/2;
-    cityGroup.add(shoreRing);
+    var _islandY=3; // island surface height
+    // Irregular island base (bumpy edges using multiple overlapping cylinders)
+    var _iBaseM=toon(0x887766);
+    var snowGround=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR,_snowGR+8,_islandY+1,12),_iBaseM);
+    snowGround.position.y=_islandY/2-0.5;snowGround.castShadow=true;cityGroup.add(snowGround);
+    // Extra bumps for irregular coastline
+    for(var _ib=0;_ib<8;_ib++){
+        var _ibA=_ib/8*Math.PI*2+Math.random()*0.5;
+        var _ibR=_snowGR*0.7+Math.random()*_snowGR*0.35;
+        var _ibS=15+Math.random()*25;
+        var bump=new THREE.Mesh(new THREE.CylinderGeometry(_ibS,_ibS+5,_islandY+1,8),_iBaseM);
+        bump.position.set(Math.sin(_ibA)*_ibR,_islandY/2-0.5,Math.cos(_ibA)*_ibR);
+        cityGroup.add(bump);
+    }
+    // Snow surface (slightly irregular with patches)
+    var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR-2,_snowGR,0.3,12),
+        new THREE.MeshBasicMaterial({color:0xF0F0F5}));
+    snowSurface.position.y=_islandY+0.05;cityGroup.add(snowSurface);
+    // Snow bumps on top for each coastline bump
+    for(var _ib2=0;_ib2<8;_ib2++){
+        var _ibA2=_ib2/8*Math.PI*2+Math.random()*0.5;
+        var _ibR2=_snowGR*0.7+Math.random()*_snowGR*0.35;
+        var _ibS2=14+Math.random()*24;
+        var sbump=new THREE.Mesh(new THREE.CylinderGeometry(_ibS2-1,_ibS2,0.2,8),
+            new THREE.MeshBasicMaterial({color:0xF0F0F5}));
+        sbump.position.set(Math.sin(_ibA2)*_ibR2,_islandY+0.05,Math.cos(_ibA2)*_ibR2);
+        cityGroup.add(sbump);
+    }
+    // Dirty snow patches + paths for variety
+    for(var _dp=0;_dp<20;_dp++){
+        var _dpA=Math.random()*Math.PI*2;
+        var _dpR=Math.random()*(_snowGR-15);
+        var patch=new THREE.Mesh(new THREE.CylinderGeometry(3+Math.random()*5,3+Math.random()*5,0.05,6),
+            toon([0xDDE0DD,0xCCD0CC,0xD8DCD8,0xE0E4E0][_dp%4]));
+        patch.position.set(Math.sin(_dpA)*_dpR,_islandY+0.1,Math.cos(_dpA)*_dpR);
+        cityGroup.add(patch);
+    }
+    // Stone paths on island
+    var _pathM7=toon(0xBBAA99);
+    [{w:4,d:180,x:0,z:0},{w:120,d:4,x:0,z:0},{w:80,d:3,x:0,z:-40},{w:80,d:3,x:0,z:40}].forEach(function(p7){
+        var path7=new THREE.Mesh(new THREE.BoxGeometry(p7.w,0.06,p7.d),_pathM7);
+        path7.position.set(p7.x,_islandY+0.03,p7.z);cityGroup.add(path7);
+    });
     } else {
     const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
     const ground = new THREE.Mesh(groundGeo, toon(st.ground));
@@ -1610,33 +1640,34 @@ function buildCity() {
         var _stoneM2=toon(0x999999);
         var _winM7=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.6});
 
-        // Helper: Gassho-zukuri house (合掌造り)
+        // Helper: Gassho-zukuri house (合掌造り) — built at island height
+        var _by7=3; // island surface Y
         function _buildGassho(x,z,w,d,h){
             var ms=[];
             var wall=new THREE.Mesh(new THREE.BoxGeometry(w,h*0.55,d),toon(0xF5F0E8));
-            wall.position.set(x,h*0.275,z);wall.castShadow=true;wall.receiveShadow=true;cityGroup.add(wall);ms.push(wall);
+            wall.position.set(x,_by7+h*0.275,z);wall.castShadow=true;wall.receiveShadow=true;cityGroup.add(wall);ms.push(wall);
             var _roofH=h*0.55,_roofW=w*1.2;
             [-1,1].forEach(function(s){
                 var rp=new THREE.Mesh(new THREE.BoxGeometry(_roofW,0.3,d*1.1),_woodM7);
-                rp.position.set(x+s*w*0.25,h*0.55+_roofH*0.4,z);rp.rotation.z=s*0.75;
+                rp.position.set(x+s*w*0.25,_by7+h*0.55+_roofH*0.4,z);rp.rotation.z=s*0.75;
                 rp.castShadow=true;cityGroup.add(rp);ms.push(rp);
                 var sr=new THREE.Mesh(new THREE.BoxGeometry(_roofW,0.15,d*1.15),_snowM);
-                sr.position.set(x+s*w*0.25,h*0.55+_roofH*0.45,z);sr.rotation.z=s*0.75;cityGroup.add(sr);ms.push(sr);
+                sr.position.set(x+s*w*0.25,_by7+h*0.55+_roofH*0.45,z);sr.rotation.z=s*0.75;cityGroup.add(sr);ms.push(sr);
             });
             var ridge=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.3,d*1.1),toon(0x6B5B3A));
-            ridge.position.set(x,h*0.55+_roofH*0.75,z);cityGroup.add(ridge);ms.push(ridge);
+            ridge.position.set(x,_by7+h*0.55+_roofH*0.75,z);cityGroup.add(ridge);ms.push(ridge);
             for(var wy=1.5;wy<h*0.5;wy+=2.5){
                 for(var wx=-w/2+1.5;wx<w/2-1;wx+=2.5){
                     var wn=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.9,0.12),_winM7);
-                    wn.position.set(x+wx,wy,z+d/2+0.06);cityGroup.add(wn);ms.push(wn);
+                    wn.position.set(x+wx,_by7+wy,z+d/2+0.06);cityGroup.add(wn);ms.push(wn);
                     var wn2=new THREE.Mesh(new THREE.BoxGeometry(0.6,0.9,0.12),_winM7);
-                    wn2.position.set(x+wx,wy,z-d/2-0.06);cityGroup.add(wn2);ms.push(wn2);
+                    wn2.position.set(x+wx,_by7+wy,z-d/2-0.06);cityGroup.add(wn2);ms.push(wn2);
                 }
             }
             var porch=new THREE.Mesh(new THREE.BoxGeometry(w+1,0.1,d+1),toon(0xBB9966));
-            porch.position.set(x,0.05,z);cityGroup.add(porch);ms.push(porch);
-            cityColliders.push({x:x,z:z,hw:w/2+0.5,hd:d/2+0.5,h:h*0.55});
-            cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2+1,hd:d/2+1,h:h});
+            porch.position.set(x,_by7+0.05,z);cityGroup.add(porch);ms.push(porch);
+            cityColliders.push({x:x,z:z,hw:w/2+0.5,hd:d/2+0.5,h:_by7+h*0.55});
+            cityBuildingMeshes.push({meshes:ms,x:x,z:z,hw:w/2+1,hd:d/2+1,h:_by7+h});
         }
 
         // === 1. Deep Blue Lake (洞爺湖) — ring between island and outer shore ===
@@ -1808,7 +1839,7 @@ function buildCity() {
                 if(Math.abs(tx7-c7.x)<c7.hw+3&&Math.abs(tz7-c7.z)<c7.hd+3)skip7=true;
             }
             if(skip7)continue;
-            var tg7=new THREE.Group();tg7.position.set(tx7,0,tz7);
+            var tg7=new THREE.Group();tg7.position.set(tx7,_by7,tz7);
             var _th7=4+Math.random()*5;
             tg7.add(new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.25,_th7,6),toon(0x5C4033)));tg7.children[0].position.y=_th7/2;
             for(var _cl7=0;_cl7<3;_cl7++){
@@ -1834,7 +1865,7 @@ function buildCity() {
         // === 9. Lanterns ===
         for(var _sli7=0;_sli7<20;_sli7++){
             var _slz7=-190+_sli7*20;
-            var tg8=new THREE.Group();tg8.position.set(5,0,_slz7);
+            var tg8=new THREE.Group();tg8.position.set(5,_by7,_slz7);
             tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.2,0.4),_stoneM2));tg8.children[0].position.y=0.1;
             tg8.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.2,6),_stoneM2));tg8.children[1].position.y=0.8;
             tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.4),toon(0xFFDD88,{emissive:0xFFDD88,emissiveIntensity:0.5})));tg8.children[2].position.y=1.6;

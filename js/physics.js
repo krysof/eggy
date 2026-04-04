@@ -56,7 +56,8 @@ function updateEggPhysics(egg, isCity){
         // City ground — only within city bounds
         var _cityBound=currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*4:CITY_SIZE);
         var _inBounds=Math.abs(egg.mesh.position.x)<_cityBound&&Math.abs(egg.mesh.position.z)<_cityBound;
-        if(_inBounds&&egg.mesh.position.y<=0.01){egg.mesh.position.y=0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
+        var _groundY=currentCityStyle===7?3.01:0.01; // snow village island surface at y=3
+        if(_inBounds&&egg.mesh.position.y<=_groundY){egg.mesh.position.y=_groundY;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
             if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
         }else if(!_inBounds){egg.onGround=false;}
         else{egg.onGround=false;}
