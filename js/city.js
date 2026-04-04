@@ -1710,7 +1710,7 @@ function buildCity() {
         // === 2a. Lake edge guardrails — wide dock gap ===
         for(var _gri=0;_gri<32;_gri++){
             var _grA=_gri/32*Math.PI*2;
-            if(Math.abs(_grA-Math.PI/2)<0.8)continue; // very wide dock gap
+            if(Math.abs(_grA-Math.PI/2)<1.2)continue; // very wide dock gap
             var _grX=Math.sin(_grA)*(_snowIslandR-3);
             var _grZ=Math.cos(_grA)*(_snowIslandR-3);
             // Post

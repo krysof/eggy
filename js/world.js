@@ -284,7 +284,18 @@ function applyCityTheme(){
     // Follow player with shadow camera
     if(!isMoon){
         sun.shadow.camera.far=RENDER_CONFIG.shadowFar;
-        sun.intensity=RENDER_CONFIG.sunIntensity;
+        if(currentCityStyle===7){
+            // Snow village twilight: dim sun, blue tint
+            sun.intensity=0.3;
+            sun.color.setHex(0x8899BB); // cool blue-ish light
+            _sunMesh.visible=false; // no visible sun disk
+            _sunGlow.visible=false;
+        } else {
+            sun.intensity=RENDER_CONFIG.sunIntensity;
+            sun.color.setHex(RENDER_CONFIG.sunColor);
+            _sunMesh.visible=true;
+            _sunGlow.visible=true;
+        }
     }
     // Update HUD
     document.getElementById('city-name-hud').textContent=st.name;
