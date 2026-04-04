@@ -146,6 +146,18 @@ function handlePlayerInput(){
         }
     }
     if(playerEgg._dashBounceTimer>0)playerEgg._dashBounceTimer--;
+    // Snow footstep effect
+    if(currentCityStyle===7&&len>0.1&&playerEgg.onGround){
+        if(!playerEgg._snowStepTick)playerEgg._snowStepTick=0;
+        playerEgg._snowStepTick++;
+        if(playerEgg._snowStepTick%4===0){
+            var _sfSize=0.15+Math.random()*0.1;
+            var _sfMesh=new THREE.Mesh(new THREE.SphereGeometry(_sfSize,4,3),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.6}));
+            _sfMesh.position.set(playerEgg.mesh.position.x+(Math.random()-0.5)*0.3,playerEgg.mesh.position.y+0.1,playerEgg.mesh.position.z+(Math.random()-0.5)*0.3);
+            scene.add(_sfMesh);
+            _chargeParticles.push({mesh:_sfMesh,vx:(Math.random()-0.5)*0.02,vy:0.015+Math.random()*0.01,vz:(Math.random()-0.5)*0.02,life:15+Math.random()*10,maxLife:25,type:'dust'});
+        }
+    } else {playerEgg._snowStepTick=0;}
     // Sprint smoke + ground dust
     if(sprintPct>0.15&&playerEgg.onGround&&len>0.1){
         if(!playerEgg._sprintSmokeTick)playerEgg._sprintSmokeTick=0;

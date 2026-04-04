@@ -1706,6 +1706,37 @@ function buildCity() {
         torii7.add(new THREE.Mesh(new THREE.BoxGeometry(6,0.3,0.4),toon(0xCC3333)));torii7.children[2].position.y=4.8;
         cityGroup.add(torii7);
 
+        // === 2a. Lake edge guardrails (防落水围栏) ===
+        for(var _gri=0;_gri<24;_gri++){
+            var _grA=_gri/24*Math.PI*2;
+            // Skip at dock area (south, angle ~PI/2)
+            if(Math.abs(_grA-Math.PI/2)<0.3)continue;
+            var _grX=Math.sin(_grA)*(_snowIslandR-3);
+            var _grZ=Math.cos(_grA)*(_snowIslandR-3);
+            // Post
+            var gPost=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.5,4),_woodM7);
+            gPost.position.set(_grX,_by7+0.75,_grZ);cityGroup.add(gPost);
+            // Collider segment
+            var _grA2=(_gri+1)/24*Math.PI*2;
+            var _grX2=Math.sin(_grA2)*(_snowIslandR-3);
+            var _grZ2=Math.cos(_grA2)*(_snowIslandR-3);
+            cityColliders.push({x:(_grX+_grX2)/2,z:(_grZ+_grZ2)/2,hw:Math.abs(_grX2-_grX)/2+1,hd:Math.abs(_grZ2-_grZ)/2+1,h:_by7+1.5});
+        }
+        // Horizontal rail connecting posts
+        for(var _gri2=0;_gri2<24;_gri2++){
+            var _grA3=_gri2/24*Math.PI*2;
+            if(Math.abs(_grA3-Math.PI/2)<0.3)continue;
+            var _grA4=(_gri2+1)/24*Math.PI*2;
+            if(Math.abs(_grA4-Math.PI/2)<0.3)continue;
+            var _x1=Math.sin(_grA3)*(_snowIslandR-3),_z1=Math.cos(_grA3)*(_snowIslandR-3);
+            var _x2=Math.sin(_grA4)*(_snowIslandR-3),_z2=Math.cos(_grA4)*(_snowIslandR-3);
+            var _rLen7=Math.sqrt((_x2-_x1)*(_x2-_x1)+(_z2-_z1)*(_z2-_z1));
+            var _rAng7=Math.atan2(_x2-_x1,_z2-_z1);
+            var hRail7=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,_rLen7),_woodM7);
+            hRail7.position.set((_x1+_x2)/2,_by7+1.2,(_z1+_z2)/2);
+            hRail7.rotation.y=-_rAng7+Math.PI/2;cityGroup.add(hRail7);
+        }
+
         // === 2b. Dock (码头) extending from island south edge ===
         var _dockX=0,_dockZ=_snowIslandR-5;
         // Pier platform

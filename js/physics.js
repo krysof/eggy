@@ -66,7 +66,9 @@ function updateEggPhysics(egg, isCity){
         if(currentCityStyle===7){
             var _snowDist=Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
             var _snowIslandR2=CITY_SIZE*0.8; // island radius
-            if(_snowDist>_snowIslandR2&&egg.mesh.position.y<3.5){
+            // Skip lake check if on dock area (z>island edge, x near 0)
+            var _onDock=(Math.abs(egg.mesh.position.x)<6&&egg.mesh.position.z>_snowIslandR2-10);
+            if(_snowDist>_snowIslandR2&&egg.mesh.position.y<3.5&&!_onDock){
                 egg.mesh.position.set(0,6,0);egg.vx=0;egg.vy=0;egg.vz=0;
                 egg.onGround=false;egg.squash=0.5;
                 if(egg.isPlayer){playHitSound();playSplashSound();}
