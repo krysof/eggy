@@ -54,9 +54,18 @@ function buildCity() {
             patch.position.set(ppx,0.02,ppz);
             cityGroup.add(patch);
         }
+    } else if(currentCityStyle===7){
+    // Snow Village: circular island ground (not square, so lake is visible)
+    var _snowGR=CITY_SIZE*2; // island radius
+    var snowGround=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR,_snowGR+5,1,48),toon(st.ground));
+    snowGround.position.y=-0.5;snowGround.receiveShadow=true;
+    cityGroup.add(snowGround);
+    // Snow surface on top
+    var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR-1,_snowGR,0.1,48),toon(0xF0F4F8));
+    snowSurface.position.y=0.05;snowSurface.receiveShadow=true;
+    cityGroup.add(snowSurface);
     } else {
-    var _gSize=currentCityStyle===7?CITY_SIZE*4:CITY_SIZE; // snow village 4x bigger
-    const groundGeo = new THREE.PlaneGeometry(_gSize*2, _gSize*2, 16, 16);
+    const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
     const ground = new THREE.Mesh(groundGeo, toon(st.ground));
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     cityGroup.add(ground);
