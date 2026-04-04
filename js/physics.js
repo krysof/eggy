@@ -64,7 +64,7 @@ function updateEggPhysics(egg, isCity){
         // Snow Village: fall into lake = respawn (lake is between island and outer shore)
         if(currentCityStyle===7){
             var _snowDist=Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
-            var _snowIslandR2=CITY_SIZE*2; // island radius
+            var _snowIslandR2=CITY_SIZE*0.8; // island radius
             if(_snowDist>_snowIslandR2&&egg.mesh.position.y<0.5){
                 egg.mesh.position.set(0,3,0);egg.vx=0;egg.vy=0;egg.vz=0;
                 egg.onGround=false;egg.squash=0.5;

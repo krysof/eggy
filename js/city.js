@@ -55,8 +55,8 @@ function buildCity() {
             cityGroup.add(patch);
         }
     } else if(currentCityStyle===7){
-    // Snow Village: circular island ground (not square, so lake is visible)
-    var _snowGR=CITY_SIZE*2; // island radius
+    // Snow Village: circular island ground — smaller so lake is clearly visible
+    var _snowGR=CITY_SIZE*0.8; // island radius ~128 (smaller than city)
     var snowGround=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR,_snowGR+5,1,48),toon(st.ground));
     snowGround.position.y=-0.5;snowGround.receiveShadow=true;
     cityGroup.add(snowGround);
@@ -1634,7 +1634,7 @@ function buildCity() {
         }
 
         // === 1. Deep Blue Lake (洞爺湖) — ring between island and outer shore ===
-        var _snowIslandR=CITY_SIZE*2; // island radius (4x = 320)
+        var _snowIslandR=CITY_SIZE*0.8; // island radius ~128
         var _snowOuterR=CITY_SIZE*3; // outer shore inner edge (480)
         var _snowOuterW=80; // outer shore width
         // Lake water fills everything below ground
@@ -1645,10 +1645,10 @@ function buildCity() {
 
         // === 2. Gassho-zukuri village — spread across big island ===
         var _gasshoList=[];
-        // Generate houses in a grid pattern across the island
-        for(var _gx=-200;_gx<=200;_gx+=50){
-            for(var _gz=-200;_gz<=200;_gz+=50){
-                if(Math.sqrt(_gx*_gx+_gz*_gz)>_snowIslandR-30)continue; // stay within island
+        // Generate houses across island
+        for(var _gx=-100;_gx<=100;_gx+=35){
+            for(var _gz=-100;_gz<=100;_gz+=35){
+                if(Math.sqrt(_gx*_gx+_gz*_gz)>_snowIslandR-20)continue;
                 var _gw=7+Math.floor(Math.random()*5);
                 var _gd=8+Math.floor(Math.random()*5);
                 var _gh=7+Math.floor(Math.random()*5);

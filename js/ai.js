@@ -388,7 +388,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             }
         }
         // Clamp wander target inside city bounds
-        var _npcBound=(currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*2-10:CITY_SIZE))-5;
+        var _npcBound=(currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*0.7:CITY_SIZE))-5;
         if(egg.aiTargetX>_npcBound)egg.aiTargetX=_npcBound;
         if(egg.aiTargetX<-_npcBound)egg.aiTargetX=-_npcBound;
         if(egg.aiTargetZ>_npcBound)egg.aiTargetZ=_npcBound;
