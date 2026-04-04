@@ -55,15 +55,21 @@ function buildCity() {
             cityGroup.add(patch);
         }
     } else if(currentCityStyle===7){
-    // Snow Village: circular island ground — smaller so lake is clearly visible
-    var _snowGR=CITY_SIZE*0.8; // island radius ~128 (smaller than city)
-    var snowGround=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR,_snowGR+5,1,48),toon(st.ground));
-    snowGround.position.y=-0.5;snowGround.receiveShadow=true;
+    // Snow Village: circular island rising from dark lake
+    var _snowGR=CITY_SIZE*0.8; // island radius ~128
+    // Thick island base (clearly above water)
+    var snowGround=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR,_snowGR+8,4,48),toon(0x887766));
+    snowGround.position.y=1;snowGround.receiveShadow=true;snowGround.castShadow=true;
     cityGroup.add(snowGround);
-    // Snow surface on top
-    var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR-1,_snowGR,0.1,48),toon(0xF0F4F8));
-    snowSurface.position.y=0.05;snowSurface.receiveShadow=true;
+    // Bright white snow surface on top
+    var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR+1,_snowGR+1,0.3,48),
+        new THREE.MeshBasicMaterial({color:0xF8F8FF}));
+    snowSurface.position.y=3.1;snowSurface.receiveShadow=true;
     cityGroup.add(snowSurface);
+    // Shore beach ring (snow/sand transition)
+    var shoreRing=new THREE.Mesh(new THREE.TorusGeometry(_snowGR+2,3,6,48),toon(0xCCBBAA));
+    shoreRing.position.y=2.5;shoreRing.rotation.x=Math.PI/2;
+    cityGroup.add(shoreRing);
     } else {
     const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
     const ground = new THREE.Mesh(groundGeo, toon(st.ground));
@@ -1659,14 +1665,60 @@ function buildCity() {
             var g2=_gasshoList[_gi2];
             _buildGassho(g2.x,g2.z,g2.w,g2.d,g2.h);
         }
-        // Torii gate
-        var torii7=new THREE.Group();torii7.position.set(0,0,-70);
+        // Torii gate (on island surface)
+        var _isH=3; // island surface height
+        var torii7=new THREE.Group();torii7.position.set(0,_isH,-70);
         [-1,1].forEach(function(s){
             var tp=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.25,5,6),toon(0xCC3333));
             tp.position.set(s*2.5,2.5,0);torii7.add(tp);
         });
         torii7.add(new THREE.Mesh(new THREE.BoxGeometry(6,0.3,0.4),toon(0xCC3333)));torii7.children[2].position.y=4.8;
         cityGroup.add(torii7);
+
+        // === 2b. Dock (码头) extending from island south edge ===
+        var _dockX=0,_dockZ=_snowIslandR-5;
+        // Pier platform
+        var dock=new THREE.Mesh(new THREE.BoxGeometry(8,0.4,30),toon(0xAA8855));
+        dock.position.set(_dockX,_isH,_dockZ+15);cityGroup.add(dock);
+        cityColliders.push({x:_dockX,z:_dockZ+15,hw:4,hd:15,h:_isH,_bridge:true});
+        // Dock support pillars
+        for(var _dpi=0;_dpi<4;_dpi++){
+            var dpil=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.4,_isH+1,6),toon(0x664422));
+            dpil.position.set(_dockX+[-3,3,-3,3][_dpi],_isH/2,_dockZ+5+_dpi*8);cityGroup.add(dpil);
+        }
+        // Dock railing
+        [-1,1].forEach(function(s){
+            var dRail=new THREE.Mesh(new THREE.BoxGeometry(0.1,1,30),toon(0xAA8855));
+            dRail.position.set(_dockX+s*3.8,_isH+0.5,_dockZ+15);cityGroup.add(dRail);
+        });
+
+        // === 2c. Ferry/Cruise ship (游轮) at dock ===
+        var _shipG=new THREE.Group();_shipG.position.set(_dockX+12,0,_dockZ+20);
+        // Hull
+        var hull=new THREE.Mesh(new THREE.BoxGeometry(8,3,20),toon(0xEEEEFF));
+        hull.position.y=1.5;hull.scale.set(1,0.7,1);_shipG.add(hull);
+        // Deck
+        var deckS=new THREE.Mesh(new THREE.BoxGeometry(7,0.3,18),toon(0xBB9966));
+        deckS.position.y=3;_shipG.add(deckS);
+        // Cabin
+        var cabin=new THREE.Mesh(new THREE.BoxGeometry(5,3,10),toon(0xFFFFFF));
+        cabin.position.set(0,4.5,0);_shipG.add(cabin);
+        // Cabin windows
+        for(var _swi2=0;_swi2<4;_swi2++){
+            var sw=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.8,1.2),toon(0x88CCFF,{emissive:0x4488CC,emissiveIntensity:0.3}));
+            sw.position.set(2.55,4.5,-3+_swi2*2);_shipG.add(sw);
+            var sw2=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.8,1.2),toon(0x88CCFF,{emissive:0x4488CC,emissiveIntensity:0.3}));
+            sw2.position.set(-2.55,4.5,-3+_swi2*2);_shipG.add(sw2);
+        }
+        // Funnel
+        var funnel=new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.8,3,8),toon(0xCC3333));
+        funnel.position.set(0,7.5,-2);_shipG.add(funnel);
+        // Railing around deck
+        [-1,1].forEach(function(s){
+            var dkR=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.8,18),toon(0xDDDDDD));
+            dkR.position.set(s*3.3,3.5,0);_shipG.add(dkR);
+        });
+        cityGroup.add(_shipG);
 
         // === 3. Outer shore land ring (外围陆地) ===
         var _outerR=_snowOuterR;

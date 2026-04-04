@@ -65,8 +65,8 @@ function updateEggPhysics(egg, isCity){
         if(currentCityStyle===7){
             var _snowDist=Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
             var _snowIslandR2=CITY_SIZE*0.8; // island radius
-            if(_snowDist>_snowIslandR2&&egg.mesh.position.y<0.5){
-                egg.mesh.position.set(0,3,0);egg.vx=0;egg.vy=0;egg.vz=0;
+            if(_snowDist>_snowIslandR2&&egg.mesh.position.y<3.5){
+                egg.mesh.position.set(0,6,0);egg.vx=0;egg.vy=0;egg.vz=0;
                 egg.onGround=false;egg.squash=0.5;
                 if(egg.isPlayer){playHitSound();playSplashSound();}
             }
@@ -79,8 +79,8 @@ function updateEggPhysics(egg, isCity){
                 // Moon: respawn inside Von Braun
                 egg.mesh.position.set(-200,5,0);
             } else if(currentCityStyle===7){
-                // Snow Village: respawn on island center
-                egg.mesh.position.set(0,3,0);
+                // Snow Village: respawn on island center (surface at y=3)
+                egg.mesh.position.set(0,6,0);
             } else if(currentCityStyle===6){
                 // Sakura: respawn above red bridge
                 egg.mesh.position.set(0,14,-30);
