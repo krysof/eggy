@@ -1717,7 +1717,7 @@ function buildCity() {
             var gPost=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.5,4),_woodM7);
             gPost.position.set(_grX,_by7+0.75,_grZ);cityGroup.add(gPost);
             var _grA2=(_gri+1)/32*Math.PI*2;
-            if(Math.abs(_grA2-Math.PI/2)<0.8)continue;
+            if(Math.abs(_grA2-Math.PI/2)<1.2)continue;
             var _grX2=Math.sin(_grA2)*(_snowIslandR-3);
             var _grZ2=Math.cos(_grA2)*(_snowIslandR-3);
             // Rail + thin collider

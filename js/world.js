@@ -285,15 +285,14 @@ function applyCityTheme(){
     if(!isMoon){
         sun.shadow.camera.far=RENDER_CONFIG.shadowFar;
         if(currentCityStyle===7){
-            // Snow village twilight: dim sun + blue ambient
-            sun.intensity=0.4;
-            sun.color.setHex(0x6688BB);
+            // Snow village twilight: bright pale blue ambient (like reflected skylight on snow)
+            sun.intensity=0.6;
+            sun.color.setHex(0xAABBDD);
             _sunMesh.visible=false;
             _sunGlow.visible=false;
-            // Override ambient to blue twilight
             scene.children.forEach(function(c){
-                if(c.isAmbientLight){c.color.setHex(0x4466AA);c.intensity=0.8;}
-                if(c.isHemisphereLight){c.color.setHex(0x4466BB);c.groundColor.setHex(0x334488);c.intensity=0.7;}
+                if(c.isAmbientLight){c.color.setHex(0x99AACC);c.intensity=1.2;} // bright pale blue
+                if(c.isHemisphereLight){c.color.setHex(0xAABBDD);c.groundColor.setHex(0x8899BB);c.intensity=1.0;}
             });
         } else {
             sun.intensity=RENDER_CONFIG.sunIntensity;
