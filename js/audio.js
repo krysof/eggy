@@ -388,36 +388,46 @@ function _playSakuraBGM(ctx){
     _bgmEngine(ctx,[melA,melB,melC,melD,melE,melF],chords,0.28,0.1,'triangle',0.05,'sine');
 }
 function _playSnowBGM(ctx){
-    // Inspired by 雪の華 (Yuki no Hana) — D major, gentle flowing melody
-    // D=294,E=330,F#=370,G=392,A=440,B=494,C#=554,D5=587,E5=659,F#5=740,G5=784,A5=880
-    var D=294,E=330,Fs=370,G=392,A=440,B=494,Cs=554,D5=587,E5=659,Fs5=740,G5=784,A5=880;
-    var chords=[[D,Fs,A],[G,B,D5],[A,Cs,E5],[D,Fs,A],[B,D5,Fs5],[G,B,D5]];
-    // 8 melody patterns × 40 notes = 320 notes total, ~70+ seconds at noteLen=0.22
-    var melA=[D5,Cs,B,A,B,Cs,D5,E5, D5,Cs,B,A,G,A,B,Cs,
-              D5,E5,Fs5,E5,D5,Cs,B,A, G,A,B,Cs,D5,Cs,B,A,
-              G,Fs,E,Fs,G,A,B,Cs];
-    var melB=[A,B,Cs,D5,E5,D5,Cs,B, A,G,Fs,G,A,B,Cs,D5,
-              E5,Fs5,E5,D5,Cs,D5,E5,Fs5, G5,Fs5,E5,D5,Cs,B,A,B,
-              Cs,D5,E5,D5,Cs,B,A,G];
-    var melC=[Fs5,E5,D5,Cs,D5,E5,Fs5,G5, Fs5,E5,D5,Cs,B,A,B,Cs,
-              D5,E5,Fs5,G5,A5,G5,Fs5,E5, D5,Cs,B,A,G,Fs,G,A,
-              B,Cs,D5,E5,D5,Cs,B,A];
-    var melD=[G,A,B,Cs,D5,Cs,B,A, G,Fs,E,D,E,Fs,G,A,
-              B,Cs,D5,E5,Fs5,E5,D5,Cs, B,A,G,A,B,Cs,D5,E5,
-              Fs5,G5,Fs5,E5,D5,Cs,D5,E5];
-    var melE=[A5,G5,Fs5,E5,D5,Cs,D5,E5, Fs5,G5,Fs5,E5,D5,Cs,B,A,
-              G,A,B,Cs,D5,E5,Fs5,E5, D5,Cs,B,A,G,Fs,E,Fs,
-              G,A,B,Cs,D5,E5,Fs5,G5];
-    var melF=[D5,E5,Fs5,E5,D5,Cs,B,Cs, D5,Cs,B,A,G,Fs,G,A,
-              B,Cs,D5,Cs,B,A,G,A, B,Cs,D5,E5,Fs5,E5,D5,Cs,
-              B,A,G,Fs,E,Fs,G,A];
-    var melG=[B,Cs,D5,E5,Fs5,G5,Fs5,E5, D5,Cs,B,Cs,D5,E5,Fs5,E5,
-              D5,Cs,B,A,G,A,B,Cs, D5,E5,D5,Cs,B,A,G,Fs,
-              E,Fs,G,A,B,Cs,D5,E5];
-    var melH=[Fs5,G5,A5,G5,Fs5,E5,D5,Cs, B,A,B,Cs,D5,E5,Fs5,G5,
-              A5,G5,Fs5,E5,D5,Cs,B,A, G,Fs,G,A,B,Cs,D5,Cs,
-              B,A,G,Fs,E,D,E,Fs];
-    _bgmEngine(ctx,[melA,melB,melC,melD,melE,melF,melG,melH],chords,0.22,0.08,'sine',0.04,'triangle');
+    // 雪の華 (Yuki no Hana) — B major, slow ballad tempo
+    // B3=247 C#4=277 D#4=311 E4=330 F#4=370 G#4=415 A#4=466
+    // B4=494 C#5=554 D#5=622 E5=659 F#5=740 G#5=831
+    var B3=247,Cs=277,Ds=311,E=330,Fs=370,Gs=415,As=466;
+    var B=494,C5=554,D5=622,E5=659,F5=740,G5=831;
+    // Chords: B-E-F#-G#m-E-F# (classic J-ballad progression)
+    var chords=[[B3,Ds,Fs],[E,Gs,B],[Fs,As,C5],[Gs,B,D5],[E,Gs,B],[Fs,As,C5]];
+    // Verse 1 (降り始めた雪は...) — gentle stepping melody
+    var melA=[Fs,Fs,E,Fs,Gs,Fs,E,Ds, E,E,Ds,E,Fs,E,Ds,Cs,
+              Ds,Ds,E,Fs,Gs,Gs,Fs,E, Fs,Fs,E,Ds,Cs,Ds,E,Fs,
+              E,Ds,Cs,B3,Cs,Ds,E,Fs];
+    // Verse 2 (舞い落ちてきた...) — slight variation
+    var melB=[Gs,Gs,Fs,Gs,B,Gs,Fs,E, Fs,Fs,E,Fs,Gs,Fs,E,Ds,
+              E,Fs,Gs,B,B,Gs,Fs,E, Ds,E,Fs,Gs,Fs,E,Ds,Cs,
+              Ds,E,Fs,E,Ds,Cs,B3,Cs];
+    // Pre-chorus (この街に降る...) — building tension, rising
+    var melC=[B3,Cs,Ds,E,Fs,Gs,Fs,E, Ds,E,Fs,Gs,B,B,Gs,Fs,
+              E,Fs,Gs,B,C5,B,Gs,Fs, E,Fs,Gs,B,C5,D5,C5,B,
+              Gs,Fs,E,Fs,Gs,B,C5,D5];
+    // Chorus A (今年 最初の雪の華を...) — emotional peak
+    var melD=[E5,E5,C5,B,C5,B,C5,B, Gs,Gs,B,E5,E5,D5,C5,B,
+              C5,D5,E5,D5,C5,B,Gs,Fs, E,Fs,Gs,B,C5,B,Gs,Fs,
+              E,Ds,E,Fs,Gs,B,C5,D5];
+    // Chorus B (二人なら...) — tender descending
+    var melE=[E5,D5,C5,B,C5,D5,E5,F5, E5,D5,C5,B,Gs,Fs,Gs,B,
+              C5,D5,C5,B,Gs,Fs,E,Fs, Gs,B,C5,B,Gs,Fs,E,Ds,
+              Cs,Ds,E,Fs,Gs,Fs,E,Ds];
+    // Bridge (舞い上がれ...) — soaring
+    var melF=[B,C5,D5,E5,F5,E5,D5,C5, B,C5,D5,E5,F5,G5,F5,E5,
+              D5,C5,B,Gs,Fs,Gs,B,C5, D5,E5,D5,C5,B,Gs,Fs,E,
+              Fs,Gs,B,C5,D5,C5,B,Gs];
+    // Outro verse (降り始めた雪は repeat) — gentle ending
+    var melG=[Fs,Fs,E,Fs,Gs,Fs,E,Ds, E,Fs,Gs,B,B,Gs,Fs,E,
+              Ds,E,Fs,E,Ds,Cs,B3,Cs, Ds,E,Fs,Gs,Fs,E,Ds,Cs,
+              B3,Cs,Ds,E,Fs,E,Ds,B3];
+    // Final chorus echo — fading
+    var melH=[E5,D5,C5,B,Gs,Fs,Gs,B, C5,B,Gs,Fs,E,Ds,E,Fs,
+              Gs,Fs,E,Ds,Cs,Ds,E,Fs, Gs,B,Gs,Fs,E,Ds,Cs,B3,
+              Cs,Ds,E,Ds,Cs,B3,Cs,Ds];
+    _bgmEngine(ctx,[melA,melB,melC,melD,melE,melF,melG,melH],chords,0.32,0.07,'sine',0.035,'sine');
 }
 function stopBGM(){bgmPlaying=false;if(_bgmTimer){clearTimeout(_bgmTimer);_bgmTimer=null;}bgmNodes.forEach(function(n){try{n.stop();}catch(e){}});bgmNodes=[];if(bgmGain){bgmGain.gain.value=0;bgmGain=null;}}
 
