@@ -150,6 +150,13 @@ function buildWarpPipes(){
     }
     // Place pipes at city edges (from config)
     var positions=PORTAL_POSITIONS.warpPipes;
+    // Snow village: offset pipes to avoid dock (z=145 area)
+    if(currentCityStyle===7){
+        positions=positions.map(function(p){
+            if(Math.abs(p.x)<10&&p.z>100)return{x:60,z:110,targetOffset:p.targetOffset};
+            return p;
+        });
+    }
     var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF,0xFFAABB];
     for(var pi2=0;pi2<Math.min(targets.length,positions.length);pi2++){
         var tgt=targets[pi2];

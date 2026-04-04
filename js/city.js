@@ -22,7 +22,7 @@ var CITY_STYLES=[
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
     {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null},
     {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0x7BC8F6,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:null},
-    {name:'\uD83C\uDFD4\uFE0F \u96EA\u4E4B\u4E61',ground:0xE8EEF0,path:0xCCDDE8,sky:0x9BB8D0,bColors:[0xF5F0E8,0xE8DDD0,0xDDD5C8,0xF0EBE0,0xE0D8CC,0xD8D0C0,0xEEE8DD,0xE5DDD0],roof:0x8B7355,tree:0x2D5A3D,fog:null}
+    {name:'\uD83C\uDFD4\uFE0F \u96EA\u4E4B\u4E61',ground:0xDDD8D0,path:0xBBAA99,sky:0xAABBCC,bColors:[0xF5F0E8,0xE8DDD0,0xDDD5C8,0xF0EBE0,0xE0D8CC,0xD8D0C0,0xEEE8DD,0xE5DDD0],roof:0x8B7355,tree:0x2D5A3D,fog:null}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -73,7 +73,7 @@ function buildCity() {
     }
     // Snow surface (slightly irregular with patches)
     var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR-2,_snowGR,0.3,12),
-        new THREE.MeshBasicMaterial({color:0xF0F0F5}));
+        new THREE.MeshBasicMaterial({color:0xE8E0D8}));
     snowSurface.position.y=_islandY+0.05;cityGroup.add(snowSurface);
     // Snow bumps on top for each coastline bump
     for(var _ib2=0;_ib2<8;_ib2++){
@@ -81,24 +81,25 @@ function buildCity() {
         var _ibR2=_snowGR*0.7+Math.random()*_snowGR*0.35;
         var _ibS2=14+Math.random()*24;
         var sbump=new THREE.Mesh(new THREE.CylinderGeometry(_ibS2-1,_ibS2,0.2,8),
-            new THREE.MeshBasicMaterial({color:0xF0F0F5}));
+            new THREE.MeshBasicMaterial({color:0xE8E0D8}));
         sbump.position.set(Math.sin(_ibA2)*_ibR2,_islandY+0.05,Math.cos(_ibA2)*_ibR2);
         cityGroup.add(sbump);
     }
-    // Dirty snow patches + paths for variety
-    for(var _dp=0;_dp<20;_dp++){
+    // Earthy ground patches (Shirakawa-go style — brown soil showing through snow)
+    for(var _dp=0;_dp<25;_dp++){
         var _dpA=Math.random()*Math.PI*2;
         var _dpR=Math.random()*(_snowGR-15);
-        var patch=new THREE.Mesh(new THREE.CylinderGeometry(3+Math.random()*5,3+Math.random()*5,0.05,6),
-            toon([0xDDE0DD,0xCCD0CC,0xD8DCD8,0xE0E4E0][_dp%4]));
-        patch.position.set(Math.sin(_dpA)*_dpR,_islandY+0.1,Math.cos(_dpA)*_dpR);
+        var _dpSize=4+Math.random()*8;
+        var patch=new THREE.Mesh(new THREE.CylinderGeometry(_dpSize,_dpSize+1,0.06,8),
+            toon([0xAA9977,0x998866,0xBBAA88,0x887755][_dp%4]));
+        patch.position.set(Math.sin(_dpA)*_dpR,_islandY+0.08,Math.cos(_dpA)*_dpR);
         cityGroup.add(patch);
     }
-    // Stone paths on island
-    var _pathM7=toon(0xBBAA99);
-    [{w:4,d:180,x:0,z:0},{w:120,d:4,x:0,z:0},{w:80,d:3,x:0,z:-40},{w:80,d:3,x:0,z:40}].forEach(function(p7){
+    // Dirt paths on island
+    var _pathM7=toon(0x998866);
+    [{w:3,d:200,x:0,z:0},{w:150,d:3,x:0,z:0},{w:100,d:2.5,x:0,z:-40},{w:100,d:2.5,x:0,z:40}].forEach(function(p7){
         var path7=new THREE.Mesh(new THREE.BoxGeometry(p7.w,0.06,p7.d),_pathM7);
-        path7.position.set(p7.x,_islandY+0.03,p7.z);cityGroup.add(path7);
+        path7.position.set(p7.x,_islandY+0.04,p7.z);cityGroup.add(path7);
     });
     } else {
     const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
@@ -108,7 +109,7 @@ function buildCity() {
     }
 
     // Paths (not on moon) — organized grid street system
-    if(currentCityStyle!==5&&currentCityStyle!==6){
+    if(currentCityStyle!==5&&currentCityStyle!==6&&currentCityStyle!==7){
     const pathM = toon(st.path);
     // Main cross avenues (wide)
     [{w:CITY_SIZE*2,d:8,x:0,z:0},{w:8,d:CITY_SIZE*2,x:0,z:0},
@@ -1710,7 +1711,7 @@ function buildCity() {
         for(var _gri=0;_gri<24;_gri++){
             var _grA=_gri/24*Math.PI*2;
             // Skip at dock area (south, angle ~PI/2)
-            if(Math.abs(_grA-Math.PI/2)<0.3)continue;
+            if(Math.abs(_grA-Math.PI/2)<0.6)continue;
             var _grX=Math.sin(_grA)*(_snowIslandR-3);
             var _grZ=Math.cos(_grA)*(_snowIslandR-3);
             // Post
