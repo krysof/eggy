@@ -66,8 +66,15 @@ function updateEggPhysics(egg, isCity){
         if(currentCityStyle===7){
             var _snowDist=Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
             var _snowIslandR2=CITY_SIZE*0.8; // island radius
-            // Skip lake check if on dock area (wide zone, z>island edge south)
-            var _onDock=(Math.abs(egg.mesh.position.x)<15&&egg.mesh.position.z>_snowIslandR2-20);
+            // Skip lake check if near dock area (entire south quadrant + bridge collider zone)
+            var _onDock=false;
+            // Check if standing on any bridge collider (dock, etc)
+            for(var _dci=0;_dci<cityColliders.length;_dci++){
+                var _dc=cityColliders[_dci];
+                if(!_dc._bridge)continue;
+                if(Math.abs(egg.mesh.position.x-_dc.x)<_dc.hw+1&&Math.abs(egg.mesh.position.z-_dc.z)<_dc.hd+1)_onDock=true;
+            }
+            if(Math.abs(egg.mesh.position.x)<20&&egg.mesh.position.z>_snowIslandR2-25)_onDock=true;
             if(_snowDist>_snowIslandR2&&egg.mesh.position.y<3.5&&!_onDock){
                 egg.mesh.position.set(0,6,0);egg.vx=0;egg.vy=0;egg.vz=0;
                 egg.onGround=false;egg.squash=0.5;

@@ -73,7 +73,7 @@ function buildCity() {
     }
     // Snow surface (slightly irregular with patches)
     var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR-2,_snowGR,0.3,12),
-        new THREE.MeshBasicMaterial({color:0xCCD4E0}));
+        new THREE.MeshPhongMaterial({color:0xCCD8EE,specular:0x8899CC,shininess:60}));
     snowSurface.position.y=_islandY+0.05;cityGroup.add(snowSurface);
     // Snow bumps on top for each coastline bump
     for(var _ib2=0;_ib2<8;_ib2++){
@@ -81,7 +81,7 @@ function buildCity() {
         var _ibR2=_snowGR*0.7+Math.random()*_snowGR*0.35;
         var _ibS2=14+Math.random()*24;
         var sbump=new THREE.Mesh(new THREE.CylinderGeometry(_ibS2-1,_ibS2,0.2,8),
-            new THREE.MeshBasicMaterial({color:0xCCD4E0}));
+            new THREE.MeshPhongMaterial({color:0xCCD8EE,specular:0x8899CC,shininess:60}));
         sbump.position.set(Math.sin(_ibA2)*_ibR2,_islandY+0.05,Math.cos(_ibA2)*_ibR2);
         cityGroup.add(sbump);
     }
