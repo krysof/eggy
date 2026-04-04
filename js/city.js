@@ -22,7 +22,7 @@ var CITY_STYLES=[
     {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
     {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null},
     {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0x7BC8F6,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:null},
-    {name:'\uD83C\uDFD4\uFE0F \u96EA\u4E4B\u4E61',ground:0xDDD8D0,path:0xBBAA99,sky:0xAABBCC,bColors:[0xF5F0E8,0xE8DDD0,0xDDD5C8,0xF0EBE0,0xE0D8CC,0xD8D0C0,0xEEE8DD,0xE5DDD0],roof:0x8B7355,tree:0x2D5A3D,fog:null}
+    {name:'\uD83C\uDFD4\uFE0F \u96EA\u4E4B\u4E61',ground:0xC8D0DD,path:0x998877,sky:0x1A2844,bColors:[0xF5F0E8,0xE8DDD0,0xDDD5C8,0xF0EBE0,0xE0D8CC,0xD8D0C0,0xEEE8DD,0xE5DDD0],roof:0x8B7355,tree:0x2D5A3D,fog:null}
 ];
 // Warp pipe definitions: 4 pipes at city edges
 var WARP_PIPES=[
@@ -73,7 +73,7 @@ function buildCity() {
     }
     // Snow surface (slightly irregular with patches)
     var snowSurface=new THREE.Mesh(new THREE.CylinderGeometry(_snowGR-2,_snowGR,0.3,12),
-        new THREE.MeshBasicMaterial({color:0xE8E0D8}));
+        new THREE.MeshBasicMaterial({color:0xCCD4E0}));
     snowSurface.position.y=_islandY+0.05;cityGroup.add(snowSurface);
     // Snow bumps on top for each coastline bump
     for(var _ib2=0;_ib2<8;_ib2++){
@@ -81,7 +81,7 @@ function buildCity() {
         var _ibR2=_snowGR*0.7+Math.random()*_snowGR*0.35;
         var _ibS2=14+Math.random()*24;
         var sbump=new THREE.Mesh(new THREE.CylinderGeometry(_ibS2-1,_ibS2,0.2,8),
-            new THREE.MeshBasicMaterial({color:0xE8E0D8}));
+            new THREE.MeshBasicMaterial({color:0xCCD4E0}));
         sbump.position.set(Math.sin(_ibA2)*_ibR2,_islandY+0.05,Math.cos(_ibA2)*_ibR2);
         cityGroup.add(sbump);
     }
@@ -91,12 +91,12 @@ function buildCity() {
         var _dpR=Math.random()*(_snowGR-15);
         var _dpSize=4+Math.random()*8;
         var patch=new THREE.Mesh(new THREE.CylinderGeometry(_dpSize,_dpSize+1,0.06,8),
-            toon([0xAA9977,0x998866,0xBBAA88,0x887755][_dp%4]));
+            toon([0x8899AA,0x778899,0x99AABB,0x667788][_dp%4]));
         patch.position.set(Math.sin(_dpA)*_dpR,_islandY+0.08,Math.cos(_dpA)*_dpR);
         cityGroup.add(patch);
     }
     // Dirt paths on island
-    var _pathM7=toon(0x998866);
+    var _pathM7=toon(0xAA9977); // warm amber path (street light glow)
     [{w:3,d:200,x:0,z:0},{w:150,d:3,x:0,z:0},{w:100,d:2.5,x:0,z:-40},{w:100,d:2.5,x:0,z:40}].forEach(function(p7){
         var path7=new THREE.Mesh(new THREE.BoxGeometry(p7.w,0.06,p7.d),_pathM7);
         path7.position.set(p7.x,_islandY+0.04,p7.z);cityGroup.add(path7);
@@ -1636,10 +1636,10 @@ function buildCity() {
     //  Snow Village — 雪之乡 (地面=白川郷岛, 海=洞爺湖, 外围=温泉街)
     // ===============================================================
     if(currentCityStyle===7){try{
-        var _snowM=toon(0xF0F4F8);
+        var _snowM=toon(0xDDE4F0); // blue-tinted snow for twilight
         var _woodM7=toon(0x8B7355);
         var _stoneM2=toon(0x999999);
-        var _winM7=toon(0xFFDD88,{emissive:0xFFAA44,emissiveIntensity:0.6});
+        var _winM7=toon(0xFFCC66,{emissive:0xFFAA33,emissiveIntensity:1.0}); // strong warm glow
 
         // Helper: Gassho-zukuri house (合掌造り) — built at island height
         var _by7=3; // island surface Y
@@ -1899,15 +1899,25 @@ function buildCity() {
                 rotSpeed:0.01+Math.random()*0.01});
         }
 
-        // === 9. Lanterns ===
-        for(var _sli7=0;_sli7<20;_sli7++){
-            var _slz7=-190+_sli7*20;
-            var tg8=new THREE.Group();tg8.position.set(5,_by7,_slz7);
-            tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.2,0.4),_stoneM2));tg8.children[0].position.y=0.1;
-            tg8.add(new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.2,6),_stoneM2));tg8.children[1].position.y=0.8;
-            tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.4),toon(0xFFDD88,{emissive:0xFFDD88,emissiveIntensity:0.5})));tg8.children[2].position.y=1.6;
-            tg8.add(new THREE.Mesh(new THREE.ConeGeometry(0.35,0.25,4),_stoneM2));tg8.children[3].position.y=1.9;
-            cityGroup.add(tg8);
+        // === 9. Warm street lanterns (暖かい街灯) — both sides of paths ===
+        var _lanternGlow=new THREE.MeshBasicMaterial({color:0xFFCC44,transparent:true,opacity:0.9});
+        for(var _sli7=0;_sli7<16;_sli7++){
+            var _slz7=-100+_sli7*14;
+            [-4,4].forEach(function(sx7){
+                var tg8=new THREE.Group();tg8.position.set(sx7,_by7,_slz7);
+                // Stone base
+                tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.5,0.25,0.5),_stoneM2));tg8.children[0].position.y=0.12;
+                // Post
+                tg8.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,1.5,6),_stoneM2));tg8.children[1].position.y=0.95;
+                // Bright glowing lantern head
+                tg8.add(new THREE.Mesh(new THREE.BoxGeometry(0.5,0.4,0.5),_lanternGlow));tg8.children[2].position.y=1.9;
+                // Roof cap
+                tg8.add(new THREE.Mesh(new THREE.ConeGeometry(0.45,0.3,4),_stoneM2));tg8.children[3].position.y=2.25;tg8.children[3].rotation.y=Math.PI/4;
+                // Light sphere (glow halo)
+                var halo=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,4),new THREE.MeshBasicMaterial({color:0xFFDD88,transparent:true,opacity:0.08}));
+                halo.position.y=1.9;tg8.add(halo);
+                cityGroup.add(tg8);
+            });
         }
 
     }catch(e){alert('Snow Village build error: '+e.message);}

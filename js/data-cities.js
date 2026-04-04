@@ -48,7 +48,7 @@ var CITY_THEME_DATA=[
      roof:0x884444,tree:0xFFAABB,fog:null},
     {id:7,nameKey:'city7',ground:0xE8EEF0,path:0xCCDDE8,sky:0xC0D0DD,
      bColors:[0xF5F0E8,0xE8DDD0,0xDDD5C8,0xF0EBE0,0xE0D8CC,0xD8D0C0,0xEEE8DD,0xE5DDD0],
-     roof:0x8B7355,tree:0x2D5A3D,fog:null}
+     roof:0x8B7355,tree:0x2D5A3D,fog:null} // twilight — dark sky with warm lights
 ];
 
 // ---- Portal positions per city ----
