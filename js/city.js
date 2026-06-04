@@ -35,6 +35,110 @@ var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
 // Apply localized city names
 for(var _si=0;_si<CITY_STYLES.length;_si++){CITY_STYLES[_si].name=I18N.cityNames[_langCode][_si]||CITY_STYLES[_si].name;}
 
+function _cityMixHex(a,b,t){
+    if(typeof _mixHex==='function')return _mixHex(a,b,t);
+    t=Math.max(0,Math.min(1,t));
+    var ar=(a>>16)&255,ag=(a>>8)&255,ab=a&255;
+    var br=(b>>16)&255,bg=(b>>8)&255,bb=b&255;
+    var r=Math.round(ar+(br-ar)*t),g=Math.round(ag+(bg-ag)*t),bl=Math.round(ab+(bb-ab)*t);
+    return (r<<16)|(g<<8)|bl;
+}
+function _cityCanvasSign(text,bg,fg){
+    var c=document.createElement('canvas');c.width=256;c.height=80;
+    var ctx=c.getContext('2d');
+    ctx.fillStyle='rgba(20,20,28,0.82)';ctx.fillRect(0,0,256,80);
+    ctx.fillStyle='#'+('000000'+(bg>>>0).toString(16)).slice(-6);
+    ctx.fillRect(6,6,244,68);
+    ctx.strokeStyle='rgba(255,255,255,0.72)';ctx.lineWidth=3;ctx.strokeRect(10,10,236,60);
+    ctx.fillStyle=fg||'#FFFFFF';ctx.font='bold 28px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(text,128,42);
+    var tex=new THREE.CanvasTexture(c);tex.minFilter=THREE.LinearFilter;tex.magFilter=THREE.LinearFilter;
+    return tex;
+}
+function _decorateDefaultBuilding(b,bMeshes,col,st,i){
+    var dark=_cityMixHex(col,0x151515,0.32);
+    var light=_cityMixHex(col,0xFFFFFF,0.26);
+    var trim=_cityMixHex(st.roof||col,0xFFFFFF,0.12);
+    var glow=(currentCityStyle===3)?0xFF8844:((currentCityStyle===2)?0xDDF8FF:((currentCityStyle===4)?0xFFEE88:0xFFE4A2));
+    var trimM=toon(trim);
+    var darkM=toon(dark);
+    var lightM=toon(light);
+    function add(mesh){cityGroup.add(mesh);bMeshes.push(mesh);return mesh;}
+
+    // Roof lip, base plinth, and facade side strips immediately break the pure-box silhouette.
+    var cap=new THREE.Mesh(new THREE.BoxGeometry(b.w+0.7,0.24,b.d+0.7),trimM);
+    cap.position.set(b.x,b.h+0.12,b.z);cap.castShadow=true;add(cap);
+    var plinth=new THREE.Mesh(new THREE.BoxGeometry(b.w+0.55,0.34,b.d+0.55),darkM);
+    plinth.position.set(b.x,0.18,b.z);plinth.receiveShadow=true;add(plinth);
+    [-1,1].forEach(function(sx){
+        var colm=new THREE.Mesh(new THREE.BoxGeometry(0.18,b.h+0.1,0.22),lightM);
+        colm.position.set(b.x+sx*(b.w/2+0.06),(b.h+0.1)/2,b.z+b.d/2+0.09);add(colm);
+        var colm2=new THREE.Mesh(new THREE.BoxGeometry(0.18,b.h+0.1,0.22),lightM);
+        colm2.position.set(b.x+sx*(b.w/2+0.06),(b.h+0.1)/2,b.z-b.d/2-0.09);add(colm2);
+    });
+
+    // Horizontal floor bands and inset facade panels.
+    for(var fy=3;fy<b.h-1;fy+=4){
+        var band=new THREE.Mesh(new THREE.BoxGeometry(b.w+0.18,0.08,0.10),darkM);
+        band.position.set(b.x,fy,b.z+b.d/2+0.11);add(band);
+        var band2=new THREE.Mesh(new THREE.BoxGeometry(b.w+0.18,0.08,0.10),darkM);
+        band2.position.set(b.x,fy,b.z-b.d/2-0.11);add(band2);
+    }
+    for(var vx=-b.w/2+2;vx<=b.w/2-2;vx+=3.2){
+        var rib=new THREE.Mesh(new THREE.BoxGeometry(0.08,Math.max(2,b.h-2),0.08),lightM);
+        rib.position.set(b.x+vx,b.h/2+0.4,b.z+b.d/2+0.13);add(rib);
+    }
+
+    // Door canopy + tiny shop-style sign.
+    var awningColor=(currentCityStyle===4)?0xFF66AA:((currentCityStyle===3)?0xFF5522:((currentCityStyle===1)?0xCC8844:0x4488DD));
+    var awn=new THREE.Mesh(new THREE.BoxGeometry(Math.min(b.w*0.7,4.2),0.18,0.85),toon(awningColor,{emissive:awningColor,emissiveIntensity:0.10}));
+    awn.position.set(b.x,2.35,b.z+b.d/2+0.46);awn.rotation.x=-0.12;add(awn);
+    if(i%2===0){
+        var sNames=['DANBO','SHOP','CAFE','HOTEL','STAR','TOY'];
+        var tex=_cityCanvasSign(sNames[i%sNames.length],awningColor,'#FFFFFF');
+        var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+        sign.position.set(b.x,Math.min(b.h-1.5,4.2),b.z+b.d/2+0.20);
+        sign.scale.set(3.2,1.0,1);cityGroup.add(sign);bMeshes.push(sign);
+    }
+
+    // Balconies and small railings on medium/tall buildings.
+    if(b.h>9){
+        var balconyM=toon(_cityMixHex(trim,0xFFFFFF,0.20));
+        var railM=toon(dark);
+        for(var by=5;by<b.h-1;by+=6){
+            var bxCount=Math.max(1,Math.floor(b.w/4));
+            for(var bx=0;bx<bxCount;bx++){
+                var off=(bx-(bxCount-1)/2)*3.2;
+                if(Math.abs(off)>b.w/2-1.2)continue;
+                var deck=new THREE.Mesh(new THREE.BoxGeometry(1.6,0.12,0.60),balconyM);
+                deck.position.set(b.x+off,by-0.55,b.z+b.d/2+0.42);add(deck);
+                var rail=new THREE.Mesh(new THREE.BoxGeometry(1.65,0.32,0.06),railM);
+                rail.position.set(b.x+off,by-0.25,b.z+b.d/2+0.73);add(rail);
+            }
+        }
+    }
+
+    // Rooftop props: water tanks, chimneys, antennas, neon halos.
+    if(i%3===0){
+        var tankG=new THREE.Group();tankG.position.set(b.x+(i%2?b.w*0.20:-b.w*0.20),b.h+0.45,b.z);
+        var tank=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.45,0.7,10),toon(_cityMixHex(trim,0x777777,0.25)));
+        tank.position.y=0.35;tankG.add(tank);
+        for(var li=0;li<4;li++){var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.5,4),darkM);leg.position.set((li<2?-0.28:0.28),-0.25,(li%2?-0.28:0.28));tankG.add(leg);}
+        cityGroup.add(tankG);
+        for(var tci=0;tci<tankG.children.length;tci++)bMeshes.push(tankG.children[tci]);
+    }
+    if(i%4===1){
+        var ant=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.018,2.4,5),toon(0x333333));
+        ant.position.set(b.x+b.w*0.25,b.h+1.35,b.z-b.d*0.15);add(ant);
+        var dish=new THREE.Mesh(new THREE.SphereGeometry(0.28,8,6),toon(0xCCCCCC));
+        dish.position.set(b.x+b.w*0.25,b.h+0.75,b.z-b.d*0.15);dish.scale.set(1,0.35,0.7);add(dish);
+    }
+    if(i%5===2){
+        var neon=new THREE.Mesh(new THREE.TorusGeometry(0.55,0.045,6,18),new THREE.MeshBasicMaterial({color:glow,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending}));
+        neon.position.set(b.x-b.w*0.25,b.h+0.45,b.z+b.d/2+0.18);neon.rotation.x=Math.PI/2;add(neon);
+    }
+}
+
 function buildCity() {
     var st=CITY_STYLES[currentCityStyle];
     // Ground
@@ -237,6 +341,8 @@ function buildCity() {
         // Door
         const door=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.doorSize.w,BUILDING_CONFIG.doorSize.h,BUILDING_CONFIG.doorSize.d), toon(0x885533));
         door.position.set(b.x, BUILDING_CONFIG.doorSize.h/2, b.z+b.d/2+0.07); cityGroup.add(door); bMeshes.push(door);
+
+        _decorateDefaultBuilding(b,bMeshes,col,st,i);
 
         cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h, roofR:Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, roofH:BUILDING_CONFIG.roofHeight});
         cityBuildingMeshes.push({meshes:bMeshes, x:b.x, z:b.z, hw:b.w/2, hd:b.d/2, h:b.h});

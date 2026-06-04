@@ -2,6 +2,140 @@
 // ============================================================
 //  EGG MESH & ENTITY
 // ============================================================
+function _charMixHex(a,b,t){
+    if(typeof _mixHex==='function')return _mixHex(a,b,t);
+    t=Math.max(0,Math.min(1,t));
+    var ar=(a>>16)&255,ag=(a>>8)&255,ab=a&255;
+    var br=(b>>16)&255,bg=(b>>8)&255,bb=b&255;
+    var r=Math.round(ar+(br-ar)*t),g=Math.round(ag+(bg-ag)*t),bl=Math.round(ab+(bb-ab)*t);
+    return (r<<16)|(g<<8)|bl;
+}
+
+function _addCharacterPolish(g,body,color,accent,charType){
+    accent=(accent===undefined||accent===null)?0xFFCC00:accent;
+    var type=charType||'egg';
+    var faceZ=(type==='bear')?0.86:((type==='bull'||type==='cat')?0.68:(type==='cockroach'?0.42:0.60));
+    var beltR=(type==='bear')?0.70:((type==='bull'||type==='cat')?0.54:(type==='cockroach'?0.28:0.42));
+    // Thin black back-face outline: makes each character read like a richer toy figure.
+    var outline=new THREE.Mesh(body.geometry.clone(),new THREE.MeshBasicMaterial({
+        color:0x121212,side:THREE.BackSide,transparent:true,opacity:0.18,depthWrite:false
+    }));
+    outline.position.copy(body.position);
+    outline.scale.copy(body.scale).multiplyScalar(1.055);
+    outline.renderOrder=-2;
+    g.add(outline);
+    g.userData._toonOutline=outline;
+
+    // More expressive eyes: colored iris, tiny pupil, extra highlight, and eyebrows.
+    var irisColor=_charMixHex(accent,0xFFFFFF,0.25);
+    var irisG=new THREE.SphereGeometry(0.078,10,8);
+    var tinyPupilG=new THREE.SphereGeometry(0.038,8,6);
+    var tinyShineG=new THREE.SphereGeometry(0.018,6,4);
+    var irisMat=toon(irisColor,{emissive:irisColor,emissiveIntensity:0.10});
+    var browMat=toon(type==='egg'?0x222222:_charMixHex(color,0x111111,0.55));
+    var detailEyes=[];
+    [-1,1].forEach(function(s){
+        var iris=new THREE.Mesh(irisG,irisMat);
+        iris.position.set(s*0.24,0.865,faceZ);
+        iris.scale.set(0.95,1.05,0.35);body.add(iris);detailEyes.push(iris);
+        var pp=new THREE.Mesh(tinyPupilG,toon(0x111111));
+        pp.position.set(s*0.24,0.858,faceZ+0.035);
+        pp.scale.set(0.82,1.05,0.45);body.add(pp);detailEyes.push(pp);
+        var sh=new THREE.Mesh(tinyShineG,toon(0xFFFFFF,{emissive:0xFFFFFF,emissiveIntensity:0.2}));
+        sh.position.set(s*0.20,0.905,faceZ+0.07);body.add(sh);detailEyes.push(sh);
+        var brow=new THREE.Mesh(new THREE.BoxGeometry(0.20,0.035,0.035),browMat);
+        brow.position.set(s*0.24,1.075,faceZ-0.015);
+        brow.rotation.z=-s*0.18;
+        body.add(brow);
+    });
+    g.userData._irisDetails=detailEyes;
+
+    // Costume silhouette: belt/collar/sash details are cheap meshes but visible close-up.
+    var beltMat=toon(type==='egg'||type==='dog'?0x1F1F1F:_charMixHex(accent,0x111111,0.28));
+    var belt=new THREE.Mesh(new THREE.TorusGeometry(beltR,0.026,6,28),beltMat);
+    belt.position.set(0,0.22,0.02);belt.rotation.x=Math.PI/2;
+    belt.scale.z=0.72;body.add(belt);
+    var buckle=new THREE.Mesh(new THREE.BoxGeometry(0.16,0.10,0.035),toon(_charMixHex(accent,0xFFFFFF,0.18),{emissive:accent,emissiveIntensity:0.10}));
+    buckle.position.set(0,0.22,faceZ+0.005);body.add(buckle);
+    [-1,1].forEach(function(s){
+        var sash=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.48,0.034),toon(_charMixHex(accent,0xFFFFFF,0.10)));
+        sash.position.set(s*0.115,0.50,faceZ);
+        sash.rotation.z=s*0.34;
+        body.add(sash);
+    });
+    // Visible gloves / cuffs near the stub arms.
+    [-1,1].forEach(function(s){
+        var cuff=new THREE.Mesh(new THREE.SphereGeometry(0.085,8,6),toon(_charMixHex(accent,0xFFFFFF,0.20)));
+        cuff.position.set(s*0.57,0.55,0.18);
+        cuff.scale.set(1.15,0.75,0.85);
+        body.add(cuff);
+    });
+
+    // Type-specific costume accents, so silhouettes are different even from a distance.
+    if(type==='egg'){
+        var giMat=toon(0xEDEDE6);
+        [-1,1].forEach(function(s){
+            var fold=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.55,0.032),giMat);
+            fold.position.set(s*0.10,0.52,faceZ+0.01);fold.rotation.z=-s*0.28;body.add(fold);
+        });
+        var knot=new THREE.Mesh(new THREE.SphereGeometry(0.055,6,4),toon(0xCC2222,{emissive:0xCC2222,emissiveIntensity:0.15}));
+        knot.position.set(0.18,1.03,-0.35);body.add(knot);
+    } else if(type==='dog'){
+        var flameMat=toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.18});
+        [-1,1].forEach(function(s){
+            var flame=new THREE.Mesh(new THREE.ConeGeometry(0.045,0.22,4),flameMat);
+            flame.position.set(s*0.20,0.46,faceZ+0.02);
+            flame.rotation.z=s*0.28;body.add(flame);
+        });
+    } else if(type==='bull'){
+        var ropeMat=toon(0xF2E0A8);
+        var rope=new THREE.Mesh(new THREE.TorusGeometry(0.50,0.024,6,24),ropeMat);
+        rope.position.set(0,0.48,0.04);rope.rotation.x=Math.PI/2;rope.scale.z=0.75;body.add(rope);
+        for(var ri=0;ri<7;ri++){
+            var bead=new THREE.Mesh(new THREE.SphereGeometry(0.035,6,4),ropeMat);
+            var a=-0.9+ri*0.3;bead.position.set(Math.sin(a)*0.35,0.47,faceZ+Math.cos(a)*0.04);
+            body.add(bead);
+        }
+    } else if(type==='cat'){
+        var elecMat=toon(0xDFFF44,{emissive:0xCCFF00,emissiveIntensity:0.35});
+        for(var ei=0;ei<4;ei++){
+            var bolt=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.34,0.036),elecMat);
+            bolt.position.set(-0.30+ei*0.20,0.48+(ei%2)*0.10,faceZ+0.01);
+            bolt.rotation.z=(ei%2?0.55:-0.55);body.add(bolt);
+        }
+    } else if(type==='rooster'){
+        var tagMat=toon(0xDDDDDD,{emissive:0xAAAAAA,emissiveIntensity:0.1});
+        var chain=new THREE.Mesh(new THREE.TorusGeometry(0.27,0.012,5,18),tagMat);
+        chain.position.set(0,0.50,faceZ-0.05);chain.rotation.x=Math.PI/2;body.add(chain);
+        var tag=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.16,0.025),tagMat);
+        tag.position.set(0,0.36,faceZ+0.02);body.add(tag);
+    } else if(type==='monkey'){
+        var trimMat=toon(0xFFDD55,{emissive:0xFFAA00,emissiveIntensity:0.12});
+        [-1,1].forEach(function(s){
+            var trim=new THREE.Mesh(new THREE.BoxGeometry(0.032,0.60,0.032),trimMat);
+            trim.position.set(s*0.19,0.50,faceZ+0.01);body.add(trim);
+            var bracelet=new THREE.Mesh(new THREE.TorusGeometry(0.085,0.014,5,12),trimMat);
+            bracelet.position.set(s*0.58,0.54,0.18);bracelet.rotation.y=Math.PI/2;body.add(bracelet);
+        });
+    } else if(type==='bear'){
+        var wristMat=toon(0xCC3333,{emissive:0x661111,emissiveIntensity:0.08});
+        [-1,1].forEach(function(s){
+            var wrist=new THREE.Mesh(new THREE.TorusGeometry(0.13,0.026,6,16),wristMat);
+            wrist.position.set(s*0.64,0.52,0.22);wrist.rotation.y=Math.PI/2;body.add(wrist);
+        });
+    } else if(type==='cockroach'){
+        var beadMat=toon(0xFFF0CC);
+        for(var bi=0;bi<8;bi++){
+            var ba=-1.2+bi*0.34;
+            var bead2=new THREE.Mesh(new THREE.SphereGeometry(0.032,6,4),beadMat);
+            bead2.position.set(Math.sin(ba)*0.24,0.53,faceZ+Math.cos(ba)*0.035);
+            body.add(bead2);
+        }
+        var wrap=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.06,0.035),toon(0xFFAA44));
+        wrap.position.set(0,0.27,faceZ+0.01);body.add(wrap);
+    }
+}
+
 function createEggMesh(color, accent, charType) {
     var g = new THREE.Group();
     var bodyGeo = new THREE.SphereGeometry(0.6,20,14);
@@ -541,6 +675,8 @@ function createEggMesh(color, accent, charType) {
             }
         });
     }
+
+    _addCharacterPolish(g,body,color,accent,charType);
 
     // Feet
     var ftG=new THREE.SphereGeometry(0.14,8,6); ftG.scale(1.1,0.45,1.4);

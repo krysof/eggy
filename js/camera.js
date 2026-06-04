@@ -371,6 +371,7 @@ function updateCamera(){
             const targetOp=shouldFade?0.01:1.0;
             for(const m of bld.meshes){
                 const mat=m.material;
+                if(!mat)continue;
                 if(!mat.hasOwnProperty('_origOpacity')){mat._origOpacity=mat.opacity||1;mat._origTransparent=mat.transparent||false;mat._origDepthWrite=mat.depthWrite!==undefined?mat.depthWrite:true;}
                 const goal=targetOp*mat._origOpacity;
                 mat.opacity+=(goal-mat.opacity)*(_tpsCamMode?0.3:0.15);

@@ -61,6 +61,7 @@ function _updatePainFace(egg){
             ud._pupils[i].visible=false;
             ud._shines[i].visible=false;
         }
+        if(ud._irisDetails){for(var ii=0;ii<ud._irisDetails.length;ii++)ud._irisDetails[ii].visible=false;}
         // Mouth — open in pain (move smile down and scale)
         if(ud._smile){ud._smile.position.y=-0.05;ud._smile.scale.set(1.3,1.3,1.3);}
     } else {
@@ -70,6 +71,7 @@ function _updatePainFace(egg){
             ud._pupils[j].visible=true;
             ud._shines[j].visible=true;
         }
+        if(ud._irisDetails){for(var ij=0;ij<ud._irisDetails.length;ij++)ud._irisDetails[ij].visible=true;}
         if(ud._smile){ud._smile.position.y=0;ud._smile.scale.set(1,1,1);}
     }
 }
