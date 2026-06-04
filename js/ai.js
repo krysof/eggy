@@ -111,7 +111,7 @@ function updateObstacles(){
             if(ob.type==='boost'){
             ob.data._pulse=(ob.data._pulse||0)+0.06;
             const glow=0.3+Math.sin(ob.data._pulse)*0.2;
-            ob.mesh.material.emissiveIntensity=glow;
+            if(ob.mesh&&ob.mesh.material&&ob.mesh.material.emissiveIntensity!==undefined)ob.mesh.material.emissiveIntensity=glow;
             for(const egg of allEggs){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const ez=-egg.mesh.position.z;

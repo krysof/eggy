@@ -7,23 +7,56 @@ window.addEventListener('unhandledrejection',function(e){if(!window._errShown){w
 // ============================================================
 var _cityFrameNo=0;
 
-function _pulseSaberMaterial(saberObj,hex){
-    if(!saberObj)return;
-    var restore=(hex===0x000000);
-    saberObj.traverse(function(o){
-        if(!o.material)return;
+function _forEachObjectMaterial(obj,cb){
+    if(!obj||!cb)return;
+    var seen=[];
+    function visit(o){
+        if(!o||!o.material)return;
         var mats=Array.isArray(o.material)?o.material:[o.material];
         for(var mi=0;mi<mats.length;mi++){
             var mat=mats[mi];
-            if(!mat)continue;
-            if(mat.emissive&&mat.emissive.setHex){
-                mat.emissive.setHex(restore?0x000000:hex);
-            } else if(mat.color&&mat.color.setHex){
-                if(mat._saberBaseColor===undefined&&mat.color.getHex)mat._saberBaseColor=mat.color.getHex();
-                mat.color.setHex(restore?(mat._saberBaseColor||0xFF88CC):hex);
+            if(!mat||seen.indexOf(mat)!==-1)continue;
+            seen.push(mat);
+            cb(mat,o);
+        }
+    }
+    if(obj.traverse)obj.traverse(visit);
+    else visit(obj);
+}
+
+function _safeMaterialColorHex(obj,fallback){
+    var color;
+    _forEachObjectMaterial(obj,function(mat){
+        if(color===undefined&&mat.color&&mat.color.getHex)color=mat.color.getHex();
+    });
+    return color===undefined?fallback:color;
+}
+
+function _safeSetEmissive(obj,hex,intensity){
+    var restore=(hex===0x000000||hex===undefined||hex===null);
+    _forEachObjectMaterial(obj,function(mat){
+        if(mat.emissive&&mat.emissive.setHex){
+            mat.emissive.setHex(restore?0x000000:hex);
+            if(intensity!==undefined&&mat.emissiveIntensity!==undefined)mat.emissiveIntensity=intensity;
+        } else if(mat.color&&mat.color.setHex){
+            if(mat._safeBaseColor===undefined&&mat.color.getHex)mat._safeBaseColor=mat.color.getHex();
+            if(restore){
+                if(mat._safeBaseColor!==undefined)mat.color.setHex(mat._safeBaseColor);
+            } else {
+                mat.color.setHex(hex);
             }
         }
     });
+}
+
+function _safeSetEmissiveIntensity(obj,intensity){
+    _forEachObjectMaterial(obj,function(mat){
+        if(mat.emissiveIntensity!==undefined)mat.emissiveIntensity=intensity;
+    });
+}
+
+function _pulseSaberMaterial(saberObj,hex){
+    _safeSetEmissive(saberObj,hex);
 }
 
 // ---- Slash cut effect — vertical bright line + body splits briefly ----
@@ -38,7 +71,7 @@ function spawnSlashEffect(egg,faceY){
     scene.add(_slLine);
     // Two half-body clones that separate
     var _slBody=egg.mesh.userData.body;
-    var _slColor=_slBody?_slBody.material.color.getHex():0xFFFFFF;
+    var _slColor=_safeMaterialColorHex(_slBody,0xFFFFFF);
     var _halfL=new THREE.Mesh(new THREE.SphereGeometry(0.7,8,8,0,Math.PI),new THREE.MeshBasicMaterial({color:_slColor,transparent:true,opacity:0.7,side:THREE.DoubleSide}));
     var _halfR=new THREE.Mesh(new THREE.SphereGeometry(0.7,8,8,Math.PI,Math.PI),new THREE.MeshBasicMaterial({color:_slColor,transparent:true,opacity:0.7,side:THREE.DoubleSide}));
     _halfL.position.copy(_slLine.position);_halfR.position.copy(_slLine.position);
@@ -108,9 +141,9 @@ function updateCity(){
             _sfe._slashFlash--;
             var _sfBody=_sfe.mesh.userData.body;
             if(_sfBody){
-                if(_sfe._slashFlash%2===0)_sfBody.material.emissive=new THREE.Color(0xFFFFFF);
-                else _sfBody.material.emissive=new THREE.Color(0x000000);
-                if(_sfe._slashFlash<=0)_sfBody.material.emissive=new THREE.Color(0x000000);
+                if(_sfe._slashFlash%2===0)_safeSetEmissive(_sfBody,0xFFFFFF);
+                else _safeSetEmissive(_sfBody,0x000000);
+                if(_sfe._slashFlash<=0)_safeSetEmissive(_sfBody,0x000000);
             }
         }
     }
@@ -497,10 +530,10 @@ function updateCity(){
             }
             // Body tint orange while burning
             var _fbody=npc.mesh.userData.body;
-            if(_fbody&&npc._onFire>0){_fbody.material.emissive=new THREE.Color(0xFF4400);_fbody.material.emissiveIntensity=0.3+Math.sin(npc._onFire*0.3)*0.15;}
+            if(_fbody&&npc._onFire>0)_safeSetEmissive(_fbody,0xFF4400,0.3+Math.sin(npc._onFire*0.3)*0.15);
             if(npc._onFire<=0){
                 for(var _fpk=0;_fpk<npc._fireParticles.length;_fpk++)npc._fireParticles[_fpk].visible=false;
-                if(_fbody){_fbody.material.emissiveIntensity=0;}
+                if(_fbody)_safeSetEmissiveIntensity(_fbody,0);
             }
             // Fire stun (Yoga Flame) — freeze then knockback
             if(npc._fireStun>0){
@@ -3056,10 +3089,10 @@ function _gameUpdate(){
                 _pfpp.scale.setScalar(0.6+Math.random()*1.0);
             }
             var _pfbody=playerEgg.mesh.userData.body;
-            if(_pfbody&&playerEgg._onFire>0){_pfbody.material.emissive=new THREE.Color(0xFF4400);_pfbody.material.emissiveIntensity=0.3+Math.sin(playerEgg._onFire*0.3)*0.15;}
+            if(_pfbody&&playerEgg._onFire>0)_safeSetEmissive(_pfbody,0xFF4400,0.3+Math.sin(playerEgg._onFire*0.3)*0.15);
             if(playerEgg._onFire<=0){
                 for(var _pfpk=0;_pfpk<playerEgg._fireParticles.length;_pfpk++)playerEgg._fireParticles[_pfpk].visible=false;
-                if(_pfbody){_pfbody.material.emissiveIntensity=0;}
+                if(_pfbody)_safeSetEmissiveIntensity(_pfbody,0);
             }
             if(playerEgg._fireStun>0){
                 playerEgg._fireStun--;
@@ -3171,11 +3204,11 @@ function _gameUpdate(){
             // Speed Star glow
             if(playerEgg._speedBoost>0){
                 var _sbBody=playerEgg.mesh.userData.body;
-                if(_sbBody){_sbBody.material.emissive=new THREE.Color(0xFFDD00);_sbBody.material.emissiveIntensity=0.3+Math.sin(playerEgg._speedBoost*0.15)*0.2;}
-                if(playerEgg._speedBoost<=0&&_sbBody){_sbBody.material.emissiveIntensity=0;}
+                if(_sbBody)_safeSetEmissive(_sbBody,0xFFDD00,0.3+Math.sin(playerEgg._speedBoost*0.15)*0.2);
+                if(playerEgg._speedBoost<=0&&_sbBody)_safeSetEmissiveIntensity(_sbBody,0);
             } else {
                 var _sbBody2=playerEgg.mesh.userData.body;
-                if(_sbBody2&&!playerEgg._onFire)_sbBody2.material.emissiveIntensity=0;
+                if(_sbBody2&&!playerEgg._onFire)_safeSetEmissiveIntensity(_sbBody2,0);
             }
             // Shield bubble visibility
             if(playerEgg._shieldBubble){

@@ -4,6 +4,7 @@
 // ============================================================
 var _pfActive=false;
 var _pfSavedCity=-1;
+var _pfTile=4;
 
 function _pfStart(){try{
     _pfSavedCity=currentCityStyle;
@@ -54,7 +55,7 @@ function _pfStart(){try{
 }catch(e){console.error('_pfStart ERROR:',e);alert('Start error: '+e.message);}}
 
 function _pfBuildLevel(){try{
-    var T=4,L=200,D=T*3;
+    var T=_pfTile,L=200,D=T*3;
     var W=T*L;
     // Global arrays for dynamic elements
     window._pfMovingPlatforms=[];
@@ -516,7 +517,7 @@ function _pfUpdateMoving(){try{
     if(window._pfFallingRocks&&playerEgg){
         for(var fri=window._pfFallingRocks.length-1;fri>=0;fri--){
             var fr=window._pfFallingRocks[fri];
-            if(!fr.triggered&&Math.abs(playerEgg.mesh.position.x-fr.triggerX)<T*2){
+            if(!fr.triggered&&Math.abs(playerEgg.mesh.position.x-fr.triggerX)<_pfTile*2){
                 fr.triggered=true;fr.falling=true;fr.vy=0;
             }
             if(fr.falling){

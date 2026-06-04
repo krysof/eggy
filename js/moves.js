@@ -148,11 +148,12 @@ function MoveProjectile_update(proj){
     if(proj.isYogaFire&&proj.ball.children){
         for(var i=2;i<proj.ball.children.length;i++){
             var ch=proj.ball.children[i];
+            if(!ch||!ch.material)continue;
             ch.position.set((Math.random()-0.5)*0.5,(Math.random()-0.5)*0.5,(Math.random()-0.5)*0.5);
             ch.material.opacity=0.4+Math.random()*0.5;
             ch.scale.setScalar(0.7+Math.random()*0.8);
         }
-        proj.ball.children[1].scale.setScalar(0.9+Math.sin(proj.life*0.3)*0.2);
+        if(proj.ball.children[1])proj.ball.children[1].scale.setScalar(0.9+Math.sin(proj.life*0.3)*0.2);
     }
 
     proj.life--;
@@ -161,9 +162,9 @@ function MoveProjectile_update(proj){
     if(proj.ball.material){
         proj.ball.material.opacity=Math.min(proj.isPlayer?0.9:0.85,proj.life/30);
     } else if(proj.isYogaFire&&proj.ball.children[0]){
-        proj.ball.children[0].material.opacity=Math.min(0.95,proj.life/30);
+        if(proj.ball.children[0].material)proj.ball.children[0].material.opacity=Math.min(0.95,proj.life/30);
     }
-    proj.ring.material.opacity=Math.min(0.6,proj.life/30);
+    if(proj.ring&&proj.ring.material)proj.ring.material.opacity=Math.min(0.6,proj.life/30);
 
     // Hit detection
     var hit=_moveHitDetect(proj.owner, proj.ball.position, 1.5, function(target){
