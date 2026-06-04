@@ -5,6 +5,7 @@ window.addEventListener('unhandledrejection',function(e){if(!window._errShown){w
 // ============================================================
 //  CITY UPDATE (portals, coins, NPCs)
 // ============================================================
+var _cityFrameNo=0;
 
 // ---- Slash cut effect — vertical bright line + body splits briefly ----
 if(!window._slashEffects)window._slashEffects=[];
@@ -75,6 +76,7 @@ function _updatePainFace(egg){
 function updateCity(){
     if(!playerEgg)return;
     const px=playerEgg.mesh.position.x, pz=playerEgg.mesh.position.z, py=playerEgg.mesh.position.y;
+    _cityFrameNo++;
 
     // Slash cut effects
     updateSlashEffects();
@@ -427,7 +429,7 @@ function updateCity(){
         var coinBaseY=c.baseY||1.2;
         c.mesh.position.y=coinBaseY+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
         var cdx2=px-c.mesh.position.x, cdz2=pz-c.mesh.position.z, cdy2=py-c.mesh.position.y;
-        if(Math.sqrt(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2)<1.5){
+        if(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2<2.25){
             c.collected=true; c.mesh.visible=false;
             coins++; document.getElementById('coin-hud').textContent='⭐ '+coins;
             playCoinSound();
@@ -438,7 +440,10 @@ function updateCity(){
 
     // NPC AI
     for(const npc of cityNPCs){
-        updateCityNPC(npc);
+        var _ndx=npc.mesh.position.x-px,_ndz=npc.mesh.position.z-pz;
+        var _nFar=(_ndx*_ndx+_ndz*_ndz)>4900;
+        var _nBusy=npc.holding||npc.heldBy||npc.throwTimer>0||npc._stunTimer>0||npc._onFire>0||npc._electrocuted>0||npc._elecFlying>0||npc._aiState==='babel';
+        if(!_nFar||_nBusy||((_cityFrameNo+(npc._aiPhase||0))%3===0))updateCityNPC(npc);
         updateEggPhysics(npc, true);
         _updateStunStars(npc);_updatePainFace(npc);
         // Stun meter decay
@@ -2954,6 +2959,8 @@ function animate(now){
         _accumulator-=_fixedStep;
         _ticks++;
     }
+    if(typeof _updateRenderQuality==='function')_updateRenderQuality(_elapsed);
+    if(typeof _updateSunShadowFocus==='function')_updateSunShadowFocus();
     R.render(scene,camera);
 }
 

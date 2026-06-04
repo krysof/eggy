@@ -90,7 +90,9 @@ var RENDER_CONFIG={
     shadowMapSize:4096, shadowBias:-0.001,
     shadowRange:120, shadowNear:1, shadowFar:300,
     ambientIntensity:0.6,
-    hemiSkyColor:0xaaddff, hemiGroundColor:0x88cc66, hemiIntensity:0.5
+    hemiSkyColor:0xaaddff, hemiGroundColor:0x88cc66, hemiIntensity:0.5,
+    pixelRatioMin:1.0, pixelRatioMax:2.0,
+    toneExposure:1.12
 };
 
 // ---- Portal (race entrance) parameters ----

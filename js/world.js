@@ -117,6 +117,8 @@ function buildPortals() {
 // ---- Collectible coins in city ----
 function buildCityCoins() {
     var coinCount=currentCityStyle===5?200:180;
+    if(!window._sharedCityCoinGeo)window._sharedCityCoinGeo=new THREE.CylinderGeometry(0.35,0.35,0.08,12);
+    if(!window._sharedCityCoinMat)window._sharedCityCoinMat=toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3});
     for(let i=0;i<coinCount;i++){
         var coinSpread=currentCityStyle===5?MOON_CITY_SIZE*0.9:CITY_SIZE*0.9;
         const cx=(Math.random()-0.5)*coinSpread*2, cz=(Math.random()-0.5)*coinSpread*2;
@@ -126,7 +128,7 @@ function buildCityCoins() {
             if(Math.sqrt(cx*cx+cz*cz)<7) skip=true;
         }
         if(skip) continue;
-        const coin=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.08,12), toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3}));
+        const coin=new THREE.Mesh(window._sharedCityCoinGeo, window._sharedCityCoinMat);
         coin.position.set(cx,1.2,cz); coin.rotation.x=Math.PI/2;
         cityGroup.add(coin);
         cityCoins.push({mesh:coin, collected:false});
@@ -273,9 +275,28 @@ function applyCityTheme(){
     var st=CITY_STYLES[currentCityStyle];
     // Sky color
     scene.background=new THREE.Color(st.sky);
-    // Fog
+    if(typeof _updateSkyDome==='function'){
+        var horizon=st.fog||_mixHex(st.sky,0xFFFFFF,currentCityStyle===5?0.08:0.38);
+        var groundTint=st.ground||st.path||0x88CCAA;
+        if(currentCityStyle===7){horizon=0x91A7C9;groundTint=0x293C5A;}
+        if(currentCityStyle===5){horizon=0x111133;groundTint=0x020208;}
+        _updateSkyDome(st.sky,horizon,groundTint);
+    }
+    if(typeof R!=='undefined'){
+        R.toneMappingExposure=currentCityStyle===5?1.28:(currentCityStyle===7?1.05:(RENDER_CONFIG.toneExposure||1.12));
+    }
+    // Fog / aerial perspective — always keep a little depth haze for richer scenery
     if(st.fog){scene.fog=new THREE.Fog(st.fog,60,180);}
-    else{scene.fog=null;}
+    else if(currentCityStyle===5){scene.fog=new THREE.Fog(0x070712,260,900);}
+    else if(currentCityStyle===7){scene.fog=new THREE.Fog(0x91A7C9,130,850);}
+    else{scene.fog=new THREE.Fog(_mixHex(st.sky,st.ground||st.path||0xFFFFFF,0.22),140,430);}
+    if(typeof rimLight!=='undefined'){
+        rimLight.visible=currentCityStyle!==5;
+        if(currentCityStyle===7){rimLight.color.setHex(0xB8D0FF);rimLight.intensity=0.65;}
+        else if(currentCityStyle===3){rimLight.color.setHex(0xFF8844);rimLight.intensity=0.35;}
+        else if(currentCityStyle===2){rimLight.color.setHex(0xBBDFFF);rimLight.intensity=0.55;}
+        else{rimLight.color.setHex(0x88CCFF);rimLight.intensity=0.45;}
+    }
     // Sun visibility — only in ground cities, not on moon
     var isMoon=(currentCityStyle===5);
     _sunMesh.visible=!isMoon;
