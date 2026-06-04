@@ -7,6 +7,25 @@ window.addEventListener('unhandledrejection',function(e){if(!window._errShown){w
 // ============================================================
 var _cityFrameNo=0;
 
+function _pulseSaberMaterial(saberObj,hex){
+    if(!saberObj)return;
+    var restore=(hex===0x000000);
+    saberObj.traverse(function(o){
+        if(!o.material)return;
+        var mats=Array.isArray(o.material)?o.material:[o.material];
+        for(var mi=0;mi<mats.length;mi++){
+            var mat=mats[mi];
+            if(!mat)continue;
+            if(mat.emissive&&mat.emissive.setHex){
+                mat.emissive.setHex(restore?0x000000:hex);
+            } else if(mat.color&&mat.color.setHex){
+                if(mat._saberBaseColor===undefined&&mat.color.getHex)mat._saberBaseColor=mat.color.getHex();
+                mat.color.setHex(restore?(mat._saberBaseColor||0xFF88CC):hex);
+            }
+        }
+    });
+}
+
 // ---- Slash cut effect — vertical bright line + body splits briefly ----
 if(!window._slashEffects)window._slashEffects=[];
 function spawnSlashEffect(egg,faceY){
@@ -1357,9 +1376,9 @@ function updateCity(){
                     }
                     if(gm._swingFlash>0){
                         gm._swingFlash--;
-                        if(gm.saberMesh)gm.saberMesh.material.emissive.setHex(0xFFFFFF);
+                        _pulseSaberMaterial(gm.saberMesh,0xFFFFFF);
                     } else {
-                        if(gm.saberMesh)gm.saberMesh.material.emissive.setHex(0x000000);
+                        _pulseSaberMaterial(gm.saberMesh,0x000000);
                     }
                     if(!gm._clashCD)gm._clashCD=30+Math.floor(Math.random()*20);
                     gm._clashCD--;

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260604.2">
+<link rel="stylesheet" href="style.css?v=20260605.4">
 </head>
 <body>
 <div id="game-container">
@@ -14,6 +14,11 @@
   <!-- Title screen — SF2 style animated intro -->
   <div id="start-screen" class="screen active">
     <canvas id="intro-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+    <div id="engine-loader" class="engine-loader">
+      <div class="engine-loader-egg">🥚</div>
+      <div id="engine-loader-text" class="engine-loader-text">Loading 3D engine...</div>
+      <div class="engine-loader-bar"><span id="engine-loader-fill"></span></div>
+    </div>
     <div id="intro-ui" style="position:absolute;bottom:12%;left:0;right:0;text-align:center;z-index:2;">
       <p class="version-text" id="intro-version"></p>
       <button id="start-btn" class="btn btn-primary" style="opacity:0;transition:opacity 0.5s;">🎮 Start Game</button>
@@ -136,7 +141,7 @@
 
 <script>
 (function(){
-  var cache='v=20260605.3';
+  var cache='v=20260605.4';
   var threeUrls=[
     'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js',
     'https://unpkg.com/three@0.160.0/build/three.min.js'
@@ -168,9 +173,22 @@
     'js/platformer.js',
     'js/main.js'
   ];
+  function setEngineLoading(text,percent){
+    var el=document.getElementById('engine-loader');
+    var txt=document.getElementById('engine-loader-text');
+    var fill=document.getElementById('engine-loader-fill');
+    if(el)el.classList.remove('engine-loader-hidden');
+    if(txt)txt.textContent=text;
+    if(fill)fill.style.width=Math.max(0,Math.min(100,percent||0))+'%';
+  }
+  function hideEngineLoading(){
+    var el=document.getElementById('engine-loader');
+    if(el)el.classList.add('engine-loader-hidden');
+  }
   function setStartText(text){
     var btn=document.getElementById('start-btn');
     if(btn)btn.textContent=text;
+    setEngineLoading(text,100);
   }
   function loadScript(src,onload,onerror){
     var s=document.createElement('script');
@@ -180,7 +198,8 @@
     document.body.appendChild(s);
   }
   function loadGameScript(i){
-    if(i>=gameFiles.length)return;
+    if(i>=gameFiles.length){setEngineLoading('Ready',100);setTimeout(hideEngineLoading,250);return;}
+    setEngineLoading('Loading game assets... '+(i+1)+'/'+gameFiles.length,35+Math.floor(i/gameFiles.length*60));
     var src=gameFiles[i]+'?'+cache;
     loadScript(src,function(){loadGameScript(i+1);},function(){
       console.error('Failed to load '+src);
@@ -190,7 +209,7 @@
   function loadThree(i){
     if(typeof THREE!=='undefined'){loadGameScript(0);return;}
     if(i>=threeUrls.length){setStartText('Load failed, please refresh');return;}
-    setStartText('Loading 3D engine...');
+    setEngineLoading('Loading 3D engine...',12+i*10);
     loadScript(threeUrls[i],function(){
       if(typeof THREE==='undefined')loadThree(i+1);
       else loadGameScript(0);
