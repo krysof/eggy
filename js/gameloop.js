@@ -106,6 +106,7 @@ function updateCity(){
 
     // Animate portals
     const t=Date.now()*0.001;
+    if(typeof _updateVisualFX==='function')_updateVisualFX(px,py,pz,t);
     for(const p of portals){
         p.ring.rotation.z=t*0.5;
         p.inner.rotation.z=-t*0.8;
@@ -2961,6 +2962,7 @@ function animate(now){
     }
     if(typeof _updateRenderQuality==='function')_updateRenderQuality(_elapsed);
     if(typeof _updateSunShadowFocus==='function')_updateSunShadowFocus();
+    if(typeof _syncVisualFXVisibility==='function')_syncVisualFXVisibility();
     R.render(scene,camera);
 }
 

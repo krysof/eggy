@@ -206,6 +206,7 @@ function buildWarpPipes(){
 }
 
 function clearCity(){
+    if(typeof _clearCityVisualFX==='function')_clearCityVisualFX();
     // Remove everything from cityGroup
     while(cityGroup.children.length>0)cityGroup.remove(cityGroup.children[0]);
     cityColliders.length=0;
@@ -329,6 +330,7 @@ function applyCityTheme(){
     }
     // Update HUD
     document.getElementById('city-name-hud').textContent=st.name;
+    if(typeof _rebuildCityVisualFX==='function')_rebuildCityVisualFX(currentCityStyle,st);
 }
 
 // ---- Pipe travel animation state ----
