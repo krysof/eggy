@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=454">
+<link rel="stylesheet" href="style.css?v=20260604.1">
 </head>
 <body>
 <div id="game-container">
@@ -134,42 +134,68 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
-if(typeof THREE==='undefined'){
-  var _sb=document.getElementById('start-btn');if(_sb)_sb.textContent='Loading 3D engine...';
-  var s=document.createElement('script');
-  s.src='https://unpkg.com/three@0.160.0/build/three.min.js';
-  s.onload=function(){
-    var files=['js/core.js','js/moves.js','js/intro.js','js/audio.js','js/renderer.js','js/characters.js','js/ui.js','js/hud.js','js/input.js','js/entity.js','js/city.js','js/world.js','js/race.js','js/physics.js','js/ai.js','js/player.js','js/camera.js','js/gameloop.js','js/main.js'];
-    (function loadNext(i){if(i>=files.length)return;var g=document.createElement('script');g.src=files[i];g.onload=function(){loadNext(i+1);};g.onerror=function(){console.error('Failed: '+files[i]);loadNext(i+1);};document.body.appendChild(g);})(0);
-  };
-  s.onerror=function(){var _sb2=document.getElementById('start-btn');if(_sb2)_sb2.textContent='Load failed, please refresh';};
-  document.body.appendChild(s);
-}
+(function(){
+  var cache='v=20260604.1';
+  var threeUrls=[
+    'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js',
+    'https://unpkg.com/three@0.160.0/build/three.min.js'
+  ];
+  var gameFiles=[
+    'js/core.js',
+    'js/data-characters.js',
+    'js/data-cities.js',
+    'js/data-races.js',
+    'js/moves.js',
+    'js/intro.js',
+    'js/audio.js',
+    'js/renderer.js',
+    'js/characters.js',
+    'js/ui.js',
+    'js/hud.js',
+    'js/input.js',
+    'js/entity.js',
+    'js/city.js',
+    'js/world.js',
+    'js/race.js',
+    'js/physics.js',
+    'js/ai.js',
+    'js/player.js',
+    'js/camera.js',
+    'js/gameloop.js',
+    'js/platformer.js',
+    'js/main.js'
+  ];
+  function setStartText(text){
+    var btn=document.getElementById('start-btn');
+    if(btn)btn.textContent=text;
+  }
+  function loadScript(src,onload,onerror){
+    var s=document.createElement('script');
+    s.src=src;
+    s.onload=onload;
+    s.onerror=onerror;
+    document.body.appendChild(s);
+  }
+  function loadGameScript(i){
+    if(i>=gameFiles.length)return;
+    var src=gameFiles[i]+'?'+cache;
+    loadScript(src,function(){loadGameScript(i+1);},function(){
+      console.error('Failed to load '+src);
+      setStartText('Load failed, please refresh');
+    });
+  }
+  function loadThree(i){
+    if(typeof THREE!=='undefined'){loadGameScript(0);return;}
+    if(i>=threeUrls.length){setStartText('Load failed, please refresh');return;}
+    setStartText('Loading 3D engine...');
+    loadScript(threeUrls[i],function(){
+      if(typeof THREE==='undefined')loadThree(i+1);
+      else loadGameScript(0);
+    },function(){loadThree(i+1);});
+  }
+  loadThree(0);
+})();
 </script>
-<script src="js/core.js?v=454"></script>
-<script src="js/data-characters.js?v=454"></script>
-<script src="js/data-cities.js?v=454"></script>
-<script src="js/data-races.js?v=454"></script>
-<script src="js/moves.js?v=454"></script>
-<script src="js/intro.js?v=454"></script>
-<script src="js/audio.js?v=454"></script>
-<script src="js/renderer.js?v=454"></script>
-<script src="js/characters.js?v=454"></script>
-<script src="js/ui.js?v=454"></script>
-<script src="js/hud.js?v=454"></script>
-<script src="js/input.js?v=454"></script>
-<script src="js/entity.js?v=454"></script>
-<script src="js/city.js?v=454"></script>
-<script src="js/world.js?v=454"></script>
-<script src="js/race.js?v=454"></script>
-<script src="js/physics.js?v=454"></script>
-<script src="js/ai.js?v=454"></script>
-<script src="js/player.js?v=454"></script>
-<script src="js/camera.js?v=454"></script>
-<script src="js/gameloop.js?v=454"></script>
-<script src="js/platformer.js?v=454"></script>
-<script src="js/main.js?v=454"></script>
 </body>
 </html>

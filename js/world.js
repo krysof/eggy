@@ -157,13 +157,13 @@ function buildWarpPipes(){
             return p;
         });
     }
-    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF,0xFFAABB];
+    var pipeColors=[0x44DD44,0x44CCFF,0xFF8844,0xFF44DD,0xFFDD44,0xCCCCFF,0xFFAABB,0xE8EEF0];
     for(var pi2=0;pi2<Math.min(targets.length,positions.length);pi2++){
         var tgt=targets[pi2];
         var pos=positions[pi2];
         var tst=CITY_STYLES[tgt];
         var g=new THREE.Group();
-        var pColor=pipeColors[tgt];
+        var pColor=pipeColors[tgt]||0x44DD44;
         var pMat=new THREE.MeshPhongMaterial({color:pColor,transparent:true,opacity:0.4,side:THREE.DoubleSide});
         // Vertical tube — big and visible
         var tube=new THREE.Mesh(new THREE.CylinderGeometry(PIPE_CONFIG.radius,PIPE_CONFIG.radius,PIPE_CONFIG.height,16,1,true),pMat);
