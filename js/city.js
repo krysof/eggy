@@ -76,6 +76,16 @@ function _decorateDefaultBuilding(b,bMeshes,col,st,i){
         var colm2=new THREE.Mesh(new THREE.BoxGeometry(0.18,b.h+0.1,0.22),lightM);
         colm2.position.set(b.x+sx*(b.w/2+0.06),(b.h+0.1)/2,b.z-b.d/2-0.09);add(colm2);
     });
+    // Faux rounded toy-building corners: vertical cylinders soften the original box silhouettes.
+    var cornerM=toon(_cityMixHex(light,0xFFFFFF,0.14));
+    [-1,1].forEach(function(sx){
+        [-1,1].forEach(function(sz){
+            var corner=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,b.h+0.16,8),cornerM);
+            corner.position.set(b.x+sx*(b.w/2+0.04),(b.h+0.16)/2,b.z+sz*(b.d/2+0.04));
+            corner.castShadow=true;
+            add(corner);
+        });
+    });
 
     // Horizontal floor bands and inset facade panels.
     for(var fy=3;fy<b.h-1;fy+=4){

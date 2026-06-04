@@ -26,6 +26,22 @@ function _addCharacterPolish(g,body,color,accent,charType){
     g.add(outline);
     g.userData._toonOutline=outline;
 
+    // Glossy toy/plastic highlight: tiny additive decals sell the premium vinyl figure look.
+    var glossMat=new THREE.MeshBasicMaterial({
+        color:0xFFFFFF,transparent:true,opacity:0.24,depthWrite:false,depthTest:true,
+        blending:THREE.AdditiveBlending,side:THREE.DoubleSide,fog:false
+    });
+    var bigGloss=new THREE.Mesh(new THREE.CircleGeometry(0.17,18),glossMat);
+    bigGloss.position.set(-0.20,1.02,faceZ+0.055);
+    bigGloss.scale.set(1.0,0.48,1);
+    bigGloss.rotation.z=-0.25;
+    body.add(bigGloss);
+    var smallGloss=new THREE.Mesh(new THREE.CircleGeometry(0.055,14),glossMat.clone());
+    smallGloss.material.opacity=0.18;
+    smallGloss.position.set(0.22,0.98,faceZ+0.065);
+    smallGloss.scale.set(1.0,0.62,1);
+    body.add(smallGloss);
+
     // More expressive eyes: colored iris, tiny pupil, extra highlight, and eyebrows.
     var irisColor=_charMixHex(accent,0xFFFFFF,0.25);
     var irisG=new THREE.SphereGeometry(0.078,10,8);
