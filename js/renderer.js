@@ -14,8 +14,9 @@ _setRenderPixelRatio(_renderPixelRatio);
 R.shadowMap.enabled = true;
 R.shadowMap.type = THREE.PCFSoftShadowMap;
 R.outputColorSpace = THREE.SRGBColorSpace;
-if(THREE.ACESFilmicToneMapping!==undefined)R.toneMapping=THREE.ACESFilmicToneMapping;
-R.toneMappingExposure=RENDER_CONFIG.toneExposure||1.12;
+if(THREE.LinearToneMapping!==undefined)R.toneMapping=THREE.LinearToneMapping;
+else if(THREE.ACESFilmicToneMapping!==undefined)R.toneMapping=THREE.ACESFilmicToneMapping;
+R.toneMappingExposure=RENDER_CONFIG.toneExposure||1.06;
 root.appendChild(R.domElement);
 
 const scene = new THREE.Scene();
@@ -37,9 +38,10 @@ sun.position.set(RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,RENDER_CONFIG.sun
 sun.shadow.mapSize.set(RENDER_CONFIG.shadowMapSize,RENDER_CONFIG.shadowMapSize);
 const ssc=sun.shadow.camera; ssc.left=-RENDER_CONFIG.shadowRange;ssc.right=RENDER_CONFIG.shadowRange;ssc.top=RENDER_CONFIG.shadowRange;ssc.bottom=-RENDER_CONFIG.shadowRange;ssc.near=RENDER_CONFIG.shadowNear;ssc.far=RENDER_CONFIG.shadowFar;
 sun.shadow.bias=RENDER_CONFIG.shadowBias;
+sun.shadow.radius=4.5;
 scene.add(sun); scene.add(sun.target);
 scene.add(new THREE.HemisphereLight(RENDER_CONFIG.hemiSkyColor,RENDER_CONFIG.hemiGroundColor,RENDER_CONFIG.hemiIntensity));
-const rimLight = new THREE.DirectionalLight(0x88CCFF,0.45);
+const rimLight = new THREE.DirectionalLight(0xD0F0FF,0.18);
 rimLight.position.set(-50,45,-60);
 scene.add(rimLight);
 // Sun visual mesh (visible in ground cities)

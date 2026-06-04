@@ -1,8 +1,8 @@
 // postfx.js — DANBO World
 // ============================================================
-//  Lightweight cinematic post-processing for a premium cartoon look.
-//  Single render-target pass: soft bloom, color grading, vignette,
-//  subtle chromatic edge and filmic curve. No external dependencies.
+//  Lightweight post-processing for a soft kawaii toy-cartoon look.
+//  Single render-target pass: gentle bloom, pastel color lift,
+//  very light vignette, and mild filmic curve. No external dependencies.
 // ============================================================
 /* global THREE, R, scene, camera, currentCityStyle, _renderPixelRatio */
 
@@ -12,14 +12,14 @@ var _postFXSize=new THREE.Vector2(1,1);
 var _postFXFrame=0;
 
 var _postFXMood=[
-    {bloom:0.30,sat:1.16,contrast:1.08,exposure:1.02,vignette:0.38,warm:0.02,threshold:0.62},
-    {bloom:0.26,sat:1.18,contrast:1.10,exposure:1.00,vignette:0.42,warm:0.09,threshold:0.58},
-    {bloom:0.34,sat:1.12,contrast:1.08,exposure:1.03,vignette:0.36,warm:-0.05,threshold:0.56},
-    {bloom:0.46,sat:1.24,contrast:1.16,exposure:0.98,vignette:0.55,warm:0.13,threshold:0.48},
-    {bloom:0.38,sat:1.28,contrast:1.08,exposure:1.03,vignette:0.32,warm:0.06,threshold:0.54},
-    {bloom:0.42,sat:1.22,contrast:1.20,exposure:0.94,vignette:0.58,warm:-0.04,threshold:0.46},
-    {bloom:0.36,sat:1.20,contrast:1.08,exposure:1.02,vignette:0.34,warm:0.04,threshold:0.55},
-    {bloom:0.40,sat:1.13,contrast:1.10,exposure:1.04,vignette:0.48,warm:-0.02,threshold:0.50}
+    {bloom:0.20,sat:0.99,contrast:0.94,exposure:1.06,vignette:0.10,warm:0.040,threshold:0.70},
+    {bloom:0.18,sat:1.00,contrast:0.94,exposure:1.06,vignette:0.12,warm:0.075,threshold:0.68},
+    {bloom:0.20,sat:0.98,contrast:0.93,exposure:1.08,vignette:0.10,warm:-0.015,threshold:0.68},
+    {bloom:0.26,sat:1.02,contrast:0.96,exposure:1.04,vignette:0.18,warm:0.070,threshold:0.63},
+    {bloom:0.28,sat:1.04,contrast:0.93,exposure:1.08,vignette:0.08,warm:0.055,threshold:0.66},
+    {bloom:0.24,sat:0.99,contrast:0.94,exposure:1.02,vignette:0.22,warm:-0.010,threshold:0.61},
+    {bloom:0.24,sat:1.03,contrast:0.93,exposure:1.08,vignette:0.10,warm:0.050,threshold:0.66},
+    {bloom:0.24,sat:0.98,contrast:0.93,exposure:1.09,vignette:0.12,warm:-0.005,threshold:0.64}
 ];
 
 function _initCinematicPostFX(){
@@ -41,11 +41,11 @@ function _initCinematicPostFX(){
             tDiffuse:{value:null},
             resolution:{value:new THREE.Vector2(2,2)},
             time:{value:0},
-            uBloom:{value:0.32},
-            uSaturation:{value:1.15},
-            uContrast:{value:1.08},
-            uExposure:{value:1.0},
-            uVignette:{value:0.42},
+            uBloom:{value:0.22},
+            uSaturation:{value:0.99},
+            uContrast:{value:0.94},
+            uExposure:{value:1.06},
+            uVignette:{value:0.10},
             uWarmth:{value:0.03},
             uThreshold:{value:0.55}
         },
@@ -82,7 +82,7 @@ function _initCinematicPostFX(){
             '  vec2 uv=vUv;',
             '  vec2 px=1.0/max(resolution,vec2(1.0));',
             '  float edge=length(uv-0.5);',
-            '  vec2 chroma=(uv-0.5)*px*2.2*smoothstep(0.35,0.82,edge);',
+            '  vec2 chroma=(uv-0.5)*px*0.75*smoothstep(0.45,0.95,edge);',
             '  vec3 col;',
             '  col.r=texture2D(tDiffuse,uv+chroma).r;',
             '  col.g=texture2D(tDiffuse,uv).g;',
@@ -110,12 +110,13 @@ function _initCinematicPostFX(){
             '  float g=luma(col);',
             '  col=mix(vec3(g),col,uSaturation);',
             '  col=max(col,vec3(0.0))*uExposure;',
-            '  vec3 shoulder=col/(col+vec3(0.45))*1.28;',
-            '  col=mix(col,shoulder,0.24);',
-            '  col=pow(max(col,vec3(0.0)),vec3(0.90));',
-            '  col+=vec3(0.012);',
+            '  vec3 shoulder=col/(col+vec3(0.62))*1.36;',
+            '  col=mix(col,shoulder,0.04);',
+            '  col=pow(max(col,vec3(0.0)),vec3(0.98));',
+            '  col=col*0.940+vec3(0.058,0.052,0.055);',
+            '  col=mix(col,vec3(1.0,0.960,0.935),0.065);',
             '  float vig=smoothstep(uVignette,0.92,edge);',
-            '  col*=mix(1.0,0.78,vig);',
+            '  col*=mix(1.0,0.92,vig);',
             '  col += (hash(gl_FragCoord.xy+time*17.0)-0.5)/255.0;',
             '  gl_FragColor=vec4(col,1.0);',
             '}'

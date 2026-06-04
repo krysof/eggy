@@ -284,7 +284,7 @@ function applyCityTheme(){
         _updateSkyDome(st.sky,horizon,groundTint);
     }
     if(typeof R!=='undefined'){
-        R.toneMappingExposure=currentCityStyle===5?1.28:(currentCityStyle===7?1.05:(RENDER_CONFIG.toneExposure||1.12));
+        R.toneMappingExposure=currentCityStyle===5?1.06:(currentCityStyle===7?1.08:(RENDER_CONFIG.toneExposure||1.06));
     }
     // Fog / aerial perspective — always keep a little depth haze for richer scenery
     if(st.fog){scene.fog=new THREE.Fog(st.fog,60,180);}
@@ -293,10 +293,10 @@ function applyCityTheme(){
     else{scene.fog=new THREE.Fog(_mixHex(st.sky,st.ground||st.path||0xFFFFFF,0.22),140,430);}
     if(typeof rimLight!=='undefined'){
         rimLight.visible=currentCityStyle!==5;
-        if(currentCityStyle===7){rimLight.color.setHex(0xB8D0FF);rimLight.intensity=0.65;}
-        else if(currentCityStyle===3){rimLight.color.setHex(0xFF8844);rimLight.intensity=0.35;}
-        else if(currentCityStyle===2){rimLight.color.setHex(0xBBDFFF);rimLight.intensity=0.55;}
-        else{rimLight.color.setHex(0x88CCFF);rimLight.intensity=0.45;}
+        if(currentCityStyle===7){rimLight.color.setHex(0xE3EFFF);rimLight.intensity=0.28;}
+        else if(currentCityStyle===3){rimLight.color.setHex(0xFFC2A6);rimLight.intensity=0.18;}
+        else if(currentCityStyle===2){rimLight.color.setHex(0xE5F6FF);rimLight.intensity=0.24;}
+        else{rimLight.color.setHex(0xD0F0FF);rimLight.intensity=0.18;}
     }
     // Sun visibility — only in ground cities, not on moon
     var isMoon=(currentCityStyle===5);
@@ -308,13 +308,13 @@ function applyCityTheme(){
         sun.shadow.camera.far=RENDER_CONFIG.shadowFar;
         if(currentCityStyle===7){
             // Snow village twilight: bright pale blue ambient (like reflected skylight on snow)
-            sun.intensity=0.6;
+            sun.intensity=0.48;
             sun.color.setHex(0xAABBDD);
             _sunMesh.visible=false;
             _sunGlow.visible=false;
             scene.children.forEach(function(c){
-                if(c.isAmbientLight){c.color.setHex(0x99AACC);c.intensity=1.2;} // bright pale blue
-                if(c.isHemisphereLight){c.color.setHex(0xAABBDD);c.groundColor.setHex(0x8899BB);c.intensity=1.0;}
+                if(c.isAmbientLight){c.color.setHex(0xB8CBE0);c.intensity=1.15;} // soft pale blue
+                if(c.isHemisphereLight){c.color.setHex(0xD7E6FF);c.groundColor.setHex(0xAFC0D8);c.intensity=0.92;}
             });
         } else {
             sun.intensity=RENDER_CONFIG.sunIntensity;
