@@ -46,10 +46,20 @@ function drawPortrait(ch) {
     if(!hd)return;
     var portraitCtx=hd.ctx;
     var W=hd.w, H=hd.h;
+    var _ac='#'+((ch.accent||0).toString(16)).padStart(6,'0');
     portraitCtx.clearRect(0,0,W,H);
-    var bg=portraitCtx.createLinearGradient(0,0,0,H);
-    bg.addColorStop(0,'#2a0540');bg.addColorStop(0.5,'#CC4444');bg.addColorStop(1,'#FF8844');
+    var bg=portraitCtx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#FFF2FA');bg.addColorStop(0.45,'#FFE7D6');bg.addColorStop(1,'#DDEEFF');
     portraitCtx.fillStyle=bg;portraitCtx.fillRect(0,0,W,H);
+    // Pastel bubbles/stars make the select portrait feel like a toy-card illustration.
+    for(var _bgi=0;_bgi<12;_bgi++){
+        var _bx=18+((_bgi*47)%Math.max(30,W-36));
+        var _by=18+((_bgi*73)%Math.max(40,H-54));
+        var _br=4+(_bgi%4)*3;
+        portraitCtx.beginPath();portraitCtx.arc(_bx,_by,_br,0,Math.PI*2);
+        portraitCtx.fillStyle=_bgi%2?'rgba(255,255,255,0.42)':'rgba(255,180,210,0.20)';
+        portraitCtx.fill();
+    }
     var cx=W/2,cy=H*0.52;
     // Body shape varies by character type
     var rx=55,ry=70;
@@ -57,10 +67,22 @@ function drawPortrait(ch) {
     else if(ch.type==='cat'||ch.type==='bull'){rx=65;ry=60;} // Blanka/Honda: round
     else if(ch.type==='bear'){rx=72;ry=72;} // Zangief: 1.5x big
     else if(ch.type==='cockroach'){rx=30;ry=78;} // Dhalsim: thin tall
+    // Drop shadow + tiny limbs behind the round body.
+    portraitCtx.beginPath();portraitCtx.ellipse(cx,cy+ry*0.84,rx*0.88,12,0,0,Math.PI*2);
+    portraitCtx.fillStyle='rgba(130,95,130,0.16)';portraitCtx.fill();
+    [-1,1].forEach(function(s){
+        portraitCtx.beginPath();portraitCtx.ellipse(cx+s*(rx*0.86),cy+20,13,34,s*0.20,0,Math.PI*2);
+        portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
+        portraitCtx.strokeStyle='rgba(255,255,255,0.65)';portraitCtx.lineWidth=2;portraitCtx.stroke();
+        portraitCtx.beginPath();portraitCtx.ellipse(cx+s*(rx*0.78),cy+54,13,8,0,0,Math.PI*2);
+        portraitCtx.fillStyle=_ac;portraitCtx.fill();
+    });
     // Body
     portraitCtx.beginPath();portraitCtx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
     portraitCtx.fillStyle=ch.portrait;portraitCtx.fill();
-    portraitCtx.strokeStyle='rgba(255,255,255,0.15)';portraitCtx.lineWidth=2;portraitCtx.stroke();
+    portraitCtx.strokeStyle='rgba(255,255,255,0.78)';portraitCtx.lineWidth=3;portraitCtx.stroke();
+    portraitCtx.beginPath();portraitCtx.ellipse(cx-18,cy-32,rx*0.28,ry*0.18,-0.35,0,Math.PI*2);
+    portraitCtx.fillStyle='rgba(255,255,255,0.30)';portraitCtx.fill();
     // Eyes
     var _eyeY=cy-12;
     [-1,1].forEach(function(s){
@@ -77,8 +99,21 @@ function drawPortrait(ch) {
     // Blush
     [-1,1].forEach(function(s){
         portraitCtx.beginPath();portraitCtx.ellipse(cx+s*32,cy+8,10,6,0,0,Math.PI*2);
-        portraitCtx.fillStyle='rgba(255,120,120,0.3)';portraitCtx.fill();
+        portraitCtx.fillStyle='rgba(255,125,160,0.42)';portraitCtx.fill();
     });
+    // Small shiny badge/sticker on the chest.
+    portraitCtx.save();
+    portraitCtx.translate(cx+26,cy+35);portraitCtx.rotate(0.25);
+    portraitCtx.beginPath();
+    for(var _sti=0;_sti<10;_sti++){
+        var _sa=-Math.PI/2+_sti*Math.PI/5;
+        var _sr=_sti%2===0?10:4.5;
+        var _sx=Math.cos(_sa)*_sr,_sy=Math.sin(_sa)*_sr;
+        if(_sti===0)portraitCtx.moveTo(_sx,_sy);else portraitCtx.lineTo(_sx,_sy);
+    }
+    portraitCtx.closePath();portraitCtx.fillStyle=_ac;portraitCtx.fill();
+    portraitCtx.strokeStyle='rgba(255,255,255,0.8)';portraitCtx.lineWidth=1.5;portraitCtx.stroke();
+    portraitCtx.restore();
     // ---- Character-specific SF2 features ----
     var _ac='#'+((ch.accent||0).toString(16)).padStart(6,'0');
     if(ch.type==='egg'){

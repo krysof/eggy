@@ -404,6 +404,7 @@ function updateEggPhysics(egg, isCity){
         feet[0].position.y=0.05+Math.max(0,Math.sin(egg.walkPhase))*0.07;
         feet[1].position.y=0.05+Math.max(0,-Math.sin(egg.walkPhase))*0.07;
     }
+    if(typeof _updateCharacterPremiumRig==='function')_updateCharacterPremiumRig(egg,speed);
     // ============================================================
     // BODY ROTATION — single source of truth, attack > walk
     // ============================================================
