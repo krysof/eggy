@@ -21,9 +21,31 @@ const portraitCanvas = document.getElementById('portrait-canvas');
 const portraitCtx = portraitCanvas ? portraitCanvas.getContext('2d') : null;
 const portraitName = document.getElementById('portrait-name');
 
+function _setupHiDPICanvas(canvas,fallbackW,fallbackH){
+    if(!canvas)return null;
+    var dpr=Math.min(window.devicePixelRatio||1,3);
+    var cs=window.getComputedStyle?getComputedStyle(canvas):null;
+    var cssW=(cs&&parseFloat(cs.width))||canvas.clientWidth||fallbackW||canvas.width||1;
+    var cssH=(cs&&parseFloat(cs.height))||canvas.clientHeight||fallbackH||canvas.height||1;
+    if(!canvas.style.width&&fallbackW)canvas.style.width=fallbackW+'px';
+    if(!canvas.style.height&&fallbackH)canvas.style.height=fallbackH+'px';
+    var bw=Math.max(1,Math.round(cssW*dpr));
+    var bh=Math.max(1,Math.round(cssH*dpr));
+    if(canvas.width!==bw)canvas.width=bw;
+    if(canvas.height!==bh)canvas.height=bh;
+    var ctx=canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.imageSmoothingEnabled=true;
+    if(ctx.imageSmoothingQuality)ctx.imageSmoothingQuality='high';
+    return {ctx:ctx,w:cssW,h:cssH,dpr:dpr};
+}
+
 function drawPortrait(ch) {
-    if (!portraitCtx) return;
-    var W=portraitCanvas.width, H=portraitCanvas.height;
+    if (!portraitCanvas) return;
+    var hd=_setupHiDPICanvas(portraitCanvas,220,260);
+    if(!hd)return;
+    var portraitCtx=hd.ctx;
+    var W=hd.w, H=hd.h;
     portraitCtx.clearRect(0,0,W,H);
     var bg=portraitCtx.createLinearGradient(0,0,0,H);
     bg.addColorStop(0,'#2a0540');bg.addColorStop(0.5,'#CC4444');bg.addColorStop(1,'#FF8844');

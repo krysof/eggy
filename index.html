@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260605.6">
+<link rel="stylesheet" href="style.css?v=20260605.7">
 </head>
 <body>
 <div id="game-container">
@@ -16,7 +16,7 @@
     <canvas id="intro-canvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
     <div id="engine-loader" class="engine-loader">
       <div class="engine-loader-egg">🥚</div>
-      <div id="engine-loader-text" class="engine-loader-text">Loading 3D engine...</div>
+      <div id="engine-loader-text" class="engine-loader-text">Loading...</div>
       <div class="engine-loader-bar"><span id="engine-loader-fill"></span></div>
     </div>
     <div id="intro-ui" style="position:absolute;bottom:12%;left:0;right:0;text-align:center;z-index:2;">
@@ -141,7 +141,30 @@
 
 <script>
 (function(){
-  var cache='v=20260605.6';
+  var cache='v=20260605.7';
+  var loaderLang=(function(){
+    var mode='auto';
+    try{mode=localStorage.getItem('danbo_lang')||'auto';}catch(e){}
+    if(['zhs','zht','ja','en'].indexOf(mode)>=0)return mode;
+    var nav=(navigator.language||navigator.userLanguage||'en').toLowerCase();
+    if(nav.indexOf('zh-tw')===0||nav.indexOf('zh-hant')===0||nav.indexOf('zh-hk')===0)return 'zht';
+    if(nav.indexOf('zh')===0)return 'zhs';
+    if(nav.indexOf('ja')===0)return 'ja';
+    return 'en';
+  })();
+  document.documentElement.lang=loaderLang==='zhs'?'zh-CN':loaderLang==='zht'?'zh-TW':loaderLang==='ja'?'ja':'en';
+  var loaderI18N={
+    loading:{zhs:'3D引擎加载中...',zht:'3D引擎載入中...',ja:'3Dエンジン読み込み中...',en:'Loading 3D engine...'},
+    loadingAssets:{zhs:'游戏素材加载中... {n}/{total}',zht:'遊戲素材載入中... {n}/{total}',ja:'ゲーム素材読み込み中... {n}/{total}',en:'Loading game assets... {n}/{total}'},
+    ready:{zhs:'准备好了',zht:'準備好了',ja:'準備完了',en:'Ready'},
+    loadFail:{zhs:'加载失败，请刷新',zht:'載入失敗，請重新整理',ja:'読み込み失敗。リロードしてください',en:'Load failed, please refresh'}
+  };
+  function loaderText(key,data){
+    var item=loaderI18N[key];
+    var text=item?(item[loaderLang]||item.en):key;
+    if(data)text=text.replace(/\{(\w+)\}/g,function(_,k){return data[k]!==undefined?data[k]:'';});
+    return text;
+  }
   var threeUrls=[
     'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js',
     'https://unpkg.com/three@0.160.0/build/three.min.js'
@@ -173,12 +196,12 @@
     'js/platformer.js',
     'js/main.js'
   ];
-  function setEngineLoading(text,percent){
+  function setEngineLoading(text,percent,data){
     var el=document.getElementById('engine-loader');
     var txt=document.getElementById('engine-loader-text');
     var fill=document.getElementById('engine-loader-fill');
     if(el)el.classList.remove('engine-loader-hidden');
-    if(txt)txt.textContent=text;
+    if(txt)txt.textContent=loaderText(text,data);
     if(fill)fill.style.width=Math.max(0,Math.min(100,percent||0))+'%';
   }
   function hideEngineLoading(){
@@ -187,7 +210,7 @@
   }
   function setStartText(text){
     var btn=document.getElementById('start-btn');
-    if(btn)btn.textContent=text;
+    if(btn)btn.textContent=loaderText(text);
     setEngineLoading(text,100);
   }
   function loadScript(src,onload,onerror){
@@ -198,23 +221,24 @@
     document.body.appendChild(s);
   }
   function loadGameScript(i){
-    if(i>=gameFiles.length){setEngineLoading('Ready',100);setTimeout(hideEngineLoading,250);return;}
-    setEngineLoading('Loading game assets... '+(i+1)+'/'+gameFiles.length,35+Math.floor(i/gameFiles.length*60));
+    if(i>=gameFiles.length){setEngineLoading('ready',100);setTimeout(hideEngineLoading,250);return;}
+    setEngineLoading('loadingAssets',35+Math.floor(i/gameFiles.length*60),{n:i+1,total:gameFiles.length});
     var src=gameFiles[i]+'?'+cache;
     loadScript(src,function(){loadGameScript(i+1);},function(){
       console.error('Failed to load '+src);
-      setStartText('Load failed, please refresh');
+      setStartText('loadFail');
     });
   }
   function loadThree(i){
     if(typeof THREE!=='undefined'){loadGameScript(0);return;}
-    if(i>=threeUrls.length){setStartText('Load failed, please refresh');return;}
-    setEngineLoading('Loading 3D engine...',12+i*10);
+    if(i>=threeUrls.length){setStartText('loadFail');return;}
+    setEngineLoading('loading',12+i*10);
     loadScript(threeUrls[i],function(){
       if(typeof THREE==='undefined')loadThree(i+1);
       else loadGameScript(0);
     },function(){loadThree(i+1);});
   }
+  setEngineLoading('loading',4);
   loadThree(0);
 })();
 </script>

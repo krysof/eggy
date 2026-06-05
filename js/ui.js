@@ -2,7 +2,14 @@
 // ---- SF2 World Map ----
 function _drawSF2Map(highlightX,highlightY){
     var mc=document.getElementById('sf2-map-canvas');if(!mc)return;
-    var ctx=mc.getContext('2d');var W=mc.width,H=mc.height;
+    var dpr=Math.min(window.devicePixelRatio||1,3);
+    var W=400,H=220;
+    if(mc.width!==Math.round(W*dpr))mc.width=Math.round(W*dpr);
+    if(mc.height!==Math.round(H*dpr))mc.height=Math.round(H*dpr);
+    var ctx=mc.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.imageSmoothingEnabled=true;
+    if(ctx.imageSmoothingQuality)ctx.imageSmoothingQuality='high';
     ctx.clearRect(0,0,W,H);
     // Ocean gradient — sunset warm
     var _og=ctx.createLinearGradient(0,0,0,H);
@@ -147,8 +154,13 @@ function _updateSF2Select(idx){
 }
 
 function _drawMiniPortrait(ch,size){
-    var c=document.createElement('canvas');c.width=size;c.height=size;
+    var dpr=Math.min(window.devicePixelRatio||1,3);
+    var c=document.createElement('canvas');c.width=Math.round(size*dpr);c.height=Math.round(size*dpr);
+    c.style.width=size+'px';c.style.height=size+'px';
     var ctx=c.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.imageSmoothingEnabled=true;
+    if(ctx.imageSmoothingQuality)ctx.imageSmoothingQuality='high';
     var cx=size/2,cy=size*0.48;
     // Body shape varies by character type
     var rx=size*0.32,ry=size*0.38;
