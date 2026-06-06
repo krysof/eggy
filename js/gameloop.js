@@ -109,7 +109,9 @@ function _updatePainFace(egg){
     if(inPain){
         // Squint eyes — flatten vertically
         for(var i=0;i<ud._eyeWhites.length;i++){
-            ud._eyeWhites[i].scale.set(1,0.2,0.7); // squished flat = squinting
+            var base=ud._eyeBaseScales&&ud._eyeBaseScales[i]?ud._eyeBaseScales[i]:null;
+            if(base)ud._eyeWhites[i].scale.set(base.x,base.y*0.16,base.z);
+            else ud._eyeWhites[i].scale.set(1,0.2,0.7); // squished flat = squinting
             ud._pupils[i].visible=false;
             ud._shines[i].visible=false;
         }
@@ -119,7 +121,9 @@ function _updatePainFace(egg){
     } else {
         // Normal eyes
         for(var j=0;j<ud._eyeWhites.length;j++){
-            ud._eyeWhites[j].scale.set(1,1.2,0.7);
+            var base2=ud._eyeBaseScales&&ud._eyeBaseScales[j]?ud._eyeBaseScales[j]:null;
+            if(base2)ud._eyeWhites[j].scale.copy(base2);
+            else ud._eyeWhites[j].scale.set(1,1.2,0.7);
             ud._pupils[j].visible=true;
             ud._shines[j].visible=true;
         }
