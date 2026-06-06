@@ -2301,7 +2301,7 @@ function enterCity(spawnX,spawnZ){
     startBGM();
     document.getElementById('city-hud').classList.remove('hidden');
     document.getElementById('race-hud').classList.add('hidden');
-    if('ontouchstart' in window||_touchVisible){document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
+    if('ontouchstart' in window||_touchVisible){if(typeof _setTouchControlsVisible==='function')_setTouchControlsVisible(true);else document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
 
     cityGroup.visible=true; raceGroup.visible=false;
     clearRace();
@@ -2909,7 +2909,7 @@ function enterRace(raceIndex){
             document.getElementById('race-hud').classList.remove('hidden');
             document.getElementById('round-hud').textContent='🏆 '+race.name;
             document.getElementById('alive-hud').textContent='🥚 '+allEggs.filter(e=>!e.cityNPC).length;
-            if('ontouchstart' in window||_touchVisible){document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
+            if('ontouchstart' in window||_touchVisible){if(typeof _setTouchControlsVisible==='function')_setTouchControlsVisible(true);else document.getElementById('touch-controls').classList.remove('hidden');if(typeof _hideMenuTouch==='function')_hideMenuTouch();}
             // GO! sound
             if(sfxEnabled){var _goCtx=ensureAudio();if(_goCtx){var _got=_goCtx.currentTime;
                 var _goo=_goCtx.createOscillator();var _gog=_goCtx.createGain();

@@ -186,7 +186,7 @@ function _drawMiniPortrait(ch,size){
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.imageSmoothingEnabled=true;
     if(ctx.imageSmoothingQuality)ctx.imageSmoothingQuality='high';
-    if(typeof DANBO_CUTE_STYLE!=='undefined'&&DANBO_CUTE_STYLE==='round-minimal'){
+    if(typeof DANBO_CUTE_STYLE!=='undefined'&&String(DANBO_CUTE_STYLE).indexOf('round-minimal')===0){
         _drawCuteMiniPortrait(ctx,ch,size);
         return c;
     }

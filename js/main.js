@@ -44,12 +44,20 @@ _startBtn.addEventListener('touchend',function(e){e.preventDefault();_handleStar
 
 // ---- Mobile touch for menu screens ----
 var _touchVisible=false;
-function _showMenuTouch(){
+function _gameplayTouchAllowed(){
+    return gameState==='city'||gameState==='racing';
+}
+function _setTouchControlsVisible(v){
     var tc=document.getElementById('touch-controls');
-    tc.classList.remove('hidden');
-    tc.style.zIndex='20'; // above .screen (z-index:10)
-    _touchVisible=true;
+    if(!tc)return;
+    if(v){tc.classList.remove('hidden');}
+    else {tc.classList.add('hidden');}
+    _touchVisible=!!v;
     _updateGamepadBtn();
+}
+function _showMenuTouch(){
+    // Menu/select are tapped directly; keep virtual controls hidden until gameplay.
+    _setTouchControlsVisible(false);
 }
 function _hideMenuTouch(){
     var tc=document.getElementById('touch-controls');
@@ -57,30 +65,29 @@ function _hideMenuTouch(){
 }
 function _updateGamepadBtn(){
     var gb=document.getElementById('gamepad-btn');
-    if(gb)gb.style.opacity=_touchVisible?'1':'0.5';
+    if(gb)gb.style.opacity=(_touchVisible&&_gameplayTouchAllowed())?'1':'0.5';
 }
 // Gamepad toggle button — works on PC too
 var _gamepadBtn=document.getElementById('gamepad-btn');
 if(_gamepadBtn){
-    _gamepadBtn.addEventListener('click',function(){
+_gamepadBtn.addEventListener('click',function(){
         var tc=document.getElementById('touch-controls');
+        if(!_gameplayTouchAllowed()){
+            _setTouchControlsVisible(false);
+            return;
+        }
         if(_touchVisible){
-            tc.classList.add('hidden');
-            _touchVisible=false;
+            _setTouchControlsVisible(false);
         } else {
-            tc.classList.remove('hidden');
-            _touchVisible=true;
-            // If in menu, raise z-index
-            if(gameState==='menu')tc.style.zIndex='20';
+            _setTouchControlsVisible(true);
         }
         _updateGamepadBtn();
     });
 }
 // Show touch controls immediately on title screen for mobile
 if('ontouchstart' in window){
-    document.getElementById('touch-controls').classList.remove('hidden');
-    document.getElementById('touch-controls').style.zIndex='20';
-    _touchVisible=true;
+    // Default hidden on mobile; game screens will show controls automatically.
+    _setTouchControlsVisible(false);
     _updateGamepadBtn();
 }
 

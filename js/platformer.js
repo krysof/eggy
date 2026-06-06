@@ -51,7 +51,7 @@ function _pfStart(){try{
     stopBGM();startRaceBGM(0);
     document.getElementById('city-hud').classList.add('hidden');
     document.getElementById('race-hud').classList.remove('hidden');
-    if('ontouchstart' in window||_touchVisible){document.getElementById('touch-controls').classList.remove('hidden');}
+    if('ontouchstart' in window||_touchVisible){if(typeof _setTouchControlsVisible==='function')_setTouchControlsVisible(true);else document.getElementById('touch-controls').classList.remove('hidden');}
 }catch(e){console.error('_pfStart ERROR:',e);alert('Start error: '+e.message);}}
 
 function _pfBuildLevel(){try{

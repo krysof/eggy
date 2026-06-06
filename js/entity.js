@@ -371,11 +371,11 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
     var body=new THREE.Mesh(bodyGeo,toon(color,{pastelAmount:0.20}));
     body.position.y=0.72;
     body.receiveShadow=true;
-    var bodyScale={x:1,y:1.04,z:1};
-    if(type==='bull'||type==='cat')bodyScale={x:1.10,y:0.95,z:1.08};
-    else if(type==='bear')bodyScale={x:1.22,y:1.08,z:1.16};
-    else if(type==='monkey')bodyScale={x:0.94,y:1.08,z:0.94};
-    else if(type==='cockroach')bodyScale={x:0.78,y:1.16,z:0.82};
+    var bodyScale={x:1,y:1.03,z:1};
+    if(type==='bull'||type==='cat')bodyScale={x:1.06,y:0.99,z:1.04};
+    else if(type==='bear')bodyScale={x:1.12,y:1.04,z:1.08};
+    else if(type==='monkey')bodyScale={x:0.98,y:1.04,z:0.98};
+    else if(type==='cockroach')bodyScale={x:0.92,y:1.08,z:0.94};
     body.scale.set(bodyScale.x,bodyScale.y,bodyScale.z);
     g.add(body);
 
@@ -462,47 +462,32 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
             var ear=new THREE.Mesh(new THREE.SphereGeometry(0.16,12,8),toon(_charMixHex(color,0x8B5E46,0.30)));
             ear.position.set(s*0.43,1.08,0.02);ear.scale.set(0.70,1.45,0.48);ear.rotation.z=s*0.42;body.add(ear);
         });
-        var nose=new THREE.Mesh(new THREE.SphereGeometry(0.055,8,6),toon(0x33303A,{noPastel:true}));
-        nose.position.set(0,0.70,0.62);nose.scale.set(1.15,0.75,0.55);body.add(nose);
     }else if(type==='cat'){
         [-1,1].forEach(function(s){
             var ear=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.25,4),toon(color,{pastelAmount:0.18}));
             ear.position.set(s*0.36,1.20,0.04);ear.rotation.z=s*0.23;body.add(ear);
         });
-        var whM=toon(0xFFFFFF,{transparent:true,opacity:0.75,noPastel:true});
-        [-1,1].forEach(function(s){for(var w=-1;w<=1;w++){
-            var wh=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.28,4),whM);
-            wh.position.set(s*0.36,0.68+w*0.045,0.57);wh.rotation.z=Math.PI/2+s*(0.14+w*0.04);body.add(wh);
-        }});
     }else if(type==='rooster'){
         var combM=toon(0xFF6F7D,{emissive:0xFF5570,emissiveIntensity:0.08});
         for(var ri=0;ri<3;ri++){
             var cb=new THREE.Mesh(new THREE.SphereGeometry(0.075,8,6),combM);
             cb.position.set(-0.08+ri*0.08,1.25+Math.abs(ri-1)*0.03,0.08);body.add(cb);
         }
-        var beak=new THREE.Mesh(new THREE.ConeGeometry(0.055,0.14,4),toon(0xFFB84D));
-        beak.position.set(0,0.69,0.63);beak.rotation.x=-Math.PI/2;body.add(beak);
     }else if(type==='monkey'){
         [-1,1].forEach(function(s){
             var ear=new THREE.Mesh(new THREE.SphereGeometry(0.14,10,8),toon(0xFFD4AA));
             ear.position.set(s*0.50,0.90,0.02);ear.scale.z=0.55;body.add(ear);
         });
-        var belly=new THREE.Mesh(new THREE.SphereGeometry(0.22,12,8),toon(0xFFD9B5));
-        belly.position.set(0,0.48,0.48);belly.scale.set(1.0,1.05,0.25);body.add(belly);
     }else if(type==='bull'){
         [-1,1].forEach(function(s){
             var horn=new THREE.Mesh(new THREE.ConeGeometry(0.055,0.26,8),toon(0xFFF0C8));
             horn.position.set(s*0.43,1.10,0.03);horn.rotation.z=-s*0.85;body.add(horn);
         });
-        var snout=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,8),toon(_charMixHex(color,0xFFE0C8,0.32)));
-        snout.position.set(0,0.64,0.59);snout.scale.set(1.25,0.68,0.42);body.add(snout);
     }else if(type==='bear'){
         [-1,1].forEach(function(s){
             var ear=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,8),toon(color,{pastelAmount:0.18}));
             ear.position.set(s*0.40,1.14,0.02);body.add(ear);
         });
-        var muz=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,8),toon(0xFFDCC2));
-        muz.position.set(0,0.65,0.59);muz.scale.set(1.18,0.70,0.42);body.add(muz);
     }else if(type==='cockroach'){
         [-1,1].forEach(function(s){
             var pts=[];
@@ -543,9 +528,10 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
 }
 
 function createEggMesh(color, accent, charType) {
-    if(typeof DANBO_CUTE_STYLE!=='undefined'&&DANBO_CUTE_STYLE==='round-minimal'){
-        return _createCuteRoundCharacterMesh(color,accent,charType);
-    }
+    // Always use the clean mascot mesh. The older detailed mesh below is kept as
+    // a fallback reference only, but we no longer enter it so cached style flags
+    // cannot bring back the cluttered/human-looking characters.
+    return _createCuteRoundCharacterMesh(color,accent,charType);
     var g = new THREE.Group();
     var bodyGeo = new THREE.SphereGeometry(0.6,20,14);
     var pos = bodyGeo.attributes.position;

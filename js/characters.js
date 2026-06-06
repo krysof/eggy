@@ -1,14 +1,14 @@
 // characters.js — DANBO World
 const CHARACTERS = [
     // SF2 select screen layout: top row L→R, bottom row L→R
-    {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xF5F5F0,accent:0xCC2222,icon:'\uD83E\uDD5A',portrait:'#F5F5F0',sf2:'Ryu',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
-    {name:'\u91CE\u725B',type:'bull',color:0xE8C49A,accent:0x2244CC,icon:'\uD83D\uDC03',portrait:'#E8C49A',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
-    {name:'\u732B\u4ED4',type:'cat',color:0x33AA33,accent:0xFF8800,icon:'\uD83D\uDC31',portrait:'#33AA33',sf2:'Blanka',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:95,mapY:155},
-    {name:'\u9E21\u516C',type:'rooster',color:0x556B2F,accent:0xFFDD44,icon:'\uD83D\uDC13',portrait:'#556B2F',sf2:'Guile',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:70,mapY:55},
-    {name:'\u72D7\u4ED4',type:'dog',color:0xCC2222,accent:0xFFDD44,icon:'\uD83D\uDC36',portrait:'#CC2222',sf2:'Ken',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:70,mapY:55},
-    {name:'\u9A6C\u9A9D',type:'monkey',color:0x2255CC,accent:0xFFFFFF,icon:'\uD83D\uDC35',portrait:'#2255CC',sf2:'Chun-Li',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:55},
-    {name:'\u5927\u718A',type:'bear',color:0x8B6B4A,accent:0x8B4513,icon:'\uD83D\uDC3B',portrait:'#8B6B4A',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:290,mapY:18},
-    {name:'\u66F1\u7534',type:'cockroach',color:0x8B6914,accent:0xFFFFFF,icon:'\uD83E\uDEB3',portrait:'#8B6914',sf2:'Dhalsim',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:278,mapY:88},
+    {name:'\u7ECF\u5178\u86CB\u5B9D',type:'egg',color:0xFFFDF2,accent:0xEF4A5B,icon:'\uD83E\uDD5A',portrait:'#FFFDF2',sf2:'Ryu',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
+    {name:'\u91CE\u725B',type:'bull',color:0xFFD1A0,accent:0xFF8A55,icon:'\uD83D\uDC03',portrait:'#FFD1A0',sf2:'E.Honda',country:'Japan',flag:'\uD83C\uDDEF\uD83C\uDDF5',mapX:360,mapY:52},
+    {name:'\u732B\u4ED4',type:'cat',color:0x72E889,accent:0x65C7FF,icon:'\uD83D\uDC31',portrait:'#72E889',sf2:'Blanka',country:'Brazil',flag:'\uD83C\uDDE7\uD83C\uDDF7',mapX:95,mapY:155},
+    {name:'\u9E21\u516C',type:'rooster',color:0xBFEA7C,accent:0xFF7BA3,icon:'\uD83D\uDC13',portrait:'#BFEA7C',sf2:'Guile',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:70,mapY:55},
+    {name:'\u72D7\u4ED4',type:'dog',color:0xFF7E86,accent:0xFFE066,icon:'\uD83D\uDC36',portrait:'#FF7E86',sf2:'Ken',country:'USA',flag:'\uD83C\uDDFA\uD83C\uDDF8',mapX:70,mapY:55},
+    {name:'\u9A6C\u9A9D',type:'monkey',color:0x72A8FF,accent:0xFFD66B,icon:'\uD83D\uDC35',portrait:'#72A8FF',sf2:'Chun-Li',country:'China',flag:'\uD83C\uDDE8\uD83C\uDDF3',mapX:310,mapY:55},
+    {name:'\u5927\u718A',type:'bear',color:0xCFA06A,accent:0xF7C95A,icon:'\uD83D\uDC3B',portrait:'#CFA06A',sf2:'Zangief',country:'Russia',flag:'\uD83C\uDDF7\uD83C\uDDFA',mapX:290,mapY:18},
+    {name:'\u66F1\u7534',type:'cockroach',color:0xC9A64F,accent:0xFFFFFF,icon:'\uD83E\uDEB3',portrait:'#C9A64F',sf2:'Dhalsim',country:'India',flag:'\uD83C\uDDEE\uD83C\uDDF3',mapX:278,mapY:88},
 ];
 let selectedChar = 0;
 // Apply localized character names
@@ -89,16 +89,6 @@ function _drawCuteRoundPortrait(ctx,ch,W,H){
     if(ch.type==='egg'){
         ctx.strokeStyle='#FFFBEF';ctx.lineWidth=3;ctx.beginPath();
         ctx.moveTo(cx-28,cy-56);ctx.lineTo(cx-20,cy-68);ctx.lineTo(cx-9,cy-56);ctx.lineTo(cx+2,cy-70);ctx.lineTo(cx+13,cy-56);ctx.lineTo(cx+24,cy-66);ctx.lineTo(cx+32,cy-56);ctx.stroke();
-    }else if(ch.type==='dog'){
-        ctx.fillStyle='#33303A';ctx.beginPath();ctx.ellipse(cx,cy+6,8,5,0,0,Math.PI*2);ctx.fill();
-    }else if(ch.type==='bull'){
-        ctx.fillStyle='rgba(255,224,200,0.70)';ctx.beginPath();ctx.ellipse(cx,cy+16,20,12,0,0,Math.PI*2);ctx.fill();
-    }else if(ch.type==='rooster'){
-        ctx.fillStyle='#FFB84D';ctx.beginPath();ctx.moveTo(cx-6,cy+2);ctx.lineTo(cx+6,cy+2);ctx.lineTo(cx,cy+14);ctx.closePath();ctx.fill();
-    }else if(ch.type==='monkey'){
-        ctx.fillStyle='rgba(255,217,181,0.78)';ctx.beginPath();ctx.ellipse(cx,cy+24,22,20,0,0,Math.PI*2);ctx.fill();
-    }else if(ch.type==='bear'){
-        ctx.fillStyle='rgba(255,220,194,0.78)';ctx.beginPath();ctx.ellipse(cx,cy+14,20,13,0,0,Math.PI*2);ctx.fill();
     }
 
     [-1,1].forEach(function(s){
@@ -123,7 +113,7 @@ function drawPortrait(ch) {
     if(!hd)return;
     var portraitCtx=hd.ctx;
     var W=hd.w, H=hd.h;
-    if(typeof DANBO_CUTE_STYLE!=='undefined'&&DANBO_CUTE_STYLE==='round-minimal'){
+    if(typeof DANBO_CUTE_STYLE!=='undefined'&&String(DANBO_CUTE_STYLE).indexOf('round-minimal')===0){
         _drawCuteRoundPortrait(portraitCtx,ch,W,H);
         return;
     }
