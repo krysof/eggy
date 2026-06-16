@@ -245,6 +245,7 @@ function handlePlayerInput(){
                     sdp.throwVx=spdx/spdd*spForce;sdp.throwVy=0.15+spForce*0.2;sdp.throwVz=spdz/spdd*spForce;
                     sdp.throwTimer=30;sdp._bounces=2;
                     playHitSound();
+                }
             }
         }
     }
@@ -281,6 +282,7 @@ function handlePlayerInput(){
                 if(_chargeHoldTimer%3===0)_spawnButtSmoke(playerEgg,1.0);
                 if(_chargeHoldTimer>=_chargeHoldMax){
                     _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
+                }
             }
         }
     }
@@ -863,7 +865,6 @@ function handlePlayerInput(){
                     _dropNpcStolenCoins(_ke);playHitSound();
                 }
             }
-        }
         playerEgg.squash=_kFinisher?0.7:0.82;
         // Kick swing sound
         if(sfxEnabled){var _kCtx=ensureAudio();if(_kCtx){var _kt2=_kCtx.currentTime;
@@ -1108,7 +1109,6 @@ function handlePlayerInput(){
                     }
                 }
             }
-        }
         if(playerEgg._yogaFlame<=0){
             playerEgg._yogaFlameDir=undefined;
         }
