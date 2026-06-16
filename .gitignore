@@ -2,3 +2,4 @@
 danbo-git-guide.md
 *.log
 *.tmp
+.private-wasm-src/

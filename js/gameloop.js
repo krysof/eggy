@@ -7,6 +7,20 @@ window.addEventListener('unhandledrejection',function(e){if(!window._errShown){w
 // ============================================================
 var _cityFrameNo=0;
 
+function _danboPortalDist2D(px,pz,tx,tz){
+    return (window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(px,pz,tx,tz):Math.sqrt((px-tx)*(px-tx)+(pz-tz)*(pz-tz));
+}
+function _danboPortalHeightWithin(a,b,limit){
+    return (window.DANBO_WASM&&DANBO_WASM.absDeltaWithin)?DANBO_WASM.absDeltaWithin(a,b,limit):Math.abs(a-b)<=limit;
+}
+function _danboPortalNearGround(egg,py){
+    if(!egg)return false;
+    return (window.DANBO_WASM&&DANBO_WASM.nearGround)?DANBO_WASM.nearGround(egg.onGround,egg.vy||0,py):(egg.onGround||Math.abs(egg.vy||0)<0.25||py<2.5);
+}
+function _danboPortalConfirmRange(confirmDist,isWarpPipe){
+    return (window.DANBO_WASM&&DANBO_WASM.confirmRange)?DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe):(confirmDist+(isWarpPipe?1.0:0));
+}
+
 function _forEachObjectMaterial(obj,cb){
     if(!obj||!cb)return;
     var seen=[];
@@ -408,19 +422,16 @@ function updateCity(){
     var _nearP=null, _nearD=9999;
     // Check race portals
     for(var pi=0;pi<portals.length;pi++){
-        var _dx=px-portals[pi].x, _dz=pz-portals[pi].z;
         var _ppy=portals[pi].y||0;
-        var _dy=py-_ppy;
         // Allow a little slope/step/fountain offset so portals do not feel dead.
-        if(Math.abs(_dy)>7)continue;
-        var _d=Math.sqrt(_dx*_dx+_dz*_dz);
+        if(!_danboPortalHeightWithin(py,_ppy,7))continue;
+        var _d=_danboPortalDist2D(px,pz,portals[pi].x,portals[pi].z);
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
     // Check warp pipes (unified into same proximity system)
     for(var _wpi2=0;_wpi2<warpPipeMeshes.length;_wpi2++){
         var _wp2=warpPipeMeshes[_wpi2];
-        var _wdx2=px-_wp2.x, _wdz2=pz-_wp2.z;
-        var _wd2=Math.sqrt(_wdx2*_wdx2+_wdz2*_wdz2);
+        var _wd2=_danboPortalDist2D(px,pz,_wp2.x,_wp2.z);
         if(py>10)continue; // skip if clearly too high
         if(_wd2<_nearD){
             var _wpName=CITY_STYLES[_wp2.targetStyle]?CITY_STYLES[_wp2.targetStyle].name:'???';
@@ -431,12 +442,12 @@ function updateCity(){
     // Only trigger portal when player is walking/standing normally.  Do not
     // require a perfect onGround flag: on curved pipes, stairs, roofs, and
     // after tiny bounces it can be false for a few frames.
-    var _nearGround=playerEgg&&(playerEgg.onGround||Math.abs(playerEgg.vy||0)<0.25||py<2.5);
+    var _nearGround=_danboPortalNearGround(playerEgg,py);
     var _isVoluntary=playerEgg&&_nearGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
     if(_nearP&&_nearD<PORTAL_CONFIG.triggerDist&&_isVoluntary){
         if(_pp)_pp.style.display='block';
         var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
-        var _confirmRange=PORTAL_CONFIG.confirmDist+(_nearP._isWarpPipe?1.0:0);
+        var _confirmRange=_danboPortalConfirmRange(PORTAL_CONFIG.confirmDist,_nearP._isWarpPipe);
         if(_nearD<_confirmRange&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
             if(_pp)_pp.style.display='none';
             showPortalConfirm(_nearP);
