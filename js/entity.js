@@ -1151,7 +1151,7 @@ function _updateDropShadow(){
             var dx=px-c.x, dz=pz-c.z;
             // Cone roof
             if(c.roofR&&c.roofH){
-                var dist=Math.sqrt(dx*dx+dz*dz);
+                var dist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(px,pz,c.x,c.z):Math.sqrt(dx*dx+dz*dz);
                 if(dist<c.roofR){
                     var roofBase=c.h||6;
                     var surfY=roofBase+(1-dist/c.roofR)*c.roofH;

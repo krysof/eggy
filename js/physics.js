@@ -64,7 +64,7 @@ function updateEggPhysics(egg, isCity){
         }
         // Snow Village: fall into lake = respawn (lake is between island and outer shore)
         if(currentCityStyle===7){
-            var _snowDist=Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
+            var _snowDist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.mesh.position.x,egg.mesh.position.z,0,0):Math.sqrt(egg.mesh.position.x*egg.mesh.position.x+egg.mesh.position.z*egg.mesh.position.z);
             var _snowIslandR2=CITY_SIZE*0.8; // island radius
             // Skip lake check if near dock area (entire south quadrant + bridge collider zone)
             var _onDock=false;
@@ -72,7 +72,7 @@ function updateEggPhysics(egg, isCity){
             for(var _dci=0;_dci<cityColliders.length;_dci++){
                 var _dc=cityColliders[_dci];
                 if(!_dc._bridge)continue;
-                if(Math.abs(egg.mesh.position.x-_dc.x)<_dc.hw+1&&Math.abs(egg.mesh.position.z-_dc.z)<_dc.hd+1)_onDock=true;
+                if((window.DANBO_WASM&&DANBO_WASM.aabb2D)?DANBO_WASM.aabb2D(egg.mesh.position.x,egg.mesh.position.z,_dc.x,_dc.z,_dc.hw,_dc.hd,1):(Math.abs(egg.mesh.position.x-_dc.x)<_dc.hw+1&&Math.abs(egg.mesh.position.z-_dc.z)<_dc.hd+1))_onDock=true;
             }
             if(Math.abs(egg.mesh.position.x)<20&&egg.mesh.position.z>_snowIslandR2-25)_onDock=true;
             if(_snowDist>_snowIslandR2&&egg.mesh.position.y<3.5&&!_onDock){
@@ -114,7 +114,7 @@ function updateEggPhysics(egg, isCity){
                 var _sh=window._moonShields[_si];
                 var _sdx=egg.mesh.position.x-_sh.x;
                 var _sdz=egg.mesh.position.z-_sh.z;
-                var _sdist=Math.sqrt(_sdx*_sdx+_sdz*_sdz);
+                var _sdist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.mesh.position.x,egg.mesh.position.z,_sh.x,_sh.z):Math.sqrt(_sdx*_sdx+_sdz*_sdz);
                 // Check if egg is near the shield boundary (inside or crossing)
                 if(_sdist<_sh.r+3&&_sdist>_sh.r-6){
                     // Check if near a door opening
@@ -187,7 +187,7 @@ function updateEggPhysics(egg, isCity){
                 var htdx=egg.mesh.position.x-te.mesh.position.x;
                 var htdz=egg.mesh.position.z-te.mesh.position.z;
                 var htdy=egg.mesh.position.y-te.mesh.position.y;
-                var htd=Math.sqrt(htdx*htdx+htdz*htdz+htdy*htdy);
+                var htd=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,te.mesh.position.x,te.mesh.position.y,te.mesh.position.z):Math.sqrt(htdx*htdx+htdz*htdz+htdy*htdy);
                 if(htd<2.0){
                     // Knockback the hit NPC
                     var kbf=0.3;
@@ -208,7 +208,7 @@ function updateEggPhysics(egg, isCity){
             const dx=egg.mesh.position.x-c.x, dz=egg.mesh.position.z-c.z;
             // Cone roof collision — checked independently of box AABB
             if(c.roofR&&c.roofH){
-                var distFromCenter=Math.sqrt(dx*dx+dz*dz);
+                var distFromCenter=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.mesh.position.x,egg.mesh.position.z,c.x,c.z):Math.sqrt(dx*dx+dz*dz);
                 var ey=egg.mesh.position.y;
                 var roofBase=c.h||6;
                 if(distFromCenter<c.roofR+egg.radius){
@@ -262,7 +262,7 @@ function updateEggPhysics(egg, isCity){
             if(cp.grabbed)continue;
             var pdx=egg.mesh.position.x-cp.group.position.x;
             var pdz=egg.mesh.position.z-cp.group.position.z;
-            var pd=Math.sqrt(pdx*pdx+pdz*pdz);
+            var pd=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.mesh.position.x,egg.mesh.position.z,cp.group.position.x,cp.group.position.z):Math.sqrt(pdx*pdx+pdz*pdz);
             if(pd<cp.radius+egg.radius&&pd>0.01){
                 // Check if egg is above the prop — stand on it
                 var propTopY=cp.group.position.y+(cp.type==='bench'?0.7:cp.type==='tree'?1.5:2.5);
@@ -321,7 +321,7 @@ function updateEggPhysics(egg, isCity){
             if(_cloudWorldPipe&&!_pipeTraveling&&!_portalConfirmOpen&&!_spinDashing){
                 var mp=_cloudWorldPipe;
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
-                var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
+                var mdist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.mesh.position.x,egg.mesh.position.z,mp.x,mp.z):Math.sqrt(mdx*mdx+mdz*mdz);
                 var mrange=(typeof _danboPortalConfirmRange==='function')?_danboPortalConfirmRange(PORTAL_CONFIG.confirmDist,true):(PORTAL_CONFIG.confirmDist+1.6);
                 if(mdist<mrange&&egg.mesh.position.y>=mp.y-5&&egg.mesh.position.y<=mp.y+15&&!mp._cooldown){
                     mp._cooldown=true;
@@ -532,7 +532,7 @@ function resolveEggCollisions(eggList){
             const dx=b.mesh.position.x-a.mesh.position.x;
             const dz=b.mesh.position.z-a.mesh.position.z;
             const dy=b.mesh.position.y-a.mesh.position.y;
-            const dist=Math.sqrt(dx*dx+dz*dz+dy*dy);
+            const dist=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,a.mesh.position.x,a.mesh.position.y,a.mesh.position.z):Math.sqrt(dx*dx+dz*dz+dy*dy);
             const minDist=a.radius+b.radius;
             if(dist<minDist&&dist>0.01){
                 const overlap=(minDist-dist)*0.5;

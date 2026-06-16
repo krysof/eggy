@@ -262,7 +262,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var bcdx=egg.mesh.position.x-bc.mesh.position.x;
             var bcdy=egg.mesh.position.y-bc.mesh.position.y;
             var bcdz=egg.mesh.position.z-bc.mesh.position.z;
-            var bcd=Math.sqrt(bcdx*bcdx+bcdy*bcdy+bcdz*bcdz);
+            var bcd=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,bc.mesh.position.x,bc.mesh.position.y,bc.mesh.position.z):Math.sqrt(bcdx*bcdx+bcdy*bcdy+bcdz*bcdz);
             if(bcd<bestCD){bestCD=bcd;bestCoin=bci;}
         }
         if(bestCoin!==null){egg._coinTarget=bestCoin;egg._coinTargetTimer=360;}
@@ -283,7 +283,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 var tcdx=tc.mesh.position.x-egg.mesh.position.x;
                 var tcdy=tc.mesh.position.y-egg.mesh.position.y;
                 var tcdz=tc.mesh.position.z-egg.mesh.position.z;
-                var tcd=Math.sqrt(tcdx*tcdx+tcdy*tcdy+tcdz*tcdz);
+                var tcd=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(tc.mesh.position.x,tc.mesh.position.y,tc.mesh.position.z,egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z):Math.sqrt(tcdx*tcdx+tcdy*tcdy+tcdz*tcdz);
                 if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.7;egg.vy+=(tcdy/tcd)*MOVE_ACCEL*0.7;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.7;}
                 _chasingCoin=true;
             }
@@ -298,8 +298,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var sdx=egg.mesh.position.x-sc.mesh.position.x;
             var sdy=egg.mesh.position.y-sc.mesh.position.y;
             var sdz=egg.mesh.position.z-sc.mesh.position.z;
-            var sdist=Math.sqrt(sdx*sdx+sdy*sdy+sdz*sdz);
-            if(sdist<2.5){
+            if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,sc.mesh.position.x,sc.mesh.position.y,sc.mesh.position.z,2.5):(sdx*sdx+sdy*sdy+sdz*sdz<6.25)){
                 sc._stolenBy=egg;
                 sc.mesh.visible=false;
                 egg._stolenCoins.push(sci);
@@ -406,7 +405,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg.vx+=(egg.aiTargetX-egg.mesh.position.x)*0.05;
         }
         var dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
-        var dist=Math.sqrt(dx*dx+dz*dz);
+        var dist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.aiTargetX,egg.aiTargetZ,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(dx*dx+dz*dz);
         // NPC sprint burst
         var npcSprint=(egg._aiSprint||0)>0;
         var npcAccel=npcSprint?0.5:0.3;
@@ -435,7 +434,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(other===egg||!other.alive||other.heldBy)continue;
             var cdx=other.mesh.position.x-egg.mesh.position.x;
             var cdz=other.mesh.position.z-egg.mesh.position.z;
-            var cd=Math.sqrt(cdx*cdx+cdz*cdz);
+            var cd=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(other.mesh.position.x,other.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(cdx*cdx+cdz*cdz);
             // Prefer attacking NPCs over player (player distance inflated)
             if(other.isPlayer)cd*=2.5;
             if(cd<closeDist){closeDist=cd;closest=other;}
@@ -443,7 +442,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         if(closest){
             var cdx2=closest.mesh.position.x-egg.mesh.position.x;
             var cdz2=closest.mesh.position.z-egg.mesh.position.z;
-            var cd2=Math.sqrt(cdx2*cdx2+cdz2*cdz2);
+            var cd2=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(closest.mesh.position.x,closest.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(cdx2*cdx2+cdz2*cdz2);
             if(cd2>2){var chaseAccel=(egg._aiSprint>0)?0.65:0.4;egg.vx+=(cdx2/cd2)*MOVE_ACCEL*chaseAccel;egg.vz+=(cdz2/cd2)*MOVE_ACCEL*chaseAccel;}
             if(Math.random()<0.003){egg._aiSprint=40+Math.random()*60;}
             if(egg._aiSprint>0)egg._aiSprint--;
@@ -645,7 +644,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         if(_babylonTower){
             var bt=_babylonTower;
             var bdx=bt.x-egg.mesh.position.x, bdz=bt.z-egg.mesh.position.z;
-            var bd=Math.sqrt(bdx*bdx+bdz*bdz);
+            var bd=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(bt.x,bt.z,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(bdx*bdx+bdz*bdz);
             if(bd>4){
                 egg.vx+=(bdx/bd)*MOVE_ACCEL*0.5;egg.vz+=(bdz/bd)*MOVE_ACCEL*0.5;
             } else {
@@ -774,7 +773,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(_nte._npcTatsuHitCD>0){_nte._npcTatsuHitCD--;continue;}
             var _ntdx=_nte.mesh.position.x-egg.mesh.position.x;
             var _ntdz=_nte.mesh.position.z-egg.mesh.position.z;
-            if(Math.sqrt(_ntdx*_ntdx+_ntdz*_ntdz)<2.5){
+            if((window.DANBO_WASM&&DANBO_WASM.within2D)?DANBO_WASM.within2D(_nte.mesh.position.x,_nte.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z,2.5):(Math.sqrt(_ntdx*_ntdx+_ntdz*_ntdz)<2.5)){
                 _nte.vx+=_ntdx*0.15;_nte.vz+=_ntdz*0.15;_nte.vy=0.1;
                 _nte.squash=0.6;_nte._hitStun=8;_nte._npcTatsuHitCD=10;
                 _dropNpcStolenCoins(_nte);if(_nte.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);

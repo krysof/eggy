@@ -602,8 +602,7 @@ function _pfUpdateCamera(){try{
     }
     // Key collection
     if(window._pfKeyMesh&&!window._pfHasKey&&playerEgg){
-        var kd=playerEgg.mesh.position.distanceTo(window._pfKeyMesh.position);
-        if(kd<3){
+        if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,window._pfKeyMesh.position.x,window._pfKeyMesh.position.y,window._pfKeyMesh.position.z,3):(playerEgg.mesh.position.distanceTo(window._pfKeyMesh.position)<3)){
             window._pfHasKey=true;
             raceGroup.remove(window._pfKeyMesh);
             window._pfKeyMesh=null;

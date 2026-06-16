@@ -868,6 +868,7 @@ function playStepSound(){
 function _sfxVolume(worldX,worldZ){
     if(!playerEgg||!playerEgg.mesh)return 1;
     if(isNaN(worldX)||isNaN(worldZ))return 0;
+    if(window.DANBO_WASM&&DANBO_WASM.sfxVolume)return DANBO_WASM.sfxVolume(playerEgg.mesh.position.x,playerEgg.mesh.position.z,worldX,worldZ);
     var dx=worldX-playerEgg.mesh.position.x,dz=worldZ-playerEgg.mesh.position.z;
     var dist=Math.sqrt(dx*dx+dz*dz);
     if(isNaN(dist))return 0;

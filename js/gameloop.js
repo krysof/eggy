@@ -524,7 +524,7 @@ function updateCity(){
         var coinBaseY=c.baseY||1.2;
         c.mesh.position.y=coinBaseY+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
         var cdx2=px-c.mesh.position.x, cdz2=pz-c.mesh.position.z, cdy2=py-c.mesh.position.y;
-        if(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2<2.25){
+        if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(px,py,pz,c.mesh.position.x,c.mesh.position.y,c.mesh.position.z,1.5):(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2<2.25)){
             c.collected=true; c.mesh.visible=false;
             coins++; document.getElementById('coin-hud').textContent='⭐ '+coins;
             playCoinSound();
@@ -3019,7 +3019,7 @@ function checkThrownEggImpact(eggList){
             var dx=b.mesh.position.x-a.mesh.position.x;
             var dz=b.mesh.position.z-a.mesh.position.z;
             var dy=b.mesh.position.y-a.mesh.position.y;
-            var dist=Math.sqrt(dx*dx+dz*dz+dy*dy);
+            var dist=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,a.mesh.position.x,a.mesh.position.y,a.mesh.position.z):Math.sqrt(dx*dx+dz*dz+dy*dy);
             if(dist<1.3){
                 // Kunio-kun impact: victim flies up and away
                 var nx=dx/(dist||1), nz=dz/(dist||1);
@@ -3219,8 +3219,7 @@ function _gameUpdate(){
             var cdx=playerEgg.mesh.position.x-rc.x;
             var cdz=playerEgg.mesh.position.z-(-rc.z);
             var cdy=playerEgg.mesh.position.y-(rc.fy+1.2);
-            var cdist=Math.sqrt(cdx*cdx+cdz*cdz+cdy*cdy);
-            if(cdist<1.5){
+            if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,rc.x,rc.fy+1.2,-rc.z,1.5):(cdx*cdx+cdz*cdz+cdy*cdy<2.25)){
                 rc.collected=true;rc.mesh.visible=false;
                 if(rc.type==='star'){
                     // Speed Star: 2x speed for 3 seconds
@@ -3275,7 +3274,7 @@ function _gameUpdate(){
                     var _mdx2=playerEgg.mesh.position.x-_mc.mesh.position.x;
                     var _mdz2=playerEgg.mesh.position.z-_mc.mesh.position.z;
                     var _mdy2=playerEgg.mesh.position.y-_mc.mesh.position.y;
-                    var _md2=Math.sqrt(_mdx2*_mdx2+_mdz2*_mdz2+_mdy2*_mdy2);
+                    var _md2=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,_mc.mesh.position.x,_mc.mesh.position.y,_mc.mesh.position.z):Math.sqrt(_mdx2*_mdx2+_mdz2*_mdz2+_mdy2*_mdy2);
                     if(_md2<10&&_md2>0.1){
                         _mc.mesh.position.x+=_mdx2/_md2*0.15;
                         _mc.mesh.position.z+=_mdz2/_md2*0.15;

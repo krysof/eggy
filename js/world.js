@@ -124,8 +124,8 @@ function buildCityCoins() {
         const cx=(Math.random()-0.5)*coinSpread*2, cz=(Math.random()-0.5)*coinSpread*2;
         let skip=false;
         if(currentCityStyle!==5){
-            for(const c of cityColliders) if(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1) skip=true;
-            if(Math.sqrt(cx*cx+cz*cz)<7) skip=true;
+            for(const c of cityColliders) if((window.DANBO_WASM&&DANBO_WASM.aabb2D)?DANBO_WASM.aabb2D(cx,cz,c.x,c.z,c.hw,c.hd,1):(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1)) skip=true;
+            if((window.DANBO_WASM&&DANBO_WASM.within2D)?DANBO_WASM.within2D(cx,cz,0,0,7):(Math.sqrt(cx*cx+cz*cz)<7)) skip=true;
         }
         if(skip) continue;
         const coin=new THREE.Mesh(window._sharedCityCoinGeo, window._sharedCityCoinMat);
