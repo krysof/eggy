@@ -341,6 +341,8 @@ var _pipeMidX=0, _pipeMidZ=0;
 var _pipeStartY=3; // starting Y height for pipe travel
 
 function startPipeTravel(fromX,fromZ,targetStyle,fromY){
+    if(typeof _resetViewMode==='function')_resetViewMode();
+    if(playerEgg&&playerEgg.mesh)playerEgg.mesh.visible=true;
     _pipeTraveling=true;_pipeTimer=0;_pipeTargetStyle=targetStyle;
     _pipeStartX=fromX;_pipeStartZ=fromZ;
     _pipeStartY=(fromY!==undefined)?fromY:3;
@@ -537,6 +539,7 @@ function updatePipeTravel(){
 
 function switchCity(targetStyle){
     if(targetStyle===currentCityStyle)return;
+    if(typeof _resetViewMode==='function')_resetViewMode();
     _prevCityStyle=currentCityStyle;
     currentCityStyle=targetStyle;
     _cameraZoom=1.0; // reset zoom on city switch

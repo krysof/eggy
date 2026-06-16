@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260606.3">
+<link rel="stylesheet" href="style.css?v=20260616.1">
 </head>
 <body>
 <div id="game-container">
@@ -85,6 +85,7 @@
       <span class="hud-pill" id="coin-hud">⭐ 0</span>
       <span class="hud-pill hud-desktop-only">F Grab/Throw | Hold to Charge</span>
       <span class="hud-pill hud-desktop-only" id="zoom-hud">Scroll Zoom</span>
+      <button class="hud-pill hud-btn" id="view-mode-btn">📷 Normal</button>
       <button class="hud-pill hud-btn" id="spectator-btn" style="display:none;">👁 Spectator</button>
       <button class="hud-pill hud-btn" id="pf-back-btn" style="display:none;">🏙️ Back</button>
     </div>
@@ -141,7 +142,7 @@
 
 <script>
 (function(){
-  var cache='v=20260606.3';
+  var cache='v=20260616.1';
   var loaderLang=(function(){
     var mode='auto';
     try{mode=localStorage.getItem('danbo_lang')||'auto';}catch(e){}

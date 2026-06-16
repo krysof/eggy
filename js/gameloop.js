@@ -401,18 +401,18 @@ function updateCity(){
     // Check portal proximity — show prompt on base, enter when walk into ring
     // Skip portal triggers while spin dashing
     if(_pipeArrivalCooldown>0)_pipeArrivalCooldown--;
-    var _notWalking=!!(playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._guileSomersault||playerEgg.throwTimer>0||playerEgg._blankaShock||playerEgg._yogaFlame||playerEgg._hyakuretsuTimer||playerEgg._hyakuretsuKickTimer||!playerEgg.onGround);
-    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_notWalking){document.getElementById('portal-prompt').style.display='none';} else {
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
+    var _portalBlocked=!!(playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._guileSomersault||playerEgg.throwTimer>0||playerEgg._blankaShock||playerEgg._yogaFlame||playerEgg._hyakuretsuTimer||playerEgg._hyakuretsuKickTimer);
+    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_portalBlocked){if(_pp)_pp.style.display='none';} else {
     var _nearP=null, _nearD=9999;
     // Check race portals
     for(var pi=0;pi<portals.length;pi++){
         var _dx=px-portals[pi].x, _dz=pz-portals[pi].z;
         var _ppy=portals[pi].y||0;
         var _dy=py-_ppy;
-        // Only trigger when player is within 5 units height of portal
-        if(Math.abs(_dy)>5)continue;
+        // Allow a little slope/step/fountain offset so portals do not feel dead.
+        if(Math.abs(_dy)>7)continue;
         var _d=Math.sqrt(_dx*_dx+_dz*_dz);
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
@@ -421,26 +421,30 @@ function updateCity(){
         var _wp2=warpPipeMeshes[_wpi2];
         var _wdx2=px-_wp2.x, _wdz2=pz-_wp2.z;
         var _wd2=Math.sqrt(_wdx2*_wdx2+_wdz2*_wdz2);
-        if(py>8)continue; // skip if too high
+        if(py>10)continue; // skip if clearly too high
         if(_wd2<_nearD){
             var _wpName=CITY_STYLES[_wp2.targetStyle]?CITY_STYLES[_wp2.targetStyle].name:'???';
             _nearD=_wd2;
             _nearP={name:_wpName,desc:L('warpDesc')||'Travel to another city!',raceIndex:-1,_targetStyle:_wp2.targetStyle,_isWarpPipe:true,_pipeX:_wp2.x,_pipeZ:_wp2.z};
         }
     }
-    // Only trigger portal when player is walking normally (not thrown, stunned, dashing, spinning, held, etc.)
-    var _isVoluntary=playerEgg&&playerEgg.onGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
+    // Only trigger portal when player is walking/standing normally.  Do not
+    // require a perfect onGround flag: on curved pipes, stairs, roofs, and
+    // after tiny bounces it can be false for a few frames.
+    var _nearGround=playerEgg&&(playerEgg.onGround||Math.abs(playerEgg.vy||0)<0.25||py<2.5);
+    var _isVoluntary=playerEgg&&_nearGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
     if(_nearP&&_nearD<PORTAL_CONFIG.triggerDist&&_isVoluntary){
-        _pp.style.display='block';
+        if(_pp)_pp.style.display='block';
         var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
-        if(_nearD<PORTAL_CONFIG.confirmDist&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
-            _pp.style.display='none';
+        var _confirmRange=PORTAL_CONFIG.confirmDist+(_nearP._isWarpPipe?1.0:0);
+        if(_nearD<_confirmRange&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
+            if(_pp)_pp.style.display='none';
             showPortalConfirm(_nearP);
         } else if(!_portalConfirmOpen){
-            _pt.textContent=_nearP.name+' \u2014 '+_nearP.desc+'  ('+L('walkIn')+')';
+            if(_pt)_pt.textContent=_nearP.name+' \u2014 '+_nearP.desc+'  ('+L('walkIn')+')';
         }
     } else if(!_portalConfirmOpen){
-        _pp.style.display='none';
+        if(_pp)_pp.style.display='none';
         _portalDismissed=null;
     }
     } // end if !_pipeTraveling
@@ -2337,6 +2341,7 @@ function enterCity(spawnX,spawnZ){
 }
 
 function enterRace(raceIndex){
+    if(typeof _resetViewMode==='function')_resetViewMode();
     currentRaceIndex=raceIndex;
     finishedEggs=[]; playerFinished=false;
     raceCoinScore=0;

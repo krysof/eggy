@@ -11,6 +11,8 @@ var _moonCamLastX=0, _moonCamLastY=0;
 var _spectatorMode=false;
 // Third-person (RE5 style) camera
 var _tpsCamMode=false;
+// City camera modes: 0 = normal top-down, 1 = third-person, 2 = first-person
+var _viewMode=0;
 var _tpsCamYaw=0; // horizontal orbit around player
 var _tpsCamPitch=0.2;
 var _tpsCamDist=8;
@@ -41,7 +43,7 @@ document.addEventListener('mousemove',function(e){
 document.addEventListener('mouseup',function(e){
     if(e.button===2||e.button===1)_moonCamDragging=false;
 });
-document.addEventListener('contextmenu',function(e){if(currentCityStyle===5||_tpsCamMode)e.preventDefault();});
+document.addEventListener('contextmenu',function(e){if(currentCityStyle===5||_viewMode>0)e.preventDefault();});
 // TPS camera: mouse drag to orbit
 document.addEventListener('mousedown',function(e){
     if(_tpsCamMode&&gameState==='city'&&(e.button===0||e.button===2)){_tpsDragging=true;_tpsLastX=e.clientX;_tpsLastY=e.clientY;e.preventDefault();}
@@ -88,18 +90,51 @@ document.addEventListener('touchend',function(e){
         if(!found)_tpsTouchId=null;
     }
 },{passive:true});
-// Toggle TPS with key 1 or button
-function _toggleTPS(){
-    _tpsCamMode=!_tpsCamMode;
-    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.2;}
+// City camera mode controls.  The mobile camera button and the desktop HUD
+// button both cycle: normal -> third-person -> first-person -> normal.
+function _updateViewModeUI(){
+    _tpsCamMode=_viewMode===1;
+    if(playerEgg&&playerEgg.mesh)playerEgg.mesh.visible=_viewMode!==2;
     var _tpsBtn=document.getElementById('tps-btn');
-    if(_tpsBtn)_tpsBtn.textContent=_tpsCamMode?'🎥':'📷';
+    if(_tpsBtn){
+        _tpsBtn.textContent=_viewMode===2?'👁':(_viewMode===1?'🎥':'📷');
+        _tpsBtn.title=_viewMode===2?'First person':(_viewMode===1?'Third person':'Normal camera');
+    }
+    var _viewBtn=document.getElementById('view-mode-btn');
+    if(_viewBtn){
+        var labels={
+            zhs:['📷 普通','🎥 第三人称','👁 第一人称'],
+            zht:['📷 普通','🎥 第三人稱','👁 第一人稱'],
+            ja:['📷 通常','🎥 三人称','👁 一人称'],
+            en:['📷 Normal','🎥 Third-person','👁 First-person']
+        };
+        var arr=labels[_langCode]||labels.en;
+        _viewBtn.textContent=arr[_viewMode]||arr[0];
+        _viewBtn.title='1 / C';
+    }
+}
+function _setViewMode(mode){
+    _viewMode=((mode%3)+3)%3;
+    _tpsCamMode=_viewMode===1;
+    if(_viewMode===1&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.2;}
+    if(_viewMode!==2&&camera&&camera.fov!==45){camera.fov=45;camera.updateProjectionMatrix();}
+    _updateViewModeUI();
+}
+function _cycleViewMode(){
+    _setViewMode(_viewMode+1);
+}
+// Backward-compatible name used by existing mobile button code.
+function _toggleTPS(){
+    _cycleViewMode();
 }
 function _recenterTPS(){
-    if(_tpsCamMode&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.2;}
+    if(_viewMode===1&&playerEgg){_tpsCamYaw=playerEgg.mesh.rotation.y+Math.PI;_tpsCamPitch=0.2;}
+}
+function _resetViewMode(){
+    _setViewMode(0);
 }
 document.addEventListener('keydown',function(e){
-    if(e.code==='Digit1'&&gameState==='city')_toggleTPS();
+    if((e.code==='Digit1'||e.code==='KeyC')&&gameState==='city')_cycleViewMode();
     if(e.code==='Digit2'&&gameState==='city')_recenterTPS();
 });
 var _tpsBtnEl=document.getElementById('tps-btn');
@@ -112,6 +147,12 @@ if(_tpsRecBtn){
     _tpsRecBtn.addEventListener('click',function(){_recenterTPS();});
     _tpsRecBtn.addEventListener('touchend',function(e){e.preventDefault();_recenterTPS();},{passive:false});
 }
+var _viewBtnEl=document.getElementById('view-mode-btn');
+if(_viewBtnEl){
+    _viewBtnEl.addEventListener('click',function(){if(gameState==='city')_cycleViewMode();});
+    _viewBtnEl.addEventListener('touchend',function(e){e.preventDefault();if(gameState==='city')_cycleViewMode();},{passive:false});
+}
+_updateViewModeUI();
 // Spectator button for mobile
 var _specBtn=document.getElementById('spectator-btn');
 if(_specBtn){_specBtn.addEventListener('click',function(){
@@ -154,6 +195,7 @@ document.addEventListener('touchmove',function(e){
 document.addEventListener('touchend',function(e){_moonTouchOrbit=false;},{passive:true});
 function updateCamera(){
     if(!playerEgg)return;
+    if(gameState!=='city'&&playerEgg.mesh&&!playerEgg.mesh.visible)playerEgg.mesh.visible=true;
     // Spectator mode — free camera on moon
     if(_spectatorMode&&currentCityStyle===5){
         var _spSpd=1.5;
@@ -198,8 +240,30 @@ function updateCamera(){
         return;
     }
     const p=playerEgg.mesh.position;
+    // True first-person camera for city exploration.  Hide only the local
+    // player mesh so the camera is not inside the egg body.
+    if(_viewMode===2&&gameState==='city'){
+        if(playerEgg.mesh)playerEgg.mesh.visible=false;
+        if(camera.fov!==62){camera.fov=62;camera.updateProjectionMatrix();}
+        var _fpYaw=playerEgg.mesh.rotation.y;
+        var _fpEyeY=p.y+1.05;
+        var _fpEyeX=p.x+Math.sin(_fpYaw)*0.18;
+        var _fpEyeZ=p.z+Math.cos(_fpYaw)*0.18;
+        camera.position.x+=(_fpEyeX-camera.position.x)*0.65;
+        camera.position.y+=(_fpEyeY-camera.position.y)*0.65;
+        camera.position.z+=(_fpEyeZ-camera.position.z)*0.65;
+        camera.lookAt(_fpEyeX+Math.sin(_fpYaw)*12,_fpEyeY+0.05,_fpEyeZ+Math.cos(_fpYaw)*12);
+        sun.position.set(p.x+RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,p.z+RENDER_CONFIG.sunPos.z);
+        sun.target.position.set(p.x,0,p.z);
+        _sunMesh.position.set(p.x+180,240,p.z+120);
+        _sunGlow.position.copy(_sunMesh.position);
+        return;
+    } else if(playerEgg.mesh&&!playerEgg.mesh.visible){
+        playerEgg.mesh.visible=true;
+    }
     // Third-person (RE5 style) camera — over-the-shoulder
     if(_tpsCamMode){
+        if(camera.fov!==45){camera.fov=45;camera.updateProjectionMatrix();}
         _tpsCamDist=Math.max(2,Math.min(15,_tpsCamDist));
         // TPS: grab button adjusts camera angle manually
         var _tpsManual=false;
@@ -289,6 +353,7 @@ function updateCamera(){
         return;
     }
     // Normal flat camera (used for all cities including moon)
+    if(camera.fov!==45){camera.fov=45;camera.updateProjectionMatrix();}
     var tx=p.x, ty=p.y+CAMERA_CONFIG.yOffset*_cameraZoom, tz=p.z+CAMERA_CONFIG.zOffset*_cameraZoom;
     camera.position.x+=(tx-camera.position.x)*CAMERA_CONFIG.followSmooth;
     camera.position.y+=(ty-camera.position.y)*CAMERA_CONFIG.followSmooth;

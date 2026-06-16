@@ -196,6 +196,7 @@ addEventListener('keydown',function(e){
 // Back to city (shared logic)
 function goBackToCity(){
     if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
+    if(typeof _resetViewMode==='function')_resetViewMode();
     // Reset all blocking states
     _portalConfirmOpen=false;
     _portalConfirmRace=-1;

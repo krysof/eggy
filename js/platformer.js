@@ -7,6 +7,7 @@ var _pfSavedCity=-1;
 var _pfTile=4;
 
 function _pfStart(){try{
+    if(typeof _resetViewMode==='function')_resetViewMode();
     _pfSavedCity=currentCityStyle;
     // Use the same enterRace flow — hide city, clear state, build level
     cityGroup.visible=false;

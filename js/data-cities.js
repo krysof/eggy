@@ -100,7 +100,7 @@ var PORTAL_CONFIG={
     ringRadius:2, ringThickness:0.3,
     glowRadius:2.2, glowThickness:0.15,
     baseHeight:2.5, baseRadius:2.5,
-    triggerDist:8.0, confirmDist:4.0,
+    triggerDist:10.0, confirmDist:5.8,
     particleRadius:1.8
 };
 
