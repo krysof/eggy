@@ -337,8 +337,8 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     }
     // Skip normal AI if chasing a coin
     if(_chasingCoin){
-        var spd2=DANBO_WASM.len2D(egg.vx,egg.vz);
-        if(spd2>MAX_SPEED*0.6){egg.vx=(egg.vx/spd2)*MAX_SPEED*0.6;egg.vz=(egg.vz/spd2)*MAX_SPEED*0.6;}
+        var _coinCap=DANBO_WASM.clampVel2D(egg.vx,egg.vz,MAX_SPEED*0.6);
+        if(_coinCap[3]){egg.vx=_coinCap[0];egg.vz=_coinCap[1];}
         return;
     }
     // Initialize AI state if needed
@@ -704,10 +704,10 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg._npcSpinTimer=0;egg._aiStateTimer=10;
         }
     }
-    var spd=DANBO_WASM.len2D(egg.vx,egg.vz);
     var npcSpd=(egg._aiSprint>0)?1.2:1;
     var maxSpd=st==='flee'?MAX_SPEED*0.7*npcSpd:st==='chase'?MAX_SPEED*0.6*npcSpd:MAX_SPEED*0.45*npcSpd;
-    if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
+    var _npcCap=DANBO_WASM.clampVel2D(egg.vx,egg.vz,maxSpd);
+    if(_npcCap[3]){egg.vx=_npcCap[0];egg.vz=_npcCap[1];}
     // ---- NPC Piledriver animation (capped height) ----
     if(egg._npcPiledriver){
         var _npdt=egg._npcPiledriver;
@@ -914,8 +914,8 @@ function updateRaceAI(egg){
     }
     egg.aiJumpCD--;
     if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<0.006*egg.aiSkill){egg.vy=JUMP_FORCE*0.85;egg.aiJumpCD=30+Math.random()*20;}
-    var spd=DANBO_WASM.len2D(egg.vx,egg.vz);
     var maxSpd=MAX_SPEED*(style==='rusher'?1.05:style==='cautious'?0.85:0.95);
-    if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
+    var _raceCap=DANBO_WASM.clampVel2D(egg.vx,egg.vz,maxSpd);
+    if(_raceCap[3]){egg.vx=_raceCap[0];egg.vz=_raceCap[1];}
 }
 

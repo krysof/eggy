@@ -100,7 +100,8 @@ var PORTAL_CONFIG={
     ringRadius:2, ringThickness:0.3,
     glowRadius:2.2, glowThickness:0.15,
     baseHeight:2.5, baseRadius:2.5,
-    triggerDist:7.6, confirmDist:5.8,
+    triggerDist:(window.DANBO_WASM&&DANBO_WASM.configValue?DANBO_WASM.configValue(1):7.6),
+    confirmDist:(window.DANBO_WASM&&DANBO_WASM.configValue?DANBO_WASM.configValue(2):5.8),
     particleRadius:1.8
 };
 

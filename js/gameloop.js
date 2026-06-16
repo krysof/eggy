@@ -496,11 +496,10 @@ function updateCity(){
             for(var _sci=0;_sci<cityColliders.length;_sci++){
                     var _sc=cityColliders[_sci];
                     var _scdx=c.mesh.position.x-_sc.x, _scdz=c.mesh.position.z-_sc.z;
-                    if(DANBO_WASM.aabb2D(c.mesh.position.x,c.mesh.position.z,_sc.x,_sc.z,_sc.hw,_sc.hd,0.5)&&c.mesh.position.y<(_sc.h||6)){
-                        var _scox=_sc.hw+0.5-Math.abs(_scdx);
-                        var _scoz=_sc.hd+0.5-Math.abs(_scdz);
-                        if(_scox<_scoz){c.mesh.position.x+=(_scdx>=0?1:-1)*_scox;c._scatterVX*=-0.5;}
-                        else{c.mesh.position.z+=(_scdz>=0?1:-1)*_scoz;c._scatterVZ*=-0.5;}
+                    var _scov=DANBO_WASM.aabbOverlap2D(c.mesh.position.x,c.mesh.position.z,_sc.x,_sc.z,_sc.hw,_sc.hd,0.5);
+                    if(_scov[7]&&c.mesh.position.y<(_sc.h||6)){
+                        if(_scov[4]===0){c.mesh.position.x+=_scov[5]*_scov[2];c._scatterVX*=-0.5;}
+                        else{c.mesh.position.z+=_scov[6]*_scov[3];c._scatterVZ*=-0.5;}
                         break;
                     }
                 }
@@ -762,10 +761,9 @@ function updateCity(){
                 if(a.state==='fly'){
                     a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.02;
                     // Circle motion
-                    var _pa=Math.atan2(a.vx,a.vz)+0.02;
-                    var _ps=DANBO_WASM.len2D(a.vx,a.vz);
-                    a.vx=Math.sin(_pa)*_ps;a.vz=Math.cos(_pa)*_ps;
-                    a.group.rotation.y=_pa;
+                    var _pRot=DANBO_WASM.rotateKeepSpeed2D(a.vx,a.vz,0.02);
+                    a.vx=_pRot[0];a.vz=_pRot[1];
+                    a.group.rotation.y=Math.atan2(a.vx,a.vz);
                     if(a.stateTimer<=0){a.state='land';a.stateTimer=30;a.targetY=0.3;}
                 } else if(a.state==='land'){
                     a.y+=(a.targetY-a.y)*0.05;
@@ -854,10 +852,9 @@ function updateCity(){
                 }
                 if(a.state==='fly'){
                     a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.015;
-                    var _sa2=Math.atan2(a.vx,a.vz)+0.012;
-                    var _ss2=DANBO_WASM.len2D(a.vx,a.vz);
-                    a.vx=Math.sin(_sa2)*_ss2;a.vz=Math.cos(_sa2)*_ss2;
-                    a.group.rotation.y=_sa2;
+                    var _swRot=DANBO_WASM.rotateKeepSpeed2D(a.vx,a.vz,0.012);
+                    a.vx=_swRot[0];a.vz=_swRot[1];
+                    a.group.rotation.y=Math.atan2(a.vx,a.vz);
                     // Head tilt animation
                     if(Math.random()<0.005&&a.group.children[1])a.group.children[1].rotation.z=0.3;
                     else if(a.group.children[1])a.group.children[1].rotation.z*=0.95;
@@ -997,10 +994,9 @@ function updateCity(){
         // Gentle floating + circle flight
         ca.x+=ca.vx;ca.z+=ca.vz;
         ca.y=ca.baseY+Math.sin(ca.flapPhase*0.3)*1.5;
-        var _ca2=Math.atan2(ca.vx,ca.vz)+0.01;
-        var _cs2=DANBO_WASM.len2D(ca.vx,ca.vz);
-        ca.vx=Math.sin(_ca2)*_cs2;ca.vz=Math.cos(_ca2)*_cs2;
-        ca.group.rotation.y=_ca2;
+        var _caRot=DANBO_WASM.rotateKeepSpeed2D(ca.vx,ca.vz,0.01);
+        ca.vx=_caRot[0];ca.vz=_caRot[1];
+        ca.group.rotation.y=Math.atan2(ca.vx,ca.vz);
         // Halo gentle bob
         var haloChild=ca.group.children[ca.group.children.length-3];
         if(haloChild)haloChild.rotation.z=Math.sin(ca.flapPhase*0.5)*0.1;
@@ -2077,11 +2073,10 @@ function updateHeldEggs(){
         for(var _tpci=0;_tpci<cityColliders.length;_tpci++){
             var _tpc=cityColliders[_tpci];
             var _tpdx=tp.group.position.x-_tpc.x, _tpdz=tp.group.position.z-_tpc.z;
-            if(DANBO_WASM.aabb2D(tp.group.position.x,tp.group.position.z,_tpc.x,_tpc.z,_tpc.hw,_tpc.hd,1.5)&&tp.group.position.y<(_tpc.h||6)){
-                var _tpox=_tpc.hw+1.5-Math.abs(_tpdx);
-                var _tpoz=_tpc.hd+1.5-Math.abs(_tpdz);
-                if(_tpox<_tpoz){tp.group.position.x+=(_tpdx>=0?1:-1)*_tpox;tp.throwVx*=-0.3;}
-                else{tp.group.position.z+=(_tpdz>=0?1:-1)*_tpoz;tp.throwVz*=-0.3;}
+            var _tpov=DANBO_WASM.aabbOverlap2D(tp.group.position.x,tp.group.position.z,_tpc.x,_tpc.z,_tpc.hw,_tpc.hd,1.5);
+            if(_tpov[7]&&tp.group.position.y<(_tpc.h||6)){
+                if(_tpov[4]===0){tp.group.position.x+=_tpov[5]*_tpov[2];tp.throwVx*=-0.3;}
+                else{tp.group.position.z+=_tpov[6]*_tpov[3];tp.throwVz*=-0.3;}
                 tp.throwTimer=1;playHitSound(tp.group.position.x,tp.group.position.z);break;
             }
         }

@@ -54,7 +54,7 @@ function updateEggPhysics(egg, isCity){
             egg.onGround=false; // will be set by collider checks below
         } else {
         // City ground — only within city bounds
-        var _cityBound=currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*4:CITY_SIZE);
+        var _cityBound=(currentCityStyle===5?MOON_CITY_SIZE:(currentCityStyle===7?CITY_SIZE*4:CITY_SIZE));
         var _inBounds=DANBO_WASM.aabb2D(egg.mesh.position.x,egg.mesh.position.z,0,0,_cityBound,_cityBound,0);
         var _groundY=currentCityStyle===7?3.01:0.01; // snow village island surface at y=3
         if(_inBounds&&egg.mesh.position.y<=_groundY){egg.mesh.position.y=_groundY;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;
@@ -123,8 +123,7 @@ function updateEggPhysics(egg, isCity){
                     var _atDoor=false;
                     for(var _di=0;_di<_sh.doors.length;_di++){
                         var _da=_sh.doors[_di].a;var _dw=_sh.doors[_di].w;
-                        var _diff=Math.abs(_sAngle-_da);
-                        if(_diff>Math.PI)_diff=Math.PI*2-_diff;
+                        var _diff=DANBO_WASM.angleDiff(_sAngle,_da);
                         if(_diff<_dw){_atDoor=true;break;}
                     }
                     if(!_atDoor){
@@ -165,13 +164,11 @@ function updateEggPhysics(egg, isCity){
             for(var tci=0;tci<cityColliders.length;tci++){
                 var tc=cityColliders[tci];
                 var tdx=egg.mesh.position.x-tc.x, tdz=egg.mesh.position.z-tc.z;
-                var tinX=DANBO_WASM.aabb2D(egg.mesh.position.x,egg.mesh.position.z,tc.x,tc.z,tc.hw,tc.hd,egg.radius), tinZ=tinX;
-                if(tinX&&tinZ){
+                var _tov=DANBO_WASM.aabbOverlap2D(egg.mesh.position.x,egg.mesh.position.z,tc.x,tc.z,tc.hw,tc.hd,egg.radius);
+                if(_tov[7]){
                     // Hit building wall — bounce back and drop coins
-                    var toverlapX=tc.hw+egg.radius-Math.abs(tdx);
-                    var toverlapZ=tc.hd+egg.radius-Math.abs(tdz);
-                    if(toverlapX<toverlapZ){egg.mesh.position.x+=Math.sign(tdx)*toverlapX;egg.vx*=-0.3;}
-                    else{egg.mesh.position.z+=Math.sign(tdz)*toverlapZ;egg.vz*=-0.3;}
+                    if(_tov[4]===0){egg.mesh.position.x+=_tov[5]*_tov[2];egg.vx*=-0.3;}
+                    else{egg.mesh.position.z+=_tov[6]*_tov[3];egg.vz*=-0.3;}
                     if(egg._dropCoinsOnLand&&!egg._coinsDropped){egg._coinsDropped=true;_dropNpcStolenCoins(egg);}
                     var _wallImpSpd=DANBO_WASM.len2D(egg.vx,egg.vz);
                     egg.throwTimer=1;if(_wallImpSpd>0.2){egg._stunTimer=Math.floor(20+_wallImpSpd*250);}
@@ -221,8 +218,8 @@ function updateEggPhysics(egg, isCity){
                     }
                 }
             }
-            var inX=DANBO_WASM.aabb2D(egg.mesh.position.x,egg.mesh.position.z,c.x,c.z,c.hw,c.hd,egg.radius), inZ=inX;
-            if(inX&&inZ){
+            var _cov=DANBO_WASM.aabbOverlap2D(egg.mesh.position.x,egg.mesh.position.z,c.x,c.z,c.hw,c.hd,egg.radius);
+            if(_cov[7]){
                 var roofY=(c.y||0)+(c.h||6);
                 // Babel tower: skip roof snap if player is on/near clouds (above roofY)
                 var landBelow=c._bridge?2.5:1.0; // bridges allow smooth stepping up
@@ -245,10 +242,8 @@ function updateEggPhysics(egg, isCity){
                     if(c._babel&&egg.mesh.position.y>2&&egg.vy<0){
                         // Falling alongside Babel tower — don't push out, let gravity work
                     } else {
-                    const overlapX=c.hw+egg.radius-Math.abs(dx);
-                    const overlapZ=c.hd+egg.radius-Math.abs(dz);
-                    if(overlapX<overlapZ){egg.mesh.position.x+=Math.sign(dx)*overlapX;egg.vx*=-0.2;}
-                    else{egg.mesh.position.z+=Math.sign(dz)*overlapZ;egg.vz*=-0.2;}
+                    if(_cov[4]===0){egg.mesh.position.x+=_cov[5]*_cov[2];egg.vx*=-0.2;}
+                    else{egg.mesh.position.z+=_cov[6]*_cov[3];egg.vz*=-0.2;}
                     // Pushed out at height — ensure gravity applies (not stuck as onGround)
                     if(egg.mesh.position.y>roofY+1)egg.onGround=false;
                     }

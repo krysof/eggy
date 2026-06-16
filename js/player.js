@@ -137,9 +137,10 @@ function handlePlayerInput(){
     var _powerBoost=(playerEgg._speedBoost>0)?2:1;
     var accelMul=(1+sprintPct*1.0)*_powerBoost;
     var speedMul=(1+sprintPct*1.0)*_powerBoost;
-    const len=DANBO_WASM.len2D(mx,mz);
-    if(len>0.1){
-        mx/=len;mz/=len;
+    const _moveNorm=DANBO_WASM.norm2D(mx,mz,0.1);
+    const len=_moveNorm[2];
+    if(_moveNorm[3]){
+        mx=_moveNorm[0];mz=_moveNorm[1];
         // Stop movement during attack animation (punch/kick)
         if(!playerEgg._atkAnim){
             playerEgg.vx+=mx*MOVE_ACCEL*accelMul;playerEgg.vz+=mz*MOVE_ACCEL*accelMul;
@@ -180,15 +181,16 @@ function handlePlayerInput(){
             if(keys['KeyW']||keys['ArrowUp'])sdSteerZ-=1;
             if(keys['KeyS']||keys['ArrowDown'])sdSteerZ+=1;
             if(joyActive){sdSteerX+=joyVec.x;sdSteerZ+=joyVec.y;}
-            var sdSteerLen=DANBO_WASM.len2D(sdSteerX,sdSteerZ);
-            if(sdSteerLen>0.1){
-                sdSteerX/=sdSteerLen;sdSteerZ/=sdSteerLen;
+            var _sdNorm=DANBO_WASM.norm2D(sdSteerX,sdSteerZ,0.1);
+            if(_sdNorm[3]){
+                sdSteerX=_sdNorm[0];sdSteerZ=_sdNorm[1];
                 // Blend steering into dash direction (turn rate)
                 var turnRate=0.06;
                 playerEgg._dashDirX+=(sdSteerX-playerEgg._dashDirX)*turnRate;
                 playerEgg._dashDirZ+=(sdSteerZ-playerEgg._dashDirZ)*turnRate;
-                var ddl=DANBO_WASM.len2D(playerEgg._dashDirX,playerEgg._dashDirZ)||1;
-                playerEgg._dashDirX/=ddl;playerEgg._dashDirZ/=ddl;
+                var _dashNorm=DANBO_WASM.norm2D(playerEgg._dashDirX,playerEgg._dashDirZ,0.000001);
+                playerEgg._dashDirX=_dashNorm[3]?_dashNorm[0]:playerEgg._dashDirX;
+                playerEgg._dashDirZ=_dashNorm[3]?_dashNorm[1]:playerEgg._dashDirZ;
             }
             // Apply dash velocity
             playerEgg.vx=playerEgg._dashDirX*_spinDashSpeed;
@@ -243,7 +245,6 @@ function handlePlayerInput(){
                     sdp.throwVx=spdx/spdd*spForce;sdp.throwVy=0.15+spForce*0.2;sdp.throwVz=spdz/spdd*spForce;
                     sdp.throwTimer=30;sdp._bounces=2;
                     playHitSound();
-                }
             }
         }
     }
@@ -280,7 +281,6 @@ function handlePlayerInput(){
                 if(_chargeHoldTimer%3===0)_spawnButtSmoke(playerEgg,1.0);
                 if(_chargeHoldTimer>=_chargeHoldMax){
                     _jumpCharge=0;_jumpCharging=false;_chargeHoldTimer=0;
-                }
             }
         }
     }
@@ -313,9 +313,9 @@ function handlePlayerInput(){
         _ascendSmoke=false;
     }
     if(!_spinDashing){
-        const spd=DANBO_WASM.len2D(playerEgg.vx,playerEgg.vz);
         var curMax=MAX_SPEED*speedMul;
-        if(spd>curMax&&!playerEgg._hondaDash){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
+        var _cap=DANBO_WASM.clampVel2D(playerEgg.vx,playerEgg.vz,curMax);
+        if(_cap[3]&&!playerEgg._hondaDash){playerEgg.vx=_cap[0];playerEgg.vz=_cap[1];}
     }
     // Grab / Throw (F key)
     if(playerEgg.grabCD>0) playerEgg.grabCD--;
@@ -728,11 +728,9 @@ function handlePlayerInput(){
             if(_ae._slamImmune>0)continue;
             var _adx=_ae.mesh.position.x-playerEgg.mesh.position.x;
             var _adz=_ae.mesh.position.z-playerEgg.mesh.position.z;
-            var _ad=DANBO_WASM.len2D(_adx,_adz);
-            if(_ad<2.5*playerEgg._extendedRange&&_ad>0.01){
-                var _aAngle=Math.atan2(_adx,_adz);
-                var _aDiff=Math.abs(_aAngle-_atkDir);if(_aDiff>Math.PI)_aDiff=Math.PI*2-_aDiff;
-                if(_aDiff<Math.PI/3){
+            var _aHit=DANBO_WASM.arcHit2D(_adx,_adz,_atkDir,2.5*playerEgg._extendedRange,0.01,Math.PI/3);
+            var _ad=_aHit[0];
+            if(_aHit[3]){
                     if(_isFinisher||_isAerial){
                         var _kf=0.4+(_isAerial?0.2:0);
                         _ae.vx+=_adx/_ad*_kf;_ae.vz+=_adz/_ad*_kf;
@@ -744,7 +742,6 @@ function handlePlayerInput(){
                         _ae.squash=0.78;_ae._hitStun=12;
                     }
                     _dropNpcStolenCoins(_ae);playHitSound();
-                }
             }
         }
         playerEgg.squash=_isFinisher?0.75:0.88;
@@ -850,11 +847,9 @@ function handlePlayerInput(){
             if(_ke._slamImmune>0)continue;
             var _kdx=_ke.mesh.position.x-playerEgg.mesh.position.x;
             var _kdz=_ke.mesh.position.z-playerEgg.mesh.position.z;
-            var _kd=DANBO_WASM.len2D(_kdx,_kdz);
-            if(_kd<3.0*playerEgg._extendedRange&&_kd>0.01){
-                var _kAngle=Math.atan2(_kdx,_kdz);
-                var _kDiff=Math.abs(_kAngle-_kDir);if(_kDiff>Math.PI)_kDiff=Math.PI*2-_kDiff;
-                if(_kDiff<Math.PI/3){
+            var _kHit=DANBO_WASM.arcHit2D(_kdx,_kdz,_kDir,3.0*playerEgg._extendedRange,0.01,Math.PI/3);
+            var _kd=_kHit[0];
+            if(_kHit[3]){
                     if(_kFinisher||_kAerial){
                         var _kkf=0.5+(_kAerial?0.25:0);
                         _ke.vx+=_kdx/_kd*_kkf;_ke.vz+=_kdz/_kd*_kkf;
@@ -1101,11 +1096,8 @@ function handlePlayerInput(){
                 if(_yfe._slamImmune>0||_yfe._onFire>0)continue;
                 var _yfdx=_yfe.mesh.position.x-playerEgg.mesh.position.x;
                 var _yfdz=_yfe.mesh.position.z-playerEgg.mesh.position.z;
-                var _yfd=DANBO_WASM.len2D(_yfdx,_yfdz);
-                if(_yfd<4&&_yfd>0.01){
-                    // Check if in front (cone check)
-                    var _yfDot=(_yfdx*Math.sin(_yfFace)+_yfdz*Math.cos(_yfFace))/_yfd;
-                    if(_yfDot>0.3){
+                var _yfHit=DANBO_WASM.coneDotHit2D(_yfdx,_yfdz,_yfFace,4,0.01,0.3);
+                if(_yfHit[2]){
                         // Set on fire — like Blanka electric but fire
                         _yfe._onFire=MOVE_PARAMS.cockroach.yogaFlame.fireDuration;
                         _yfe._fireStun=MOVE_PARAMS.cockroach.yogaFlame.fireStun;
