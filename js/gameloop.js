@@ -20,6 +20,17 @@ function _danboPortalNearGround(egg,py){
 function _danboPortalConfirmRange(confirmDist,isWarpPipe){
     return (window.DANBO_WASM&&DANBO_WASM.confirmRange)?DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe):(confirmDist+(isWarpPipe?1.0:0));
 }
+function _danboRacePortalHeightOk(py,portalY){
+    return (window.DANBO_WASM&&DANBO_WASM.racePortalHeightOk)?DANBO_WASM.racePortalHeightOk(py,portalY):Math.abs(py-portalY)<=7;
+}
+function _danboWarpPipeHeightOk(py){
+    return (window.DANBO_WASM&&DANBO_WASM.warpPipeHeightOk)?DANBO_WASM.warpPipeHeightOk(py):py<=10;
+}
+function _danboPortalAction(distance,triggerDist,confirmDist,isWarpPipe,isVoluntary){
+    if(window.DANBO_WASM&&DANBO_WASM.portalAction)return DANBO_WASM.portalAction(distance,triggerDist,confirmDist,!!isWarpPipe,!!isVoluntary);
+    if(!isVoluntary||distance>=triggerDist)return 0;
+    return distance<_danboPortalConfirmRange(confirmDist,isWarpPipe)?2:1;
+}
 
 function _forEachObjectMaterial(obj,cb){
     if(!obj||!cb)return;
@@ -424,15 +435,15 @@ function updateCity(){
     for(var pi=0;pi<portals.length;pi++){
         var _ppy=portals[pi].y||0;
         // Allow a little slope/step/fountain offset so portals do not feel dead.
-        if(!_danboPortalHeightWithin(py,_ppy,7))continue;
+        if(!_danboRacePortalHeightOk(py,_ppy))continue;
         var _d=_danboPortalDist2D(px,pz,portals[pi].x,portals[pi].z);
         if(_d<_nearD){_nearD=_d;_nearP=portals[pi];}
     }
     // Check warp pipes (unified into same proximity system)
     for(var _wpi2=0;_wpi2<warpPipeMeshes.length;_wpi2++){
         var _wp2=warpPipeMeshes[_wpi2];
+        if(!_danboWarpPipeHeightOk(py))continue; // skip if clearly too high
         var _wd2=_danboPortalDist2D(px,pz,_wp2.x,_wp2.z);
-        if(py>10)continue; // skip if clearly too high
         if(_wd2<_nearD){
             var _wpName=CITY_STYLES[_wp2.targetStyle]?CITY_STYLES[_wp2.targetStyle].name:'???';
             _nearD=_wd2;
@@ -444,11 +455,11 @@ function updateCity(){
     // after tiny bounces it can be false for a few frames.
     var _nearGround=_danboPortalNearGround(playerEgg,py);
     var _isVoluntary=playerEgg&&_nearGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
-    if(_nearP&&_nearD<PORTAL_CONFIG.triggerDist&&_isVoluntary){
+    var _portalAction=_nearP?_danboPortalAction(_nearD,PORTAL_CONFIG.triggerDist,PORTAL_CONFIG.confirmDist,_nearP._isWarpPipe,_isVoluntary):0;
+    if(_nearP&&_portalAction>0){
         if(_pp)_pp.style.display='block';
         var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
-        var _confirmRange=_danboPortalConfirmRange(PORTAL_CONFIG.confirmDist,_nearP._isWarpPipe);
-        if(_nearD<_confirmRange&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
+        if(_portalAction===2&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
             if(_pp)_pp.style.display='none';
             showPortalConfirm(_nearP);
         } else if(!_portalConfirmOpen){

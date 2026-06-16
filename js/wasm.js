@@ -29,6 +29,22 @@
             var e=api.exports;
             if(e&&e.danbo_confirm_range)return e.danbo_confirm_range(+confirmDist||0,isWarpPipe?1:0);
             return (+confirmDist||0)+(isWarpPipe?1.0:0.0);
+        },
+        racePortalHeightOk:function(py,portalY){
+            var e=api.exports;
+            if(e&&e.danbo_race_portal_height_ok)return !!e.danbo_race_portal_height_ok(+py||0,+portalY||0);
+            return Math.abs((+py||0)-(+portalY||0))<=7;
+        },
+        warpPipeHeightOk:function(py){
+            var e=api.exports;
+            if(e&&e.danbo_warp_pipe_height_ok)return !!e.danbo_warp_pipe_height_ok(+py||0);
+            return (+py||0)<=10;
+        },
+        portalAction:function(distance,triggerDist,confirmDist,isWarpPipe,isVoluntary){
+            var e=api.exports;
+            if(e&&e.danbo_portal_action)return e.danbo_portal_action(+distance||0,+triggerDist||0,+confirmDist||0,isWarpPipe?1:0,isVoluntary?1:0);
+            if(!isVoluntary||(+distance||0)>=(+triggerDist||0))return 0;
+            return (+distance||0)<api.confirmRange(confirmDist,isWarpPipe)?2:1;
         }
     };
     window.DANBO_WASM=api;
