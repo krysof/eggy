@@ -282,7 +282,7 @@ function updateCamera(){
             // Moves control their own rotation — just update last face when done
         } else if(_st==='forward'){
             // Moving forward/side: smoothly turn to face velocity direction
-            var _mvSpd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+            var _mvSpd=DANBO_WASM.len2D(playerEgg.vx,playerEgg.vz);
             if(_mvSpd>0.03){
                 var _mvDir=Math.atan2(playerEgg.vx,playerEgg.vz);
                 var _faceDy=_mvDir-playerEgg.mesh.rotation.y;
@@ -300,7 +300,7 @@ function updateCamera(){
 
         // 2. Camera auto-follow (only when moving forward, not manual/backward)
         if(_st==='forward'&&!_tpsManual&&!_tpsDragging&&_tpsTouchId===null){
-            var _spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+            var _spd=DANBO_WASM.len2D(playerEgg.vx,playerEgg.vz);
             if(_spd>0.05){
                 var _targetYaw=Math.atan2(playerEgg.vx,playerEgg.vz)+Math.PI;
                 var _dy=_targetYaw-_tpsCamYaw;
@@ -321,14 +321,14 @@ function updateCamera(){
             if(_cc._bridge)continue; // skip bridge colliders
             if((_cc.h||6)<p.y+1)continue; // skip low things
             // Check if target camera pos is inside this collider
-            if(Math.abs(_tpx-_cc.x)<_cc.hw+1&&Math.abs(_tpz-_cc.z)<_cc.hd+1){
+            if(DANBO_WASM.aabb2D(_tpx,_tpz,_cc.x,_cc.z,_cc.hw,_cc.hd,1)){
                 // Pull camera closer to player
                 var _dx2=_tpx-p.x, _dz2=_tpz-p.z;
-                var _dl=Math.sqrt(_dx2*_dx2+_dz2*_dz2)||1;
+                var _dl=DANBO_WASM.len2D(_dx2,_dz2)||1;
                 // Find safe distance (just outside the collider)
                 for(var _t=0.9;_t>0.1;_t-=0.1){
                     var _tx=p.x+_dx2*_t, _tz=p.z+_dz2*_t;
-                    if(!(Math.abs(_tx-_cc.x)<_cc.hw+1&&Math.abs(_tz-_cc.z)<_cc.hd+1)){
+                    if(!(DANBO_WASM.aabb2D(_tx,_tz,_cc.x,_cc.z,_cc.hw,_cc.hd,1))){
                         _actDist=_tpsCamDist*_t;
                         break;
                     }
@@ -386,7 +386,7 @@ function updateCamera(){
         for(const bld of cityBuildingMeshes){
             // Check if player is on this building's roof
             var onRoof=false;
-            if(Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2>=bld.h-1){
+            if(DANBO_WASM.aabb2D(px2,pz2,bld.x,bld.z,bld.hw,bld.hd,1)&&py2>=bld.h-1){
                 onRoof=true;
             }
             // 2D line-segment (camera→player) vs AABB intersection in XZ
@@ -401,7 +401,7 @@ function updateCamera(){
             let tmin=0, tmax=1;
             let valid=true;
             for(let i=0;i<4;i++){
-                if(Math.abs(pp[i])<1e-8){
+                if(DANBO_WASM.absDeltaLess(pp[i],0,1e-8)){
                     if(qq[i]<0){valid=false;break;}
                 } else {
                     const t=qq[i]/pp[i];
@@ -411,24 +411,24 @@ function updateCamera(){
             if(valid&&tmin<tmax&&tmax>0.05&&tmin<0.95) shouldFade=true;
             }
             // Also fade if player is directly underneath (bridges, overhangs)
-            if(!onRoof&&Math.abs(px2-bld.x)<bld.hw+1&&Math.abs(pz2-bld.z)<bld.hd+1&&py2<bld.h-1){
+            if(!onRoof&&DANBO_WASM.aabb2D(px2,pz2,bld.x,bld.z,bld.hw,bld.hd,1)&&py2<bld.h-1){
                 shouldFade=true;
             }
             // Normal mode: fade buildings in a narrow rectangle below player (3 body widths)
             if(!_tpsCamMode&&!shouldFade&&bld.h>py2+0.5){
                 var _bodyW=1.5; // ~egg radius × 3 body widths each side
                 // Rectangle: x within ±3 body widths of player, z >= player z (downward on screen)
-                if(bld.z-bld.hd>pz2-2&&Math.abs(bld.x-px2)<_bodyW*3+bld.hw){
+                if(bld.z-bld.hd>pz2-2&&DANBO_WASM.absDeltaLess(bld.x,px2,_bodyW*3+bld.hw)){
                     shouldFade=true;
                 }
             }
             // TPS mode: fade buildings near camera or between camera and player
             if(_tpsCamMode&&!shouldFade){
                 var _cdx3=bld.x-cx, _cdz3=bld.z-cz;
-                if(Math.abs(_cdx3)<bld.hw+3&&Math.abs(_cdz3)<bld.hd+3) shouldFade=true;
+                if(DANBO_WASM.aabb2D(cx,cz,bld.x,bld.z,bld.hw,bld.hd,3)) shouldFade=true;
                 if(!shouldFade){
                     var _bdx2=bld.x-px2, _bdz2=bld.z-pz2;
-                    var _bDist2=Math.sqrt(_bdx2*_bdx2+_bdz2*_bdz2);
+                    var _bDist2=DANBO_WASM.len2D(_bdx2,_bdz2);
                     if(_bDist2<_tpsCamDist+bld.hw+bld.hd+4&&bld.h>py2+0.5) shouldFade=true;
                 }
             }

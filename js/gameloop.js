@@ -8,31 +8,29 @@ window.addEventListener('unhandledrejection',function(e){if(!window._errShown){w
 var _cityFrameNo=0;
 
 function _danboPortalDist2D(px,pz,tx,tz){
-    return (window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(px,pz,tx,tz):Math.sqrt((px-tx)*(px-tx)+(pz-tz)*(pz-tz));
+    return DANBO_WASM.dist2D(px,pz,tx,tz);
 }
 function _danboPortalHeightWithin(a,b,limit){
-    return (window.DANBO_WASM&&DANBO_WASM.absDeltaWithin)?DANBO_WASM.absDeltaWithin(a,b,limit):Math.abs(a-b)<=limit;
+    return DANBO_WASM.absDeltaWithin(a,b,limit);
 }
 function _danboPortalNearGround(egg,py){
     if(!egg)return false;
-    return (window.DANBO_WASM&&DANBO_WASM.nearGround)?DANBO_WASM.nearGround(egg.onGround,egg.vy||0,py):(egg.onGround||Math.abs(egg.vy||0)<0.25||py<2.5);
+    return DANBO_WASM.nearGround(egg.onGround,egg.vy||0,py);
 }
 function _danboPortalConfirmRange(confirmDist,isWarpPipe){
     // The visual entrance is much wider than the original center-point hit box.
     // Keep the prompt at triggerDist, but open the confirm dialog as soon as the
     // player is visibly inside/on the pad instead of requiring a tiny center hit.
-    return (window.DANBO_WASM&&DANBO_WASM.confirmRange)?DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe):(confirmDist+(isWarpPipe?1.6:3.4));
+    return DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe);
 }
 function _danboRacePortalHeightOk(py,portalY){
-    return (window.DANBO_WASM&&DANBO_WASM.racePortalHeightOk)?DANBO_WASM.racePortalHeightOk(py,portalY):Math.abs(py-portalY)<=7;
+    return DANBO_WASM.racePortalHeightOk(py,portalY);
 }
 function _danboWarpPipeHeightOk(py){
-    return (window.DANBO_WASM&&DANBO_WASM.warpPipeHeightOk)?DANBO_WASM.warpPipeHeightOk(py):py<=10;
+    return DANBO_WASM.warpPipeHeightOk(py);
 }
 function _danboPortalAction(distance,triggerDist,confirmDist,isWarpPipe,isVoluntary){
-    if(window.DANBO_WASM&&DANBO_WASM.portalAction)return DANBO_WASM.portalAction(distance,triggerDist,confirmDist,!!isWarpPipe,!!isVoluntary);
-    if(!isVoluntary||distance>=triggerDist)return 0;
-    return distance<_danboPortalConfirmRange(confirmDist,isWarpPipe)?2:1;
+    return DANBO_WASM.portalAction(distance,triggerDist,confirmDist,!!isWarpPipe,!!isVoluntary);
 }
 function _danboPortalDismissKey(portal){
     if(!portal)return null;
@@ -264,27 +262,27 @@ function updateCity(){
                 }
                 // Flop toward nearest water (center pool)
                 var _ftpx=-fish.group.position.x;var _ftpz=-fish.group.position.z;
-                var _ftpd=Math.sqrt(_ftpx*_ftpx+_ftpz*_ftpz)||1;
+                var _ftpd=DANBO_WASM.len2D(_ftpx,_ftpz)||1;
                 fish.group.position.x+=_ftpx/_ftpd*0.12;
                 fish.group.position.z+=_ftpz/_ftpd*0.12;
                 fish.group.position.y=0.15+Math.abs(Math.sin(Date.now()*0.015))*0.15;
                 fish.group.rotation.y=Math.atan2(_ftpx,_ftpz);
                 fish.group.rotation.z=Math.sin(Date.now()*0.02)*0.5;
-                var _ftDist=Math.sqrt(fish.group.position.x*fish.group.position.x+fish.group.position.z*fish.group.position.z);
-                if(_ftDist<8||Math.abs(_ftDist-25)<4||Math.abs(_ftDist-55)<4){fish._thrownRecovery=0;fish.angle=Math.atan2(fish.group.position.z,fish.group.position.x);fish.radius=_ftDist||3;}
+                var _ftDist=DANBO_WASM.len2D(fish.group.position.x,fish.group.position.z);
+                if(_ftDist<8||DANBO_WASM.absDeltaLess(_ftDist,25,4)||DANBO_WASM.absDeltaLess(_ftDist,55,4)){fish._thrownRecovery=0;fish.angle=Math.atan2(fish.group.position.z,fish.group.position.x);fish.radius=_ftDist||3;}
                 continue;
             }
             // Check if fish was thrown and landed outside water — crawl back
-            var fDistFromPool=Math.sqrt(fish.group.position.x*fish.group.position.x+fish.group.position.z*fish.group.position.z);
-            var _inWater=(fDistFromPool<7)||(Math.abs(fDistFromPool-25)<3)||(Math.abs(fDistFromPool-55)<3);
+            var fDistFromPool=DANBO_WASM.len2D(fish.group.position.x,fish.group.position.z);
+            var _inWater=(fDistFromPool<7)||(DANBO_WASM.absDeltaLess(fDistFromPool,25,3))||(DANBO_WASM.absDeltaLess(fDistFromPool,55,3));
             // Also check radial canals (within 2 units of x=0 or z=0 axes)
-            var _onCanalX=Math.abs(fish.group.position.z)<2&&Math.abs(fish.group.position.x)>8;
-            var _onCanalZ=Math.abs(fish.group.position.x)<2&&Math.abs(fish.group.position.z)>8;
+            var _onCanalX=DANBO_WASM.absDeltaLess(fish.group.position.z,0,2)&&!DANBO_WASM.absDeltaWithin(fish.group.position.x,0,8);
+            var _onCanalZ=DANBO_WASM.absDeltaLess(fish.group.position.x,0,2)&&!DANBO_WASM.absDeltaWithin(fish.group.position.z,0,8);
             if(_onCanalX||_onCanalZ)_inWater=true;
             if(!_inWater&&!fish.jumping){
                 // Fish is on land — flop back to nearest water
                 var fToPoolX=-fish.group.position.x;var fToPoolZ=-fish.group.position.z;
-                var fToPoolD=Math.sqrt(fToPoolX*fToPoolX+fToPoolZ*fToPoolZ)||1;
+                var fToPoolD=DANBO_WASM.len2D(fToPoolX,fToPoolZ)||1;
                 fish.group.position.x+=fToPoolX/fToPoolD*0.04;
                 fish.group.position.z+=fToPoolZ/fToPoolD*0.04;
                 fish.group.position.y=0.15;
@@ -393,8 +391,8 @@ function updateCity(){
     if(_beamSoundCD>0)_beamSoundCD--;
     if(_explSoundCD>0)_explSoundCD--;
     if(_missileSoundCD>0)_missileSoundCD--;
-    var _fdist=Math.sqrt(px*px+pz*pz);
-    var _pspd=playerEgg?Math.sqrt((playerEgg.vx||0)*(playerEgg.vx||0)+(playerEgg.vz||0)*(playerEgg.vz||0)):0;
+    var _fdist=DANBO_WASM.len2D(px,pz);
+    var _pspd=playerEgg?DANBO_WASM.len2D(playerEgg.vx||0,playerEgg.vz||0):0;
     if(_fdist<6.5&&playerEgg.mesh.position.y<1.5&&window._fountainSplashParticles){
         // Play splash sound on entry
         if(!playerEgg._inFountain){playerEgg._inFountain=true;playSplashSound();}
@@ -499,7 +497,7 @@ function updateCity(){
             for(var _sci=0;_sci<cityColliders.length;_sci++){
                     var _sc=cityColliders[_sci];
                     var _scdx=c.mesh.position.x-_sc.x, _scdz=c.mesh.position.z-_sc.z;
-                    if(Math.abs(_scdx)<_sc.hw+0.5&&Math.abs(_scdz)<_sc.hd+0.5&&c.mesh.position.y<(_sc.h||6)){
+                    if(DANBO_WASM.aabb2D(c.mesh.position.x,c.mesh.position.z,_sc.x,_sc.z,_sc.hw,_sc.hd,0.5)&&c.mesh.position.y<(_sc.h||6)){
                         var _scox=_sc.hw+0.5-Math.abs(_scdx);
                         var _scoz=_sc.hd+0.5-Math.abs(_scdz);
                         if(_scox<_scoz){c.mesh.position.x+=(_scdx>=0?1:-1)*_scox;c._scatterVX*=-0.5;}
@@ -524,7 +522,7 @@ function updateCity(){
         var coinBaseY=c.baseY||1.2;
         c.mesh.position.y=coinBaseY+Math.sin(Date.now()*0.003+c.mesh.position.x)*0.2;
         var cdx2=px-c.mesh.position.x, cdz2=pz-c.mesh.position.z, cdy2=py-c.mesh.position.y;
-        if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(px,py,pz,c.mesh.position.x,c.mesh.position.y,c.mesh.position.z,1.5):(cdx2*cdx2+cdz2*cdz2+cdy2*cdy2<2.25)){
+        if(DANBO_WASM.within3D(px,py,pz,c.mesh.position.x,c.mesh.position.y,c.mesh.position.z,1.5)){
             c.collected=true; c.mesh.visible=false;
             coins++; document.getElementById('coin-hud').textContent='⭐ '+coins;
             playCoinSound();
@@ -650,7 +648,7 @@ function updateCity(){
         // Push player away from tower during rise
         if(playerEgg){
             var brx=px-_babylonTower.x, brz=pz-_babylonTower.z;
-            var brd=Math.sqrt(brx*brx+brz*brz);
+            var brd=DANBO_WASM.len2D(brx,brz);
             var brHalf=_babylonTower.baseW/2+1.5;
             if(brd<brHalf&&brd>0.01){
                 var brPush=(brHalf-brd)*0.15;
@@ -689,7 +687,7 @@ function updateCity(){
         var _nearestBabelDoor=9999;
         for(var bdi=0;bdi<4;bdi++){
             var bdx2=px-_babelDoors[bdi].x, bdz2=pz-_babelDoors[bdi].z;
-            var bdd=Math.sqrt(bdx2*bdx2+bdz2*bdz2);
+            var bdd=DANBO_WASM.len2D(bdx2,bdz2);
             if(bdd<_nearestBabelDoor)_nearestBabelDoor=bdd;
             if(bdd<4.2&&py<3.5&&!_babylonPromptDismissed&&!_babylonRising){
                 _showBabylonPrompt(1);
@@ -698,7 +696,7 @@ function updateCity(){
         // Top of tower — return elevator
         var topDoorX=bt.x, topDoorZ=bt.z;
         var tdx=px-topDoorX, tdz=pz-topDoorZ;
-        var tdist=Math.sqrt(tdx*tdx+tdz*tdz);
+        var tdist=DANBO_WASM.len2D(tdx,tdz);
         if(tdist<4.2&&py>=bt.topY-2&&py<=bt.topY+4&&!_babylonPromptDismissed&&!_babylonRising){
             _showBabylonPrompt(-1);
         }
@@ -766,7 +764,7 @@ function updateCity(){
                     a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.02;
                     // Circle motion
                     var _pa=Math.atan2(a.vx,a.vz)+0.02;
-                    var _ps=Math.sqrt(a.vx*a.vx+a.vz*a.vz);
+                    var _ps=DANBO_WASM.len2D(a.vx,a.vz);
                     a.vx=Math.sin(_pa)*_ps;a.vz=Math.cos(_pa)*_ps;
                     a.group.rotation.y=_pa;
                     if(a.stateTimer<=0){a.state='land';a.stateTimer=30;a.targetY=0.3;}
@@ -858,7 +856,7 @@ function updateCity(){
                 if(a.state==='fly'){
                     a.x+=a.vx;a.z+=a.vz;a.y+=(a.targetY-a.y)*0.015;
                     var _sa2=Math.atan2(a.vx,a.vz)+0.012;
-                    var _ss2=Math.sqrt(a.vx*a.vx+a.vz*a.vz);
+                    var _ss2=DANBO_WASM.len2D(a.vx,a.vz);
                     a.vx=Math.sin(_sa2)*_ss2;a.vz=Math.cos(_sa2)*_ss2;
                     a.group.rotation.y=_sa2;
                     // Head tilt animation
@@ -905,7 +903,7 @@ function updateCity(){
                     if(a.stateTimer<=0){a.state='swim';a.stateTimer=80+Math.floor(Math.random()*120);a.moveDir+=(Math.random()-0.5)*1.0;}
                 }
                 // Keep close to center (within radius 20)
-                var dkDist=Math.sqrt(a.x*a.x+a.z*a.z);
+                var dkDist=DANBO_WASM.len2D(a.x,a.z);
                 if(dkDist>20){a.moveDir=Math.atan2(-a.x,-a.z);}
                 a.group.position.set(a.x,a.y,a.z);
             } else if(a.type==='eagle'){
@@ -1001,7 +999,7 @@ function updateCity(){
         ca.x+=ca.vx;ca.z+=ca.vz;
         ca.y=ca.baseY+Math.sin(ca.flapPhase*0.3)*1.5;
         var _ca2=Math.atan2(ca.vx,ca.vz)+0.01;
-        var _cs2=Math.sqrt(ca.vx*ca.vx+ca.vz*ca.vz);
+        var _cs2=DANBO_WASM.len2D(ca.vx,ca.vz);
         ca.vx=Math.sin(_ca2)*_cs2;ca.vz=Math.cos(_ca2)*_cs2;
         ca.group.rotation.y=_ca2;
         // Halo gentle bob
@@ -1166,7 +1164,7 @@ function updateCity(){
         var rvNx=rv.x+Math.cos(rv.angle)*rv.speed;
         var rvNz=rv.z+Math.sin(rv.angle)*rv.speed;
         // Keep on battlefield (x>20, within bounds)
-        if(rvNx>20&&rvNx<350&&Math.abs(rvNz)<280){
+        if(rvNx>20&&rvNx<350&&DANBO_WASM.absDeltaLess(rvNz,0,280)){
             rv.x=rvNx;rv.z=rvNz;
         } else {
             rv.targetAngle=Math.atan2(-rv.z,-rv.x+150);
@@ -1223,7 +1221,7 @@ function updateCity(){
             if(gm.faction==='zeon'){wpx=-150+Math.cos(gm.wpAngle)*120;wpz=-50+Math.sin(gm.wpAngle)*200;}
             // Steer toward waypoint
             var dx3=wpx-gm.group.position.x,dy3=wpy-gm.group.position.y,dz3=wpz-gm.group.position.z;
-            var dd3=Math.sqrt(dx3*dx3+dy3*dy3+dz3*dz3)||1;
+            var dd3=DANBO_WASM.len3D(dx3,dy3,dz3)||1;
             var spd=gm.speed;
             gm.group.position.x+=dx3/dd3*spd;
             gm.group.position.y+=dy3/dd3*spd;
@@ -1240,7 +1238,7 @@ function updateCity(){
             var _gsShield=_checkMoonShield(gx,gy,gz);
             if(_gsShield){
                 var _gsdx=gx-_gsShield.x,_gsdy=gy-_gsShield.y,_gsdz=gz-_gsShield.z;
-                var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdy*_gsdy+_gsdz*_gsdz)||1;
+                var _gsd=DANBO_WASM.len3D(_gsdx,_gsdy,_gsdz)||1;
                 // Push out to shield surface
                 gm.group.position.x=_gsShield.x+_gsdx/_gsd*(_gsShield.r+1);
                 gm.group.position.y=_gsShield.y+_gsdy/_gsd*(_gsShield.r+1);
@@ -1384,7 +1382,7 @@ function updateCity(){
                         var _bmVy=_bmFwd.y+(Math.random()-0.5)*0.8;
                         var _bmVz=_bmFwd.z+(Math.random()-0.5)*0.8;
                         var _bmSpd=1.5+Math.random();
-                        var _bmLen=Math.sqrt(_bmVx*_bmVx+_bmVy*_bmVy+_bmVz*_bmVz)||1;
+                        var _bmLen=DANBO_WASM.len3D(_bmVx,_bmVy,_bmVz)||1;
                         window._moonMissiles.push({group:_bmMesh,life:60,vx:_bmVx/_bmLen*_bmSpd,vy:_bmVy/_bmLen*_bmSpd,vz:_bmVz/_bmLen*_bmSpd,trail:[],_isBarrage:true});
                     }
                     playMissileSound();
@@ -1401,7 +1399,7 @@ function updateCity(){
                         var _fnE=window._moonGundams[_fni];
                         if(_fnE._dead||_fnE.faction===gm.faction)continue;
                         var _fdx=_fnE.group.position.x-gx,_fdy=_fnE.group.position.y-gy,_fdz=_fnE.group.position.z-gz;
-                        var _fdd=Math.sqrt(_fdx*_fdx+_fdy*_fdy+_fdz*_fdz);
+                        var _fdd=DANBO_WASM.len3D(_fdx,_fdy,_fdz);
                         if(_fdd<_fnDist){_fnDist=_fdd;_fnTarget=_fnE;}
                     }
                     if(_fnTarget&&_fnDist<200){
@@ -1409,7 +1407,7 @@ function updateCity(){
                             var _ffW=new THREE.Vector3();gm.funnels[_ffi2].mesh.getWorldPosition(_ffW);
                             var _ftPos=_fnTarget.group.position;
                             var _fbDx=_ftPos.x-_ffW.x,_fbDy=_ftPos.y-_ffW.y,_fbDz=_ftPos.z-_ffW.z;
-                            var _fbLen=Math.sqrt(_fbDx*_fbDx+_fbDy*_fbDy+_fbDz*_fbDz)||1;
+                            var _fbLen=DANBO_WASM.len3D(_fbDx,_fbDy,_fbDz)||1;
                             var _fbMesh=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,_fbLen,4),new THREE.MeshBasicMaterial({color:0xFF44FF,transparent:true,opacity:0.9}));
                             _fbMesh.position.set((_ffW.x+_ftPos.x)/2,(_ffW.y+_ftPos.y)/2,(_ffW.z+_ftPos.z)/2);
                             _fbMesh.lookAt(_ftPos.x,_ftPos.y,_ftPos.z);_fbMesh.rotateX(Math.PI/2);
@@ -1424,7 +1422,7 @@ function updateCity(){
             if(gm.type==='saber'&&gm.duelPartner&&!gm.duelPartner._dead){
                 var _dpPos=gm.duelPartner.group.position;
                 var _ddx=_dpPos.x-gx,_ddy=_dpPos.y-gy,_ddz=_dpPos.z-gz;
-                var _ddd=Math.sqrt(_ddx*_ddx+_ddy*_ddy+_ddz*_ddz)||1;
+                var _ddd=DANBO_WASM.len3D(_ddx,_ddy,_ddz)||1;
                 if(_ddd<80){
                     gm.group.position.x+=_ddx/_ddd*spd*0.5;
                     gm.group.position.y+=_ddy/_ddd*spd*0.5;
@@ -1584,7 +1582,7 @@ function updateCity(){
                     var _bs=_checkMoonShield(bb.mesh.position.x,bb.mesh.position.y,bb.mesh.position.z);
                     if(_bs){
                         var _bsx=bb.mesh.position.x-_bs.x,_bsy=bb.mesh.position.y-_bs.y,_bsz=bb.mesh.position.z-_bs.z;
-                        var _bsd=Math.sqrt(_bsx*_bsx+_bsy*_bsy+_bsz*_bsz)||1;
+                        var _bsd=DANBO_WASM.len3D(_bsx,_bsy,_bsz)||1;
                         _spawnATField(bb.mesh.position.x,bb.mesh.position.y,bb.mesh.position.z,_bsx/_bsd,_bsy/_bsd,_bsz/_bsd);
                         bb._shieldHit=true;bb.life=Math.min(bb.life,3);
                         bb.vx*=-0.3;bb.vy*=-0.3;bb.vz*=-0.3;
@@ -1597,7 +1595,7 @@ function updateCity(){
                     var _bdx=_be.mesh.position.x-bb.mesh.position.x;
                     var _bdy=_be.mesh.position.y-bb.mesh.position.y;
                     var _bdz=_be.mesh.position.z-bb.mesh.position.z;
-                    var _bd=Math.sqrt(_bdx*_bdx+_bdy*_bdy+_bdz*_bdz);
+                    var _bd=DANBO_WASM.len3D(_bdx,_bdy,_bdz);
                     if(_bd<2.0){
                         var _bImp=0.15;
                         _be.vx+=bb.vx*_bImp;_be.vy+=bb.vy*_bImp+0.1;_be.vz+=bb.vz*_bImp;
@@ -1636,7 +1634,7 @@ function updateCity(){
                 var _ms=_checkMoonShield(mm.group.position.x,mm.group.position.y,mm.group.position.z);
                 if(_ms){
                     var _msx=mm.group.position.x-_ms.x,_msy=mm.group.position.y-_ms.y,_msz=mm.group.position.z-_ms.z;
-                    var _msd=Math.sqrt(_msx*_msx+_msy*_msy+_msz*_msz)||1;
+                    var _msd=DANBO_WASM.len3D(_msx,_msy,_msz)||1;
                     _spawnATField(mm.group.position.x,mm.group.position.y,mm.group.position.z,_msx/_msd,_msy/_msd,_msz/_msd);
                     mm._shieldHit=true;mm.life=0;
                 }
@@ -1648,7 +1646,7 @@ function updateCity(){
                 var _mdx=_me.mesh.position.x-mm.group.position.x;
                 var _mdy=_me.mesh.position.y-mm.group.position.y;
                 var _mdz=_me.mesh.position.z-mm.group.position.z;
-                var _md=Math.sqrt(_mdx*_mdx+_mdy*_mdy+_mdz*_mdz);
+                var _md=DANBO_WASM.len3D(_mdx,_mdy,_mdz);
                 if(_md<3.0){
                     var _mImp=0.2;if(_md>0.1){_me.vx+=_mdx/_md*_mImp;_me.vy+=_mdy/_md*_mImp+0.15;_me.vz+=_mdz/_md*_mImp;}
                     _me.throwTimer=COMBAT.stomp.throwTimer;_me._bounces=COMBAT.stomp.bounces;_me.squash=COMBAT.propImpact.squash;
@@ -1985,7 +1983,7 @@ function updateHeldEggs(){
             if(target===npc||!target.alive||target.heldBy||target.holding)continue;
             var ddx=target.mesh.position.x-npc.mesh.position.x;
             var ddz=target.mesh.position.z-npc.mesh.position.z;
-            var dd=Math.sqrt(ddx*ddx+ddz*ddz);
+            var dd=DANBO_WASM.len2D(ddx,ddz);
             if(dd<bestD){bestD=dd;best=target;}
         }
         if(best){
@@ -2004,7 +2002,7 @@ function updateHeldEggs(){
                 if(cp2.grabbed)continue;
                 var cpdx=cp2.group.position.x-npc.mesh.position.x;
                 var cpdz=cp2.group.position.z-npc.mesh.position.z;
-                var cpd2=Math.sqrt(cpdx*cpdx+cpdz*cpdz);
+                var cpd2=DANBO_WASM.len2D(cpdx,cpdz);
                 if(cpd2<bestPD){bestPD=cpd2;bestProp=cp2;}
             }
             if(bestProp){
@@ -2037,7 +2035,7 @@ function updateHeldEggs(){
                 if(tgt===npc2||!tgt.alive||tgt.heldBy)continue;
                 var ntdx=tgt.mesh.position.x-npc2.mesh.position.x;
                 var ntdz=tgt.mesh.position.z-npc2.mesh.position.z;
-                var ntd=Math.sqrt(ntdx*ntdx+ntdz*ntdz);
+                var ntd=DANBO_WASM.len2D(ntdx,ntdz);
                 if(ntd<nearTD){nearTD=ntd;nearTgt=tgt;throwDir2=Math.atan2(ntdx,ntdz);}
             }
             npc2.holdingProp=null;
@@ -2080,7 +2078,7 @@ function updateHeldEggs(){
         for(var _tpci=0;_tpci<cityColliders.length;_tpci++){
             var _tpc=cityColliders[_tpci];
             var _tpdx=tp.group.position.x-_tpc.x, _tpdz=tp.group.position.z-_tpc.z;
-            if(Math.abs(_tpdx)<_tpc.hw+1.5&&Math.abs(_tpdz)<_tpc.hd+1.5&&tp.group.position.y<(_tpc.h||6)){
+            if(DANBO_WASM.aabb2D(tp.group.position.x,tp.group.position.z,_tpc.x,_tpc.z,_tpc.hw,_tpc.hd,1.5)&&tp.group.position.y<(_tpc.h||6)){
                 var _tpox=_tpc.hw+1.5-Math.abs(_tpdx);
                 var _tpoz=_tpc.hd+1.5-Math.abs(_tpdz);
                 if(_tpox<_tpoz){tp.group.position.x+=(_tpdx>=0?1:-1)*_tpox;tp.throwVx*=-0.3;}
@@ -2104,7 +2102,7 @@ function updateHeldEggs(){
             if(!tpeg.alive||tpeg.heldBy)continue;
             var tpdx=tpeg.mesh.position.x-tp.group.position.x;
             var tpdz=tpeg.mesh.position.z-tp.group.position.z;
-            var tpd=Math.sqrt(tpdx*tpdx+tpdz*tpdz);
+            var tpd=DANBO_WASM.len2D(tpdx,tpdz);
             if(tpd<tp.radius+0.8){
                 var impW=tp.weight||1;tpeg.vx+=tpdx/tpd*0.4*impW;tpeg.vz+=tpdz/tpd*0.4*impW;tpeg.vy=0.3+0.12*impW;tpeg.squash=COMBAT.propImpact.squash;tpeg.throwTimer=COMBAT.propImpact.throwTimer;tpeg._bounces=COMBAT.propImpact.bounces;
                 if(tpeg.isPlayer)playHitSound(tpeg.mesh.position.x,tpeg.mesh.position.z);
@@ -2117,7 +2115,7 @@ function updateHeldEggs(){
             var op=cityProps[tpp];
             var opdx=op.group.position.x-tp.group.position.x;
             var opdz=op.group.position.z-tp.group.position.z;
-            var opd=Math.sqrt(opdx*opdx+opdz*opdz);
+            var opd=DANBO_WASM.len2D(opdx,opdz);
             if(opd<tp.radius+op.radius&&opd>0.01){
                 op.group.position.x+=opdx/opd*0.8;
                 op.group.position.z+=opdz/opd*0.8;
@@ -2153,7 +2151,7 @@ function updateHeldEggs(){
             if(!teg.alive||teg.heldBy)continue;
             var tdx=teg.mesh.position.x-tob.mesh.position.x;
             var tdz=teg.mesh.position.z-tob.mesh.position.z;
-            if(Math.sqrt(tdx*tdx+tdz*tdz)<1.5){
+            if(DANBO_WASM.len2D(tdx,tdz)<1.5){
                 var oiw=tob._weight||2;teg.vx+=tdx*0.35*oiw;teg.vz+=tdz*0.35*oiw;teg.vy=0.3+0.12*oiw;teg.squash=COMBAT.propImpact.squash;teg.throwTimer=COMBAT.propImpact.throwTimer;teg._bounces=COMBAT.propImpact.bounces;if(teg.isPlayer)playHitSound(teg.mesh.position.x,teg.mesh.position.z);
                 _dropNpcStolenCoins(teg);
             }
@@ -3019,7 +3017,7 @@ function checkThrownEggImpact(eggList){
             var dx=b.mesh.position.x-a.mesh.position.x;
             var dz=b.mesh.position.z-a.mesh.position.z;
             var dy=b.mesh.position.y-a.mesh.position.y;
-            var dist=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,a.mesh.position.x,a.mesh.position.y,a.mesh.position.z):Math.sqrt(dx*dx+dz*dz+dy*dy);
+            var dist=DANBO_WASM.dist3D(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,a.mesh.position.x,a.mesh.position.y,a.mesh.position.z);
             if(dist<1.3){
                 // Kunio-kun impact: victim flies up and away
                 var nx=dx/(dist||1), nz=dz/(dist||1);
@@ -3219,7 +3217,7 @@ function _gameUpdate(){
             var cdx=playerEgg.mesh.position.x-rc.x;
             var cdz=playerEgg.mesh.position.z-(-rc.z);
             var cdy=playerEgg.mesh.position.y-(rc.fy+1.2);
-            if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,rc.x,rc.fy+1.2,-rc.z,1.5):(cdx*cdx+cdz*cdz+cdy*cdy<2.25)){
+            if(DANBO_WASM.within3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,rc.x,rc.fy+1.2,-rc.z,1.5)){
                 rc.collected=true;rc.mesh.visible=false;
                 if(rc.type==='star'){
                     // Speed Star: 2x speed for 3 seconds
@@ -3274,7 +3272,7 @@ function _gameUpdate(){
                     var _mdx2=playerEgg.mesh.position.x-_mc.mesh.position.x;
                     var _mdz2=playerEgg.mesh.position.z-_mc.mesh.position.z;
                     var _mdy2=playerEgg.mesh.position.y-_mc.mesh.position.y;
-                    var _md2=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,_mc.mesh.position.x,_mc.mesh.position.y,_mc.mesh.position.z):Math.sqrt(_mdx2*_mdx2+_mdz2*_mdz2+_mdy2*_mdy2);
+                    var _md2=DANBO_WASM.dist3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,_mc.mesh.position.x,_mc.mesh.position.y,_mc.mesh.position.z);
                     if(_md2<10&&_md2>0.1){
                         _mc.mesh.position.x+=_mdx2/_md2*0.15;
                         _mc.mesh.position.z+=_mdz2/_md2*0.15;

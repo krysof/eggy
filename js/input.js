@@ -24,7 +24,7 @@ if(joystickArea){
 function updJoy(touch){
     const r=joystickBase.getBoundingClientRect();
     let dx=touch.clientX-(r.left+r.width/2),dy=touch.clientY-(r.top+r.height/2);
-    const maxR=r.width/2-22,d=Math.sqrt(dx*dx+dy*dy);
+    const maxR=r.width/2-22,d=DANBO_WASM.len2D(dx,dy);
     if(d>maxR){dx=dx/d*maxR;dy=dy/d*maxR;}
     joystickKnob.style.transform='translate('+dx+'px,'+dy+'px)';
     joyVec={x:dx/maxR,y:dy/maxR};
@@ -57,7 +57,7 @@ document.addEventListener('touchstart',function(e){
     if(e.touches.length===2){
         var dx=e.touches[0].clientX-e.touches[1].clientX;
         var dy=e.touches[0].clientY-e.touches[1].clientY;
-        _pinchStartDist=Math.sqrt(dx*dx+dy*dy);
+        _pinchStartDist=DANBO_WASM.len2D(dx,dy);
         _pinchZoomStart=_cameraZoom;
     }
 },{passive:true});
@@ -65,7 +65,7 @@ document.addEventListener('touchmove',function(e){
     if(e.touches.length===2&&_pinchStartDist>10){
         var dx=e.touches[0].clientX-e.touches[1].clientX;
         var dy=e.touches[0].clientY-e.touches[1].clientY;
-        var dist=Math.sqrt(dx*dx+dy*dy);
+        var dist=DANBO_WASM.len2D(dx,dy);
         var ratio=_pinchStartDist/dist; // pinch in = zoom out, pinch out = zoom in
         _cameraZoom=_pinchZoomStart*ratio;
         if(_cameraZoom<0.04)_cameraZoom=0.04;

@@ -1151,7 +1151,7 @@ function _updateDropShadow(){
             var dx=px-c.x, dz=pz-c.z;
             // Cone roof
             if(c.roofR&&c.roofH){
-                var dist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(px,pz,c.x,c.z):Math.sqrt(dx*dx+dz*dz);
+                var dist=DANBO_WASM.dist2D(px,pz,c.x,c.z);
                 if(dist<c.roofR){
                     var roofBase=c.h||6;
                     var surfY=roofBase+(1-dist/c.roofR)*c.roofH;
@@ -1159,7 +1159,7 @@ function _updateDropShadow(){
                 }
             }
             // Flat roof top
-            if(Math.abs(dx)<c.hw&&Math.abs(dz)<c.hd){
+            if(DANBO_WASM.aabb2D(px,pz,c.x,c.z,c.hw,c.hd,0)){
                 var roofY2=(c.h||6);
                 if(roofY2<py&&roofY2>groundY)groundY=roofY2;
             }
@@ -1167,7 +1167,7 @@ function _updateDropShadow(){
         // Cloud platforms
         for(var ci3=0;ci3<cityCloudPlatforms.length;ci3++){
             var cl=cityCloudPlatforms[ci3];
-            if(Math.abs(px-cl.x)<cl.hw&&Math.abs(pz-cl.z)<cl.hd){
+            if(DANBO_WASM.aabb2D(px,pz,cl.x,cl.z,cl.hw,cl.hd,0)){
                 var clTop=cl.y+(cl.top||1.2);
                 if(clTop<py&&clTop>groundY)groundY=clTop;
             }

@@ -518,7 +518,7 @@ function _pfUpdateMoving(){try{
     if(window._pfFallingRocks&&playerEgg){
         for(var fri=window._pfFallingRocks.length-1;fri>=0;fri--){
             var fr=window._pfFallingRocks[fri];
-            if(!fr.triggered&&Math.abs(playerEgg.mesh.position.x-fr.triggerX)<_pfTile*2){
+            if(!fr.triggered&&DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,fr.triggerX,_pfTile*2)){
                 fr.triggered=true;fr.falling=true;fr.vy=0;
             }
             if(fr.falling){
@@ -561,8 +561,8 @@ function _pfUpdateCamera(){try{
     if(window._pfCrumblePlatforms&&playerEgg&&playerEgg.onGround){
         for(var ci=0;ci<window._pfCrumblePlatforms.length;ci++){
             var cp=window._pfCrumblePlatforms[ci];
-            if(!cp.triggered&&Math.abs(playerEgg.mesh.position.x-cp.collider.x)<cp.collider.hw+1&&
-               Math.abs(playerEgg.mesh.position.y-(cp.collider.h||cp.collider.y||0))<2){
+            if(!cp.triggered&&DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,cp.collider.x,cp.collider.hw+1)&&
+               DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.y,(cp.collider.h||cp.collider.y||0),2)){
                 cp.triggered=true;cp.timer=120;
             }
         }
@@ -571,7 +571,7 @@ function _pfUpdateCamera(){try{
     if(window._pfMushroomColliders&&playerEgg&&playerEgg.vy<=0){
         for(var mi=0;mi<window._pfMushroomColliders.length;mi++){
             var mc=window._pfMushroomColliders[mi];
-            if(Math.abs(playerEgg.mesh.position.x-mc.x)<mc.hw+0.5&&
+            if(DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,mc.x,mc.hw+0.5)&&
                playerEgg.mesh.position.y<=mc.h+0.5&&playerEgg.mesh.position.y>=mc.h-1.5){
                 playerEgg.vy=0.4;
                 playerEgg.mesh.position.y=mc.h+0.5;
@@ -583,8 +583,7 @@ function _pfUpdateCamera(){try{
     if(window._pfLavaColliders&&playerEgg){
         for(var li=0;li<window._pfLavaColliders.length;li++){
             var lc=window._pfLavaColliders[li];
-            if(Math.abs(playerEgg.mesh.position.x-lc.x)<lc.hw&&
-               Math.abs(playerEgg.mesh.position.z-lc.z)<lc.hd&&
+            if(DANBO_WASM.aabb2D(playerEgg.mesh.position.x,playerEgg.mesh.position.z,lc.x,lc.z,lc.hw,lc.hd,0)&&
                playerEgg.mesh.position.y<lc.y+1){
                 playerEgg.mesh.position.set(lc.x-lc.hw*3,5,0);
                 playerEgg.vx=0;playerEgg.vy=0;playerEgg.vz=0;
@@ -602,7 +601,7 @@ function _pfUpdateCamera(){try{
     }
     // Key collection
     if(window._pfKeyMesh&&!window._pfHasKey&&playerEgg){
-        if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,window._pfKeyMesh.position.x,window._pfKeyMesh.position.y,window._pfKeyMesh.position.z,3):(playerEgg.mesh.position.distanceTo(window._pfKeyMesh.position)<3)){
+        if(DANBO_WASM.within3D(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.mesh.position.z,window._pfKeyMesh.position.x,window._pfKeyMesh.position.y,window._pfKeyMesh.position.z,3)){
             window._pfHasKey=true;
             raceGroup.remove(window._pfKeyMesh);
             window._pfKeyMesh=null;

@@ -221,7 +221,7 @@ function goBackToCity(){
         var r=RACES[currentRaceIndex];
         // Offset 5 units away from portal center (toward city center)
         var dx2=r.x,dz2=r.z;
-        var dd=Math.sqrt(dx2*dx2+dz2*dz2)||1;
+        var dd=DANBO_WASM.len2D(dx2,dz2)||1;
         sx=r.x-dx2/dd*5;
         sz=r.z-dz2/dd*5;
     }

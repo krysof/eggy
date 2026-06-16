@@ -373,10 +373,10 @@ function buildCity() {
         let skip=false;
         for(const c of cityColliders){
             if(c.hw>50)continue; // skip huge terrain colliders for tree placement
-            if(Math.abs(tx-c.x)<c.hw+2&&Math.abs(tz-c.z)<c.hd+2) skip=true;
+            if(DANBO_WASM.aabb2D(tx,tz,c.x,c.z,c.hw,c.hd,2)) skip=true;
         }
-        if(Math.abs(tx)<10&&currentCityStyle===6) skip=true; // avoid canyon
-        else if(Math.abs(tx)<4&&Math.abs(tz)<4) skip=true;
+        if(DANBO_WASM.absDeltaLess(tx,0,10)&&currentCityStyle===6) skip=true; // avoid canyon
+        else if(DANBO_WASM.aabb2D(tx,tz,0,0,4,4,0)) skip=true;
         if(skip) continue;
         const tg=new THREE.Group(); tg.position.set(tx,currentCityStyle===6?8:0,tz);
         if(currentCityStyle===6){
@@ -688,7 +688,7 @@ function buildCity() {
     for(let i=0;i<20;i++){
         const lx=(Math.random()-0.5)*CITY_SIZE*1.5, lz=(Math.random()-0.5)*CITY_SIZE*1.5;
         let skip2=false;
-        for(const c of cityColliders) if(Math.abs(lx-c.x)<c.hw+1&&Math.abs(lz-c.z)<c.hd+1) skip2=true;
+        for(const c of cityColliders) if(DANBO_WASM.aabb2D(lx,lz,c.x,c.z,c.hw,c.hd,1)) skip2=true;
         if(skip2) continue;
         const lg=new THREE.Group(); lg.position.set(lx,0,lz);
         if(currentCityStyle===6){
@@ -715,7 +715,7 @@ function buildCity() {
     for(let i=0;i<12;i++){
         const bx=(Math.random()-0.5)*CITY_SIZE*1.4, bz=(Math.random()-0.5)*CITY_SIZE*1.4;
         let skip3=false;
-        for(const c of cityColliders) if(Math.abs(bx-c.x)<c.hw+1.5&&Math.abs(bz-c.z)<c.hd+1.5) skip3=true;
+        for(const c of cityColliders) if(DANBO_WASM.aabb2D(bx,bz,c.x,c.z,c.hw,c.hd,1.5)) skip3=true;
         if(skip3) continue;
         const bg=new THREE.Group(); bg.position.set(bx,0,bz);
         const seat=new THREE.Mesh(new THREE.BoxGeometry(BENCH_CONFIG.seatSize.w,BENCH_CONFIG.seatSize.h,BENCH_CONFIG.seatSize.d),toon(0x8B5E3C));
@@ -1231,7 +1231,7 @@ function buildCity() {
             var _rstZ=-100+_rsti*15+((_rsti%2)*7);
             // Skip if too close to any bridge
             var _nearBridge=false;
-            for(var _nbi=0;_nbi<_allBridgeZ.length;_nbi++){if(Math.abs(_rstZ-_allBridgeZ[_nbi])<8)_nearBridge=true;}
+            for(var _nbi=0;_nbi<_allBridgeZ.length;_nbi++){if(DANBO_WASM.absDeltaLess(_rstZ,_allBridgeZ[_nbi],8))_nearBridge=true;}
             if(_nearBridge)continue;
             [[-11,0.3],[11,-0.3]].forEach(function(sxr){
                 var sx=sxr[0],_lean=sxr[1];
@@ -1322,7 +1322,7 @@ function buildCity() {
                 // Check if this position overlaps a bridge
                 var _atBridge=false;
                 for(var _bci2=0;_bci2<_bridgeZones.length;_bci2++){
-                    if(Math.abs(_rz-_bridgeZones[_bci2])<5)_atBridge=true;
+                    if(DANBO_WASM.absDeltaLess(_rz,_bridgeZones[_bci2],5))_atBridge=true;
                 }
                 if(_atBridge)continue;
                 // Vertical post
@@ -1336,8 +1336,8 @@ function buildCity() {
             for(var _rz2=-120;_rz2<=117;_rz2+=3){
                 var _atB1=false,_atB2=false;
                 for(var _bci3=0;_bci3<_bridgeZones.length;_bci3++){
-                    if(Math.abs(_rz2-_bridgeZones[_bci3])<5)_atB1=true;
-                    if(Math.abs((_rz2+3)-_bridgeZones[_bci3])<5)_atB2=true;
+                    if(DANBO_WASM.absDeltaLess(_rz2,_bridgeZones[_bci3],5))_atB1=true;
+                    if(DANBO_WASM.absDeltaLess(_rz2+3,_bridgeZones[_bci3],5))_atB2=true;
                 }
                 if(_atB1||_atB2)continue;
                 var _hRail=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.08,3),toon(0x887766));
@@ -1418,7 +1418,7 @@ function buildCity() {
                 var _rbx=-_rbSpan/2+_rbt*_rbSpan,_rby=_rbBase+Math.sin(_rbt*Math.PI)*_rbArch;
                 var _rbnx=-_rbSpan/2+_rbnt*_rbSpan,_rbny=_rbBase+Math.sin(_rbnt*Math.PI)*_rbArch;
                 var _rbAng=Math.atan2(_rbny-_rby,_rbnx-_rbx);
-                var _rbLen=Math.sqrt((_rbnx-_rbx)*(_rbnx-_rbx)+(_rbny-_rby)*(_rbny-_rby));
+                var _rbLen=DANBO_WASM.len2D(_rbnx-_rbx,_rbny-_rby);
                 var _rbPlk=new THREE.Mesh(new THREE.BoxGeometry(_rbLen+0.3,0.35,6),_jRedM);
                 _rbPlk.position.set((_rbx+_rbnx)/2,(_rby+_rbny)/2,0);_rbPlk.rotation.z=_rbAng;_rbG.add(_rbPlk);
             }
@@ -1430,7 +1430,7 @@ function buildCity() {
                     var rb3=new THREE.Mesh(new THREE.SphereGeometry(0.16,5,4),_jRedM);
                     rb3.position.set(_rrx,_rry+1.5,s*2.8);_rbG.add(rb3);
                     if(_rri<8){var _nrt2=(_rri+1)/8;var _nrx2=-_rbSpan/2+_nrt2*_rbSpan,_nry2=_rbBase+Math.sin(_nrt2*Math.PI)*_rbArch;
-                    var _hrL2=Math.sqrt((_nrx2-_rrx)*(_nrx2-_rrx)+(_nry2-_rry)*(_nry2-_rry));var _hrA2=Math.atan2(_nry2-_rry,_nrx2-_rrx);
+                    var _hrL2=DANBO_WASM.len2D(_nrx2-_rrx,_nry2-_rry);var _hrA2=Math.atan2(_nry2-_rry,_nrx2-_rrx);
                     var hr2=new THREE.Mesh(new THREE.BoxGeometry(_hrL2,0.1,0.1),_jRedM);
                     hr2.position.set((_rrx+_nrx2)/2,(_rry+_nry2)/2+1.4,s*2.8);hr2.rotation.z=_hrA2;_rbG.add(hr2);}
                 }
@@ -1458,7 +1458,7 @@ function buildCity() {
         for(var _wli=0;_wli<10;_wli++){
             var _wlZ=-90+_wli*20+((_wli%2)*10);
             var _wlNearBr=false;
-            for(var _wnbi=0;_wnbi<_allBridgeZ.length;_wnbi++){if(Math.abs(_wlZ-_allBridgeZ[_wnbi])<10)_wlNearBr=true;}
+            for(var _wnbi=0;_wnbi<_allBridgeZ.length;_wnbi++){if(DANBO_WASM.absDeltaLess(_wlZ,_allBridgeZ[_wnbi],10))_wlNearBr=true;}
             if(_wlNearBr)continue;
             [[-10,0.2],[10,-0.2]].forEach(function(sxl){
                 var _wlG=new THREE.Group();_wlG.position.set(sxl[0],_pH,_wlZ);
@@ -1528,7 +1528,7 @@ function buildCity() {
                 var _bnx=-_bSpan/2+_bNext*_bSpan;
                 var _bny2=_bBase+Math.sin(_bNext*Math.PI)*_bArch;
                 var _bAngle=Math.atan2(_bny2-_by2,_bnx-_bx2);
-                var _bLen=Math.sqrt((_bnx-_bx2)*(_bnx-_bx2)+(_bny2-_by2)*(_bny2-_by2));
+                var _bLen=DANBO_WASM.len2D(_bnx-_bx2,_bny2-_by2);
                 var plank=new THREE.Mesh(new THREE.BoxGeometry(_bLen+0.3,0.35,7),_jRedM);
                 plank.position.set((_bx2+_bnx)/2,(_by2+_bny2)/2,0);
                 plank.rotation.z=_bAngle;_bridgeG.add(plank);
@@ -1547,7 +1547,7 @@ function buildCity() {
                         var _nlt2=(_rli+1)/8;
                         var _nlx2=-_bSpan/2+_nlt2*_bSpan;
                         var _nly2=_bBase+Math.sin(_nlt2*Math.PI)*_bArch;
-                        var _hLen2=Math.sqrt((_nlx2-_rlx)*(_nlx2-_rlx)+(_nly2-_rly)*(_nly2-_rly));
+                        var _hLen2=DANBO_WASM.len2D(_nlx2-_rlx,_nly2-_rly);
                         var _hAng2=Math.atan2(_nly2-_rly,_nlx2-_rlx);
                         var hRail2=new THREE.Mesh(new THREE.BoxGeometry(_hLen2,0.12,0.12),_jRedM);
                         hRail2.position.set((_rlx+_nlx2)/2,(_rly+_nly2)/2+1.4,s*3.2);
@@ -1802,7 +1802,7 @@ function buildCity() {
         // Generate houses across island
         for(var _gx=-100;_gx<=100;_gx+=35){
             for(var _gz=-100;_gz<=100;_gz+=35){
-                if(Math.sqrt(_gx*_gx+_gz*_gz)>_snowIslandR-20)continue;
+                if(DANBO_WASM.len2D(_gx,_gz)>_snowIslandR-20)continue;
                 var _gw=7+Math.floor(Math.random()*5);
                 var _gd=8+Math.floor(Math.random()*5);
                 var _gh=7+Math.floor(Math.random()*5);
@@ -1826,18 +1826,18 @@ function buildCity() {
         // === 2a. Lake edge guardrails — wide dock gap ===
         for(var _gri=0;_gri<32;_gri++){
             var _grA=_gri/32*Math.PI*2;
-            if(Math.abs(_grA-Math.PI/2)<1.2)continue; // very wide dock gap
+            if(DANBO_WASM.absDeltaLess(_grA,Math.PI/2,1.2))continue; // very wide dock gap
             var _grX=Math.sin(_grA)*(_snowIslandR-3);
             var _grZ=Math.cos(_grA)*(_snowIslandR-3);
             // Post
             var gPost=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,1.5,4),_woodM7);
             gPost.position.set(_grX,_by7+0.75,_grZ);cityGroup.add(gPost);
             var _grA2=(_gri+1)/32*Math.PI*2;
-            if(Math.abs(_grA2-Math.PI/2)<1.2)continue;
+            if(DANBO_WASM.absDeltaLess(_grA2,Math.PI/2,1.2))continue;
             var _grX2=Math.sin(_grA2)*(_snowIslandR-3);
             var _grZ2=Math.cos(_grA2)*(_snowIslandR-3);
             // Rail + thin collider
-            var _rLen7=Math.sqrt((_grX2-_grX)*(_grX2-_grX)+(_grZ2-_grZ)*(_grZ2-_grZ));
+            var _rLen7=DANBO_WASM.len2D(_grX2-_grX,_grZ2-_grZ);
             var _rAng7=Math.atan2(_grX2-_grX,_grZ2-_grZ);
             var hRail7=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.1,_rLen7),_woodM7);
             hRail7.position.set((_grX+_grX2)/2,_by7+1.2,(_grZ+_grZ2)/2);
@@ -1989,7 +1989,7 @@ function buildCity() {
             var skip7=false;
             for(var _ci7=0;_ci7<cityColliders.length;_ci7++){
                 var c7=cityColliders[_ci7];if(c7.hw>50)continue;
-                if(Math.abs(tx7-c7.x)<c7.hw+3&&Math.abs(tz7-c7.z)<c7.hd+3)skip7=true;
+                if(DANBO_WASM.aabb2D(tx7,tz7,c7.x,c7.z,c7.hw,c7.hd,3))skip7=true;
             }
             if(skip7)continue;
             var tg7=new THREE.Group();tg7.position.set(tx7,_by7,tz7);
@@ -2050,7 +2050,7 @@ function buildCity() {
             var crx=(Math.random()-0.5)*_moonCityHalf*1.8;
             var crz=(Math.random()-0.5)*_moonCityHalf*1.8;
             // Skip if inside Von Braun zone (x<-50) or too close to center
-            if(crx<-50&&Math.abs(crz)<120)continue;
+            if(crx<-50&&DANBO_WASM.absDeltaLess(crz,0,120))continue;
             var crr=3+Math.random()*8;
             var craterG=new THREE.Group();
             var crater=new THREE.Mesh(new THREE.CylinderGeometry(crr,crr*1.1,1,16),toon(0x555566));
@@ -2542,7 +2542,7 @@ function buildCity() {
             var rrx=(Math.random()-0.5)*_moonCityHalf*1.8;
             var rrz=(Math.random()-0.5)*_moonCityHalf*1.8;
             // Skip if inside Von Braun zone
-            if(rrx<-50&&Math.abs(rrz)<120)continue;
+            if(rrx<-50&&DANBO_WASM.absDeltaLess(rrz,0,120))continue;
             var rs=1+Math.random()*3;
             var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(rs,0),toon(0x888899));
             rock.position.set(rrx,rs*0.4,rrz);
@@ -2778,8 +2778,8 @@ function buildCity() {
             var gFlatZ=Math.sin(gAngle)*gDist;
             // Avoid spawning inside city zones
             var _gInCity=false;
-            if(Math.sqrt((gFlatX+200)*(gFlatX+200)+gFlatZ*gFlatZ)<170)_gInCity=true;
-            if(Math.sqrt((gFlatX+200)*(gFlatX+200)+(gFlatZ+200)*(gFlatZ+200))<110)_gInCity=true;
+            if(DANBO_WASM.len2D(gFlatX+200,gFlatZ)<170)_gInCity=true;
+            if(DANBO_WASM.len2D(gFlatX+200,gFlatZ+200)<110)_gInCity=true;
             if(_gInCity){gFlatX=100+Math.random()*250;gFlatZ=(Math.random()-0.5)*500;}
             gd.group.position.set(gFlatX,gAlt,gFlatZ);
             gd.group.scale.set(2,2,2);

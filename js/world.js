@@ -124,8 +124,8 @@ function buildCityCoins() {
         const cx=(Math.random()-0.5)*coinSpread*2, cz=(Math.random()-0.5)*coinSpread*2;
         let skip=false;
         if(currentCityStyle!==5){
-            for(const c of cityColliders) if((window.DANBO_WASM&&DANBO_WASM.aabb2D)?DANBO_WASM.aabb2D(cx,cz,c.x,c.z,c.hw,c.hd,1):(Math.abs(cx-c.x)<c.hw+1&&Math.abs(cz-c.z)<c.hd+1)) skip=true;
-            if((window.DANBO_WASM&&DANBO_WASM.within2D)?DANBO_WASM.within2D(cx,cz,0,0,7):(Math.sqrt(cx*cx+cz*cz)<7)) skip=true;
+            for(const c of cityColliders) if(DANBO_WASM.aabb2D(cx,cz,c.x,c.z,c.hw,c.hd,1)) skip=true;
+            if(DANBO_WASM.within2D(cx,cz,0,0,7)) skip=true;
         }
         if(skip) continue;
         const coin=new THREE.Mesh(window._sharedCityCoinGeo, window._sharedCityCoinMat);
@@ -155,7 +155,7 @@ function buildWarpPipes(){
     // Snow village: offset pipes to avoid dock (z=145 area)
     if(currentCityStyle===7){
         positions=positions.map(function(p){
-            if(Math.abs(p.x)<10&&p.z>100)return{x:60,z:110,targetOffset:p.targetOffset};
+            if(DANBO_WASM.absDeltaLess(p.x,0,10)&&p.z>100)return{x:60,z:110,targetOffset:p.targetOffset};
             return p;
         });
     }
@@ -350,7 +350,7 @@ function startPipeTravel(fromX,fromZ,targetStyle,fromY){
     // Destination is far away — simulate flying to a distant continent
     // Direction from pipe position determines flight direction
     var dirX=fromX,dirZ=fromZ;
-    var dirLen=Math.sqrt(dirX*dirX+dirZ*dirZ);
+    var dirLen=DANBO_WASM.len2D(dirX,dirZ);
     if(dirLen>0.1){dirX/=dirLen;dirZ/=dirLen;}else{dirX=0;dirZ=-1;}
     // Fly 400 units outward then curve back to center of new city
     _pipeEndX=0;_pipeEndZ=0;
@@ -488,7 +488,7 @@ function updatePipeTravel(){
     var lz=lu*lu*_pipeStartZ+2*lu*lookAhead*_pipeMidZ+lookAhead*lookAhead*_pipeEndZ;
     var ly=_pipeStartY+Math.sin(lookAhead*Math.PI)*60;
     var cdx=px-lx,cdz=pz-lz;
-    var cl=Math.sqrt(cdx*cdx+cdz*cdz)||1;
+    var cl=DANBO_WASM.len2D(cdx,cdz)||1;
     camera.position.set(px+cdx/cl*camDist,py+6,pz+cdz/cl*camDist);
     camera.lookAt(px,py,pz);
     // At 40% — rebuild city (while player is high up and can't see ground)
@@ -612,7 +612,7 @@ function spawnCityNPCs() {
             // Avoid fountain area (center, radius 10)
             do{
                 nx2=(Math.random()-0.5)*80;nz2=10+(Math.random())*60;
-            }while(Math.sqrt(nx2*nx2+nz2*nz2)<12);
+            }while(DANBO_WASM.len2D(nx2,nz2)<12);
         }
         const col=AI_COLORS[i%AI_COLORS.length];
         // Weighted character selection: more Zangief

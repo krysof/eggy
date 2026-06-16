@@ -12,7 +12,7 @@ function _moveHitDetect(sourceEgg, projPos, range, callback){
         if(t===sourceEgg||!t.alive||t.heldBy||t._piledriverLocked)continue;
         var dx=t.mesh.position.x-projPos.x;
         var dz=t.mesh.position.z-projPos.z;
-        var dist=Math.sqrt(dx*dx+dz*dz);
+        var dist=DANBO_WASM.len2D(dx,dz);
         if(dist<range){
             if(callback(t,dist,dx,dz))return true;
         }
@@ -246,7 +246,7 @@ function MoveSpin_update(egg, inputFn){
         // Lariat: free WASD movement, stay grounded
         if(inputFn){
             var inp=inputFn();
-            var lmLen=Math.sqrt(inp.mx*inp.mx+inp.mz*inp.mz);
+            var lmLen=DANBO_WASM.len2D(inp.mx,inp.mz);
             if(lmLen>0.1){
                 egg.vx=inp.mx/lmLen*MAX_SPEED*0.8;
                 egg.vz=inp.mz/lmLen*MAX_SPEED*0.8;
@@ -396,7 +396,7 @@ function MoveUppercut_update(egg){
             var shdx=she.mesh.position.x-egg.mesh.position.x;
             var shdz=she.mesh.position.z-egg.mesh.position.z;
             var shdy=she.mesh.position.y-egg.mesh.position.y;
-            var shd=Math.sqrt(shdx*shdx+shdz*shdz+shdy*shdy);
+            var shd=DANBO_WASM.len3D(shdx,shdy,shdz);
             if(shd<3&&shd>0.01){
                 she.vx+=shdx/shd*COMBAT.shoryuken.force;she.vz+=shdz/shd*COMBAT.shoryuken.force;
                 she.vy=COMBAT.shoryuken.vy;she.squash=COMBAT.shoryuken.squash;she.throwTimer=COMBAT.shoryuken.throwTimer;she._bounces=COMBAT.shoryuken.bounces;
@@ -570,7 +570,7 @@ function MoveRapidHit_update(egg, limbType, holdKey, inputFn){
             var he=allEggs[hi];if(he===egg||!he.alive||he.heldBy)continue;
             var hdx=he.mesh.position.x-egg.mesh.position.x;
             var hdz=he.mesh.position.z-egg.mesh.position.z;
-            var hd=Math.sqrt(hdx*hdx+hdz*hdz);
+            var hd=DANBO_WASM.len2D(hdx,hdz);
             if(hd<2.5){
                 var hd2=hd||1;
                 he.vx+=hdx/hd2*COMBAT.rapidHit.force;he.vz+=hdz/hd2*COMBAT.rapidHit.force;he.vy=COMBAT.rapidHit.vy;

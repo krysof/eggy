@@ -18,7 +18,7 @@ function updateObstacles(){
                         const ptX=armDirX*ob.data.armLen*t;
                         const ptZ=-(ob.data.z)+armDirZ*ob.data.armLen*t;
                         const dx=egg.mesh.position.x-ptX, ddz=egg.mesh.position.z-ptZ;
-                        const dist=Math.sqrt(dx*dx+ddz*ddz);
+                        const dist=DANBO_WASM.len2D(dx,ddz);
                         if(dist<egg.radius+0.45){
                             const str=0.22+t*0.08;
                             egg.vx+=(dx/dist)*str;egg.vz+=(ddz/dist)*str;egg.vy=0.1;egg.squash=0.65;
@@ -38,7 +38,7 @@ function updateObstacles(){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 if(Math.abs(-egg.mesh.position.z-ob.data.z)>1.5)continue;
                 const dx=egg.mesh.position.x-headX,dy=egg.mesh.position.y-headY;
-                const dist=Math.sqrt(dx*dx+dy*dy);
+                const dist=DANBO_WASM.len2D(dx,dy);
                 if(dist<egg.radius+0.9){egg.vx+=dx*0.35;egg.vy=0.22;egg.vz+=(Math.random()-0.5)*0.2;egg.squash=0.55;}
             }
         }
@@ -55,7 +55,7 @@ function updateObstacles(){
             for(const egg of allEggs){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const dx=egg.mesh.position.x-ob.data.x,dz=egg.mesh.position.z-(-ob.data.z),dy=egg.mesh.position.y-(ob.data.fy+ob.data.radius);
-                const dist=Math.sqrt(dx*dx+dz*dz+dy*dy);
+                const dist=DANBO_WASM.len3D(dx,dy,dz);
                 if(dist<egg.radius+ob.data.radius){egg.vx+=(dx/dist)*0.32;egg.vz+=(dz/dist)*0.32;egg.vy=0.14;egg.squash=0.65;}
             }
         }
@@ -67,7 +67,7 @@ function updateObstacles(){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 if(Math.abs(-egg.mesh.position.z-ob.data.z)>2)continue;
                 const dx=egg.mesh.position.x-ballX,dy=egg.mesh.position.y-ballY;
-                const dist=Math.sqrt(dx*dx+dy*dy);
+                const dist=DANBO_WASM.len2D(dx,dy);
                 if(dist<egg.radius+1.0){egg.vx+=(dx/dist)*0.4;egg.vy=0.25;egg.vz+=(Math.random()-0.5)*0.2;egg.squash=0.5;}
             }
         }
@@ -81,7 +81,7 @@ function updateObstacles(){
             for(const egg of allEggs){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const ez=-egg.mesh.position.z;
-                if(Math.abs(ez-ob.data.z)<ob.data.halfLen&&Math.abs(egg.mesh.position.x)<ob.data.halfW&&egg.onGround){
+                if(DANBO_WASM.aabb2D(egg.mesh.position.x,ez,0,ob.data.z,ob.data.halfW,ob.data.halfLen,0)&&egg.onGround){
                     egg.conveyorVx=ob.data.pushX; egg.conveyorVz=ob.data.pushZ;
                 }
             }
@@ -97,7 +97,7 @@ function updateObstacles(){
                     for(const egg of allEggs){
                         if(!egg.alive||egg.finished||egg.cityNPC)continue;
                         const dx=egg.mesh.position.x-d.x,dz=egg.mesh.position.z-(-d.z);
-                        if(Math.abs(dx)<d.size*0.7&&Math.abs(dz)<d.size*0.7&&egg.mesh.position.y<d.fy+d.size+0.5){
+                        if(DANBO_WASM.aabb2D(egg.mesh.position.x,egg.mesh.position.z,d.x,-d.z,d.size*0.7,d.size*0.7,0)&&egg.mesh.position.y<d.fy+d.size+0.5){
                             egg.vy=0.3;egg.vx+=dx*0.3;egg.vz+=dz*0.3;egg.squash=0.4;
                         }
                     }
@@ -115,7 +115,7 @@ function updateObstacles(){
             for(const egg of allEggs){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const ez=-egg.mesh.position.z;
-                if(Math.abs(ez-ob.data.z)<ob.data.halfD&&Math.abs(egg.mesh.position.x)<ob.data.halfW&&egg.onGround){
+                if(DANBO_WASM.aabb2D(egg.mesh.position.x,ez,0,ob.data.z,ob.data.halfW,ob.data.halfD,0)&&egg.onGround){
                     egg.vz-=ob.data.strength; egg.squash=0.8;
                 }
             }
@@ -127,7 +127,7 @@ function updateObstacles(){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const dx=egg.mesh.position.x-ob.data.x;
                 const dz=egg.mesh.position.z-(-ob.data.z);
-                const dist=Math.sqrt(dx*dx+dz*dz);
+                const dist=DANBO_WASM.len2D(dx,dz);
                 if(dist<ob.data.radius+egg.radius&&egg.onGround&&egg.mesh.position.y<ob.data.fy+1.5){
                     egg.vy=ob.data.jumpForce;
                     egg.vz-=0.08;
@@ -142,7 +142,7 @@ function updateObstacles(){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const dx=egg.mesh.position.x-ob.data.x;
                 const dz=egg.mesh.position.z-(-ob.data.z);
-                const dist=Math.sqrt(dx*dx+dz*dz);
+                const dist=DANBO_WASM.len2D(dx,dz);
                 if(dist<ob.data.radius+egg.radius&&egg.mesh.position.y<ob.data.fy+ob.data.height){
                     const push=ob.data.radius+egg.radius-dist;
                     if(dist>0.01){egg.mesh.position.x+=dx/dist*push;egg.mesh.position.z+=dz/dist*push;}
@@ -165,7 +165,7 @@ function updateObstacles(){
                 if(!egg.alive||egg.finished||egg.cityNPC)continue;
                 const dx=egg.mesh.position.x-gx;
                 const dz=egg.mesh.position.z-(-ob.data.z);
-                const dist=Math.sqrt(dx*dx+dz*dz);
+                const dist=DANBO_WASM.len2D(dx,dz);
                 if(dist<ob.data.radius+egg.radius){
                     // If egg is above goomba — stomp it (bounce)
                     if(egg.mesh.position.y>ob.data.fy+0.8&&egg.vy<0){
@@ -210,7 +210,7 @@ function updateObstacles(){
                     var _qdx=_qegg.mesh.position.x-ob.data.x;
                     var _qdz=_qegg.mesh.position.z-(-ob.data.z);
                     var _qdy=_qegg.mesh.position.y-(ob.data.baseY-1.0);
-                    if(Math.abs(_qdx)<1.5&&Math.abs(_qdz)<1.5&&Math.abs(_qdy)<1.0&&_qegg.vy>0){
+                    if(DANBO_WASM.aabb2D(_qegg.mesh.position.x,_qegg.mesh.position.z,ob.data.x,-ob.data.z,1.5,1.5,0)&&DANBO_WASM.absDeltaWithin(_qegg.mesh.position.y,ob.data.baseY-1.0,1.0)&&_qegg.vy>0){
                         // Trigger: bounce block, spawn coins, mark used
                         ob.data._bouncing=true; ob.data._bounceT=0; ob.data.used=true;
                         // Change to brown (used block)
@@ -262,7 +262,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var bcdx=egg.mesh.position.x-bc.mesh.position.x;
             var bcdy=egg.mesh.position.y-bc.mesh.position.y;
             var bcdz=egg.mesh.position.z-bc.mesh.position.z;
-            var bcd=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,bc.mesh.position.x,bc.mesh.position.y,bc.mesh.position.z):Math.sqrt(bcdx*bcdx+bcdy*bcdy+bcdz*bcdz);
+            var bcd=DANBO_WASM.dist3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,bc.mesh.position.x,bc.mesh.position.y,bc.mesh.position.z);
             if(bcd<bestCD){bestCD=bcd;bestCoin=bci;}
         }
         if(bestCoin!==null){egg._coinTarget=bestCoin;egg._coinTargetTimer=360;}
@@ -283,7 +283,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 var tcdx=tc.mesh.position.x-egg.mesh.position.x;
                 var tcdy=tc.mesh.position.y-egg.mesh.position.y;
                 var tcdz=tc.mesh.position.z-egg.mesh.position.z;
-                var tcd=(window.DANBO_WASM&&DANBO_WASM.dist3D)?DANBO_WASM.dist3D(tc.mesh.position.x,tc.mesh.position.y,tc.mesh.position.z,egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z):Math.sqrt(tcdx*tcdx+tcdy*tcdy+tcdz*tcdz);
+                var tcd=DANBO_WASM.dist3D(tc.mesh.position.x,tc.mesh.position.y,tc.mesh.position.z,egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z);
                 if(tcd>0.5){egg.vx+=(tcdx/tcd)*MOVE_ACCEL*0.7;egg.vy+=(tcdy/tcd)*MOVE_ACCEL*0.7;egg.vz+=(tcdz/tcd)*MOVE_ACCEL*0.7;}
                 _chasingCoin=true;
             }
@@ -298,7 +298,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             var sdx=egg.mesh.position.x-sc.mesh.position.x;
             var sdy=egg.mesh.position.y-sc.mesh.position.y;
             var sdz=egg.mesh.position.z-sc.mesh.position.z;
-            if((window.DANBO_WASM&&DANBO_WASM.within3D)?DANBO_WASM.within3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,sc.mesh.position.x,sc.mesh.position.y,sc.mesh.position.z,2.5):(sdx*sdx+sdy*sdy+sdz*sdz<6.25)){
+            if(DANBO_WASM.within3D(egg.mesh.position.x,egg.mesh.position.y,egg.mesh.position.z,sc.mesh.position.x,sc.mesh.position.y,sc.mesh.position.z,2.5)){
                 sc._stolenBy=egg;
                 sc.mesh.visible=false;
                 egg._stolenCoins.push(sci);
@@ -337,7 +337,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
     }
     // Skip normal AI if chasing a coin
     if(_chasingCoin){
-        var spd2=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+        var spd2=DANBO_WASM.len2D(egg.vx,egg.vz);
         if(spd2>MAX_SPEED*0.6){egg.vx=(egg.vx/spd2)*MAX_SPEED*0.6;egg.vz=(egg.vz/spd2)*MAX_SPEED*0.6;}
         return;
     }
@@ -405,7 +405,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg.vx+=(egg.aiTargetX-egg.mesh.position.x)*0.05;
         }
         var dx=egg.aiTargetX-egg.mesh.position.x, dz=egg.aiTargetZ-egg.mesh.position.z;
-        var dist=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(egg.aiTargetX,egg.aiTargetZ,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(dx*dx+dz*dz);
+        var dist=DANBO_WASM.dist2D(egg.aiTargetX,egg.aiTargetZ,egg.mesh.position.x,egg.mesh.position.z);
         // NPC sprint burst
         var npcSprint=(egg._aiSprint||0)>0;
         var npcAccel=npcSprint?0.5:0.3;
@@ -434,7 +434,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(other===egg||!other.alive||other.heldBy)continue;
             var cdx=other.mesh.position.x-egg.mesh.position.x;
             var cdz=other.mesh.position.z-egg.mesh.position.z;
-            var cd=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(other.mesh.position.x,other.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(cdx*cdx+cdz*cdz);
+            var cd=DANBO_WASM.dist2D(other.mesh.position.x,other.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z);
             // Prefer attacking NPCs over player (player distance inflated)
             if(other.isPlayer)cd*=2.5;
             if(cd<closeDist){closeDist=cd;closest=other;}
@@ -442,7 +442,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         if(closest){
             var cdx2=closest.mesh.position.x-egg.mesh.position.x;
             var cdz2=closest.mesh.position.z-egg.mesh.position.z;
-            var cd2=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(closest.mesh.position.x,closest.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(cdx2*cdx2+cdz2*cdz2);
+            var cd2=DANBO_WASM.dist2D(closest.mesh.position.x,closest.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z);
             if(cd2>2){var chaseAccel=(egg._aiSprint>0)?0.65:0.4;egg.vx+=(cdx2/cd2)*MOVE_ACCEL*chaseAccel;egg.vz+=(cdz2/cd2)*MOVE_ACCEL*chaseAccel;}
             if(Math.random()<0.003){egg._aiSprint=40+Math.random()*60;}
             if(egg._aiSprint>0)egg._aiSprint--;
@@ -611,13 +611,13 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(fo===egg||!fo.alive)continue;
             var fdx=fo.mesh.position.x-egg.mesh.position.x;
             var fdz=fo.mesh.position.z-egg.mesh.position.z;
-            var fd=Math.sqrt(fdx*fdx+fdz*fdz);
+            var fd=DANBO_WASM.len2D(fdx,fdz);
             if(fd<nearDist2){nearDist2=fd;nearest2=fo;}
         }
         if(nearest2&&nearDist2<12){
             var fdx2=egg.mesh.position.x-nearest2.mesh.position.x;
             var fdz2=egg.mesh.position.z-nearest2.mesh.position.z;
-            var fd2=Math.sqrt(fdx2*fdx2+fdz2*fdz2)||1;
+            var fd2=DANBO_WASM.len2D(fdx2,fdz2)||1;
             egg.vx+=(fdx2/fd2)*MOVE_ACCEL*0.45;egg.vz+=(fdz2/fd2)*MOVE_ACCEL*0.45;
         }
         if(Math.random()<0.004){egg._aiSprint=50+Math.random()*70;}
@@ -636,7 +636,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         var tx=egg._circleCenter.x+Math.cos(egg._circleAngle)*cr;
         var tz=egg._circleCenter.z+Math.sin(egg._circleAngle)*cr;
         var cdx3=tx-egg.mesh.position.x, cdz3=tz-egg.mesh.position.z;
-        var cd3=Math.sqrt(cdx3*cdx3+cdz3*cdz3);
+        var cd3=DANBO_WASM.len2D(cdx3,cdz3);
         if(cd3>0.5){egg.vx+=(cdx3/cd3)*MOVE_ACCEL*0.35;egg.vz+=(cdz3/cd3)*MOVE_ACCEL*0.35;}
         if(egg.onGround&&Math.random()<0.004){egg.vy=JUMP_FORCE*(0.5+Math.random()*1.5);egg.squash=0.6;}
     } else if(st==='babel'){
@@ -644,7 +644,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
         if(_babylonTower){
             var bt=_babylonTower;
             var bdx=bt.x-egg.mesh.position.x, bdz=bt.z-egg.mesh.position.z;
-            var bd=(window.DANBO_WASM&&DANBO_WASM.dist2D)?DANBO_WASM.dist2D(bt.x,bt.z,egg.mesh.position.x,egg.mesh.position.z):Math.sqrt(bdx*bdx+bdz*bdz);
+            var bd=DANBO_WASM.dist2D(bt.x,bt.z,egg.mesh.position.x,egg.mesh.position.z);
             if(bd>4){
                 egg.vx+=(bdx/bd)*MOVE_ACCEL*0.5;egg.vz+=(bdz/bd)*MOVE_ACCEL*0.5;
             } else {
@@ -691,7 +691,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
                 var sddz2=sde2.mesh.position.z-egg.mesh.position.z;
                 var sddy2=sde2.mesh.position.y-egg.mesh.position.y;
                 if(Math.abs(sddy2)>1.5)continue;
-                var sdd2=Math.sqrt(sddx2*sddx2+sddz2*sddz2);
+                var sdd2=DANBO_WASM.len2D(sddx2,sddz2);
                 if(sdd2<2.5&&sdd2>0.01){
                     sde2.vx+=sddx2/sdd2*0.4;sde2.vy+=0.2;sde2.vz+=sddz2/sdd2*0.4;
                     sde2.throwTimer=COMBAT.propImpact.throwTimer;sde2._bounces=COMBAT.propImpact.bounces;sde2.squash=0.5;
@@ -704,7 +704,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             egg._npcSpinTimer=0;egg._aiStateTimer=10;
         }
     }
-    var spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+    var spd=DANBO_WASM.len2D(egg.vx,egg.vz);
     var npcSpd=(egg._aiSprint>0)?1.2:1;
     var maxSpd=st==='flee'?MAX_SPEED*0.7*npcSpd:st==='chase'?MAX_SPEED*0.6*npcSpd:MAX_SPEED*0.45*npcSpd;
     if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
@@ -773,7 +773,7 @@ function updateCityNPC(egg){if(egg.heldBy)return;
             if(_nte._npcTatsuHitCD>0){_nte._npcTatsuHitCD--;continue;}
             var _ntdx=_nte.mesh.position.x-egg.mesh.position.x;
             var _ntdz=_nte.mesh.position.z-egg.mesh.position.z;
-            if((window.DANBO_WASM&&DANBO_WASM.within2D)?DANBO_WASM.within2D(_nte.mesh.position.x,_nte.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z,2.5):(Math.sqrt(_ntdx*_ntdx+_ntdz*_ntdz)<2.5)){
+            if(DANBO_WASM.within2D(_nte.mesh.position.x,_nte.mesh.position.z,egg.mesh.position.x,egg.mesh.position.z,2.5)){
                 _nte.vx+=_ntdx*0.15;_nte.vz+=_ntdz*0.15;_nte.vy=0.1;
                 _nte.squash=0.6;_nte._hitStun=8;_nte._npcTatsuHitCD=10;
                 _dropNpcStolenCoins(_nte);if(_nte.isPlayer)playHitSound(egg.mesh.position.x,egg.mesh.position.z);
@@ -884,29 +884,29 @@ function updateRaceAI(egg){
         var avoidStr=egg._reactSpeed*egg.aiSkill;
         if(ob.type==='spinner'&&dz<6){
             var tipX=Math.sin(ob.data.angle)*ob.data.armLen;
-            if(Math.abs(egg.mesh.position.x-tipX)<2.5)egg.vx+=(egg.mesh.position.x>tipX?1:-1)*MOVE_ACCEL*avoidStr*1.5;
+            if(DANBO_WASM.absDeltaLess(egg.mesh.position.x,tipX,2.5))egg.vx+=(egg.mesh.position.x>tipX?1:-1)*MOVE_ACCEL*avoidStr*1.5;
         }
-        if(ob.type==='bumper'&&dz<4&&Math.abs(egg.mesh.position.x-ob.data.x)<2)
+        if(ob.type==='bumper'&&dz<4&&DANBO_WASM.absDeltaLess(egg.mesh.position.x,ob.data.x,2))
             egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*avoidStr;
         if(ob.type==='roller'&&dz<3){
             if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<avoidStr*0.5){egg.vy=JUMP_FORCE*(0.7+egg.aiSkill*0.3);egg.aiJumpCD=20+Math.random()*15;}
         }
         if(ob.type==='pendulum'&&dz<5){
             var ballX=Math.sin(ob.data.angle*1.4)*ob.data.chainLen;
-            if(Math.abs(egg.mesh.position.x-ballX)<2)egg.vx+=(egg.mesh.position.x>ballX?1:-1)*MOVE_ACCEL*avoidStr;
+            if(DANBO_WASM.absDeltaLess(egg.mesh.position.x,ballX,2))egg.vx+=(egg.mesh.position.x>ballX?1:-1)*MOVE_ACCEL*avoidStr;
         }
         if(ob.type==='platform'&&dz<4)egg.vx+=(ob.mesh.position.x-egg.mesh.position.x)*0.02*avoidStr;
         if(ob.type==='conveyor'&&dz<ob.data.halfLen)egg.vx-=ob.data.pushX*0.3*avoidStr;
-        if(ob.type==='fallingBlock'&&dz<3&&ob.data.timer<ob.data.warningTime&&Math.abs(egg.mesh.position.x-ob.data.x)<ob.data.size)
+        if(ob.type==='fallingBlock'&&dz<3&&ob.data.timer<ob.data.warningTime&&DANBO_WASM.absDeltaLess(egg.mesh.position.x,ob.data.x,ob.data.size))
             egg.vx+=(egg.mesh.position.x>ob.data.x?1:-1)*MOVE_ACCEL*avoidStr*1.5;
-        if(ob.type==='spring'&&dz<2&&Math.abs(egg.mesh.position.x-(ob.data.x||0))<1.5&&egg.onGround){
+        if(ob.type==='spring'&&dz<2&&DANBO_WASM.absDeltaLess(egg.mesh.position.x,(ob.data.x||0),1.5)&&egg.onGround){
             egg.vy=ob.data.jumpForce*0.9;
         }
-        if(ob.type==='pipe'&&dz<4&&Math.abs(egg.mesh.position.x-(ob.data.x||0))<2)
+        if(ob.type==='pipe'&&dz<4&&DANBO_WASM.absDeltaLess(egg.mesh.position.x,(ob.data.x||0),2))
             egg.vx+=(egg.mesh.position.x>(ob.data.x||0)?1:-1)*MOVE_ACCEL*avoidStr*1.5;
         if(ob.type==='goomba'&&dz<3&&!ob.data._squashed){
             var gdx=egg.mesh.position.x-(ob.data.x||0);
-            if(Math.abs(gdx)<2){
+            if(DANBO_WASM.absDeltaLess(gdx,0,2)){
                 if(egg.onGround&&Math.random()<avoidStr*0.2){egg.vy=JUMP_FORCE*0.9;egg.aiJumpCD=25;}
                 else egg.vx+=(gdx>0?1:-1)*MOVE_ACCEL*0.8;
             }
@@ -914,7 +914,7 @@ function updateRaceAI(egg){
     }
     egg.aiJumpCD--;
     if(egg.aiJumpCD<=0&&egg.onGround&&Math.random()<0.006*egg.aiSkill){egg.vy=JUMP_FORCE*0.85;egg.aiJumpCD=30+Math.random()*20;}
-    var spd=Math.sqrt(egg.vx*egg.vx+egg.vz*egg.vz);
+    var spd=DANBO_WASM.len2D(egg.vx,egg.vz);
     var maxSpd=MAX_SPEED*(style==='rusher'?1.05:style==='cautious'?0.85:0.95);
     if(spd>maxSpd){egg.vx=(egg.vx/spd)*maxSpd;egg.vz=(egg.vz/spd)*maxSpd;}
 }

@@ -137,7 +137,7 @@ function handlePlayerInput(){
     var _powerBoost=(playerEgg._speedBoost>0)?2:1;
     var accelMul=(1+sprintPct*1.0)*_powerBoost;
     var speedMul=(1+sprintPct*1.0)*_powerBoost;
-    const len=Math.sqrt(mx*mx+mz*mz);
+    const len=DANBO_WASM.len2D(mx,mz);
     if(len>0.1){
         mx/=len;mz/=len;
         // Stop movement during attack animation (punch/kick)
@@ -180,14 +180,14 @@ function handlePlayerInput(){
             if(keys['KeyW']||keys['ArrowUp'])sdSteerZ-=1;
             if(keys['KeyS']||keys['ArrowDown'])sdSteerZ+=1;
             if(joyActive){sdSteerX+=joyVec.x;sdSteerZ+=joyVec.y;}
-            var sdSteerLen=Math.sqrt(sdSteerX*sdSteerX+sdSteerZ*sdSteerZ);
+            var sdSteerLen=DANBO_WASM.len2D(sdSteerX,sdSteerZ);
             if(sdSteerLen>0.1){
                 sdSteerX/=sdSteerLen;sdSteerZ/=sdSteerLen;
                 // Blend steering into dash direction (turn rate)
                 var turnRate=0.06;
                 playerEgg._dashDirX+=(sdSteerX-playerEgg._dashDirX)*turnRate;
                 playerEgg._dashDirZ+=(sdSteerZ-playerEgg._dashDirZ)*turnRate;
-                var ddl=Math.sqrt(playerEgg._dashDirX*playerEgg._dashDirX+playerEgg._dashDirZ*playerEgg._dashDirZ)||1;
+                var ddl=DANBO_WASM.len2D(playerEgg._dashDirX,playerEgg._dashDirZ)||1;
                 playerEgg._dashDirX/=ddl;playerEgg._dashDirZ/=ddl;
             }
             // Apply dash velocity
@@ -217,9 +217,9 @@ function handlePlayerInput(){
                 var sddx=sde.mesh.position.x-playerEgg.mesh.position.x;
                 var sddz=sde.mesh.position.z-playerEgg.mesh.position.z;
                 var sddy=sde.mesh.position.y-playerEgg.mesh.position.y;
-                var sdd=Math.sqrt(sddx*sddx+sddz*sddz+sddy*sddy);
+                var sdd=DANBO_WASM.len3D(sddx,sddy,sddz);
                 // Only hit NPCs at similar height (within 1.5 units vertically on flat cities)
-                if(currentCityStyle!==5&&Math.abs(sddy)>1.5)continue;
+                if(currentCityStyle!==5&&!DANBO_WASM.absDeltaWithin(sddy,0,1.5))continue;
                 if(sdd<2.5&&sdd>0.01){
                     var sdForce=_spinDashSpeed*2;
                     sde.vx+=sddx/sdd*sdForce;sde.vy+=0.2+sdForce*0.3;sde.vz+=sddz/sdd*sdForce;
@@ -236,8 +236,8 @@ function handlePlayerInput(){
                 var spdx=sdp.group.position.x-playerEgg.mesh.position.x;
                 var spdz=sdp.group.position.z-playerEgg.mesh.position.z;
                 var spdy=sdp.group.position.y-playerEgg.mesh.position.y;
-                if(currentCityStyle!==5&&Math.abs(spdy)>1.5)continue;
-                var spdd=Math.sqrt(spdx*spdx+spdz*spdz+spdy*spdy);
+                if(currentCityStyle!==5&&!DANBO_WASM.absDeltaWithin(spdy,0,1.5))continue;
+                var spdd=DANBO_WASM.len3D(spdx,spdy,spdz);
                 if(spdd<3.0&&spdd>0.01){
                     var spForce=_spinDashSpeed*1.5;
                     sdp.throwVx=spdx/spdd*spForce;sdp.throwVy=0.15+spForce*0.2;sdp.throwVz=spdz/spdd*spForce;
@@ -313,7 +313,7 @@ function handlePlayerInput(){
         _ascendSmoke=false;
     }
     if(!_spinDashing){
-        const spd=Math.sqrt(playerEgg.vx*playerEgg.vx+playerEgg.vz*playerEgg.vz);
+        const spd=DANBO_WASM.len2D(playerEgg.vx,playerEgg.vz);
         var curMax=MAX_SPEED*speedMul;
         if(spd>curMax&&!playerEgg._hondaDash){playerEgg.vx=(playerEgg.vx/spd)*curMax;playerEgg.vz=(playerEgg.vz/spd)*curMax;}
     }
@@ -352,7 +352,7 @@ function handlePlayerInput(){
                 var _pde=allEggs[_pdi];if(_pde===playerEgg||!_pde.alive||_pde.heldBy||_pde.holding||_pde._piledriverLocked)continue;
                 var _pddx=_pde.mesh.position.x-playerEgg.mesh.position.x;
                 var _pddz=_pde.mesh.position.z-playerEgg.mesh.position.z;
-                var _pdd=Math.sqrt(_pddx*_pddx+_pddz*_pddz);
+                var _pdd=DANBO_WASM.len2D(_pddx,_pddz);
                 if(_pdd<_pdDist){_pdDist=_pdd;_pdTarget=_pde;}
             }
             if(_pdTarget){
@@ -453,7 +453,7 @@ function handlePlayerInput(){
             if(e===playerEgg||!e.alive||e.heldBy||e.holding)continue;
             var dx2=e.mesh.position.x-playerEgg.mesh.position.x;
             var dz2=e.mesh.position.z-playerEgg.mesh.position.z;
-            var d2=Math.sqrt(dx2*dx2+dz2*dz2);
+            var d2=DANBO_WASM.len2D(dx2,dz2);
             if(d2<nearDist){nearDist=d2;nearest=e;}
         }
         if(nearest){
@@ -471,7 +471,7 @@ function handlePlayerInput(){
                 if(ob.type==='spinner'||ob.type==='pendulum'||ob.type==='conveyor'||ob.type==='platform')continue;
                 var ox=ob.mesh.position.x-playerEgg.mesh.position.x;
                 var oz=ob.mesh.position.z-playerEgg.mesh.position.z;
-                var od=Math.sqrt(ox*ox+oz*oz);
+                var od=DANBO_WASM.len2D(ox,oz);
                 if(od<nearObsDist){nearObsDist=od;nearObs=ob;}
             }
             if(nearObs){
@@ -489,7 +489,7 @@ function handlePlayerInput(){
                         if(cpp.grabbed)continue;
                         var cpx=cpp.group.position.x-playerEgg.mesh.position.x;
                         var cpz=cpp.group.position.z-playerEgg.mesh.position.z;
-                        var cpd=Math.sqrt(cpx*cpx+cpz*cpz);
+                        var cpd=DANBO_WASM.len2D(cpx,cpz);
                         if(cpd<nearPropDist){nearPropDist=cpd;nearProp=cpp;}
                     }
                     if(nearProp){
@@ -601,7 +601,7 @@ function handlePlayerInput(){
                 var _hse=allEggs[_hsi];if(_hse===playerEgg||!_hse.alive||_hse.heldBy)continue;
                 var _hsdx=_hse.mesh.position.x-playerEgg.mesh.position.x;
                 var _hsdz=_hse.mesh.position.z-playerEgg.mesh.position.z;
-                if(Math.sqrt(_hsdx*_hsdx+_hsdz*_hsdz)<3.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
+                if(DANBO_WASM.len2D(_hsdx,_hsdz)<3.5){_hse.vx+=_hsdx*0.1;_hse.vz+=_hsdz*0.1;_hse._hitStun=6;_dropNpcStolenCoins(_hse);playHitSound();}
             }
             playerEgg.squash=0.88;
         } else if(playerEgg._rapidR>=2&&_ct==='cat'){
@@ -728,7 +728,7 @@ function handlePlayerInput(){
             if(_ae._slamImmune>0)continue;
             var _adx=_ae.mesh.position.x-playerEgg.mesh.position.x;
             var _adz=_ae.mesh.position.z-playerEgg.mesh.position.z;
-            var _ad=Math.sqrt(_adx*_adx+_adz*_adz);
+            var _ad=DANBO_WASM.len2D(_adx,_adz);
             if(_ad<2.5*playerEgg._extendedRange&&_ad>0.01){
                 var _aAngle=Math.atan2(_adx,_adz);
                 var _aDiff=Math.abs(_aAngle-_atkDir);if(_aDiff>Math.PI)_aDiff=Math.PI*2-_aDiff;
@@ -778,7 +778,7 @@ function handlePlayerInput(){
                 var _rle=allEggs[_rli];if(_rle===playerEgg||!_rle.alive||_rle.heldBy)continue;
                 var _rldx=_rle.mesh.position.x-playerEgg.mesh.position.x;
                 var _rldz=_rle.mesh.position.z-playerEgg.mesh.position.z;
-                var _rld=Math.sqrt(_rldx*_rldx+_rldz*_rldz);
+                var _rld=DANBO_WASM.len2D(_rldx,_rldz);
                 if(_rld<3){_rle.vx+=_rldx/_rld*0.15;_rle.vz+=_rldz/_rld*0.15;_rle._hitStun=8;_dropNpcStolenCoins(_rle);playHitSound();}
             }
             playerEgg.squash=0.85;playerEgg._atkAnim=6;
@@ -850,7 +850,7 @@ function handlePlayerInput(){
             if(_ke._slamImmune>0)continue;
             var _kdx=_ke.mesh.position.x-playerEgg.mesh.position.x;
             var _kdz=_ke.mesh.position.z-playerEgg.mesh.position.z;
-            var _kd=Math.sqrt(_kdx*_kdx+_kdz*_kdz);
+            var _kd=DANBO_WASM.len2D(_kdx,_kdz);
             if(_kd<3.0*playerEgg._extendedRange&&_kd>0.01){
                 var _kAngle=Math.atan2(_kdx,_kdz);
                 var _kDiff=Math.abs(_kAngle-_kDir);if(_kDiff>Math.PI)_kDiff=Math.PI*2-_kDiff;
@@ -953,7 +953,7 @@ function handlePlayerInput(){
                 var _gsdx=_gse.mesh.position.x-playerEgg.mesh.position.x;
                 var _gsdz=_gse.mesh.position.z-playerEgg.mesh.position.z;
                 var _gsdy=_gse.mesh.position.y-playerEgg.mesh.position.y;
-                var _gsd=Math.sqrt(_gsdx*_gsdx+_gsdz*_gsdz+_gsdy*_gsdy);
+                var _gsd=DANBO_WASM.len3D(_gsdx,_gsdy,_gsdz);
                 if(_gsd<3.5&&_gsd>0.01){
                     // Blow away + slash cut effect
                     _gse.vx+=_gsdx/_gsd*COMBAT.somersault.force;_gse.vz+=_gsdz/_gsd*COMBAT.somersault.force;_gse.vy=COMBAT.somersault.vy;
@@ -1056,11 +1056,11 @@ function handlePlayerInput(){
             var _bse=allEggs[_bsi];if(_bse===playerEgg||!_bse.alive||_bse.heldBy)continue;
             var _bsdx=_bse.mesh.position.x-playerEgg.mesh.position.x;
             var _bsdz=_bse.mesh.position.z-playerEgg.mesh.position.z;
-            if(Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz)<4){
+            if(DANBO_WASM.len2D(_bsdx,_bsdz)<4){
                 if(!_bse._electrocuted&&!_bse._elecFlying){
                     _bse._electrocuted=COMBAT.electric.electrocuteDuration;
                     _bse._slamImmune=200;
-                    var _elDist=Math.sqrt(_bsdx*_bsdx+_bsdz*_bsdz);
+                    var _elDist=DANBO_WASM.len2D(_bsdx,_bsdz);
                     if(_elDist<0.1)_elDist=0.1;
                     _bse._elecKnockDir={x:_bsdx/_elDist,z:_bsdz/_elDist};
                     _bse.vx=0;_bse.vz=0;_bse.vy=0;
@@ -1101,7 +1101,7 @@ function handlePlayerInput(){
                 if(_yfe._slamImmune>0||_yfe._onFire>0)continue;
                 var _yfdx=_yfe.mesh.position.x-playerEgg.mesh.position.x;
                 var _yfdz=_yfe.mesh.position.z-playerEgg.mesh.position.z;
-                var _yfd=Math.sqrt(_yfdx*_yfdx+_yfdz*_yfdz);
+                var _yfd=DANBO_WASM.len2D(_yfdx,_yfdz);
                 if(_yfd<4&&_yfd>0.01){
                     // Check if in front (cone check)
                     var _yfDot=(_yfdx*Math.sin(_yfFace)+_yfdz*Math.cos(_yfFace))/_yfd;
@@ -1146,7 +1146,7 @@ function handlePlayerInput(){
                 var _bre=allEggs[_bri];if(_bre===playerEgg||!_bre.alive||_bre.heldBy)continue;
                 var _brdx=_bre.mesh.position.x-playerEgg.mesh.position.x;
                 var _brdz=_bre.mesh.position.z-playerEgg.mesh.position.z;
-                var _brd=Math.sqrt(_brdx*_brdx+_brdz*_brdz);
+                var _brd=DANBO_WASM.len2D(_brdx,_brdz);
                 if(_brd<2.5&&_brd>0.01){
                     // Knock opponent flying like Honda headbutt
                     _bre.vx+=playerEgg.vx*0.8;_bre.vz+=playerEgg.vz*0.8;_bre.vy=0.25;
@@ -1167,7 +1167,7 @@ function handlePlayerInput(){
         for(var _bci2=0;_bci2<cityColliders.length;_bci2++){
             var _bc2=cityColliders[_bci2];
             var _bcdx=playerEgg.mesh.position.x-_bc2.x,_bcdz=playerEgg.mesh.position.z-_bc2.z;
-            if(Math.abs(_bcdx)<_bc2.hw+1&&Math.abs(_bcdz)<_bc2.hd+1&&playerEgg.mesh.position.y<(_bc2.h||6)){
+            if(DANBO_WASM.aabb2D(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_bc2.x,_bc2.z,_bc2.hw,_bc2.hd,1)&&playerEgg.mesh.position.y<(_bc2.h||6)){
                 playerEgg._blankaSpinDirX*=-0.3;playerEgg._blankaSpinDirZ*=-0.3;
                 playerEgg.vx=playerEgg._blankaSpinDirX;playerEgg.vz=playerEgg._blankaSpinDirZ;
                 playerEgg._blankaSpinTimer=0;
@@ -1234,7 +1234,7 @@ function handlePlayerInput(){
             var _hde=allEggs[_hdi];if(_hde===playerEgg||!_hde.alive||_hde.heldBy)continue;
             var _hddx=_hde.mesh.position.x-playerEgg.mesh.position.x;
             var _hddz=_hde.mesh.position.z-playerEgg.mesh.position.z;
-            if(Math.sqrt(_hddx*_hddx+_hddz*_hddz)<2.5){
+            if(DANBO_WASM.len2D(_hddx,_hddz)<2.5){
                 _hde.vx+=playerEgg.vx*0.8;_hde.vz+=playerEgg.vz*0.8;_hde.vy=0.25;
                 _hde.squash=COMBAT.kick.squash;_hde.throwTimer=COMBAT.hondaDash.throwTimer;_hde._bounces=COMBAT.hondaDash.bounces;_addStunDamage(_hde,COMBAT.hondaDash.stunDmg);
                 _dropNpcStolenCoins(_hde);playHitSound();
@@ -1255,7 +1255,7 @@ function handlePlayerInput(){
         for(var _dci=0;_dci<cityColliders.length;_dci++){
             var _dc=cityColliders[_dci];
             var _ddx=playerEgg.mesh.position.x-_dc.x,_ddz=playerEgg.mesh.position.z-_dc.z;
-            if(Math.abs(_ddx)<_dc.hw+1&&Math.abs(_ddz)<_dc.hd+1&&playerEgg.mesh.position.y<(_dc.h||6)){
+            if(DANBO_WASM.aabb2D(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_dc.x,_dc.z,_dc.hw,_dc.hd,1)&&playerEgg.mesh.position.y<(_dc.h||6)){
                 // Push out along dash direction (back to where we came from)
                 var _pushBack=2.0;
                 playerEgg.mesh.position.x-=playerEgg._dashDirX/_pushBack;
@@ -1308,7 +1308,7 @@ function handlePlayerInput(){
     // Detect any direction press (absolute, not relative to facing)
     var _anyDX=(_hLeft?-1:0)+(_hRight?1:0);
     var _anyDZ=(_hDown?1:0)+((keys['KeyW']||keys['ArrowUp'])?-1:0);
-    var _anyDL=Math.sqrt(_anyDX*_anyDX+_anyDZ*_anyDZ);
+    var _anyDL=DANBO_WASM.len2D(_anyDX,_anyDZ);
     // Hysteresis: press at 0.3, release at 0.15 (easier to re-trigger on mobile joystick)
     var _dpPressed=_anyDL>0.3;
     if(!_dpPressed&&_anyDL<0.15)playerEgg._prevDA=false;

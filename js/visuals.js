@@ -109,7 +109,7 @@ function _visualAvoidColliders(x,z,margin){
         var c=cityColliders[i];
         // Huge terrain colliders are walkable plateaus; do not treat them as blockers for detail.
         if(c.hw>45||c.hd>80)continue;
-        if(Math.abs(x-c.x)<c.hw+margin&&Math.abs(z-c.z)<c.hd+margin)return true;
+        if(DANBO_WASM.aabb2D(x,z,c.x,c.z,c.hw,c.hd,margin))return true;
     }
     return false;
 }
@@ -263,7 +263,7 @@ function _visualAddGroundInstanced(style,st,mood){
         while(placed<count&&tries<count*8){
             tries++;
             var p=_visualRandomInCity(style);var x=p.x,z=p.z;
-            if(style!==6&&style!==7&&(Math.abs(x)<5||Math.abs(z)<5))continue;
+            if(style!==6&&style!==7&&(DANBO_WASM.absDeltaLess(x,0,5)||DANBO_WASM.absDeltaLess(z,0,5)))continue;
             if(_visualAvoidColliders(x,z,1.2))continue;
             var gy=_visualGroundY(style,x,z);
             dummy.position.set(x,gy+0.45,z);
@@ -318,7 +318,7 @@ function _visualAddLavaCracks(){
     var d=new THREE.Object3D();var placed=0,tries=0;
     while(placed<count&&tries<count*8){
         tries++;var p=_visualRandomInCity(3);var x=p.x,z=p.z;
-        if(Math.abs(x)<7||Math.abs(z)<7||_visualAvoidColliders(x,z,1.0))continue;
+        if(DANBO_WASM.absDeltaLess(x,0,7)||DANBO_WASM.absDeltaLess(z,0,7)||_visualAvoidColliders(x,z,1.0))continue;
         d.position.set(x,0.09,z);
         d.scale.set(2+Math.random()*9,1,1);
         d.rotation.set(0,Math.random()*Math.PI*2,0);
