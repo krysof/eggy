@@ -322,7 +322,8 @@ function updateEggPhysics(egg, isCity){
                 var mp=_cloudWorldPipe;
                 var mdx=egg.mesh.position.x-mp.x,mdz=egg.mesh.position.z-mp.z;
                 var mdist=Math.sqrt(mdx*mdx+mdz*mdz);
-                if(mdist<5&&egg.mesh.position.y>=mp.y-5&&egg.mesh.position.y<=mp.y+15&&!mp._cooldown){
+                var mrange=(typeof _danboPortalConfirmRange==='function')?_danboPortalConfirmRange(PORTAL_CONFIG.confirmDist,true):(PORTAL_CONFIG.confirmDist+1.6);
+                if(mdist<mrange&&egg.mesh.position.y>=mp.y-5&&egg.mesh.position.y<=mp.y+15&&!mp._cooldown){
                     mp._cooldown=true;
                     _showMoonPipePrompt();
                 }

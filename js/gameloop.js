@@ -18,7 +18,10 @@ function _danboPortalNearGround(egg,py){
     return (window.DANBO_WASM&&DANBO_WASM.nearGround)?DANBO_WASM.nearGround(egg.onGround,egg.vy||0,py):(egg.onGround||Math.abs(egg.vy||0)<0.25||py<2.5);
 }
 function _danboPortalConfirmRange(confirmDist,isWarpPipe){
-    return (window.DANBO_WASM&&DANBO_WASM.confirmRange)?DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe):(confirmDist+(isWarpPipe?1.0:0));
+    // The visual entrance is much wider than the original center-point hit box.
+    // Keep the prompt at triggerDist, but open the confirm dialog as soon as the
+    // player is visibly inside/on the pad instead of requiring a tiny center hit.
+    return (window.DANBO_WASM&&DANBO_WASM.confirmRange)?DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe):(confirmDist+(isWarpPipe?1.6:3.4));
 }
 function _danboRacePortalHeightOk(py,portalY){
     return (window.DANBO_WASM&&DANBO_WASM.racePortalHeightOk)?DANBO_WASM.racePortalHeightOk(py,portalY):Math.abs(py-portalY)<=7;
@@ -30,6 +33,13 @@ function _danboPortalAction(distance,triggerDist,confirmDist,isWarpPipe,isVolunt
     if(window.DANBO_WASM&&DANBO_WASM.portalAction)return DANBO_WASM.portalAction(distance,triggerDist,confirmDist,!!isWarpPipe,!!isVoluntary);
     if(!isVoluntary||distance>=triggerDist)return 0;
     return distance<_danboPortalConfirmRange(confirmDist,isWarpPipe)?2:1;
+}
+function _danboPortalDismissKey(portal){
+    if(!portal)return null;
+    if(portal.raceIndex>=0)return 'race:'+portal.raceIndex;
+    if(portal._isWarpPipe)return 'pipe:'+portal._targetStyle;
+    if(portal._hiddenType)return 'hidden:'+portal._hiddenType+':'+(portal._targetStyle||0);
+    return 'target:'+(portal._targetStyle||0);
 }
 
 function _forEachObjectMaterial(obj,cb){
@@ -458,7 +468,7 @@ function updateCity(){
     var _portalAction=_nearP?_danboPortalAction(_nearD,PORTAL_CONFIG.triggerDist,PORTAL_CONFIG.confirmDist,_nearP._isWarpPipe,_isVoluntary):0;
     if(_nearP&&_portalAction>0){
         if(_pp)_pp.style.display='block';
-        var _dismissKey=(_nearP.raceIndex>=0)?_nearP.raceIndex:('h'+(_nearP._targetStyle||0));
+        var _dismissKey=_danboPortalDismissKey(_nearP);
         if(_portalAction===2&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
             if(_pp)_pp.style.display='none';
             showPortalConfirm(_nearP);
@@ -681,7 +691,7 @@ function updateCity(){
             var bdx2=px-_babelDoors[bdi].x, bdz2=pz-_babelDoors[bdi].z;
             var bdd=Math.sqrt(bdx2*bdx2+bdz2*bdz2);
             if(bdd<_nearestBabelDoor)_nearestBabelDoor=bdd;
-            if(bdd<3&&py<3&&!_babylonPromptDismissed&&!_babylonRising){
+            if(bdd<4.2&&py<3.5&&!_babylonPromptDismissed&&!_babylonRising){
                 _showBabylonPrompt(1);
             }
         }
@@ -689,10 +699,10 @@ function updateCity(){
         var topDoorX=bt.x, topDoorZ=bt.z;
         var tdx=px-topDoorX, tdz=pz-topDoorZ;
         var tdist=Math.sqrt(tdx*tdx+tdz*tdz);
-        if(tdist<3&&py>=bt.topY-2&&py<=bt.topY+4&&!_babylonPromptDismissed&&!_babylonRising){
+        if(tdist<4.2&&py>=bt.topY-2&&py<=bt.topY+4&&!_babylonPromptDismissed&&!_babylonRising){
             _showBabylonPrompt(-1);
         }
-        if(_nearestBabelDoor>4.5&&tdist>4.5)_babylonPromptDismissed=false;
+        if(_nearestBabelDoor>6&&tdist>6)_babylonPromptDismissed=false;
     }
     // ---- Babel elevator ride animation ----
     if(_babylonElevator&&_babylonTower&&playerEgg){
@@ -2174,6 +2184,7 @@ function updateHeldEggs(){
 
 // ---- Portal confirm dialog ----
 var _portalConfirmOpen=false, _portalConfirmRace=-1, _portalConfirmTarget=-1, _portalDismissed=null, _portalConfirmHidden=null;
+var _portalConfirmWarpPipe=null, _portalConfirmBabelDir=0, _portalConfirmKey=null;
 var _portalSel=0;
 function _updatePortalSel(){
     var yb=document.getElementById('portal-yes');
@@ -2189,6 +2200,7 @@ function showPortalConfirm(portal){
     _portalConfirmHidden=portal._hiddenType||null;
     _portalConfirmWarpPipe=portal._isWarpPipe?{x:portal._pipeX,z:portal._pipeZ,target:portal._targetStyle}:null;
     _portalConfirmBabelDir=portal._babelDir||0;
+    _portalConfirmKey=_danboPortalDismissKey(portal);
     _portalDismissed=null;
     var box=document.getElementById('portal-confirm');
     document.getElementById('portal-confirm-name').textContent=portal.name;
@@ -2196,12 +2208,14 @@ function showPortalConfirm(portal){
     box.style.display='flex';_portalSel=0;_updatePortalSel();
 }
 function hidePortalConfirm(){
-    _portalDismissed=(_portalConfirmRace>=0)?_portalConfirmRace:('h'+_portalConfirmTarget);
+    _portalDismissed=_portalConfirmKey||((_portalConfirmRace>=0)?('race:'+_portalConfirmRace):('target:'+_portalConfirmTarget));
     _portalConfirmOpen=false;
     _portalConfirmRace=-1;
     _portalConfirmTarget=-1;
     _portalConfirmHidden=null;
     _portalConfirmWarpPipe=null;
+    _portalConfirmBabelDir=0;
+    _portalConfirmKey=null;
     document.getElementById('portal-confirm').style.display='none';
 }
 function confirmPortalEnter(){
@@ -2209,6 +2223,7 @@ function confirmPortalEnter(){
     var ts=_portalConfirmTarget;
     var ht=_portalConfirmHidden;
     var wp=_portalConfirmWarpPipe;
+    var bd=_portalConfirmBabelDir;
     hidePortalConfirm();
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0){ enterRace(ri); }
@@ -2217,7 +2232,7 @@ function confirmPortalEnter(){
     }
     else if(ht==='babel'){
         if(!_babylonTower)return;
-        var _bDir=_portalConfirmBabelDir||1;
+        var _bDir=bd||1;
         _babylonElevator=true;
         _babylonElevDir=_bDir;
         _babylonElevY=(_bDir===1)?1:_babylonTower.topY;
