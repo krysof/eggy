@@ -18,9 +18,8 @@ function _danboPortalNearGround(egg,py){
     return DANBO_WASM.nearGround(egg.onGround,egg.vy||0,py);
 }
 function _danboPortalConfirmRange(confirmDist,isWarpPipe){
-    // The visual entrance is much wider than the original center-point hit box.
-    // Keep the prompt at triggerDist, but open the confirm dialog as soon as the
-    // player is visibly inside/on the pad instead of requiring a tiny center hit.
+    // Keep a small forgiving margin, but do not make the whole prompt area count
+    // as the entrance. This prevents portals from triggering when merely nearby.
     return DANBO_WASM.confirmRange(confirmDist,!!isWarpPipe);
 }
 function _danboRacePortalHeightOk(py,portalY){

@@ -101,7 +101,7 @@
             var e=api.exports;
             confirmDist=n(confirmDist);
             if(e&&e.danbo_confirm_range)return e.danbo_confirm_range(confirmDist,isWarpPipe?1:0);
-            return confirmDist+(isWarpPipe?1.6:3.4);
+            return confirmDist+(isWarpPipe?0.9:1.0);
         },
         racePortalHeightOk:function(py,portalY){
             var e=api.exports;
