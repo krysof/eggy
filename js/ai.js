@@ -3,7 +3,7 @@
 //  OBSTACLE UPDATE (race only)
 // ============================================================
 function updateObstacles(){
-    for(const ob of obstacleObjects){
+    for(const ob of _danboRaceObstacles()){
         if(ob.type==='spinner'){
             ob.data.angle+=ob.data.speed; ob.mesh.rotation.y=ob.data.angle;
             for(const egg of allEggs){
@@ -877,8 +877,8 @@ function updateRaceAI(egg){
     if(style==='jumper'&&egg.onGround&&Math.random()<0.025){egg.vy=JUMP_FORCE*(0.6+egg.aiSkill*0.3);egg.squash=0.65;egg.aiJumpCD=15;}
     // Obstacle avoidance
     var ez=-egg.mesh.position.z;
-    for(var oi=0;oi<obstacleObjects.length;oi++){
-        var ob=obstacleObjects[oi];
+    for(var oi=0;oi<_danboRaceObstacles().length;oi++){
+        var ob=_danboRaceObstacles()[oi];
         var dz=Math.abs(ez-(ob.data.z||0));
         if(dz>8)continue;
         var avoidStr=egg._reactSpeed*egg.aiSkill;
@@ -918,4 +918,3 @@ function updateRaceAI(egg){
     var _raceCap=DANBO_WASM.clampVel2D(egg.vx,egg.vz,maxSpd);
     if(_raceCap[3]){egg.vx=_raceCap[0];egg.vz=_raceCap[1];}
 }
-

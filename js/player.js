@@ -467,8 +467,8 @@ function handlePlayerInput(){
             playerEgg._justGrabbed=true;
         } else {
             var nearObs=null, nearObsDist=3.0;
-            for(var oi=0;oi<obstacleObjects.length;oi++){
-                var ob=obstacleObjects[oi];
+            for(var oi=0;oi<_danboRaceObstacles().length;oi++){
+                var ob=_danboRaceObstacles()[oi];
                 if(ob._grabbed)continue;
                 if(ob.type==='spinner'||ob.type==='pendulum'||ob.type==='conveyor'||ob.type==='platform')continue;
                 var ox=ob.mesh.position.x-playerEgg.mesh.position.x;
@@ -1493,4 +1493,3 @@ function handlePlayerInput(){
     playerEgg._fWasDown=!!keys['KeyF'];
     }catch(e){console.error('handlePlayerInput error:',e.message,e.stack);}
 }
-

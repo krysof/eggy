@@ -332,7 +332,7 @@ function updateEggPhysics(egg, isCity){
         if(egg.mesh.position.y<=floorY+0.01){egg.mesh.position.y=floorY+0.01;if(egg.vy<-0.1)egg.squash=0.7;egg.vy=0;egg.onGround=true;}else{egg.onGround=false;}
         // Platform check
         egg.onPlatform=null;
-        for(const ob of obstacleObjects){
+        for(const ob of _danboRaceObstacles()){
             if(ob.type!=='platform')continue;
             const d=ob.data, px=ob.mesh.position.x, pz=ob.mesh.position.z;
             if(DANBO_WASM.aabb2D(egg.mesh.position.x,egg.mesh.position.z,px,pz,d.width/2,d.depth/2,egg.radius*0.5)&&egg.mesh.position.y<=d.fy+0.3&&egg.mesh.position.y>=d.fy-0.5&&egg.vy<=0){
@@ -548,4 +548,3 @@ function resolveEggCollisions(eggList){
         }
     }
 }
-

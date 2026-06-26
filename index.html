@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260627.1">
+<link rel="stylesheet" href="style.css?v=20260627.2">
 </head>
 <body>
 <div id="game-container">
@@ -142,8 +142,10 @@
 
 <script>
 (function(){
-  var cache='v=20260627.1';
+  var cache='v=20260627.2';
   window.DANBO_ASSET_VERSION=cache;
+  var warmStart=false;
+  try{warmStart=localStorage.getItem('danbo_loader_version')===cache;}catch(e){}
   var loaderLang=(function(){
     var mode='auto';
     try{mode=localStorage.getItem('danbo_lang')||'auto';}catch(e){}
@@ -157,7 +159,8 @@
   document.documentElement.lang=loaderLang==='zhs'?'zh-CN':loaderLang==='zht'?'zh-TW':loaderLang==='ja'?'ja':'en';
   var loaderI18N={
     loading:{zhs:'3D引擎加载中...',zht:'3D引擎載入中...',ja:'3Dエンジン読み込み中...',en:'Loading 3D engine...'},
-    loadingAssets:{zhs:'游戏素材加载中... {n}/{total}',zht:'遊戲素材載入中... {n}/{total}',ja:'ゲーム素材読み込み中... {n}/{total}',en:'Loading game assets... {n}/{total}'},
+    loadingAssets:{zhs:'游戏启动中...',zht:'遊戲啟動中...',ja:'ゲーム起動中...',en:'Starting game...'},
+    cached:{zhs:'从缓存快速启动...',zht:'從快取快速啟動...',ja:'キャッシュから高速起動中...',en:'Fast start from cache...'},
     ready:{zhs:'准备好了',zht:'準備好了',ja:'準備完了',en:'Ready'},
     loadFail:{zhs:'加载失败，请刷新',zht:'載入失敗，請重新整理',ja:'読み込み失敗。リロードしてください',en:'Load failed, please refresh'}
   };
@@ -209,7 +212,7 @@
     var txt=document.getElementById('engine-loader-text');
     var fill=document.getElementById('engine-loader-fill');
     if(el)el.classList.remove('engine-loader-hidden');
-    if(txt)txt.textContent=loaderText(text,data);
+    if(txt)txt.textContent=loaderText(warmStart&&text==='loadingAssets'?'cached':text,data);
     if(fill)fill.style.width=Math.max(0,Math.min(100,percent||0))+'%';
   }
   function hideEngineLoading(){
@@ -229,7 +232,8 @@
     document.body.appendChild(s);
   }
   function finishGameLoading(){
-    setEngineLoading('ready',100);setTimeout(hideEngineLoading,250);
+    try{localStorage.setItem('danbo_loader_version',cache);}catch(e){}
+    setEngineLoading('ready',100);setTimeout(hideEngineLoading,warmStart?80:250);
   }
   var manifestFile='plugins/manifest.js';
   var pluginFiles=[];

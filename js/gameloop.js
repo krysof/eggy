@@ -2146,8 +2146,8 @@ function updateHeldEggs(){
         ob.mesh.position.z=playerEgg.mesh.position.z;
     }
     // Thrown obstacle physics
-    for(var ti=0;ti<obstacleObjects.length;ti++){
-        var tob=obstacleObjects[ti];
+    for(var ti=0;ti<_danboRaceObstacles().length;ti++){
+        var tob=_danboRaceObstacles()[ti];
         if(!tob._throwTimer||tob._throwTimer<=0)continue;
         tob._throwTimer--;
         tob.mesh.position.x+=tob._throwVx;
@@ -2179,8 +2179,8 @@ function updateHeldEggs(){
         tob.mesh.rotation.x+=0.3;tob.mesh.rotation.z+=0.25;
     }
     // Reset thrown obstacles
-    for(var ri2=0;ri2<obstacleObjects.length;ri2++){
-        var rob=obstacleObjects[ri2];
+    for(var ri2=0;ri2<_danboRaceObstacles().length;ri2++){
+        var rob=_danboRaceObstacles()[ri2];
         if(rob._resetDelay>0){
             rob._resetDelay--;
             if(rob._resetDelay<=0&&rob._origPos){
@@ -2645,8 +2645,8 @@ function _gameUpdate(){
         if(_pfActive){for(var _fzi=0;_fzi<raceEggs.length;_fzi++){raceEggs[_fzi].mesh.position.z=0;}}
         updateHeldEggs();
                 // Race coin collection + animation
-        for(var ci=0;ci<raceCoins.length;ci++){
-            var rc=raceCoins[ci];
+        for(var ci=0;ci<_danboRaceCoins().length;ci++){
+            var rc=_danboRaceCoins()[ci];
             if(rc.collected)continue;
             rc.bobPhase+=0.05;
             rc.mesh.position.y=rc.fy+1.2+Math.sin(rc.bobPhase)*0.3;
@@ -2704,8 +2704,8 @@ function _gameUpdate(){
             }
             // Magnet: attract nearby coins
             if(playerEgg._coinMagnet>0){
-                for(var _mci=0;_mci<raceCoins.length;_mci++){
-                    var _mc=raceCoins[_mci];
+                for(var _mci=0;_mci<_danboRaceCoins().length;_mci++){
+                    var _mc=_danboRaceCoins()[_mci];
                     if(_mc.collected||_mc.type)continue; // only attract regular coins
                     var _mdx2=playerEgg.mesh.position.x-_mc.mesh.position.x;
                     var _mdz2=playerEgg.mesh.position.z-_mc.mesh.position.z;
