@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260626.9">
+<link rel="stylesheet" href="style.css?v=20260627.1">
 </head>
 <body>
 <div id="game-container">
@@ -142,7 +142,7 @@
 
 <script>
 (function(){
-  var cache='v=20260626.9';
+  var cache='v=20260627.1';
   window.DANBO_ASSET_VERSION=cache;
   var loaderLang=(function(){
     var mode='auto';
@@ -261,7 +261,7 @@
   }
   function loadPluginsThenFinish(){
     if(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.setManifest)window.DANBO_PLUGIN_HOST.setManifest(window.DANBO_PLUGIN_MANIFEST||[]);
-    loadPluginScriptList(0,pluginFiles);
+    finishGameLoading();
   }
   function loadGameScript(i){
     if(i>=gameFiles.length){loadPluginsThenFinish();return;}
@@ -277,8 +277,8 @@
     setEngineLoading('loading',30);
     loadScript(manifestFile+'?'+cache,function(){
       manifestLoadedCount=1;
-      pluginFiles=collectPluginFiles();
-      finalAssetTotal=manifestLoadedCount+gameFiles.length+pluginFiles.length;
+      pluginFiles=[];
+      finalAssetTotal=manifestLoadedCount+gameFiles.length;
       loadGameScript(0);
     },function(){
       console.error('Failed to load '+manifestFile);

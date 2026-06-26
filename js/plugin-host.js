@@ -5,6 +5,8 @@
     var manifest=[];
     var active=null;
     var layer=null;
+    var loadedScripts={};
+    var pendingScripts={};
 
     function clonePlain(obj){
         if(obj===undefined||obj===null)return obj;
@@ -176,25 +178,84 @@
         return true;
     }
 
+    function manifestEntry(id){
+        for(var i=0;i<manifest.length;i++){
+            if(manifest[i]&&manifest[i].id===id)return manifest[i];
+        }
+        return null;
+    }
+
     function setManifest(list){
         manifest=Array.isArray(list)?clonePlain(list):[];
     }
 
     function list(){
-        return Object.keys(registry).sort().map(function(id){
-            var p=registry[id];
-            var m=manifest.find(function(x){return x&&x.id===id;})||{};
+        var seen={}, ids=[];
+        manifest.forEach(function(m){if(m&&m.id&&!seen[m.id]){seen[m.id]=1;ids.push(m.id);}});
+        Object.keys(registry).forEach(function(id){if(!seen[id]){seen[id]=1;ids.push(id);}});
+        return ids.sort().map(function(id){
+            var p=registry[id]||{};
+            var m=manifestEntry(id)||{};
             return freezeDeep({
                 id:id,
                 name:p.name||m.name||id,
                 version:p.version||m.version||'',
                 description:p.description||m.description||'',
-                enabled:m.enabled!==false
+                enabled:m.enabled!==false,
+                loaded:!!registry[id]
             });
         });
     }
 
-    function start(pluginId,options){
+    function pluginScripts(pluginId){
+        var m=manifestEntry(pluginId)||{};
+        var files=[];
+        if(Array.isArray(m.scripts))m.scripts.forEach(function(src){if(src)files.push(src);});
+        else if(m.script)files.push(m.script);
+        return files;
+    }
+
+    function cacheSuffix(){
+        var v=window.DANBO_ASSET_VERSION||'';
+        return v?('?'+v):'';
+    }
+
+    function loadScriptOnce(src,onload,onerror){
+        if(loadedScripts[src]){onload();return;}
+        if(pendingScripts[src]){pendingScripts[src].push({ok:onload,fail:onerror});return;}
+        pendingScripts[src]=[{ok:onload,fail:onerror}];
+        var s=document.createElement('script');
+        s.src=src+cacheSuffix();
+        s.onload=function(){
+            loadedScripts[src]=true;
+            var q=pendingScripts[src]||[];delete pendingScripts[src];
+            q.forEach(function(cb){try{cb.ok&&cb.ok();}catch(e){setTimeout(function(){throw e;},0);}});
+        };
+        s.onerror=function(){
+            var q=pendingScripts[src]||[];delete pendingScripts[src];
+            q.forEach(function(cb){try{cb.fail&&cb.fail(new Error('Failed to load plugin script '+src));}catch(e){setTimeout(function(){throw e;},0);}});
+        };
+        document.body.appendChild(s);
+    }
+
+    function loadPluginRuntime(pluginId,onload,onerror){
+        if(registry[pluginId]){onload();return;}
+        var files=pluginScripts(pluginId);
+        if(!files.length){onerror(new Error('Plugin scripts not found: '+pluginId));return;}
+        var i=0;
+        function next(){
+            if(registry[pluginId]){onload();return;}
+            if(i>=files.length){
+                if(registry[pluginId])onload();
+                else onerror(new Error('Plugin did not register: '+pluginId));
+                return;
+            }
+            loadScriptOnce(files[i++],next,onerror);
+        }
+        next();
+    }
+
+    function startLoaded(pluginId,options){
         var def=registry[pluginId];
         if(!def)throw new Error('Plugin not registered: '+pluginId);
         stop({status:'replaced'});
@@ -203,6 +264,22 @@
         var instance=def.create(ctx)||{};
         active={id:pluginId,def:def,ctx:ctx,instance:instance,startedAt:Date.now()};
         return active;
+    }
+
+    function start(pluginId,options){
+        if(registry[pluginId])return startLoaded(pluginId,options||{});
+        var m=manifestEntry(pluginId);
+        if(!m)throw new Error('Plugin not registered: '+pluginId);
+        var mount=ensureLayer();
+        stop({status:'replaced'});
+        setLayerVisible(true);
+        mount.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,16,32,.72);color:#fff;font:900 18px system-ui,Segoe UI,sans-serif;text-shadow:0 2px 8px #000;">Loading plugin...</div>';
+        loadPluginRuntime(pluginId,function(){startLoaded(pluginId,options||{});},function(e){
+            console.error('[PluginHost] lazy load failed',e);
+            mount.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(32,8,8,.75);color:#fff;font:900 18px system-ui,Segoe UI,sans-serif;">Plugin load failed</div>';
+            setTimeout(function(){stop({status:'error',reason:'load failed'});},900);
+        });
+        return {id:pluginId,loading:true,startedAt:Date.now()};
     }
 
     function stop(result){
@@ -226,7 +303,7 @@
         register:register,
         setManifest:setManifest,
         list:list,
-        get:function(id){return registry[id]||null;},
+        get:function(id){return registry[id]||manifestEntry(id)||null;},
         start:start,
         stop:stop,
         update:update,
