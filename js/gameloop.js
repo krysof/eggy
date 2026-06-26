@@ -2274,6 +2274,10 @@ function confirmPortalEnter(){
         if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('legacy-platformer'))DANBO_PLUGIN_HOST.start('legacy-platformer',{source:'portal'});
         else if(typeof _pfStart==='function'){_pfStart();}
     }
+    else if(ht==='rocketRoad'){
+        if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('rocket-road'))DANBO_PLUGIN_HOST.start('rocket-road',{source:'portal'});
+        else console.error('Rocket Road plugin runtime is not loaded');
+    }
     else if(ts>=0){ switchCity(ts); }
 }
 document.getElementById('portal-yes').addEventListener('click',function(){confirmPortalEnter();});

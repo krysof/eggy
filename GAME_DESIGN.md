@@ -1,7 +1,7 @@
 # 蛋宝世界（DANBO World）游戏设计与现有内容说明
 
 > 更新时间：2026-06-26
-> 当前版本：v20260626.5
+> 当前版本：v20260626.6
 > 运行方式：静态 Web / Three.js / GitHub Pages
 
 ## 1. 游戏定位
@@ -64,6 +64,7 @@ plugins/
   manifest.js           插件清单，支持 script / scripts 多文件加载
   legacy-race/          竞速赛道插件：race-core/race-flow/plugin
   legacy-platformer/    横版平台关插件：platformer-core/plugin
+  rocket-road/          蛋宝火箭公路：3D画面/2D公路玩法/plugin
   ability-card/         插件模板/能力卡示例
 ```
 
@@ -74,7 +75,7 @@ plugins/
 3. **选人画面**：SF2 风格角色选择，高清 Canvas 头像。
 4. **城市探索**：玩家出生在当前主题城市，可自由移动、跳跃、战斗、收集金币。
 5. **传送/入口**：靠近水管、传送门、巴别塔、云中界管道时出现确认框。
-6. **竞速/平台关/月面战场**：通过入口进入不同玩法，结束后返回城市。
+6. **竞速/平台关/火箭公路/月面战场**：通过入口进入不同玩法，结束后返回城市。
 
 ## 5. 角色系统
 
@@ -273,6 +274,7 @@ plugins/
 - 角色从复杂细节回退为更圆、更干净、更可爱的软萌样式。
 - 新增网页端 HUD 视角按钮，并支持真正第一人称视角。
 - 修复/放宽传送门与水管触发，让“走进入口”更可靠。
+- v20260626.6 新增 `plugins/rocket-road/` 蛋宝火箭公路：原创火箭车致敬玩法，进入后有标题菜单、单人游戏、多人预留、高分榜和退出；画面使用独立 Three.js 插件层，规则由 `wasm/danbo_rocket_road.wasm` 提供，城市新增火箭公路入口。
 - v20260626.5 新增小游戏独立 WASM 规范和模块：`wasm/danbo_race.wasm`、`wasm/danbo_platformer.wasm` 分别承载竞速/平台关纯规则，`js/minigame-wasm.js` 负责加载和 fallback；新增 `MINIGAME_PLUGIN_WASM_SPEC.md` 供同事制作插件。
 - v20260626.4 将旧小游戏核心迁入插件目录：`js/race.js`、`js/platformer.js` 不再由主加载器加载；竞速核心/流程位于 `plugins/legacy-race/`，平台关核心位于 `plugins/legacy-platformer/`，manifest 支持 `scripts` 多文件插件。
 - v20260626.3 将旧小游戏入口插件化：竞速赛道和横版平台关由 `plugins/legacy-race/`、`plugins/legacy-platformer/` 适配启动，城市入口不再直接调用旧小游戏函数。

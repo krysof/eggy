@@ -22,6 +22,16 @@
             description:'横版平台关插件：核心关卡代码位于本插件目录，入口通过 DANBO_PLUGIN_HOST 启动。'
         },
         {
+            id:'rocket-road',
+            name:'蛋宝火箭公路',
+            version:'0.1.0',
+            enabled:true,
+            scripts:['plugins/rocket-road/rocket-road-core.js','plugins/rocket-road/plugin.js'],
+            networkReady:true,
+            legacyAdapter:false,
+            description:'蛋宝原创火箭车致敬小游戏：3D 画面、2D 俯视公路玩法、独立 WASM 规则模块。'
+        },
+        {
             id:'ability-card',
             name:'角色能力卡测试',
             version:'0.1.0',
