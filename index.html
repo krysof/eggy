@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260626.1">
+<link rel="stylesheet" href="style.css?v=20260626.2">
 </head>
 <body>
 <div id="game-container">
@@ -142,7 +142,8 @@
 
 <script>
 (function(){
-  var cache='v=20260626.1';
+  var cache='v=20260626.2';
+  window.DANBO_ASSET_VERSION=cache;
   var loaderLang=(function(){
     var mode='auto';
     try{mode=localStorage.getItem('danbo_lang')||'auto';}catch(e){}
@@ -174,6 +175,9 @@
     'js/core.js',
     'js/wasm.js',
     'js/data-characters.js',
+    'js/net-client.js',
+    'js/plugin-host.js',
+    'plugins/manifest.js',
     'js/data-cities.js',
     'js/data-races.js',
     'js/moves.js',
@@ -225,8 +229,27 @@
     s.onerror=onerror;
     document.body.appendChild(s);
   }
+  function finishGameLoading(){
+    setEngineLoading('ready',100);setTimeout(hideEngineLoading,250);
+  }
+  function loadPluginScriptList(i,files){
+    files=files||[];
+    if(i>=files.length){finishGameLoading();return;}
+    var baseTotal=gameFiles.length+files.length;
+    setEngineLoading('loadingAssets',35+Math.floor((gameFiles.length+i)/baseTotal*60),{n:gameFiles.length+i+1,total:baseTotal});
+    var src=files[i]+'?'+cache;
+    loadScript(src,function(){loadPluginScriptList(i+1,files);},function(){
+      console.error('Failed to load plugin '+src);
+      loadPluginScriptList(i+1,files);
+    });
+  }
+  function loadPluginsThenFinish(){
+    var list=(window.DANBO_PLUGIN_MANIFEST||[]).filter(function(p){return p&&p.enabled!==false&&p.script;}).map(function(p){return p.script;});
+    if(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.setManifest)window.DANBO_PLUGIN_HOST.setManifest(window.DANBO_PLUGIN_MANIFEST||[]);
+    loadPluginScriptList(0,list);
+  }
   function loadGameScript(i){
-    if(i>=gameFiles.length){setEngineLoading('ready',100);setTimeout(hideEngineLoading,250);return;}
+    if(i>=gameFiles.length){loadPluginsThenFinish();return;}
     setEngineLoading('loadingAssets',35+Math.floor(i/gameFiles.length*60),{n:i+1,total:gameFiles.length});
     var src=gameFiles[i]+'?'+cache;
     loadScript(src,function(){loadGameScript(i+1);},function(){

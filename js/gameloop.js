@@ -3086,6 +3086,7 @@ function animate(now){
 
 function _gameUpdate(){
     const dt=1/60;
+    if(window.DANBO_PLUGIN_HOST&&typeof window.DANBO_PLUGIN_HOST.update==='function')window.DANBO_PLUGIN_HOST.update(dt);
     // Shell status above EVERY character, every mode (player + race rivals + city NPCs).
     if(typeof _updateAllShellStatus==='function')_updateAllShellStatus();
     // Cosmetic shop / equipped looks / footprints (single-player, local).
