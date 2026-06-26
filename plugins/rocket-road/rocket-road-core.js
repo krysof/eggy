@@ -5,7 +5,7 @@
 
     var PLAYER_Z=-16;
     var ROAD_SEG_LEN=8;
-    var BUILD=202606271;
+    var BUILD=202606273;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
@@ -23,13 +23,27 @@
     function addBox(parent,w,h,d,color,x,y,z){var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));m.position.set(x||0,y||0,z||0);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
     function addWheel(parent,x,z){var geo=new THREE.CylinderGeometry(0.28,0.28,0.36,12);var mesh=new THREE.Mesh(geo,mat(0x252B35,{roughness:0.9}));mesh.rotation.z=Math.PI/2;mesh.position.set(x,0.28,z);mesh.castShadow=true;parent.add(mesh);return mesh;}
     function addCone(parent,r,h,color,x,y,z,rx,rz){var m=new THREE.Mesh(new THREE.ConeGeometry(r,h,10),mat(color));m.position.set(x||0,y||0,z||0);m.rotation.x=rx||0;m.rotation.z=rz||0;m.castShadow=true;parent.add(m);return m;}
-    function addMiniDriver(parent,ch,scale,x,y,z){
+    function addMiniDriver(parent,ch,scale,x,y,z,opts){
+        opts=opts||{};
+        var hero=!!opts.hero;
         var g=new THREE.Group(), bodyColor=colorFromCharacter(ch), accent=accentFromCharacter(ch), key=keyFromCharacter(ch);
         g.position.set(x||0,y||0,z||0);g.scale.setScalar(scale||1);
-        var body=new THREE.Mesh(new THREE.SphereGeometry(0.38,18,12),mat(bodyColor,{roughness:0.82}));body.scale.set(0.88,1.05,0.82);body.position.y=0.08;body.castShadow=true;g.add(body);
-        var head=new THREE.Mesh(new THREE.SphereGeometry(0.3,18,12),mat(bodyColor,{roughness:0.82}));head.scale.set(0.96,0.9,0.92);head.position.set(0,0.46,0.08);head.castShadow=true;g.add(head);
-        var eyeGeo=new THREE.SphereGeometry(0.04,8,6), eyeMat=mat(0x1f2933);
+        if(hero){
+            var seat=new THREE.Mesh(new THREE.TorusGeometry(0.48,0.055,8,30),mat(0xffffff,{roughness:0.55,emissive:accent,emissiveIntensity:0.08}));
+            seat.rotation.x=Math.PI/2;seat.position.set(0,0.02,0);seat.castShadow=true;g.add(seat);
+        }
+        var body=new THREE.Mesh(new THREE.SphereGeometry(hero?0.46:0.38,hero?22:18,hero?16:12),mat(bodyColor,{roughness:0.82}));body.scale.set(0.9,1.06,0.84);body.position.y=0.08;body.castShadow=true;g.add(body);
+        var head=new THREE.Mesh(new THREE.SphereGeometry(hero?0.37:0.3,hero?22:18,hero?16:12),mat(bodyColor,{roughness:0.82}));head.scale.set(0.98,0.92,0.94);head.position.set(0,hero?0.56:0.46,hero?0.02:0.08);head.castShadow=true;g.add(head);
+        var eyeGeo=new THREE.SphereGeometry(hero?0.052:0.04,8,6), eyeMat=mat(0x1f2933);
         var e1=new THREE.Mesh(eyeGeo,eyeMat),e2=new THREE.Mesh(eyeGeo,eyeMat);e1.position.set(-0.1,0.5,0.34);e2.position.set(0.1,0.5,0.34);g.add(e1);g.add(e2);
+        if(hero){
+            e1.position.set(-0.13,0.61,-0.34);e2.position.set(0.13,0.61,-0.34);
+            var shineGeo=new THREE.SphereGeometry(0.016,6,4), shineMat=mat(0xffffff,{emissive:0xffffff,emissiveIntensity:0.25});
+            var sh1=new THREE.Mesh(shineGeo,shineMat),sh2=new THREE.Mesh(shineGeo,shineMat);sh1.position.set(-0.145,0.628,-0.377);sh2.position.set(0.115,0.628,-0.377);g.add(sh1);g.add(sh2);
+            var cheekGeo=new THREE.SphereGeometry(0.045,8,6), cheekMat=mat(0xff8ba0,{roughness:0.8});
+            var c1=new THREE.Mesh(cheekGeo,cheekMat),c2=new THREE.Mesh(cheekGeo,cheekMat);c1.scale.set(1.25,0.72,0.42);c2.scale.set(1.25,0.72,0.42);c1.position.set(-0.28,0.51,-0.32);c2.position.set(0.28,0.51,-0.32);g.add(c1);g.add(c2);
+            addBox(g,0.44,0.08,0.07,accent,0,0.9,-0.06);
+        }
         if(key.indexOf('bull')>=0){
             addCone(g,0.08,0.26,0xfff0c0,-0.25,0.58,0.06,0,Math.PI/2);
             addCone(g,0.08,0.26,0xfff0c0,0.25,0.58,0.06,0,-Math.PI/2);
@@ -37,8 +51,11 @@
             addCone(g,0.1,0.28,accent,-0.2,0.7,0.02,0,-0.28);
             addCone(g,0.1,0.28,accent,0.2,0.7,0.02,0,0.28);
         }else if(key.indexOf('bear')>=0||key.indexOf('monkey')>=0){
-            var earGeo=new THREE.SphereGeometry(0.11,10,8), earMat=mat(accent,{roughness:0.82});
-            var l=new THREE.Mesh(earGeo,earMat), r=new THREE.Mesh(earGeo,earMat);l.position.set(-0.25,0.55,0.02);r.position.set(0.25,0.55,0.02);l.castShadow=r.castShadow=true;g.add(l);g.add(r);
+            var earGeo=new THREE.SphereGeometry(hero?0.15:0.11,10,8), earMat=mat(accent,{roughness:0.82});
+            var l=new THREE.Mesh(earGeo,earMat), r=new THREE.Mesh(earGeo,earMat);
+            l.position.set(hero?-0.31:-0.25,hero?0.67:0.55,hero?-0.12:0.02);
+            r.position.set(hero?0.31:0.25,hero?0.67:0.55,hero?-0.12:0.02);
+            l.castShadow=r.castShadow=true;g.add(l);g.add(r);
         }else if(key.indexOf('rooster')>=0){
             addBox(g,0.09,0.2,0.08,0xff344d,-0.09,0.72,0.03);addBox(g,0.09,0.25,0.08,0xff344d,0,0.75,0.04);addBox(g,0.09,0.18,0.08,0xff344d,0.09,0.71,0.03);
         }else if(key.indexOf('cockroach')>=0){
@@ -169,7 +186,7 @@
         addWheel(g,-0.92,-0.82);addWheel(g,0.92,-0.82);addWheel(g,-0.92,0.86);addWheel(g,0.92,0.86);
         var nozzle=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,0.5,12),mat(0x4b5360,{metalness:0.1}));nozzle.rotation.x=Math.PI/2;nozzle.position.set(0,0.45,-1.66);g.add(nozzle);
         var flame=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.9,16),mat(0xffad2d,{emissive:0xff6600,emissiveIntensity:0.85}));flame.rotation.x=-Math.PI/2;flame.position.set(0,0.45,-2.12);g.add(flame);g.flame=flame;
-        g.driver=addMiniDriver(g,this.ch,0.98,0,1.2,0.52);
+        g.driver=addMiniDriver(g,this.ch,1.52,0,1.25,-0.34,{hero:true});
         g.position.set(0,0.2,PLAYER_Z);return g;
     };
 

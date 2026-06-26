@@ -7,6 +7,7 @@
     var layer=null;
     var loadedScripts={};
     var pendingScripts={};
+    var loadSeq=0;
 
     function clonePlain(obj){
         if(obj===undefined||obj===null)return obj;
@@ -113,6 +114,38 @@
         var el=ensureLayer();
         el.style.display=v?'block':'none';
         el.style.pointerEvents=v?'auto':'none';
+    }
+
+    function cssColor(v,fallback){
+        if(typeof v==='number'&&isFinite(v)){
+            return '#'+('000000'+((v|0)&0xffffff).toString(16)).slice(-6);
+        }
+        return fallback||'#80ea7a';
+    }
+
+    function bridgeEnterMarkup(){
+        var snap=selectedCharacterSnapshot();
+        var hero=cssColor(snap&&snap.style&&snap.style.color,'#80ea7a');
+        var accent=cssColor(snap&&snap.style&&snap.style.accent,'#ffe15d');
+        return ''+
+        '<style>'+
+        '.dbw-warp{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.24),rgba(118,77,206,.58) 34%,rgba(16,26,58,.86) 72%,rgba(4,10,24,.94));}'+
+        '.dbw-warp:before{content:"";position:absolute;left:50%;top:23%;width:min(34vw,220px);height:min(34vw,220px);transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0 12%,#fff8 20%,#9df7 35%,#77f0 60%);box-shadow:0 0 36px #fff,0 0 90px #78e8ff,0 0 150px #ff7cf0;animation:dbw-portal 900ms ease-in-out infinite alternate;}'+
+        '.dbw-warp:after{content:"";position:absolute;left:50%;top:23%;width:4px;height:4px;border-radius:50%;box-shadow:0 0 22px 8px #fff,0 0 84px 46px rgba(255,255,255,.26);animation:dbw-pulse 720ms ease-in-out infinite alternate;}'+
+        '.dbw-bridge{position:absolute;left:50%;bottom:-28vh;width:min(92vw,520px);height:90vh;transform:translateX(-50%) perspective(620px) rotateX(64deg);transform-origin:50% 100%;filter:drop-shadow(0 0 20px rgba(255,255,255,.58));opacity:.96;}'+
+        '.dbw-r{position:absolute;bottom:0;height:100%;width:12.8%;border-radius:999px 999px 0 0;animation:dbw-flow 980ms cubic-bezier(.2,.72,.22,1) forwards;box-shadow:inset 0 0 18px rgba(255,255,255,.38),0 0 16px currentColor;}'+
+        '.dbw-r:nth-child(1){left:4%;color:#ff5c70;background:linear-gradient(to top,rgba(255,92,112,.12),#ff5c70,#fff1);animation-delay:0ms}.dbw-r:nth-child(2){left:17%;color:#ff9b3d;background:linear-gradient(to top,rgba(255,155,61,.12),#ff9b3d,#fff1);animation-delay:30ms}.dbw-r:nth-child(3){left:30%;color:#ffe55a;background:linear-gradient(to top,rgba(255,229,90,.12),#ffe55a,#fff1);animation-delay:60ms}.dbw-r:nth-child(4){left:43%;color:#64f27a;background:linear-gradient(to top,rgba(100,242,122,.12),#64f27a,#fff1);animation-delay:90ms}.dbw-r:nth-child(5){left:56%;color:#56d8ff;background:linear-gradient(to top,rgba(86,216,255,.12),#56d8ff,#fff1);animation-delay:120ms}.dbw-r:nth-child(6){left:69%;color:#6f7bff;background:linear-gradient(to top,rgba(111,123,255,.12),#6f7bff,#fff1);animation-delay:150ms}.dbw-r:nth-child(7){left:82%;color:#e36bff;background:linear-gradient(to top,rgba(227,107,255,.12),#e36bff,#fff1);animation-delay:180ms}'+
+        '.dbw-spark{position:absolute;left:50%;top:58%;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 18px #fff;opacity:.85;animation:dbw-spark 920ms ease-in forwards}.dbw-spark.s1{margin-left:-34vw;animation-delay:40ms}.dbw-spark.s2{margin-left:31vw;margin-top:6vh;animation-delay:130ms}.dbw-spark.s3{margin-left:-18vw;margin-top:14vh;animation-delay:220ms}.dbw-spark.s4{margin-left:21vw;margin-top:-8vh;animation-delay:310ms}'+
+        '.dbw-hero{--hero:'+hero+';--accent:'+accent+';position:absolute;left:50%;top:63%;width:86px;height:76px;transform:translate(-50%,-50%);animation:dbw-suck 1050ms cubic-bezier(.25,.84,.22,1) forwards;filter:drop-shadow(0 12px 18px rgba(0,0,0,.28)) drop-shadow(0 0 18px rgba(255,255,255,.45));}'+
+        '.dbw-hero i{position:absolute;left:10px;top:5px;width:66px;height:66px;border-radius:50%;background:var(--hero);box-shadow:inset -9px -11px 0 rgba(0,0,0,.08),inset 8px 8px 0 rgba(255,255,255,.22),0 0 0 5px rgba(255,255,255,.42);}'+
+        '.dbw-hero b{position:absolute;top:30px;width:10px;height:15px;border-radius:50%;background:#172033;z-index:2}.dbw-hero b:nth-of-type(1){left:31px}.dbw-hero b:nth-of-type(2){left:48px}.dbw-hero em{position:absolute;left:36px;top:52px;width:15px;height:8px;border-radius:0 0 15px 15px;border-bottom:3px solid #172033;z-index:2}.dbw-hero span{position:absolute;width:20px;height:14px;border-radius:50%;background:var(--accent);top:0;z-index:0}.dbw-hero span:nth-child(1){left:9px}.dbw-hero span:nth-child(2){right:9px}'+
+        '@keyframes dbw-portal{from{transform:translate(-50%,-50%) scale(.92);opacity:.78}to{transform:translate(-50%,-50%) scale(1.08);opacity:1}}@keyframes dbw-pulse{from{opacity:.55}to{opacity:1}}@keyframes dbw-flow{0%{transform:translateY(16%) scaleY(.58);opacity:.12}35%{opacity:1}100%{transform:translateY(-42%) scaleY(1.28);opacity:.84}}@keyframes dbw-spark{0%{transform:translate(0,0) scale(.75);opacity:.9}100%{transform:translate(0,-38vh) scale(.18);opacity:0}}@keyframes dbw-suck{0%{transform:translate(-50%,-50%) scale(1);opacity:1}42%{transform:translate(-50%,-86%) scale(.82);opacity:1}78%{transform:translate(-50%,-142%) scale(.46);opacity:.92}100%{transform:translate(-50%,-208%) scale(.12);opacity:.08}}'+
+        '</style>'+
+        '<div class="dbw-warp" data-plugin-loading="rainbow-bridge" aria-hidden="true">'+
+        '<div class="dbw-bridge"><i class="dbw-r"></i><i class="dbw-r"></i><i class="dbw-r"></i><i class="dbw-r"></i><i class="dbw-r"></i><i class="dbw-r"></i><i class="dbw-r"></i></div>'+
+        '<i class="dbw-spark s1"></i><i class="dbw-spark s2"></i><i class="dbw-spark s3"></i><i class="dbw-spark s4"></i>'+
+        '<div class="dbw-hero"><span></span><span></span><i></i><b></b><b></b><em></em></div>'+
+        '</div>';
     }
 
     function makeStorage(pluginId){
@@ -272,17 +305,26 @@
         if(!m)throw new Error('Plugin not registered: '+pluginId);
         var mount=ensureLayer();
         stop({status:'replaced'});
+        var seq=++loadSeq;
+        var bridgeStarted=Date.now();
         setLayerVisible(true);
-        mount.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,16,32,.72);color:#fff;font:900 18px system-ui,Segoe UI,sans-serif;text-shadow:0 2px 8px #000;">Loading plugin...</div>';
-        loadPluginRuntime(pluginId,function(){startLoaded(pluginId,options||{});},function(e){
+        mount.innerHTML=bridgeEnterMarkup();
+        loadPluginRuntime(pluginId,function(){
+            var wait=Math.max(0,1400-(Date.now()-bridgeStarted));
+            setTimeout(function(){
+                if(seq===loadSeq)startLoaded(pluginId,options||{});
+            },wait);
+        },function(e){
+            if(seq!==loadSeq)return;
             console.error('[PluginHost] lazy load failed',e);
-            mount.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(32,8,8,.75);color:#fff;font:900 18px system-ui,Segoe UI,sans-serif;">Plugin load failed</div>';
+            mount.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(32,8,8,.75);color:#fff;font:900 18px system-ui,Segoe UI,sans-serif;">进入失败，请重试</div>';
             setTimeout(function(){stop({status:'error',reason:'load failed'});},900);
         });
         return {id:pluginId,loading:true,startedAt:Date.now()};
     }
 
     function stop(result){
+        loadSeq++;
         if(active&&active.instance&&typeof active.instance.destroy==='function'){
             try{active.instance.destroy(result||{status:'stopped'});}catch(e){console.error('[PluginHost] destroy failed',e);}
         }
