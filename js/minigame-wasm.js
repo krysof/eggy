@@ -64,13 +64,13 @@
 
     function rrRoadWidth(distance){
         var d=Math.max(0,Math.min(3300,n(distance)));
-        if(d<520)return 12;
-        if(d<930)return 11.2-(d-520)/410*1.1;
-        if(d<1420)return 8.8;
-        if(d<1820)return 9.8;
-        if(d<2380)return 7.4;
-        if(d<2840)return 8.5;
-        return 10.4;
+        if(d<520)return 14.2;
+        if(d<930)return 13.2-(d-520)/410*1.0;
+        if(d<1420)return 10.2;
+        if(d<1820)return 11.2;
+        if(d<2380)return 8.8;
+        if(d<2840)return 10.0;
+        return 11.8;
     }
     function rrLaneX(lane,width){lane=Math.max(0,Math.min(3,lane|0));var inner=n(width)*0.72;return -inner*0.5+inner*(lane+0.5)/4;}
     function rrEventAt(i){

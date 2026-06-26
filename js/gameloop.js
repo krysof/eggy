@@ -436,7 +436,7 @@ function updateCity(){
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
     var _portalBlocked=!!(playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._guileSomersault||playerEgg.throwTimer>0||playerEgg._blankaShock||playerEgg._yogaFlame||playerEgg._hyakuretsuTimer||playerEgg._hyakuretsuKickTimer);
-    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_portalBlocked){_portalPromptPortal=null;if(_pp)_pp.style.display='none';} else {
+    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_portalBlocked||window._danboPluginTransition){_portalPromptPortal=null;if(_pp)_pp.style.display='none';} else {
     var _nearP=null, _nearD=9999;
     // Check race portals
     for(var pi=0;pi<portals.length;pi++){

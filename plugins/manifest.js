@@ -24,7 +24,7 @@
         {
             id:'rocket-road',
             name:'蛋宝火箭公路',
-            version:'0.1.2',
+            version:'0.1.3',
             enabled:true,
             entranceScript:'plugins/rocket-road/entrance.js',
             scripts:['plugins/rocket-road/rocket-road-core.js','plugins/rocket-road/plugin.js'],
