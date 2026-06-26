@@ -2278,6 +2278,15 @@ function confirmPortalEnter(){
         if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('rocket-road'))DANBO_PLUGIN_HOST.start('rocket-road',{source:'portal'});
         else console.error('Rocket Road plugin runtime is not loaded');
     }
+    else if(ht==='shopHouse'){
+        if(typeof _enterShopHouse==='function')_enterShopHouse();
+    }
+    else if(ht==='shopKeeper'){
+        if(typeof _openShop==='function')_openShop();
+    }
+    else if(ht==='houseDoor'){
+        if(typeof _interiorEnter==='function')_interiorEnter((typeof _nearDoorBuilding!=='undefined')?_nearDoorBuilding:null);
+    }
     else if(ts>=0){ switchCity(ts); }
 }
 document.getElementById('portal-yes').addEventListener('click',function(){confirmPortalEnter();});

@@ -1,7 +1,7 @@
 # 蛋宝世界（DANBO World）游戏设计与现有内容说明
 
 > 更新时间：2026-06-26
-> 当前版本：v20260626.6
+> 当前版本：v20260626.7
 > 运行方式：静态 Web / Three.js / GitHub Pages
 
 ## 1. 游戏定位
@@ -274,6 +274,7 @@ plugins/
 - 角色从复杂细节回退为更圆、更干净、更可爱的软萌样式。
 - 新增网页端 HUD 视角按钮，并支持真正第一人称视角。
 - 修复/放宽传送门与水管触发，让“走进入口”更可靠。
+- v20260626.7 统一房屋/商店入口：所有入口都改为走近后弹确认框进入，不再把 E 键显示为主操作；普通状态下不再显示头顶外壳状态图标，受伤才显示并移到名字上方；移动端小地图和右侧快捷图标重新排布，避免遮挡 HUD/动作键。
 - v20260626.6 新增 `plugins/rocket-road/` 蛋宝火箭公路：原创火箭车致敬玩法，进入后有标题菜单、单人游戏、多人预留、高分榜和退出；画面使用独立 Three.js 插件层，规则由 `wasm/danbo_rocket_road.wasm` 提供，城市新增火箭公路入口。
 - v20260626.5 新增小游戏独立 WASM 规范和模块：`wasm/danbo_race.wasm`、`wasm/danbo_platformer.wasm` 分别承载竞速/平台关纯规则，`js/minigame-wasm.js` 负责加载和 fallback；新增 `MINIGAME_PLUGIN_WASM_SPEC.md` 供同事制作插件。
 - v20260626.4 将旧小游戏核心迁入插件目录：`js/race.js`、`js/platformer.js` 不再由主加载器加载；竞速核心/流程位于 `plugins/legacy-race/`，平台关核心位于 `plugins/legacy-platformer/`，manifest 支持 `scripts` 多文件插件。

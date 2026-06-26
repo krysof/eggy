@@ -573,9 +573,9 @@ function _updateShellIndicator(egg,stage){
     var spr=egg._shellIndicator;
     spr.visible=true;
     var p=egg.mesh.position;
-    spr.position.set(p.x,p.y+2.95,p.z);
+    spr.position.set(p.x,p.y+4.55,p.z);
     // Grows with damage; pulses when critical / burst for unmistakable feedback.
-    var sc=0.95+stage*0.20;
+    var sc=0.72+stage*0.16;
     if(stage>=4)sc+=Math.sin(Date.now()*0.013)*0.14;
     spr.scale.set(sc,sc,sc);
     if(stage!==egg._shellIndStage){_drawShellIndicator(spr,stage);egg._shellIndStage=stage;}
@@ -598,7 +598,11 @@ function _updateShellStatus(egg,isPlayer){
     }else if(egg._crackOverlay){
         egg._crackOverlay.visible=false;
     }
-    _updateShellIndicator(egg,stage);   // shown above every character now
+    if(stage>=1)_updateShellIndicator(egg,stage);
+    else if(egg._shellIndicator){
+        egg._shellIndicator.visible=false;
+        egg._shellIndStage=-99;
+    }
 }
 
 // Per-frame sweep: show the shell status above EVERY egg in the world

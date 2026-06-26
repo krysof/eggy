@@ -14,13 +14,35 @@ var _miniFollow=true;                              // default: rotate with playe
 window._worldMapOpen=false;
 
 function _isMobileMap(){ return (window.innerWidth||1024)<700; }
+function _mapMiniTop(){ return _isMobileMap()?76:10; }
+function _mapMiniSize(){ return _isMobileMap()?118:200; }
+function _mapButtonSize(){ return _isMobileMap()?42:40; }
+function _layoutMapFloatingButtons(){
+    var top=_mapMiniTop(), size=_mapMiniSize(), btn=_mapButtonSize();
+    var wrap=document.getElementById('minimap-wrap');
+    if(wrap){
+        wrap.style.top=top+'px';wrap.style.right=(_isMobileMap()?8:10)+'px';
+        wrap.style.width=size+'px';wrap.style.height=size+'px';
+    }
+    var mb=document.getElementById('map-btn');
+    if(mb){
+        mb.style.top=(top+size+10)+'px';mb.style.right=(_isMobileMap()?14:12)+'px';
+        mb.style.width=btn+'px';mb.style.height=btn+'px';mb.style.lineHeight=btn+'px';
+    }
+    var lb=document.getElementById('lb-btn');
+    if(lb){
+        lb.style.top=(top+size+btn+18)+'px';lb.style.right=(_isMobileMap()?14:12)+'px';
+        lb.style.width=btn+'px';lb.style.height=btn+'px';lb.style.lineHeight=btn+'px';
+        lb.style.background='rgba(255,255,255,0.85)';lb.style.border='2px solid #FFD86B';lb.style.color='#B8860B';
+    }
+}
 
 function _initMapUI(){
     if(_miniCanvas)return;
-    _miniSize=_isMobileMap()?160:200;
+    _miniSize=_mapMiniSize();
     // mini-map
     var wrap=document.createElement('div');wrap.id='minimap-wrap';
-    wrap.style.cssText='position:fixed;top:10px;right:10px;z-index:54;width:'+_miniSize+'px;height:'+_miniSize+'px;'+
+    wrap.style.cssText='position:fixed;top:'+_mapMiniTop()+'px;right:'+(_isMobileMap()?8:10)+'px;z-index:54;width:'+_miniSize+'px;height:'+_miniSize+'px;'+
         'border-radius:50%;box-shadow:0 4px 18px rgba(0,0,0,0.35);border:4px solid #FFFFFF;background:#BFE8C8;cursor:pointer;overflow:hidden;';
     var cv=document.createElement('canvas');cv.width=_miniSize;cv.height=_miniSize;cv.style.cssText='width:100%;height:100%;display:block;';
     wrap.appendChild(cv);document.body.appendChild(wrap);
@@ -32,11 +54,12 @@ function _initMapUI(){
 
     // buttons (stacked under the mini-map): world map + reuse leaderboard
     var mb=document.createElement('div');mb.id='map-btn';mb.textContent='\uD83D\uDDFA\uFE0F';
-    mb.style.cssText='position:fixed;top:'+(_miniSize+22)+'px;right:12px;z-index:55;width:40px;height:40px;border-radius:12px;'+
-        'background:rgba(255,255,255,0.85);border:2px solid #FFB6CE;color:#444;font-size:21px;line-height:40px;text-align:center;cursor:pointer;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
+    var btn=_mapButtonSize();
+    mb.style.cssText='position:fixed;top:'+(_mapMiniTop()+_miniSize+10)+'px;right:'+(_isMobileMap()?14:12)+'px;z-index:55;width:'+btn+'px;height:'+btn+'px;border-radius:12px;'+
+        'background:rgba(255,255,255,0.85);border:2px solid #FFB6CE;color:#444;font-size:21px;line-height:'+btn+'px;text-align:center;cursor:pointer;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
     mb.onclick=_toggleWorldMap;document.body.appendChild(mb);
     var lb=document.getElementById('lb-btn');
-    if(lb){lb.style.top=(_miniSize+70)+'px';lb.style.background='rgba(255,255,255,0.85)';lb.style.border='2px solid #FFD86B';lb.style.color='#B8860B';}
+    if(lb)_layoutMapFloatingButtons();
 }
 
 // ---- per-frame mini map draw ----
@@ -52,6 +75,12 @@ function _miniProject(dx,dz,ry,ppm,cx,cy){
 function _updateMiniMap(){
     if(!_miniCanvas)_initMapUI();
     if(!_miniCanvas||typeof playerEgg==='undefined'||!playerEgg||!playerEgg.mesh)return;
+    var desired=_mapMiniSize();
+    if(desired!==_miniSize){
+        _miniSize=desired;
+        _miniCanvas.width=_miniSize;_miniCanvas.height=_miniSize;
+    }
+    _layoutMapFloatingButtons();
     _markCityVisited('c'+currentCityStyle);
     if(currentCityStyle<=4&&playerEgg.mesh.position.y>40)_markCityVisited('cloud');
 

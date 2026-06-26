@@ -320,6 +320,22 @@ function _toast(text,color){
 //  蛋堡城杂货铺：红房子(外观) + 门口进入 + 老板在店内
 // ============================================================
 var _shopNPC=null,_shopDoorPos={x:8,z:-5.5};
+function _cosIsTouchLike(){
+    return (('ontouchstart' in window)||(navigator.maxTouchPoints>0)||(window.matchMedia&&window.matchMedia('(hover:none)').matches));
+}
+function _cosMiniTop(){ return _cosIsTouchLike()?76:10; }
+function _cosMiniSize(){ return _cosIsTouchLike()?118:200; }
+function _layoutShopButton(){
+    var b=document.getElementById('shop-btn');if(!b)return;
+    if(_cosIsTouchLike()){
+        var t=_cosMiniTop()+_cosMiniSize()+106;
+        b.style.top=t+'px';b.style.right='14px';b.style.bottom='auto';
+        b.style.width='42px';b.style.height='42px';b.style.lineHeight='42px';b.style.borderRadius='14px';
+    }else{
+        b.style.top='auto';b.style.right='12px';b.style.bottom='58px';
+        b.style.width='40px';b.style.height='40px';b.style.lineHeight='40px';b.style.borderRadius='12px';
+    }
+}
 function _ensureShopNPC(){
     if(_shopNPC)return;
     var g=new THREE.Group();
@@ -363,8 +379,28 @@ function _ensureShopButton(){
     b.style.cssText='position:fixed;bottom:58px;right:12px;z-index:55;width:40px;height:40px;border-radius:12px;'+
         'background:rgba(255,255,255,0.85);border:2px solid #FFB6CE;color:#C2477A;font-size:20px;line-height:40px;text-align:center;cursor:pointer;user-select:none;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
     b.title='\u86CB\u5821\u57CE\u6742\u8D27\u94FA';
-    b.onclick=function(){ if(window._interiorActive&&window._interiorShop)_openShop(); else _openShop(); };
+    b.onclick=function(){ if(window._interiorActive&&window._interiorShop&&window._shopNearKeeper)_openShop(); };
     document.body.appendChild(b);
+    _layoutShopButton();
+}
+function _maybeAutoShopConfirm(mode){
+    if(window._shopOpen||window._worldMapOpen)return false;
+    if(typeof showPortalConfirm!=='function')return false;
+    if(typeof _portalConfirmOpen!=='undefined'&&_portalConfirmOpen)return false;
+    var isDoor=(mode==='door'&&window._nearShopDoor&&!window._interiorActive);
+    var isKeeper=(mode==='keeper'&&window._interiorActive&&window._interiorShop&&window._shopNearKeeper);
+    if(!isDoor&&!isKeeper)return false;
+    var type=isDoor?'shopHouse':'shopKeeper';
+    var key='hidden:'+type+':-97';
+    if(typeof _portalDismissed!=='undefined'&&_portalDismissed===key)return false;
+    showPortalConfirm({
+        name:isDoor?'\uD83C\uDFEA \u86CB\u5821\u57CE\u6742\u8D27\u94FA':'\uD83C\uDFEA \u9009\u8D2D',
+        desc:isDoor?'\u8FDB\u5165\u6742\u8D27\u94FA\uFF1F':'\u548C\u8001\u677F\u9009\u8D2D\u5916\u89C2\uFF1F',
+        raceIndex:-1,
+        _hiddenType:type,
+        _targetStyle:-97
+    });
+    return true;
 }
 
 // ============================================================
@@ -374,6 +410,7 @@ var _cosInited=false,_coinSaveTick=0;
 function _cosUpdate(){
     if(typeof scene==='undefined')return;
     if(!_cosInited){_cosInited=true;_ensureShopButton();_applyCosmetics();}
+    _layoutShopButton();
     if(typeof playerEgg!=='undefined'&&playerEgg&&playerEgg.mesh&&playerEgg.mesh!==_cosLastMesh){_applyCosmetics(_shopOpen?_shopSelCat():null,_shopOpen?_shopSel:null);}
     for(var i=0;i<_cosSpinGroups.length;i++){if(_cosSpinGroups[i])_cosSpinGroups[i].rotation.y+=0.03;}
     if(++_coinSaveTick>=120){_coinSaveTick=0;if(typeof coins!=='undefined'&&Cosmetics.data().coins!==coins)Cosmetics.save();}
@@ -382,10 +419,11 @@ function _cosUpdate(){
     if(window._interiorActive&&window._interiorShop&&window._shopKeeperPos&&playerEgg&&playerEgg.mesh){
         var kdx=playerEgg.mesh.position.x-window._shopKeeperPos.x,kdz=playerEgg.mesh.position.z-window._shopKeeperPos.z;
         window._shopNearKeeper=(kdx*kdx+kdz*kdz)<6.25;
-        _showShopPrompt(window._shopNearKeeper&&!window._shopOpen,'keeper');
-    } else { window._shopNearKeeper=false; }
+        if(window._shopNearKeeper&&!window._shopOpen&&_maybeAutoShopConfirm('keeper'))_showShopPrompt(false);
+        else _showShopPrompt(window._shopNearKeeper&&!window._shopOpen,'keeper');
+    } else { window._shopNearKeeper=false; if(typeof _portalDismissed!=='undefined'&&_portalDismissed==='hidden:shopKeeper:-97')_portalDismissed=null; }
     var inCity=(typeof gameState!=='undefined'&&gameState==='city'&&!window._interiorActive);
-    var sb=document.getElementById('shop-btn');if(sb)sb.style.display=(inCity||(window._interiorActive&&window._interiorShop))?'block':'none';
+    var sb=document.getElementById('shop-btn');if(sb)sb.style.display=(window._interiorActive&&window._interiorShop&&window._shopNearKeeper&&!window._shopOpen)?'block':'none';
     if(!inCity){ if(_shopNPC)_shopNPC.visible=false; window._nearShopDoor=false; if(!window._shopNearKeeper)_showShopPrompt(false); return; }
     // red shop house only in Egg City (style 0)
     _ensureShopNPC();
@@ -393,8 +431,9 @@ function _cosUpdate(){
     if(show&&playerEgg&&playerEgg.mesh){
         var dx=playerEgg.mesh.position.x-_shopDoorPos.x,dz=playerEgg.mesh.position.z-_shopDoorPos.z;
         window._nearShopDoor=(dx*dx+dz*dz)<5.0;
-        _showShopPrompt(window._nearShopDoor&&!window._shopOpen,'door');
-    } else { window._nearShopDoor=false; _showShopPrompt(false); }
+        if(window._nearShopDoor&&!window._shopOpen&&_maybeAutoShopConfirm('door'))_showShopPrompt(false);
+        else _showShopPrompt(window._nearShopDoor&&!window._shopOpen,'door');
+    } else { window._nearShopDoor=false; if(typeof _portalDismissed!=='undefined'&&_portalDismissed==='hidden:shopHouse:-97')_portalDismissed=null; _showShopPrompt(false); }
     // footprints while walking
     var eqfp=Cosmetics.equipment().footprint;
     if(eqfp&&playerEgg&&playerEgg.onGround){
@@ -406,12 +445,19 @@ function _shopSelCat(){return _shopSel?_ITEM_BY_ID[_shopSel].cat:null;}
 function _showShopPrompt(show,mode){
     var el=document.getElementById('shop-prompt');
     if(show){
+        if(typeof _portalConfirmOpen!=='undefined'&&_portalConfirmOpen){if(el)el.style.display='none';return;}
         if(!el){el=document.createElement('div');el.id='shop-prompt';
             el.style.cssText='position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:58;padding:8px 18px;border-radius:18px;'+
                 'background:rgba(255,255,255,0.92);border:2px solid #FFB6CE;color:#C2477A;font:bold 16px system-ui,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;';
             document.body.appendChild(el);}
-        if(mode==='keeper'){el.textContent='\uD83C\uDFEA [E] \u9009\u8D2D';el.onclick=_openShop;}
-        else {el.textContent='\uD83C\uDFEA [E] \u8FDB\u5165\u86CB\u5821\u57CE\u6742\u8D27\u94FA';el.onclick=_enterShopHouse;}
+        if(mode==='keeper'){
+            el.textContent='\uD83C\uDFEA \u8D70\u8FD1\u8001\u677F\uFF0C\u70B9\u51FB\u786E\u8BA4\u9009\u8D2D';
+            el.onclick=function(){if(typeof _portalDismissed!=='undefined')_portalDismissed=null;if(typeof showPortalConfirm==='function')showPortalConfirm({name:'\uD83C\uDFEA \u9009\u8D2D',desc:'\u548C\u8001\u677F\u9009\u8D2D\u5916\u89C2\uFF1F',raceIndex:-1,_hiddenType:'shopKeeper',_targetStyle:-97});else _openShop();};
+        }
+        else {
+            el.textContent='\uD83C\uDFEA \u8D70\u8FD1\u5165\u53E3\uFF0C\u70B9\u51FB\u786E\u8BA4';
+            el.onclick=function(){if(typeof _portalDismissed!=='undefined')_portalDismissed=null;if(typeof showPortalConfirm==='function')showPortalConfirm({name:'\uD83C\uDFEA \u86CB\u5821\u57CE\u6742\u8D27\u94FA',desc:'\u8FDB\u5165\u6742\u8D27\u94FA\uFF1F',raceIndex:-1,_hiddenType:'shopHouse',_targetStyle:-97});else _enterShopHouse();};
+        }
         el.style.display='block';
     } else if(el)el.style.display='none';
 }

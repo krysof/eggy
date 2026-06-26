@@ -57,6 +57,11 @@ function _buildInteriorRoom(){
 // ---------- city-side: detect a nearby house door ----------
 function _interiorDoorScan(px,pz){
     if(typeof cityColliders==='undefined'){_nearDoorBuilding=null;_showDoorPrompt(false);return;}
+    if(playerEgg&&playerEgg.mesh&&playerEgg.mesh.position.y>3.5){_nearDoorBuilding=null;_showDoorPrompt(false);return;}
+    if(typeof _shopDoorPos!=='undefined'&&typeof currentCityStyle!=='undefined'&&currentCityStyle===0){
+        var sdx=px-_shopDoorPos.x,sdz=pz-_shopDoorPos.z;
+        if(sdx*sdx+sdz*sdz<6.25){_nearDoorBuilding=null;_showDoorPrompt(false);return;}
+    }
     var best=null,bestD=2.4*2.4;
     for(var i=0;i<cityColliders.length;i++){
         var c=cityColliders[i];if(!c)continue;
@@ -67,20 +72,49 @@ function _interiorDoorScan(px,pz){
     _nearDoorBuilding=best;
     _showDoorPrompt(!!best);
 }
+function _interiorIsTouchLike(){
+    return (('ontouchstart' in window)||(navigator.maxTouchPoints>0)||(window.matchMedia&&window.matchMedia('(hover:none)').matches));
+}
+function _interiorMaybeAutoConfirm(){
+    if(!_nearDoorBuilding)return false;
+    if(window._nearShopDoor||window._worldMapOpen||window._shopOpen||window._interiorActive)return false;
+    if(typeof showPortalConfirm!=='function')return false;
+    if(typeof _portalConfirmOpen!=='undefined'&&_portalConfirmOpen)return false;
+    var key='hidden:houseDoor:-98';
+    if(typeof _portalDismissed!=='undefined'&&_portalDismissed===key)return false;
+    showPortalConfirm({
+        name:'🏠 房屋',
+        desc:'进入房屋？',
+        raceIndex:-1,
+        _hiddenType:'houseDoor',
+        _targetStyle:-98
+    });
+    return true;
+}
 function _showDoorPrompt(show){
     var el=document.getElementById('door-prompt');
     if(show){
+        if(typeof _portalConfirmOpen!=='undefined'&&_portalConfirmOpen){if(el)el.style.display='none';return;}
+        if(_interiorMaybeAutoConfirm()){if(el)el.style.display='none';return;}
         if(!el){
             el=document.createElement('div');el.id='door-prompt';
-            el.textContent='\uD83D\uDEAA \u8FDB\u5165\u623F\u5C4B\uFF08E / \u70B9\u51FB\uFF09';
+            el.textContent='\uD83D\uDEAA \u8D70\u8FD1\u5165\u53E3\uFF0C\u70B9\u51FB\u786E\u8BA4';
             el.style.cssText='position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:58;'+
                 'padding:8px 18px;border-radius:18px;background:rgba(255,255,255,0.9);border:2px solid #FFB6CE;'+
                 'color:#C2477A;font:bold 16px system-ui,Segoe UI,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;';
-            el.onclick=function(){_interiorEnter(_nearDoorBuilding);};
+            el.onclick=function(){
+                if(typeof _portalDismissed!=='undefined')_portalDismissed=null;
+                if(typeof showPortalConfirm==='function')showPortalConfirm({name:'🏠 房屋',desc:'进入房屋？',raceIndex:-1,_hiddenType:'houseDoor',_targetStyle:-98});
+                else _interiorEnter(_nearDoorBuilding);
+            };
             document.body.appendChild(el);
         }
+        el.textContent='\uD83D\uDEAA \u8D70\u8FD1\u5165\u53E3\uFF0C\u70B9\u51FB\u786E\u8BA4';
         el.style.display='block';
-    } else if(el){el.style.display='none';}
+    } else {
+        if(typeof _portalDismissed!=='undefined'&&_portalDismissed==='hidden:houseDoor:-98')_portalDismissed=null;
+        if(el)el.style.display='none';
+    }
 }
 
 // ---------- enter / exit ----------
@@ -137,8 +171,8 @@ function _showInteriorHud(show){
     if(show){
         var shop=window._interiorShop;
         var html=shop
-            ?'<div style="font-weight:800;color:#C2477A;">\uD83C\uDFEA \u86CB\u5821\u57CE\u6742\u8D27\u94FA</div><div style="font-size:12px;opacity:0.8;">\u8D70\u5230\u8001\u677F\u9762\u524D\u6309 E \u9009\u8D2D \u00B7 \u8D70\u5230\u95E8\u53E3\u79BB\u5F00</div>'
-            :'<div style="font-weight:800;color:#C2477A;">\uD83C\uDFE0 \u623F\u5C4B\u5185\u90E8</div><div style="font-size:12px;opacity:0.8;">\u5185\u5BB9\u5F00\u53D1\u4E2D \u00B7 \u8D70\u5230\u95E8\u53E3\u6216\u6309 E \u79BB\u5F00</div>';
+            ?'<div style="font-weight:800;color:#C2477A;">\uD83C\uDFEA \u86CB\u5821\u57CE\u6742\u8D27\u94FA</div><div style="font-size:12px;opacity:0.8;">\u8D70\u5230\u8001\u677F\u9762\u524D\u786E\u8BA4\u9009\u8D2D \u00B7 \u8D70\u5230\u95E8\u53E3\u79BB\u5F00</div>'
+            :'<div style="font-weight:800;color:#C2477A;">\uD83C\uDFE0 \u623F\u5C4B\u5185\u90E8</div><div style="font-size:12px;opacity:0.8;">\u5185\u5BB9\u5F00\u53D1\u4E2D \u00B7 \u8D70\u5230\u95E8\u53E3\u79BB\u5F00</div>';
         if(!el){
             el=document.createElement('div');el.id='interior-hud';
             el.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:58;text-align:center;'+
