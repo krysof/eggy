@@ -1,6 +1,9 @@
 // audio.js — DANBO World
 // ---- Audio System (procedural, no files needed) ----
 let audioCtx=null, soundEnabled=true, sfxEnabled=true, _audioUnlocked=false;
+function _danboPluginBusyForAudio(){
+    return !!(window._danboPluginTransition||(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.getActive&&window.DANBO_PLUGIN_HOST.getActive()));
+}
 // iOS 17+ audio session hint
 try{if(navigator.audioSession)navigator.audioSession.type='transient';}catch(e){}
 // Pause/resume audio when tab loses/gains focus
@@ -16,8 +19,8 @@ document.addEventListener('visibilitychange',function(){
                 if(audioCtx)audioCtx.resume();
                 // Restart appropriate BGM after resume
                 setTimeout(function(){
-                    window._sfxMuted=false;
-                    if(gameState==='city')startBGM();
+                    if(!_danboPluginBusyForAudio())window._sfxMuted=false;
+                    if(gameState==='city'&&!_danboPluginBusyForAudio())startBGM();
                     else if(gameState==='menu')startTitleBGM();
                     else if(gameState==='select')startSelectBGM();
                 },500);
@@ -90,7 +93,7 @@ if(musicBtn) musicBtn.addEventListener("click",function(){
     musicBtn.textContent=soundEnabled?"🎵":"🚫";
     musicBtn.classList.toggle("muted",!soundEnabled);
     if(!soundEnabled){stopBGM();stopRaceBGM();stopSelectBGM();stopTitleBGM();}
-    else if(gameState==="city") startBGM();
+    else if(gameState==="city"&&!_danboPluginBusyForAudio()) startBGM();
     else if(gameState==="racing"||gameState==="raceIntro") startRaceBGM(currentRaceIndex);
 });
 // SFX toggle button

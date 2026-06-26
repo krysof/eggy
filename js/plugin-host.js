@@ -9,6 +9,9 @@
     var loadedScripts={};
     var pendingScripts={};
     var loadSeq=0;
+    var pluginIsolationActive=false;
+    var pluginIsolationPrevSfxMuted=false;
+    var pluginUiState=null;
 
     function clonePlain(obj){
         if(obj===undefined||obj===null)return obj;
@@ -117,6 +120,72 @@
         el.style.pointerEvents=v?'auto':'none';
     }
 
+    function hideTransientCityUi(){
+        var ids=['portal-prompt','door-prompt','chest-hud','minimap-wrap','map-btn','lb-btn','area-name-overlay','shop-prompt'];
+        for(var i=0;i<ids.length;i++){
+            var el=document.getElementById(ids[i]);
+            if(el)el.style.display='none';
+        }
+    }
+
+    function beginPluginIsolation(){
+        if(!pluginIsolationActive){
+            pluginIsolationActive=true;
+            pluginIsolationPrevSfxMuted=!!window._sfxMuted;
+        }
+        window._sfxMuted=true;
+        try{
+            if(typeof stopBGM==='function')stopBGM();
+            if(typeof stopRaceBGM==='function')stopRaceBGM();
+            if(typeof stopSelectBGM==='function')stopSelectBGM();
+            if(typeof stopTitleBGM==='function')stopTitleBGM();
+        }catch(e){}
+        if(!pluginUiState){
+            pluginUiState={classes:{},displays:{}};
+            var keepClasses=['city-hud','touch-controls'];
+            for(var i=0;i<keepClasses.length;i++){
+                var el=document.getElementById(keepClasses[i]);
+                if(el)pluginUiState.classes[keepClasses[i]]=el.className;
+            }
+            var keepDisplays=['sound-controls'];
+            for(var d=0;d<keepDisplays.length;d++){
+                var de=document.getElementById(keepDisplays[d]);
+                if(de)pluginUiState.displays[keepDisplays[d]]=de.style.display;
+            }
+        }
+        var hud=document.getElementById('city-hud');
+        if(hud)hud.classList.add('hidden');
+        var touch=document.getElementById('touch-controls');
+        if(touch)touch.classList.add('hidden');
+        var soundControls=document.getElementById('sound-controls');
+        if(soundControls)soundControls.style.display='none';
+        hideTransientCityUi();
+    }
+
+    function endPluginIsolation(restartCityBgm){
+        hideTransientCityUi();
+        if(pluginUiState){
+            for(var id in pluginUiState.classes){
+                if(!Object.prototype.hasOwnProperty.call(pluginUiState.classes,id))continue;
+                var el=document.getElementById(id);
+                if(el)el.className=pluginUiState.classes[id];
+            }
+            for(var did in pluginUiState.displays){
+                if(!Object.prototype.hasOwnProperty.call(pluginUiState.displays,did))continue;
+                var del=document.getElementById(did);
+                if(del)del.style.display=pluginUiState.displays[did];
+            }
+            pluginUiState=null;
+        }
+        if(pluginIsolationActive){
+            window._sfxMuted=pluginIsolationPrevSfxMuted;
+            pluginIsolationActive=false;
+        }
+        if(restartCityBgm&&typeof gameState!=='undefined'&&gameState==='city'&&typeof startBGM==='function'){
+            try{startBGM();}catch(e){}
+        }
+    }
+
     function cssColor(v,fallback){
         if(typeof v==='number'&&isFinite(v)){
             return '#'+('000000'+((v|0)&0xffffff).toString(16)).slice(-6);
@@ -161,13 +230,42 @@
         }
         var flash=new THREE.Mesh(new THREE.PlaneGeometry(220,220),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0,depthTest:false,depthWrite:false,side:THREE.DoubleSide}));
         flash.renderOrder=9999;scene.add(flash);
-        var start=Date.now(),dur=durationMs||2600,raf=0,done=false;
+        var audioNodes=[];
+        if(typeof sfxEnabled==='undefined'||sfxEnabled){
+            try{
+                var ac=(typeof ensureAudio==='function')?ensureAudio():null;
+                if(ac){
+                    if(ac.state==='suspended'&&ac.resume)ac.resume();
+                    var t0=ac.currentTime;
+                    function osc(type,f0,f1,tA,tB,g0,g1){
+                        var o=ac.createOscillator(),g=ac.createGain();
+                        o.type=type;
+                        o.frequency.setValueAtTime(Math.max(1,f0),t0+tA);
+                        o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t0+tB);
+                        g.gain.setValueAtTime(0.0001,t0+tA);
+                        g.gain.linearRampToValueAtTime(g0,t0+tA+0.08);
+                        g.gain.linearRampToValueAtTime(g1,t0+Math.max(tA+0.12,tB-0.18));
+                        g.gain.exponentialRampToValueAtTime(0.0001,t0+tB);
+                        o.connect(g);g.connect(ac.destination);
+                        o.start(t0+tA);o.stop(t0+tB+0.03);
+                        audioNodes.push(o);
+                    }
+                    // Matches the old mini-game Bifrost feel: descending shimmer, low rumble, upward whoosh, arrival flash.
+                    osc('triangle',2000,220,0.00,0.95,0.13,0.08);
+                    osc('sine',42,55,0.05,2.95,0.085,0.03);
+                    osc('sawtooth',105,3200,0.62,2.35,0.11,0.075);
+                    osc('sawtooth',900,180,2.18,3.10,0.10,0.035);
+                    for(var ai=0;ai<4;ai++)osc('triangle',520+ai*120,360+ai*50,2.46+ai*0.09,2.72+ai*0.09,0.05,0.012);
+                }
+            }catch(eAudio){}
+        }
+        var start=Date.now(),dur=durationMs||3200,raf=0,done=false;
         function ease(x){return x<0?0:(x>1?1:(x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2));}
         function frame(){
             if(done)return;
             var elapsed=Date.now()-start,t=Math.min(1,elapsed/dur);
             var p1=Math.min(1,t/0.38),p2=Math.max(0,Math.min(1,(t-0.20)/0.62));
-            var beamH=96, descend=ease(p1);
+            var beamH=116, descend=ease(p1);
             for(var a=0;a<pillars.length;a++){
                 var m=pillars[a];
                 var spiral=elapsed*0.0035+a*(Math.PI*2/pillars.length);
@@ -183,7 +281,7 @@
                 var suck=Math.max(0,Math.min(1,(t-0.48)/0.34));
                 rg.scale.setScalar(0.18+ease(rp)*(1.15-suck*0.58));
                 rg.rotation.z=elapsed*0.006+r*0.55;
-                rg.position.y=0.12+r*0.045+p2*14;
+                rg.position.y=0.12+r*0.045+p2*26;
                 rg.material.opacity=Math.max(0,0.86*rp*(1-t*0.35));
             }
             for(var c=0;c<particles.length;c++){
@@ -195,12 +293,12 @@
             }
             if(playerEgg&&playerEgg.mesh){
                 var rise=ease(p2);
-                playerEgg.mesh.position.set(origin.x,origin.y+rise*22,origin.z);
+                playerEgg.mesh.position.set(origin.x,origin.y+rise*40,origin.z);
                 playerEgg.mesh.rotation.y=rotY+rise*Math.PI*2+elapsed*0.003;
                 var sc=1-rise*0.38;playerEgg.mesh.scale.set(sc,sc,sc);
             }
             if(typeof camera!=='undefined'&&camera){
-                camera.lookAt(origin.x,origin.y+4+p2*8,origin.z);
+                camera.lookAt(origin.x,origin.y+4+p2*18,origin.z);
             }
             flash.position.copy(camera.position);flash.quaternion.copy(camera.quaternion);flash.translateZ(-1);
             flash.material.opacity=t>0.72?Math.max(0,0.62*(1-Math.abs(t-0.82)/0.10)):0;
@@ -209,6 +307,7 @@
         frame();
         transitionCleanup=function(){
             done=true;if(raf)cancelAnimationFrame(raf);
+            for(var n=0;n<audioNodes.length;n++){try{audioNodes[n].stop(0);}catch(eStop){}}
             if(playerEgg&&playerEgg.mesh){playerEgg.mesh.position.set(origin.x,origin.y,origin.z);playerEgg.mesh.rotation.y=rotY;playerEgg.mesh.scale.set(1,1,1);}
             for(var i=group.children.length-1;i>=0;i--){var ch=group.children[i];if(ch.geometry)ch.geometry.dispose();if(ch.material)ch.material.dispose();group.remove(ch);}
             scene.remove(group);if(flash.geometry)flash.geometry.dispose();if(flash.material)flash.material.dispose();scene.remove(flash);
@@ -370,6 +469,7 @@
         var def=registry[pluginId];
         if(!def)throw new Error('Plugin not registered: '+pluginId);
         stop({status:'replaced'});
+        beginPluginIsolation();
         var ctx=makeContext(pluginId,options||{});
         cleanupSceneBifrost();
         setLayerVisible(true);
@@ -386,13 +486,14 @@
         stop({status:'replaced'});
         var seq=++loadSeq;
         var bridgeStarted=Date.now();
+        var bridgeDuration=3200;
         setLayerVisible(true);
         window._danboPluginTransition=true;
-        try{if(typeof stopBGM==='function')stopBGM();}catch(e){}
+        beginPluginIsolation();
         mount.innerHTML=bridgeEnterMarkup();
-        startSceneBifrost(2600);
+        startSceneBifrost(bridgeDuration);
         function finishStart(){
-            var wait=Math.max(0,2600-(Date.now()-bridgeStarted));
+            var wait=Math.max(0,bridgeDuration-(Date.now()-bridgeStarted));
             setTimeout(function(){
                 if(seq===loadSeq)startLoaded(pluginId,options||{});
             },wait);
@@ -411,6 +512,9 @@
     }
 
     function stop(result){
+        var isReplace=!!(result&&result.status==='replaced');
+        var hadActive=!!active;
+        var hadTransition=!!window._danboPluginTransition;
         loadSeq++;
         if(active&&active.instance&&typeof active.instance.destroy==='function'){
             try{active.instance.destroy(result||{status:'stopped'});}catch(e){console.error('[PluginHost] destroy failed',e);}
@@ -422,6 +526,11 @@
         cleanupSceneBifrost();
         window._danboPluginTransition=false;
         if(layer){layer.innerHTML='';setLayerVisible(false);}
+        if(isReplace){
+            hideTransientCityUi();
+        }else{
+            endPluginIsolation(hadActive||hadTransition);
+        }
     }
 
     function update(dt){

@@ -2503,6 +2503,17 @@ function animate(now){
 function _gameUpdate(){
     const dt=1/60;
     if(window.DANBO_PLUGIN_HOST&&typeof window.DANBO_PLUGIN_HOST.update==='function')window.DANBO_PLUGIN_HOST.update(dt);
+    var _pluginBusy=!!(window._danboPluginTransition||(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.getActive&&window.DANBO_PLUGIN_HOST.getActive()));
+    if(_pluginBusy){
+        // A mini-game/plugin owns the screen now. Freeze city physics/NPCs/ambient SFX so the plugin is a separate scene.
+        var _ppBusy=document.getElementById('portal-prompt');if(_ppBusy)_ppBusy.style.display='none';
+        var _dpBusy=document.getElementById('door-prompt');if(_dpBusy)_dpBusy.style.display='none';
+        var _chBusy=document.getElementById('chest-hud');if(_chBusy)_chBusy.style.display='none';
+        var _mmBusy=document.getElementById('minimap-wrap');if(_mmBusy)_mmBusy.style.display='none';
+        var _mbBusy=document.getElementById('map-btn');if(_mbBusy)_mbBusy.style.display='none';
+        var _lbBusy=document.getElementById('lb-btn');if(_lbBusy)_lbBusy.style.display='none';
+        return;
+    }
     // Shell status above EVERY character, every mode (player + race rivals + city NPCs).
     if(typeof _updateAllShellStatus==='function')_updateAllShellStatus();
     // Cosmetic shop / equipped looks / footprints (single-player, local).
