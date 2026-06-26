@@ -125,32 +125,94 @@
     }
 
     function bridgeEnterMarkup(){
-        var snap=selectedCharacterSnapshot();
-        var hero=cssColor(snap&&snap.style&&snap.style.color,'#80ea7a');
-        var accent=cssColor(snap&&snap.style&&snap.style.accent,'#ffe15d');
-        return ''+
-        '<style>'+
-        '.dbw-warp{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 62%,rgba(255,255,255,.20),rgba(111,74,214,.28) 35%,rgba(12,20,52,.42) 72%,rgba(4,8,22,.56));isolation:isolate;}'+
-        '.dbw-warp:before{content:"";position:absolute;inset:-10%;background:radial-gradient(circle at 50% 62%,rgba(255,255,255,.50),rgba(255,255,255,0) 22%),radial-gradient(circle at 50% 18%,rgba(120,240,255,.38),rgba(255,124,240,.20) 28%,rgba(0,0,0,0) 58%);animation:dbw-glow 780ms ease-in-out infinite alternate;mix-blend-mode:screen;}'+
-        '.dbw-sky-orb{position:absolute;left:50%;top:12%;width:min(54vw,330px);height:min(54vw,330px);transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff 0 10%,#fff9 18%,#8ef6 34%,#f8a0 62%);box-shadow:0 0 45px #fff,0 0 110px #75eaff,0 0 190px #ff75f4;animation:dbw-orb 980ms ease-in-out infinite alternate;z-index:2;}'+
-        '.dbw-beam{position:absolute;left:50%;top:-18vh;width:min(76vw,470px);height:145vh;transform:translateX(-50%) perspective(520px) rotateX(5deg);filter:blur(.15px) drop-shadow(0 0 30px rgba(255,255,255,.75));opacity:.98;mix-blend-mode:screen;z-index:3;}'+
-        '.dbw-beam i{position:absolute;top:0;height:100%;width:13.4%;border-radius:999px;box-shadow:0 0 18px currentColor,inset 0 0 22px rgba(255,255,255,.42);animation:dbw-beam-fall 2350ms cubic-bezier(.16,.82,.2,1) forwards,dbw-beam-pulse 620ms ease-in-out infinite alternate;}'+
-        '.dbw-beam i:nth-child(1){left:3%;color:#ff405c;background:linear-gradient(to bottom,rgba(255,64,92,0),#ff405c 20%,rgba(255,64,92,.72) 72%,rgba(255,64,92,0));animation-delay:0ms}.dbw-beam i:nth-child(2){left:16%;color:#ff9b2f;background:linear-gradient(to bottom,rgba(255,155,47,0),#ff9b2f 20%,rgba(255,155,47,.70) 72%,rgba(255,155,47,0));animation-delay:35ms}.dbw-beam i:nth-child(3){left:29%;color:#ffe84f;background:linear-gradient(to bottom,rgba(255,232,79,0),#ffe84f 20%,rgba(255,232,79,.72) 72%,rgba(255,232,79,0));animation-delay:70ms}.dbw-beam i:nth-child(4){left:42%;color:#60ff76;background:linear-gradient(to bottom,rgba(96,255,118,0),#60ff76 20%,rgba(96,255,118,.72) 72%,rgba(96,255,118,0));animation-delay:105ms}.dbw-beam i:nth-child(5){left:55%;color:#4fdcff;background:linear-gradient(to bottom,rgba(79,220,255,0),#4fdcff 20%,rgba(79,220,255,.72) 72%,rgba(79,220,255,0));animation-delay:140ms}.dbw-beam i:nth-child(6){left:68%;color:#6977ff;background:linear-gradient(to bottom,rgba(105,119,255,0),#6977ff 20%,rgba(105,119,255,.72) 72%,rgba(105,119,255,0));animation-delay:175ms}.dbw-beam i:nth-child(7){left:81%;color:#e36bff;background:linear-gradient(to bottom,rgba(227,107,255,0),#e36bff 20%,rgba(227,107,255,.72) 72%,rgba(227,107,255,0));animation-delay:210ms}'+
-        '.dbw-rings{position:absolute;left:50%;top:64%;width:1px;height:1px;z-index:5;filter:drop-shadow(0 0 14px rgba(255,255,255,.9));}'+
-        '.dbw-ring{position:absolute;left:0;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border:5px solid currentColor;border-radius:50%;opacity:0;animation:dbw-ring 1450ms ease-out forwards;mix-blend-mode:screen}.dbw-ring:nth-child(1){color:#ff405c;animation-delay:80ms}.dbw-ring:nth-child(2){color:#ff9b2f;animation-delay:150ms}.dbw-ring:nth-child(3){color:#ffe84f;animation-delay:220ms}.dbw-ring:nth-child(4){color:#60ff76;animation-delay:290ms}.dbw-ring:nth-child(5){color:#4fdcff;animation-delay:360ms}.dbw-ring:nth-child(6){color:#6977ff;animation-delay:430ms}.dbw-ring:nth-child(7){color:#e36bff;animation-delay:500ms}'+
-        '.dbw-spark{position:absolute;left:50%;top:63%;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 0 18px #fff,0 0 34px #7eeaff;opacity:.95;z-index:6;animation:dbw-spark 1650ms ease-in forwards}.dbw-spark.s1{margin-left:-34vw;animation-delay:80ms}.dbw-spark.s2{margin-left:31vw;margin-top:6vh;animation-delay:180ms}.dbw-spark.s3{margin-left:-18vw;margin-top:14vh;animation-delay:280ms}.dbw-spark.s4{margin-left:21vw;margin-top:-8vh;animation-delay:380ms}.dbw-spark.s5{margin-left:5vw;margin-top:18vh;animation-delay:480ms}.dbw-spark.s6{margin-left:-7vw;margin-top:-12vh;animation-delay:580ms}'+
-        '.dbw-hero{--hero:'+hero+';--accent:'+accent+';position:absolute;left:50%;top:66%;width:92px;height:82px;transform:translate(-50%,-50%);animation:dbw-suck 2200ms cubic-bezier(.18,.78,.16,1) forwards;filter:drop-shadow(0 14px 20px rgba(0,0,0,.30)) drop-shadow(0 0 24px rgba(255,255,255,.75));z-index:7;}'+
-        '.dbw-hero i{position:absolute;left:10px;top:6px;width:72px;height:72px;border-radius:50%;background:var(--hero);box-shadow:inset -9px -11px 0 rgba(0,0,0,.08),inset 9px 9px 0 rgba(255,255,255,.22),0 0 0 6px rgba(255,255,255,.48);}'+
-        '.dbw-hero b{position:absolute;top:34px;width:10px;height:16px;border-radius:50%;background:#172033;z-index:2}.dbw-hero b:nth-of-type(1){left:34px}.dbw-hero b:nth-of-type(2){left:53px}.dbw-hero em{position:absolute;left:40px;top:57px;width:16px;height:8px;border-radius:0 0 15px 15px;border-bottom:3px solid #172033;z-index:2}.dbw-hero span{position:absolute;width:22px;height:15px;border-radius:50%;background:var(--accent);top:0;z-index:0}.dbw-hero span:nth-child(1){left:9px}.dbw-hero span:nth-child(2){right:9px}'+
-        '.dbw-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:9;animation:dbw-flash 2450ms ease-out forwards;pointer-events:none;}'+
-        '@keyframes dbw-glow{from{opacity:.65;transform:scale(.98)}to{opacity:1;transform:scale(1.03)}}@keyframes dbw-orb{from{transform:translate(-50%,-50%) scale(.88);opacity:.78}to{transform:translate(-50%,-50%) scale(1.08);opacity:1}}@keyframes dbw-beam-fall{0%{transform:translateY(-48vh) scaleY(.34);opacity:0}22%{opacity:1}62%{transform:translateY(0) scaleY(1);opacity:.96}100%{transform:translateY(-18vh) scaleY(1.22);opacity:.70}}@keyframes dbw-beam-pulse{from{filter:brightness(1)}to{filter:brightness(1.35)}}@keyframes dbw-ring{0%{transform:scale(.35);opacity:0}12%{opacity:.95}100%{transform:scale(8.8);opacity:0}}@keyframes dbw-spark{0%{transform:translate(0,0) scale(.75);opacity:.95}100%{transform:translate(0,-52vh) scale(.18);opacity:0}}@keyframes dbw-suck{0%{transform:translate(-50%,-50%) scale(1);opacity:1}36%{transform:translate(-50%,-72%) scale(.92);opacity:1}72%{transform:translate(-50%,-165%) scale(.46);opacity:.95}100%{transform:translate(-50%,-310%) scale(.10);opacity:.10}}@keyframes dbw-flash{0%,72%{opacity:0}82%{opacity:.72}100%{opacity:0}}'+
-        '</style>'+
-        '<div class="dbw-warp" data-plugin-loading="rainbow-bridge" aria-hidden="true">'+
-        '<div class="dbw-sky-orb"></div><div class="dbw-beam"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'+
-        '<div class="dbw-rings"><i class="dbw-ring"></i><i class="dbw-ring"></i><i class="dbw-ring"></i><i class="dbw-ring"></i><i class="dbw-ring"></i><i class="dbw-ring"></i><i class="dbw-ring"></i></div>'+
-        '<i class="dbw-spark s1"></i><i class="dbw-spark s2"></i><i class="dbw-spark s3"></i><i class="dbw-spark s4"></i><i class="dbw-spark s5"></i><i class="dbw-spark s6"></i>'+
-        '<div class="dbw-hero"><span></span><span></span><i></i><b></b><b></b><em></em></div><div class="dbw-flash"></div>'+
-        '</div>';
+        // The real transition is drawn in the Three.js scene so it matches the old mini-game Bifrost feel.
+        // This transparent marker only blocks input and gives tests a stable hook; it intentionally has no text.
+        return '<div data-plugin-loading="rainbow-bridge" aria-hidden="true" style="position:absolute;inset:0;pointer-events:auto;background:rgba(255,255,255,0.01);"></div>';
+    }
+
+    var transitionCleanup=null;
+    function cleanupSceneBifrost(){
+        if(transitionCleanup){try{transitionCleanup();}catch(e){console.error('[PluginHost] transition cleanup failed',e);}transitionCleanup=null;}
+    }
+    function startSceneBifrost(durationMs){
+        cleanupSceneBifrost();
+        if(typeof THREE==='undefined'||typeof scene==='undefined'||!scene||typeof playerEgg==='undefined'||!playerEgg||!playerEgg.mesh)return;
+        var group=new THREE.Group();group.name='danbo-plugin-bifrost';
+        scene.add(group);
+        var colors=[0xFF0000,0xFF8800,0xFFDD00,0x44DD44,0x4488FF,0x4400CC,0x8800CC];
+        var origin={x:playerEgg.mesh.position.x,y:playerEgg.mesh.position.y,z:playerEgg.mesh.position.z};
+        var rotY=playerEgg.mesh.rotation.y;
+        var rings=[],pillars=[],particles=[];
+        function mb(c,o){return new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthWrite:false,side:THREE.DoubleSide});}
+        for(var i=0;i<7;i++){
+            var ring=new THREE.Mesh(new THREE.TorusGeometry(0.35+i*0.38,0.075,8,40),mb(colors[i],0));
+            ring.rotation.x=Math.PI/2;ring.position.set(origin.x,0.12+i*0.045,origin.z);ring.renderOrder=900;
+            group.add(ring);rings.push(ring);
+        }
+        for(var p=0;p<18;p++){
+            var pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.34,1,8,1,true),mb(colors[p%7],0));
+            pillar.position.set(origin.x,40,origin.z);pillar.scale.y=80;pillar.renderOrder=895;
+            group.add(pillar);pillars.push(pillar);
+        }
+        for(var q=0;q<36;q++){
+            var sp=new THREE.Mesh(new THREE.SphereGeometry(0.11+Math.random()*0.08,6,4),mb(0xFFFFFF,0));
+            sp.userData={angle:Math.random()*Math.PI*2,rad:0.4+Math.random()*2.8,spd:0.6+Math.random()*1.6,off:Math.random()*80};sp.renderOrder=910;
+            group.add(sp);particles.push(sp);
+        }
+        var flash=new THREE.Mesh(new THREE.PlaneGeometry(220,220),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0,depthTest:false,depthWrite:false,side:THREE.DoubleSide}));
+        flash.renderOrder=9999;scene.add(flash);
+        var start=Date.now(),dur=durationMs||2600,raf=0,done=false;
+        function ease(x){return x<0?0:(x>1?1:(x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2));}
+        function frame(){
+            if(done)return;
+            var elapsed=Date.now()-start,t=Math.min(1,elapsed/dur);
+            var p1=Math.min(1,t/0.38),p2=Math.max(0,Math.min(1,(t-0.20)/0.62));
+            var beamH=96, descend=ease(p1);
+            for(var a=0;a<pillars.length;a++){
+                var m=pillars[a];
+                var spiral=elapsed*0.0035+a*(Math.PI*2/pillars.length);
+                var sr=0.35+(a%6)*0.28+Math.floor(a/6)*0.42;
+                m.position.x=origin.x+Math.cos(spiral)*sr;
+                m.position.z=origin.z+Math.sin(spiral)*sr;
+                m.position.y=beamH*(1-descend)+beamH*0.5+Math.sin(elapsed*0.006+a)*1.4;
+                m.scale.y=beamH*(0.22+0.78*descend);
+                m.material.opacity=(0.18+0.42*descend)*(1-Math.max(0,t-0.86)/0.14);
+            }
+            for(var r=0;r<rings.length;r++){
+                var rg=rings[r],rp=Math.max(0,Math.min(1,(t-0.10-r*0.018)/0.34));
+                var suck=Math.max(0,Math.min(1,(t-0.48)/0.34));
+                rg.scale.setScalar(0.18+ease(rp)*(1.15-suck*0.58));
+                rg.rotation.z=elapsed*0.006+r*0.55;
+                rg.position.y=0.12+r*0.045+p2*14;
+                rg.material.opacity=Math.max(0,0.86*rp*(1-t*0.35));
+            }
+            for(var c=0;c<particles.length;c++){
+                var pt=particles[c],ud=pt.userData;
+                ud.angle+=0.035*ud.spd;
+                var py=(ud.off+elapsed*0.055*ud.spd)%86;
+                pt.position.set(origin.x+Math.cos(ud.angle)*ud.rad,py,origin.z+Math.sin(ud.angle)*ud.rad);
+                pt.material.opacity=0.25+0.55*Math.sin(Math.min(1,t)*Math.PI);
+            }
+            if(playerEgg&&playerEgg.mesh){
+                var rise=ease(p2);
+                playerEgg.mesh.position.set(origin.x,origin.y+rise*22,origin.z);
+                playerEgg.mesh.rotation.y=rotY+rise*Math.PI*2+elapsed*0.003;
+                var sc=1-rise*0.38;playerEgg.mesh.scale.set(sc,sc,sc);
+            }
+            if(typeof camera!=='undefined'&&camera){
+                camera.lookAt(origin.x,origin.y+4+p2*8,origin.z);
+            }
+            flash.position.copy(camera.position);flash.quaternion.copy(camera.quaternion);flash.translateZ(-1);
+            flash.material.opacity=t>0.72?Math.max(0,0.62*(1-Math.abs(t-0.82)/0.10)):0;
+            raf=requestAnimationFrame(frame);
+        }
+        frame();
+        transitionCleanup=function(){
+            done=true;if(raf)cancelAnimationFrame(raf);
+            if(playerEgg&&playerEgg.mesh){playerEgg.mesh.position.set(origin.x,origin.y,origin.z);playerEgg.mesh.rotation.y=rotY;playerEgg.mesh.scale.set(1,1,1);}
+            for(var i=group.children.length-1;i>=0;i--){var ch=group.children[i];if(ch.geometry)ch.geometry.dispose();if(ch.material)ch.material.dispose();group.remove(ch);}
+            scene.remove(group);if(flash.geometry)flash.geometry.dispose();if(flash.material)flash.material.dispose();scene.remove(flash);
+        };
     }
 
     function makeStorage(pluginId){
@@ -309,6 +371,7 @@
         if(!def)throw new Error('Plugin not registered: '+pluginId);
         stop({status:'replaced'});
         var ctx=makeContext(pluginId,options||{});
+        cleanupSceneBifrost();
         setLayerVisible(true);
         window._danboPluginTransition=false;
         var instance=def.create(ctx)||{};
@@ -325,7 +388,9 @@
         var bridgeStarted=Date.now();
         setLayerVisible(true);
         window._danboPluginTransition=true;
+        try{if(typeof stopBGM==='function')stopBGM();}catch(e){}
         mount.innerHTML=bridgeEnterMarkup();
+        startSceneBifrost(2600);
         function finishStart(){
             var wait=Math.max(0,2600-(Date.now()-bridgeStarted));
             setTimeout(function(){
@@ -354,6 +419,7 @@
             try{active.ctx.net.close();}catch(e2){}
         }
         active=null;
+        cleanupSceneBifrost();
         window._danboPluginTransition=false;
         if(layer){layer.innerHTML='';setLayerVisible(false);}
     }

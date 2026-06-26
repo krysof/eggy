@@ -62,7 +62,9 @@ function _interiorDoorScan(px,pz){
         var sdx=px-_shopDoorPos.x,sdz=pz-_shopDoorPos.z;
         if(sdx*sdx+sdz*sdz<6.25){_nearDoorBuilding=null;_showDoorPrompt(false);return;}
     }
-    var best=null,bestD=2.4*2.4;
+    // Keep the door trigger tight. A broad radius caused players walking near
+    // large city colliders/bridges to be offered a generic house entry.
+    var best=null,bestD=1.55*1.55;
     for(var i=0;i<cityColliders.length;i++){
         var c=cityColliders[i];if(!c)continue;
         var doorX=c.x, doorZ=c.z+(c.hd||1)+0.6; // door on +z face
@@ -76,19 +78,22 @@ function _interiorIsTouchLike(){
     return (('ontouchstart' in window)||(navigator.maxTouchPoints>0)||(window.matchMedia&&window.matchMedia('(hover:none)').matches));
 }
 function _interiorMaybeAutoConfirm(){
+    // Houses must never pop the confirm automatically. The player should see
+    // only a small prompt and explicitly tap/click/press E to open confirm.
+    return false;
+}
+function _interiorOpenDoorConfirm(){
     if(!_nearDoorBuilding)return false;
     if(window._nearShopDoor||window._worldMapOpen||window._shopOpen||window._interiorActive)return false;
-    if(typeof showPortalConfirm!=='function')return false;
-    if(typeof _portalConfirmOpen!=='undefined'&&_portalConfirmOpen)return false;
-    var key='hidden:houseDoor:-98';
-    if(typeof _portalDismissed!=='undefined'&&_portalDismissed===key)return false;
-    showPortalConfirm({
+    if(typeof _portalDismissed!=='undefined')_portalDismissed=null;
+    if(typeof showPortalConfirm==='function')showPortalConfirm({
         name:'🏠 房屋',
         desc:'进入房屋？',
         raceIndex:-1,
         _hiddenType:'houseDoor',
         _targetStyle:-98
     });
+    else _interiorEnter(_nearDoorBuilding);
     return true;
 }
 function _showDoorPrompt(show){
@@ -103,10 +108,9 @@ function _showDoorPrompt(show){
                 'padding:8px 18px;border-radius:18px;background:rgba(255,255,255,0.9);border:2px solid #FFB6CE;'+
                 'color:#C2477A;font:bold 16px system-ui,Segoe UI,sans-serif;box-shadow:0 3px 12px rgba(0,0,0,0.25);cursor:pointer;';
             el.onclick=function(){
-                if(typeof _portalDismissed!=='undefined')_portalDismissed=null;
-                if(typeof showPortalConfirm==='function')showPortalConfirm({name:'🏠 房屋',desc:'进入房屋？',raceIndex:-1,_hiddenType:'houseDoor',_targetStyle:-98});
-                else _interiorEnter(_nearDoorBuilding);
+                _interiorOpenDoorConfirm();
             };
+            el.addEventListener('touchend',function(ev){ev.preventDefault();_interiorOpenDoorConfirm();},{passive:false});
             document.body.appendChild(el);
         }
         el.textContent='\uD83D\uDEAA \u8D70\u8FD1\u5165\u53E3\uFF0C\u70B9\u51FB\u786E\u8BA4';
@@ -216,5 +220,5 @@ window.addEventListener('keydown',function(e){
     if(typeof gameState==='undefined'||gameState!=='city')return;
     if(window._worldMapOpen||window._shopOpen)return;
     if(window._interiorActive){ if(window._interiorShop&&window._shopNearKeeper)return; _interiorExit(); }
-    else if(_nearDoorBuilding&&!window._nearShopDoor){_interiorEnter(_nearDoorBuilding);}
+    else if(_nearDoorBuilding&&!window._nearShopDoor){_interiorOpenDoorConfirm();}
 });
