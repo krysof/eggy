@@ -2,6 +2,7 @@
     'use strict';
 
     var registry={};
+    var entrances={};
     var manifest=[];
     var active=null;
     var layer=null;
@@ -211,6 +212,17 @@
         return true;
     }
 
+    function registerEntrance(def){
+        if(!def||!def.id){console.warn('[PluginHost] invalid entrance definition',def);return false;}
+        if(typeof def.create!=='function'){console.warn('[PluginHost] entrance missing create(ctx): '+def.id);return false;}
+        entrances[def.id]=def;
+        return true;
+    }
+
+    function entranceList(){
+        return Object.keys(entrances).sort().map(function(id){return entrances[id];});
+    }
+
     function manifestEntry(id){
         for(var i=0;i<manifest.length;i++){
             if(manifest[i]&&manifest[i].id===id)return manifest[i];
@@ -300,26 +312,30 @@
     }
 
     function start(pluginId,options){
-        if(registry[pluginId])return startLoaded(pluginId,options||{});
         var m=manifestEntry(pluginId);
-        if(!m)throw new Error('Plugin not registered: '+pluginId);
+        if(!registry[pluginId]&&!m)throw new Error('Plugin not registered: '+pluginId);
         var mount=ensureLayer();
         stop({status:'replaced'});
         var seq=++loadSeq;
         var bridgeStarted=Date.now();
         setLayerVisible(true);
         mount.innerHTML=bridgeEnterMarkup();
-        loadPluginRuntime(pluginId,function(){
+        function finishStart(){
             var wait=Math.max(0,1400-(Date.now()-bridgeStarted));
             setTimeout(function(){
                 if(seq===loadSeq)startLoaded(pluginId,options||{});
             },wait);
-        },function(e){
+        }
+        if(registry[pluginId]){
+            finishStart();
+        }else{
+            loadPluginRuntime(pluginId,finishStart,function(e){
             if(seq!==loadSeq)return;
             console.error('[PluginHost] lazy load failed',e);
             mount.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(32,8,8,.75);color:#fff;font:900 18px system-ui,Segoe UI,sans-serif;">进入失败，请重试</div>';
             setTimeout(function(){stop({status:'error',reason:'load failed'});},900);
-        });
+            });
+        }
         return {id:pluginId,loading:true,startedAt:Date.now()};
     }
 
@@ -343,9 +359,12 @@
 
     window.DANBO_PLUGIN_HOST={
         register:register,
+        registerEntrance:registerEntrance,
         setManifest:setManifest,
         list:list,
         get:function(id){return registry[id]||manifestEntry(id)||null;},
+        getEntrance:function(id){return entrances[id]||null;},
+        getEntrances:entranceList,
         start:start,
         stop:stop,
         update:update,

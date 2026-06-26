@@ -199,6 +199,9 @@ function _applyLang(){
             if(_pr.raceIndex>=0&&_pr.raceIndex<RACES.length){
                 _pr.name=RACES[_pr.raceIndex].name;
                 _pr.desc=RACES[_pr.raceIndex].desc;
+            }else if(_pr._i18nName||_pr._i18nDesc){
+                if(_pr._i18nName)_pr.name=_pr._i18nName[_langCode]||_pr._i18nName.en||_pr._i18nName.zhs||_pr.name;
+                if(_pr._i18nDesc)_pr.desc=_pr._i18nDesc[_langCode]||_pr._i18nDesc.en||_pr._i18nDesc.zhs||_pr.desc;
             }
         }
     }

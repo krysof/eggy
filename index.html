@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260627.3">
+<link rel="stylesheet" href="style.css?v=20260627.5">
 </head>
 <body>
 <div id="game-container">
@@ -142,7 +142,7 @@
 
 <script>
 (function(){
-  var cache='v=20260627.3';
+  var cache='v=20260627.5';
   window.DANBO_ASSET_VERSION=cache;
   var warmStart=false;
   try{warmStart=localStorage.getItem('danbo_loader_version')===cache;}catch(e){}
@@ -237,8 +237,10 @@
   }
   var manifestFile='plugins/manifest.js';
   var pluginFiles=[];
+  var entranceFiles=[];
   var finalAssetTotal=0;
   var manifestLoadedCount=0;
+  var entranceLoadedCount=0;
   function collectPluginFiles(){
     var list=[];
     (window.DANBO_PLUGIN_MANIFEST||[]).forEach(function(p){
@@ -248,9 +250,29 @@
     });
     return list;
   }
+  function collectEntranceFiles(){
+    var list=[];
+    (window.DANBO_PLUGIN_MANIFEST||[]).forEach(function(p){
+      if(!p||p.enabled===false)return;
+      if(Array.isArray(p.entranceScripts))p.entranceScripts.forEach(function(src){if(src)list.push(src);});
+      else if(p.entranceScript)list.push(p.entranceScript);
+    });
+    return list;
+  }
   function assetProgress(n){
-    var total=finalAssetTotal||Math.max(1,gameFiles.length+pluginFiles.length+manifestLoadedCount);
+    var total=finalAssetTotal||Math.max(1,gameFiles.length+pluginFiles.length+entranceFiles.length+manifestLoadedCount);
     return 35+Math.floor(Math.max(0,Math.min(1,n/total))*60);
+  }
+  function loadEntranceScriptList(i,files,done){
+    files=files||[];
+    if(i>=files.length){done();return;}
+    var doneBeforeEntrance=manifestLoadedCount+gameFiles.indexOf('js/plugin-host.js')+1;
+    setEngineLoading('loadingAssets',assetProgress(doneBeforeEntrance+i+1));
+    var src=files[i]+'?'+cache;
+    loadScript(src,function(){entranceLoadedCount++;loadEntranceScriptList(i+1,files,done);},function(){
+      console.error('Failed to load entrance '+src);
+      entranceLoadedCount++;loadEntranceScriptList(i+1,files,done);
+    });
   }
   function loadPluginScriptList(i,files){
     files=files||[];
@@ -269,10 +291,17 @@
   }
   function loadGameScript(i){
     if(i>=gameFiles.length){loadPluginsThenFinish();return;}
-    var n=manifestLoadedCount+i+1;
+    var n=manifestLoadedCount+entranceLoadedCount+i+1;
     setEngineLoading('loadingAssets',assetProgress(n),{n:n,total:finalAssetTotal});
     var src=gameFiles[i]+'?'+cache;
-    loadScript(src,function(){loadGameScript(i+1);},function(){
+    loadScript(src,function(){
+      if(gameFiles[i]==='js/plugin-host.js'){
+        if(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.setManifest)window.DANBO_PLUGIN_HOST.setManifest(window.DANBO_PLUGIN_MANIFEST||[]);
+        loadEntranceScriptList(0,entranceFiles,function(){loadGameScript(i+1);});
+      }else{
+        loadGameScript(i+1);
+      }
+    },function(){
       console.error('Failed to load '+src);
       setStartText('loadFail');
     });
@@ -282,11 +311,13 @@
     loadScript(manifestFile+'?'+cache,function(){
       manifestLoadedCount=1;
       pluginFiles=[];
-      finalAssetTotal=manifestLoadedCount+gameFiles.length;
+      entranceFiles=collectEntranceFiles();
+      entranceLoadedCount=0;
+      finalAssetTotal=manifestLoadedCount+gameFiles.length+entranceFiles.length;
       loadGameScript(0);
     },function(){
       console.error('Failed to load '+manifestFile);
-      manifestLoadedCount=0;pluginFiles=[];finalAssetTotal=gameFiles.length;
+      manifestLoadedCount=0;pluginFiles=[];entranceFiles=[];entranceLoadedCount=0;finalAssetTotal=gameFiles.length;
       loadGameScript(0);
     });
   }

@@ -436,7 +436,7 @@ function updateCity(){
     var _pp=document.getElementById('portal-prompt');
     var _pt=document.getElementById('portal-prompt-text');
     var _portalBlocked=!!(playerEgg._hondaDash||playerEgg._blankaSpinTimer||playerEgg._tatsuActive||playerEgg._shoryuActive||playerEgg._guileSomersault||playerEgg.throwTimer>0||playerEgg._blankaShock||playerEgg._yogaFlame||playerEgg._hyakuretsuTimer||playerEgg._hyakuretsuKickTimer);
-    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_portalBlocked){if(_pp)_pp.style.display='none';} else {
+    if(_pipeTraveling||_pipeArrivalCooldown>0||_spinDashing||_portalBlocked){_portalPromptPortal=null;if(_pp)_pp.style.display='none';} else {
     var _nearP=null, _nearD=9999;
     // Check race portals
     for(var pi=0;pi<portals.length;pi++){
@@ -464,6 +464,7 @@ function updateCity(){
     var _isVoluntary=playerEgg&&_nearGround&&!playerEgg.throwTimer&&!playerEgg._stunTimer&&!playerEgg.heldBy&&!playerEgg._piledriverLocked&&!playerEgg._hondaDash&&!playerEgg._blankaSpinTimer&&!playerEgg._blankaSpinFalling&&!playerEgg._tatsuActive&&!playerEgg._shoryuActive&&!playerEgg._guileSomersault&&!playerEgg._electrocuted&&!playerEgg._elecFlying;
     var _portalAction=_nearP?_danboPortalAction(_nearD,PORTAL_CONFIG.triggerDist,PORTAL_CONFIG.confirmDist,_nearP._isWarpPipe,_isVoluntary):0;
     if(_nearP&&_portalAction>0){
+        _portalPromptPortal=_nearP;
         if(_pp)_pp.style.display='block';
         var _dismissKey=_danboPortalDismissKey(_nearP);
         if(_portalAction===2&&!_portalConfirmOpen&&_portalDismissed!==_dismissKey){
@@ -473,6 +474,7 @@ function updateCity(){
             if(_pt)_pt.textContent=_nearP.name+' \u2014 '+_nearP.desc+'  ('+L('walkIn')+')';
         }
     } else if(!_portalConfirmOpen){
+        _portalPromptPortal=null;
         if(_pp)_pp.style.display='none';
         _portalDismissed=null;
     }
@@ -2197,7 +2199,8 @@ function updateHeldEggs(){
 
 // ---- Portal confirm dialog ----
 var _portalConfirmOpen=false, _portalConfirmRace=-1, _portalConfirmTarget=-1, _portalDismissed=null, _portalConfirmHidden=null;
-var _portalConfirmWarpPipe=null, _portalConfirmBabelDir=0, _portalConfirmKey=null;
+var _portalConfirmWarpPipe=null, _portalConfirmBabelDir=0, _portalConfirmKey=null, _portalConfirmPlugin=null;
+var _portalPromptPortal=null;
 var _portalSel=0;
 function _updatePortalSel(){
     var yb=document.getElementById('portal-yes');
@@ -2214,11 +2217,23 @@ function showPortalConfirm(portal){
     _portalConfirmWarpPipe=portal._isWarpPipe?{x:portal._pipeX,z:portal._pipeZ,target:portal._targetStyle}:null;
     _portalConfirmBabelDir=portal._babelDir||0;
     _portalConfirmKey=_danboPortalDismissKey(portal);
+    _portalConfirmPlugin=portal._pluginId||portal.pluginId||null;
     _portalDismissed=null;
     var box=document.getElementById('portal-confirm');
     document.getElementById('portal-confirm-name').textContent=portal.name;
     document.getElementById('portal-confirm-desc').textContent=portal.desc;
     box.style.display='flex';_portalSel=0;_updatePortalSel();
+}
+function _danboPortalPromptActive(){
+    var pp=document.getElementById('portal-prompt');
+    return !!(_portalPromptPortal&&!_portalConfirmOpen&&pp&&pp.style.display!=='none');
+}
+function _danboOpenPortalPrompt(){
+    if(_portalConfirmOpen)return true;
+    if(!_portalPromptPortal)return false;
+    _portalDismissed=null;
+    showPortalConfirm(_portalPromptPortal);
+    return true;
 }
 function hidePortalConfirm(){
     _portalDismissed=_portalConfirmKey||((_portalConfirmRace>=0)?('race:'+_portalConfirmRace):('target:'+_portalConfirmTarget));
@@ -2229,6 +2244,8 @@ function hidePortalConfirm(){
     _portalConfirmWarpPipe=null;
     _portalConfirmBabelDir=0;
     _portalConfirmKey=null;
+    _portalConfirmPlugin=null;
+    _portalPromptPortal=null;
     document.getElementById('portal-confirm').style.display='none';
 }
 function confirmPortalEnter(){
@@ -2237,6 +2254,7 @@ function confirmPortalEnter(){
     var ht=_portalConfirmHidden;
     var wp=_portalConfirmWarpPipe;
     var bd=_portalConfirmBabelDir;
+    var pid=_portalConfirmPlugin;
     hidePortalConfirm();
     document.getElementById('portal-prompt').style.display='none';
     if(ri>=0){
@@ -2274,6 +2292,10 @@ function confirmPortalEnter(){
         if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('legacy-platformer'))DANBO_PLUGIN_HOST.start('legacy-platformer',{source:'portal'});
         else if(typeof _pfStart==='function'){_pfStart();}
     }
+    else if(pid){
+        if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get(pid))DANBO_PLUGIN_HOST.start(pid,{source:'portal',hiddenType:ht||''});
+        else console.error('Plugin runtime is not available: '+pid);
+    }
     else if(ht==='rocketRoad'){
         if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('rocket-road'))DANBO_PLUGIN_HOST.start('rocket-road',{source:'portal'});
         else console.error('Rocket Road plugin runtime is not loaded');
@@ -2291,6 +2313,8 @@ function confirmPortalEnter(){
 }
 document.getElementById('portal-yes').addEventListener('click',function(){confirmPortalEnter();});
 document.getElementById('portal-no').addEventListener('click',function(){hidePortalConfirm();});
+document.getElementById('portal-prompt').addEventListener('click',function(){_danboOpenPortalPrompt();});
+document.getElementById('portal-prompt').addEventListener('touchend',function(e){e.preventDefault();_danboOpenPortalPrompt();},{passive:false});
 
 // ---- Babel Tower prompt — unified into showPortalConfirm ----
 var _babylonPromptDir=1;

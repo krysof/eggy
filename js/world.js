@@ -19,6 +19,78 @@ const RACES = [
 // Apply localized race names/descs
 for(var _ri=0;_ri<RACES.length;_ri++){RACES[_ri].name=I18N.raceNames[_langCode][_ri]||RACES[_ri].name;RACES[_ri].desc=I18N.raceDescs[_langCode][_ri]||RACES[_ri].desc;}
 
+
+function _danboPortalLocale(value){
+    if(value&&typeof value==='object')return value[_langCode]||value.en||value.zhs||'';
+    return value||'';
+}
+
+function _danboMakePortalSign(group,text,color,pos,scale){
+    if(!group||typeof THREE==='undefined')return null;
+    var canvas=document.createElement('canvas');canvas.width=512;canvas.height=64;
+    var ctx=canvas.getContext('2d');
+    ctx.fillStyle='rgba(0,0,0,0.72)';ctx.fillRect(0,0,512,64);
+    ctx.fillStyle='#'+('000000'+((color||0xFFD700)&0xffffff).toString(16)).slice(-6);
+    ctx.textAlign='center';
+    var fs=28;ctx.font='bold '+fs+'px sans-serif';
+    while(ctx.measureText(text||'').width>480&&fs>12){fs-=2;ctx.font='bold '+fs+'px sans-serif';}
+    ctx.fillText(text||'',256,42);
+    var tex=new THREE.CanvasTexture(canvas);
+    var sign=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+    scale=scale||{x:6,y:0.8,z:1};pos=pos||{x:0,y:5,z:0};
+    sign.scale.set(scale.x||6,scale.y||0.8,scale.z||1);
+    sign.position.set(pos.x||0,pos.y||5,pos.z||0);
+    group.add(sign);
+    return sign;
+}
+
+function buildPluginEntrances(){
+    if(currentCityStyle===5)return;
+    if(!window.DANBO_PLUGIN_HOST||typeof window.DANBO_PLUGIN_HOST.getEntrances!=='function')return;
+    var defs=window.DANBO_PLUGIN_HOST.getEntrances()||[];
+    for(var ei=0;ei<defs.length;ei++){
+        var def=defs[ei];
+        if(!def||def.enabled===false||typeof def.create!=='function')continue;
+        if(def.disabledCityStyles&&def.disabledCityStyles.indexOf&&def.disabledCityStyles.indexOf(currentCityStyle)>=0)continue;
+        try{
+            var entrance=def.create({
+                THREE:THREE,
+                toon:toon,
+                cityGroup:cityGroup,
+                currentCityStyle:currentCityStyle,
+                lang:_langCode,
+                positions:PORTAL_POSITIONS,
+                portalConfig:PORTAL_CONFIG,
+                makeSign:_danboMakePortalSign
+            });
+            if(!entrance||!entrance.group)continue;
+            if(entrance.group.parent!==cityGroup)cityGroup.add(entrance.group);
+            var name= _danboPortalLocale(entrance.name||def.name)||def.id;
+            var desc= _danboPortalLocale(entrance.desc||def.desc||def.description);
+            var color=entrance.color||def.color||0xFFFFFF;
+            portals.push({
+                mesh:entrance.group,
+                ring:entrance.ring||entrance.group,
+                inner:entrance.inner||entrance.ring||entrance.group,
+                name:name,
+                desc:desc,
+                raceIndex:-1,
+                x:(typeof entrance.x==='number')?entrance.x:((entrance.group.position&&entrance.group.position.x)||0),
+                z:(typeof entrance.z==='number')?entrance.z:((entrance.group.position&&entrance.group.position.z)||0),
+                y:entrance.y||0,
+                color:color,
+                _hiddenType:entrance.hiddenType||def.hiddenType||def.id,
+                _targetStyle:(typeof entrance.targetStyle==='number')?entrance.targetStyle:((typeof def.targetStyle==='number')?def.targetStyle:-99),
+                _pluginId:entrance.pluginId||def.pluginId||def.id,
+                _i18nName:entrance.name||def.name,
+                _i18nDesc:entrance.desc||def.desc||def.description
+            });
+        }catch(e){
+            console.error('[PluginEntrance] failed to build '+(def.id||'?'),e);
+        }
+    }
+}
+
 function buildPortals() {
     if(currentCityStyle===5) return; // No race portals on moon
     // Clear old portals
@@ -113,39 +185,8 @@ function buildPortals() {
         _pfSign.scale.set(6,0.8,1);_pfSign.position.y=5;_pfPortalG.add(_pfSign);
     }
 
-    // ---- Rocket Road mini-game portal ----
-    if(currentCityStyle!==5){
-        var _rrPortalG=new THREE.Group();
-        var _rrPX=PORTAL_POSITIONS.rocketRoadPortal.x,_rrPZ=PORTAL_POSITIONS.rocketRoadPortal.z;
-        _rrPortalG.position.set(_rrPX,0,_rrPZ);
-        var _rrRing=new THREE.Mesh(new THREE.TorusGeometry(PORTAL_CONFIG.ringRadius,PORTAL_CONFIG.ringThickness,8,24),toon(0xFFCE45,{emissive:0xFF7A20,emissiveIntensity:0.48}));
-        _rrRing.position.y=PORTAL_CONFIG.baseHeight;_rrPortalG.add(_rrRing);
-        var _rrInner=new THREE.Mesh(new THREE.CircleGeometry(1.75,22),toon(0x55B8FF,{transparent:true,opacity:0.42,side:THREE.DoubleSide,emissive:0x2299FF,emissiveIntensity:0.42}));
-        _rrInner.position.y=PORTAL_CONFIG.baseHeight;_rrPortalG.add(_rrInner);
-        var _rrBase=new THREE.Mesh(new THREE.CylinderGeometry(PORTAL_CONFIG.baseRadius,2.8,0.4,16),toon(0x374A66));
-        _rrBase.position.y=0.2;_rrPortalG.add(_rrBase);
-        // Small rocket car marker on the base.
-        var _rrCar=new THREE.Group();
-        var _rrBody=new THREE.Mesh(new THREE.BoxGeometry(1.7,0.45,2.4),toon(0xFF4F4F));
-        _rrBody.position.y=0.62;_rrCar.add(_rrBody);
-        var _rrCockpit=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.3,0.75),toon(0xFFE06A));
-        _rrCockpit.position.set(0,0.98,-0.2);_rrCar.add(_rrCockpit);
-        _rrCar.scale.set(0.75,0.75,0.75);_rrCar.position.y=0.42;_rrCar.rotation.y=Math.PI/8;_rrPortalG.add(_rrCar);
-        cityGroup.add(_rrPortalG);
-        var _rrName={zhs:'🚗 蛋宝火箭公路',zht:'🚗 蛋寶火箭公路',ja:'🚗 ダンボ・ロケットロード',en:'🚗 Danbo Rocket Road'};
-        var _rrDesc={zhs:'俯视街机公路！躲车、补油、冲过终点！',zht:'俯視街機公路！躲車、補油、衝過終點！',ja:'見下ろしアーケード道路！避けて給油してゴールへ！',en:'Top-down arcade road: dodge, refuel and reach the finish!'};
-        portals.push({mesh:_rrPortalG,ring:_rrRing,inner:_rrInner,
-            name:_rrName[_langCode]||_rrName.en,desc:_rrDesc[_langCode]||_rrDesc.en,
-            raceIndex:-1,x:_rrPX,z:_rrPZ,y:0,color:0xFFCE45,_hiddenType:'rocketRoad',_targetStyle:-99});
-        var _rrSC=document.createElement('canvas');_rrSC.width=512;_rrSC.height=64;
-        var _rrSX=_rrSC.getContext('2d');
-        _rrSX.fillStyle='rgba(0,0,0,0.72)';_rrSX.fillRect(0,0,512,64);
-        _rrSX.fillStyle='#FFE06A';_rrSX.textAlign='center';_rrSX.font='bold 25px sans-serif';
-        _rrSX.fillText(_rrName[_langCode]||_rrName.en,256,42);
-        var _rrSTex=new THREE.CanvasTexture(_rrSC);
-        var _rrSign=new THREE.Sprite(new THREE.SpriteMaterial({map:_rrSTex,transparent:true}));
-        _rrSign.scale.set(6,0.8,1);_rrSign.position.y=5;_rrPortalG.add(_rrSign);
-    }
+    // ---- Mini-game entrances provided by lightweight plugin entrance scripts ----
+    buildPluginEntrances();
 }
 
 // ---- Collectible coins in city ----

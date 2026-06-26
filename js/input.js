@@ -2,7 +2,20 @@
 
 // ---- Input ----
 const keys={};
-addEventListener('keydown',e=>{ keys[e.code]=true; if(e.code==='KeyG')keys['Space']=true; if(['Space','KeyG','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault(); if(e.code==='Enter'&&gameState==='city'&&!_portalConfirmOpen&&!_chatOpen){e.preventDefault();_openChatInput();} });
+addEventListener('keydown',e=>{
+    keys[e.code]=true;
+    if(e.code==='KeyG')keys['Space']=true;
+    if(['Space','KeyG','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyE','KeyF','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();
+    if(e.code==='Enter'&&gameState==='city'&&!_portalConfirmOpen&&!_chatOpen){
+        if(typeof _danboPortalPromptActive==='function'&&_danboPortalPromptActive()){
+            e.preventDefault();
+            if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+            if(typeof _danboOpenPortalPrompt==='function')_danboOpenPortalPrompt();
+            return;
+        }
+        e.preventDefault();_openChatInput();
+    }
+});
 addEventListener('keyup',e=>{ keys[e.code]=false; if(e.code==='KeyG')keys['Space']=false; });
 
 let joyVec={x:0,y:0}, joyActive=false, joyTouchId=null;
