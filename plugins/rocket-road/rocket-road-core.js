@@ -3,9 +3,9 @@
 (function(){
     'use strict';
 
-    var PLAYER_Z=-18;
+    var PLAYER_Z=-28;
     var ROAD_SEG_LEN=8;
-    var BUILD=202606266;
+    var BUILD=202606268;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
@@ -59,7 +59,7 @@
     function DanboRocketRoad(ctx){
         this.ctx=ctx;this.ch=ctx.character||{};this.R=rules();this.state='title';this.keys={};this.touch={};this.objects={};this.hitEvents={};this.eventCache=[];this.running=true;this.last=performance.now();this.menuIndex=0;this.toastTimer=0;
         this.root=document.createElement('div');this.root.className='rr-root';this.root.innerHTML=this.html();ctx.mount.appendChild(this.root);
-        this.canvas=this.root.querySelector('canvas');this.panel=this.root.querySelector('.rr-panel');this.hud=this.root.querySelector('.rr-hud');this.toast=this.root.querySelector('.rr-toast');this.touchLayer=this.root.querySelector('.rr-touch');
+        this.canvas=this.root.querySelector('canvas');this.panel=this.root.querySelector('.rr-panel');this.hud=this.root.querySelector('.rr-hud');this.toast=this.root.querySelector('.rr-toast');this.touchLayer=this.root.querySelector('.rr-touch');this.countdownEl=this.root.querySelector('.rr-countdown');this.stageEl=this.root.querySelector('.rr-stage-banner');
         this.init3D();this.bind();this.showTitle();
         if(ctx.net)ctx.net.send('minigame.ready',{pluginId:ctx.pluginId,characterId:this.ch.id,build:BUILD});
         var self=this;this.raf=requestAnimationFrame(function(t){self.loop(t);});
@@ -82,37 +82,45 @@
         '.rr-bar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff5040,#ffe26e,#62ff88);}'+
         '.rr-top-exit{margin-left:auto;pointer-events:auto;border:0;border-radius:999px;padding:8px 13px;background:rgba(255,255,255,.18);color:#fff;font-weight:1000;}'+
         '.rr-toast{position:absolute;left:50%;bottom:22%;transform:translateX(-50%);padding:10px 16px;border-radius:18px;background:rgba(0,0,0,.66);font-weight:900;display:none;}'+
+        '.rr-stage-banner{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%);display:none;pointer-events:none;padding:8px 18px;border-radius:999px;background:rgba(17,24,39,.62);box-shadow:inset 0 0 0 2px rgba(255,255,255,.18);font-size:clamp(15px,4.2vw,22px);font-weight:1000;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);letter-spacing:.04em;white-space:nowrap;}'+
+        '.rr-countdown{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);display:none;pointer-events:none;font-size:clamp(64px,18vw,150px);font-weight:1000;color:#fff6a0;text-shadow:0 8px 0 #c6512d,0 0 32px rgba(255,232,88,.8),0 18px 40px rgba(0,0,0,.45);letter-spacing:.04em;}'+
         '.rr-touch{position:absolute;inset:0;display:none;pointer-events:none;}'+
         '.rr-touch button{position:absolute;bottom:24px;width:74px;height:74px;border-radius:50%;border:3px solid rgba(255,255,255,.38);background:rgba(255,255,255,.16);color:#fff;font-size:28px;font-weight:1000;pointer-events:auto;}'+
         '.rr-left{left:24px}.rr-right{left:112px}.rr-boost{right:24px;background:rgba(255,180,60,.32)!important}.rr-brake{right:112px;background:rgba(100,180,255,.24)!important}'+
         '.rr-list{margin:12px 0;text-align:left;background:rgba(255,255,255,.08);border-radius:18px;padding:12px 16px;line-height:1.8;}'+
         '@media (max-width:760px){.rr-title{font-size:28px}.rr-panel{padding:18px}.rr-touch{display:block}.rr-menu-btn{padding:12px;font-size:16px}.rr-hud{font-size:12px;gap:6px}.rr-pill{padding:7px 9px}}'+
-        '</style><canvas></canvas><div class="rr-hud"><span class="rr-pill" data-score>0</span><span class="rr-pill" data-speed>0 km/h</span><div class="rr-bar"><i data-fuel></i></div><span class="rr-pill" data-dist>0%</span><button class="rr-top-exit" data-action="quit-run">退出</button></div><div class="rr-panel"></div><div class="rr-toast"></div><div class="rr-touch"><button class="rr-left" data-touch="left">◀</button><button class="rr-right" data-touch="right">▶</button><button class="rr-brake" data-touch="brake">▼</button><button class="rr-boost" data-touch="boost">▲</button></div>';
+        '</style><canvas></canvas><div class="rr-hud"><span class="rr-pill" data-score>0</span><span class="rr-pill" data-speed>0 km/h</span><div class="rr-bar"><i data-fuel></i></div><span class="rr-pill" data-dist>0%</span><button class="rr-top-exit" data-action="quit-run">退出</button></div><div class="rr-panel"></div><div class="rr-stage-banner"></div><div class="rr-countdown"></div><div class="rr-toast"></div><div class="rr-touch"><button class="rr-left" data-touch="left">◀</button><button class="rr-right" data-touch="right">▶</button><button class="rr-brake" data-touch="brake">▼</button><button class="rr-boost" data-touch="boost">▲</button></div>';
     };
 
     DanboRocketRoad.prototype.init3D=function(){
         this.renderer=new THREE.WebGLRenderer({canvas:this.canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
         this.renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
         if(THREE.SRGBColorSpace)this.renderer.outputColorSpace=THREE.SRGBColorSpace;
-        this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x9ad9ff);this.scene.fog=new THREE.Fog(0x9ad9ff,75,170);
-        this.camera=new THREE.PerspectiveCamera(46,1,0.1,260);this.camera.position.set(0,42,44);this.camera.lookAt(0,0,12);
+        this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x9ad9ff);this.scene.fog=new THREE.Fog(0x9ad9ff,82,185);
+        this.camera=new THREE.PerspectiveCamera(46,1,0.1,280);this.camera.position.set(0,44,-58);this.camera.lookAt(0,0,14);
         var hemi=new THREE.HemisphereLight(0xffffff,0x95b878,1.4);this.scene.add(hemi);
         var sun=new THREE.DirectionalLight(0xfff0d0,1.5);sun.position.set(-24,42,28);this.scene.add(sun);
         this.world=new THREE.Group();this.scene.add(this.world);
         this.roadGroup=new THREE.Group();this.world.add(this.roadGroup);
         this.objectGroup=new THREE.Group();this.world.add(this.objectGroup);
-        this.roadSegments=[];this.buildRoadSegments();this.player=this.buildPlayerCar();this.world.add(this.player);
+        this.sceneryGroup=new THREE.Group();this.world.add(this.sceneryGroup);
+        this.roadSegments=[];this.decorItems=[];this.buildRoadSegments();this.buildScenery();this.finishGroup=this.buildFinishGate();this.world.add(this.finishGroup);this.player=this.buildPlayerCar();this.world.add(this.player);
         this.resize();
     };
 
     DanboRocketRoad.prototype.buildRoadSegments=function(){
-        var roadGeo=new THREE.BoxGeometry(1,0.08,1), railGeo=new THREE.BoxGeometry(0.25,0.35,1), markGeo=new THREE.BoxGeometry(0.12,0.04,2.1);
+        var roadGeo=new THREE.BoxGeometry(1,0.08,1), railGeo=new THREE.BoxGeometry(0.25,0.35,1), markGeo=new THREE.BoxGeometry(0.12,0.04,2.1), flowerGeo=new THREE.BoxGeometry(0.18,0.06,0.18);
         var roadMat=mat(0x28384d,{roughness:0.86}), edgeMat=mat(0xffef99,{emissive:0x553300,emissiveIntensity:0.1}), markMat=mat(0xf7f4d4,{emissive:0x222200,emissiveIntensity:0.05});
+        var fieldMats=[mat(0x7ee36b,{roughness:0.9}),mat(0x8cf27d,{roughness:0.88}),mat(0x6fd45f,{roughness:0.9}),mat(0x93ee84,{roughness:0.88})],
+            flowerMats=[mat(0xffef66,{emissive:0x443300,emissiveIntensity:0.06}),mat(0xff7db5,{emissive:0x331122,emissiveIntensity:0.06}),mat(0xffffff),mat(0x48c9ff,{emissive:0x113344,emissiveIntensity:0.05})];
         for(var i=0;i<24;i++){
             var g=new THREE.Group();
             var road=new THREE.Mesh(roadGeo,roadMat);road.scale.set(10,1,ROAD_SEG_LEN+0.35);road.receiveShadow=true;g.add(road);g.road=road;
+            var lf=new THREE.Mesh(roadGeo,fieldMats[i%fieldMats.length]), rf=new THREE.Mesh(roadGeo,fieldMats[(i+2)%fieldMats.length]);lf.scale.set(4.2,0.45,ROAD_SEG_LEN+0.35);rf.scale.set(4.2,0.45,ROAD_SEG_LEN+0.35);lf.position.y=rf.position.y=-0.03;lf.receiveShadow=rf.receiveShadow=true;g.add(lf);g.add(rf);g.leftField=lf;g.rightField=rf;
             var l=new THREE.Mesh(railGeo,edgeMat), r=new THREE.Mesh(railGeo,edgeMat);l.scale.z=r.scale.z=ROAD_SEG_LEN+0.35;l.position.y=r.position.y=0.22;g.add(l);g.add(r);g.leftRail=l;g.rightRail=r;
-            g.marks=[];for(var m=0;m<3;m++){var mk=new THREE.Mesh(markGeo,markMat);mk.position.y=0.08;g.add(mk);g.marks.push(mk);}this.roadGroup.add(g);this.roadSegments.push(g);
+            g.marks=[];for(var m=0;m<3;m++){var mk=new THREE.Mesh(markGeo,markMat);mk.position.y=0.08;g.add(mk);g.marks.push(mk);}
+            g.flowers=[];for(var f=0;f<12;f++){var fl=new THREE.Mesh(flowerGeo,flowerMats[(i+f)%flowerMats.length]);fl.position.y=0.07;fl.receiveShadow=true;g.add(fl);g.flowers.push(fl);}
+            this.roadGroup.add(g);this.roadSegments.push(g);
         }
         var grassGeo=new THREE.PlaneGeometry(260,260);var grass=new THREE.Mesh(grassGeo,mat(0x72d887,{roughness:0.9}));grass.rotation.x=-Math.PI/2;grass.position.y=-0.08;grass.receiveShadow=true;this.world.add(grass);
     };
@@ -122,12 +130,12 @@
         addBox(g,1.65,0.46,2.75,bodyColor,0,0.45,0);
         addBox(g,1.25,0.36,1.15,0xffd05a,0,0.83,-0.15);
         addBox(g,0.92,0.24,0.65,0x82d8ff,0,1.05,-0.2);
-        addBox(g,1.25,0.28,0.38,0x6b3333,0,0.62,1.32);
+        addBox(g,1.25,0.28,0.38,0x6b3333,0,0.62,-1.32);
         addWheel(g,-0.92,-0.82);addWheel(g,0.92,-0.82);addWheel(g,-0.92,0.86);addWheel(g,0.92,0.86);
-        var nozzle=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,0.5,12),mat(0x4b5360,{metalness:0.1}));nozzle.rotation.x=Math.PI/2;nozzle.position.set(0,0.45,1.66);g.add(nozzle);
-        var flame=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.9,16),mat(0xffad2d,{emissive:0xff6600,emissiveIntensity:0.85}));flame.rotation.x=-Math.PI/2;flame.position.set(0,0.45,2.12);g.add(flame);g.flame=flame;
-        var egg=new THREE.Mesh(new THREE.SphereGeometry(0.48,24,16),mat(colorFromCharacter(this.ch),{roughness:0.8}));egg.scale.set(0.86,1.08,0.82);egg.position.set(0,1.26,-0.52);egg.castShadow=true;g.add(egg);
-        var eyeGeo=new THREE.SphereGeometry(0.045,8,6), eyeMat=mat(0x1f2933);var e1=new THREE.Mesh(eyeGeo,eyeMat),e2=new THREE.Mesh(eyeGeo,eyeMat);e1.position.set(-0.16,1.34,-0.91);e2.position.set(0.16,1.34,-0.91);g.add(e1);g.add(e2);
+        var nozzle=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.28,0.5,12),mat(0x4b5360,{metalness:0.1}));nozzle.rotation.x=Math.PI/2;nozzle.position.set(0,0.45,-1.66);g.add(nozzle);
+        var flame=new THREE.Mesh(new THREE.ConeGeometry(0.28,0.9,16),mat(0xffad2d,{emissive:0xff6600,emissiveIntensity:0.85}));flame.rotation.x=-Math.PI/2;flame.position.set(0,0.45,-2.12);g.add(flame);g.flame=flame;
+        var egg=new THREE.Mesh(new THREE.SphereGeometry(0.48,24,16),mat(colorFromCharacter(this.ch),{roughness:0.8}));egg.scale.set(0.86,1.08,0.82);egg.position.set(0,1.26,0.52);egg.castShadow=true;g.add(egg);
+        var eyeGeo=new THREE.SphereGeometry(0.045,8,6), eyeMat=mat(0x1f2933);var e1=new THREE.Mesh(eyeGeo,eyeMat),e2=new THREE.Mesh(eyeGeo,eyeMat);e1.position.set(-0.16,1.34,0.91);e2.position.set(0.16,1.34,0.91);g.add(e1);g.add(e2);
         g.position.set(0,0.2,PLAYER_Z);return g;
     };
 
@@ -139,6 +147,79 @@
         addBox(g,w,h,d,color,0,0.42,0);addBox(g,w*0.72,0.34,d*0.38,type===5?0xffffff:0x87d7ff,0,0.86,-0.28);
         addWheel(g,-w*0.58,-d*0.28);addWheel(g,w*0.58,-d*0.28);addWheel(g,-w*0.58,d*0.32);addWheel(g,w*0.58,d*0.32);
         if(type===5){var halo=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.08,8,28),mat(0x70ff9b,{emissive:0x30ff70,emissiveIntensity:0.7}));halo.rotation.x=Math.PI/2;halo.position.y=1.1;g.add(halo);g.halo=halo;}
+        return g;
+    };
+
+    DanboRocketRoad.prototype.makeDecor=function(kind){
+        var g=new THREE.Group();kind=kind|0;g.userData.kind=kind;
+        if(kind===0){
+            var trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,1.25,8),mat(0x8d5b34));trunk.position.y=0.62;g.add(trunk);
+            var crown=new THREE.Mesh(new THREE.ConeGeometry(0.95,1.8,9),mat(0x2abf62,{roughness:0.84}));crown.position.y=1.78;g.add(crown);
+            var dot=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),mat(0xfff07a,{emissive:0x553300,emissiveIntensity:0.1}));dot.position.set(0.28,1.85,0.18);g.add(dot);
+        }else if(kind===1){
+            addBox(g,2.4,1.9,1.2,0xffd8a8,0,0.95,0);addBox(g,2.1,0.22,1.38,0xff7e67,0,1.98,0);
+            for(var i=0;i<3;i++)addBox(g,0.38,0.38,0.04,0x9edfff,-0.65+i*0.65,1.12,0.62);
+            addBox(g,1.7,0.34,0.08,0xffffff,0,0.35,0.66);addBox(g,1.42,0.18,0.09,0x3a8fff,0,0.36,0.72);
+        }else if(kind===2){
+            addBox(g,0.18,2.2,0.18,0xffffff,-0.9,1.1,0);addBox(g,0.18,2.2,0.18,0xffffff,0.9,1.1,0);
+            var board=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.1,0.12),mat(0xfff49a,{emissive:0x443300,emissiveIntensity:0.08}));board.position.y=1.72;g.add(board);
+            addBox(g,1.55,0.16,0.14,0xff5f6d,0,1.86,0.08);addBox(g,1.2,0.14,0.14,0x43c6ff,0,1.54,0.08);
+        }else if(kind===3){
+            for(var b=0;b<4;b++){var bal=new THREE.Mesh(new THREE.SphereGeometry(0.28,12,8),mat([0xff6978,0xffe36d,0x62d6ff,0xa7f56d][b],{emissive:0x111111,emissiveIntensity:0.04}));bal.position.set((b-1.5)*0.25,1.8+(b%2)*0.28,(b%3)*0.12);g.add(bal);}
+            addBox(g,0.08,1.45,0.08,0xffffff,0,0.9,0);
+        }else if(kind===4){
+            for(var f=0;f<5;f++){var fl=new THREE.Mesh(new THREE.SphereGeometry(0.16,8,6),mat(f%2?0xffe76b:0xff78b9,{emissive:0x331111,emissiveIntensity:0.08}));fl.position.set(-0.8+f*0.4,0.2,(f%2)*0.22);g.add(fl);}
+            addBox(g,2.1,0.16,0.5,0x38b764,0,0.08,0.1);
+        }else if(kind===5){
+            addBox(g,0.14,2.0,0.14,0xeff5ff,-0.58,1.0,0);addBox(g,0.14,2.0,0.14,0xeff5ff,0.58,1.0,0);
+            var fg=new THREE.Group();for(var y=0;y<2;y++)for(var x=0;x<4;x++)addBox(fg,0.28,0.22,0.04,(x+y)%2?0x1b2638:0xffffff,-0.42+x*0.28,1.65-y*0.22,0);
+            g.add(fg);
+        }else if(kind===6){
+            addBox(g,3.4,0.18,7.4,0x9fe8ff,0,0.09,0);
+            addBox(g,3.05,0.12,6.85,0xcff6ff,0,0.23,0);
+            for(var s=0;s<7;s++)addBox(g,3.15,0.04,0.08,0xffffff,0,0.32,-3+s*1.0);
+            addBox(g,0.18,1.1,7.4,0x55bde9,-1.78,0.55,0);addBox(g,0.18,1.1,7.4,0x55bde9,1.78,0.55,0);
+        }else{
+            addBox(g,1.35,0.16,3.4,0x111827,0,0.08,0);
+            for(var c=0;c<4;c++)addBox(g,0.25,0.22,0.18,(c%2)?0xffffff:0xffe45d,-0.48+c*0.32,0.24,0);
+            addBox(g,1.1,0.08,0.12,0xffe45d,0,0.34,-1.2);addBox(g,1.1,0.08,0.12,0xffe45d,0,0.34,1.2);
+        }
+        g.traverse(function(o){if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+        return g;
+    };
+
+    DanboRocketRoad.prototype.buildScenery=function(){
+        this.decorItems=[];
+        var length=this.R.levelLength?this.R.levelLength():3300;
+        for(var i=0;i<76;i++){
+            var abs=35+i*47+(i%5)*7;if(abs>length+220)break;
+            for(var s=0;s<2;s++){
+                var side=s?1:-1, kind;
+                if(side>0&&i%5===1)kind=6;else if(i%9===0)kind=7;else kind=(i+s*3)%6;
+                var mesh=this.makeDecor(kind), off=kind===6?3.9:(2.8+((i+s)%4)*0.9);
+                this.decorItems.push({abs:abs+(s?10:0),side:side,offset:off,kind:kind,mesh:mesh,scale:kind===6?1:(0.82+((i+s)%3)*0.12),spin:(i%7)*0.2});
+                this.sceneryGroup.add(mesh);
+            }
+        }
+    };
+
+    DanboRocketRoad.prototype.makeCheckerTexture=function(w,h){
+        var c=document.createElement('canvas');c.width=w||256;c.height=h||64;var x=c.getContext('2d'), cols=16, rows=4;
+        for(var yy=0;yy<rows;yy++)for(var xx=0;xx<cols;xx++){x.fillStyle=(xx+yy)%2?'#111827':'#ffffff';x.fillRect(xx*c.width/cols,yy*c.height/rows,c.width/cols+1,c.height/rows+1);}
+        var tex=new THREE.CanvasTexture(c);tex.needsUpdate=true;return tex;
+    };
+
+    DanboRocketRoad.prototype.buildFinishGate=function(){
+        var g=new THREE.Group();g.visible=false;
+        var tex=this.makeCheckerTexture(256,64), finishMat=new THREE.MeshStandardMaterial({map:tex,roughness:0.68,metalness:0.02});
+        var stripe=new THREE.Mesh(new THREE.BoxGeometry(1,0.08,1.8),finishMat);stripe.position.y=0.09;stripe.receiveShadow=true;g.add(stripe);g.stripe=stripe;
+        var poleMat=mat(0xffffff,{roughness:0.65});
+        g.leftPole=new THREE.Mesh(new THREE.BoxGeometry(0.22,4.6,0.22),poleMat);g.rightPole=new THREE.Mesh(new THREE.BoxGeometry(0.22,4.6,0.22),poleMat);g.leftPole.position.y=g.rightPole.position.y=2.3;g.add(g.leftPole);g.add(g.rightPole);
+        g.topBar=new THREE.Mesh(new THREE.BoxGeometry(1,0.28,0.28),poleMat);g.topBar.position.y=4.45;g.add(g.topBar);
+        var flagGeo=new THREE.PlaneGeometry(1.15,0.72), flagMat1=new THREE.MeshStandardMaterial({color:0xff4f5e,roughness:0.75,side:THREE.DoubleSide}), flagMat2=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.75,side:THREE.DoubleSide});
+        g.flags=[];
+        for(var f=0;f<4;f++){var fm=f%2?flagMat2:flagMat1, fl=new THREE.Mesh(flagGeo,fm);fl.position.y=3.35+(f%2)*0.55;fl.userData.side=f<2?-1:1;g.add(fl);g.flags.push(fl);}
+        var banner=new THREE.Group();for(var by=0;by<2;by++)for(var bx=0;bx<12;bx++)addBox(banner,0.48,0.24,0.08,(bx+by)%2?0x111827:0xffffff,-2.64+bx*0.48,4.9-by*0.24,0);g.add(banner);g.banner=banner;
         return g;
     };
 
@@ -156,7 +237,7 @@
             }else if(self.state==='result'){
                 if(code==='Enter'||code==='Space')self.startGame();
                 else if(code==='Escape')self.showTitle();
-            }else if(self.state==='playing'&&code==='Escape')self.finish(false,'quit');
+            }else if((self.state==='playing'||self.state==='countdown')&&code==='Escape')self.finish(false,'quit');
         };
         this.onKeyUp=function(e){self.keys[e.code||e.key]=false;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','KeyA','KeyD','KeyW','KeyS'].indexOf(e.code||e.key)>=0){e.preventDefault();e.stopImmediatePropagation();}};
         window.addEventListener('keydown',this.onKeyDown,true);window.addEventListener('keyup',this.onKeyUp,true);
@@ -171,7 +252,7 @@
     };
 
     DanboRocketRoad.prototype.showTitle=function(){
-        this.state='title';this.hud.style.display='none';this.touchLayer.style.display='none';this.panel.style.display='block';
+        this.stopMusic();this.state='title';this.hud.style.display='none';this.touchLayer.style.display='none';this.panel.style.display='block';this.countdownEl.style.display='none';this.stageEl.style.display='none';
         var mode=(api()&&api().mode)||'js-fallback';
         this.panel.innerHTML='<h1 class="rr-title">🚗 蛋宝火箭公路</h1><div class="rr-sub">3D画面 · 2D街机公路 · 单关挑战</div>'+ 
             '<button class="rr-menu-btn rr-selected" data-action="single">单人游戏</button>'+
@@ -182,20 +263,21 @@
     };
 
     DanboRocketRoad.prototype.startGame=function(){
-        this.state='playing';this.panel.style.display='none';this.hud.style.display='flex';this.touchLayer.style.display=(('ontouchstart' in window)||(navigator.maxTouchPoints>0))?'block':'none';
+        this.state='countdown';this.panel.style.display='none';this.hud.style.display='flex';this.touchLayer.style.display=(('ontouchstart' in window)||(navigator.maxTouchPoints>0))?'block':'none';
         this.R=rules();this.progress=0;this.fuel=this.R.maxFuel();this.speed=0;this.score=0;this.pickups=0;this.crashes=0;this.carX=0;this.carVx=0;this.spin=0;this.spinDir=1;this.elapsed=0;this.netAcc=0;this.hitEvents={};
+        this.countdown=3.15;this.countdownText='';this.countdownEl.textContent='3';this.countdownEl.style.display='block';this.stageEl.textContent='STAGE 1 · 彩田高速';this.stageEl.style.display='block';this.startMusic();
         for(var k in this.objects){if(this.objects[k]&&this.objects[k].mesh)this.objects[k].mesh.visible=false;}
         if(this.ctx.net)this.ctx.net.send('minigame.startIntent',{pluginId:this.ctx.pluginId,characterId:this.ch.id,mode:'single',seed:BUILD});
     };
 
     DanboRocketRoad.prototype.showScores=function(){
-        this.state='scores';this.hud.style.display='none';this.touchLayer.style.display='none';this.panel.style.display='block';
+        this.stopMusic();this.state='scores';this.hud.style.display='none';this.touchLayer.style.display='none';this.panel.style.display='block';this.countdownEl.style.display='none';this.stageEl.style.display='none';
         var scores=this.getScores();var rows=scores.length?scores.map(function(s,i){return '<div><b>#'+(i+1)+'</b> '+esc(s.name||'Danbo')+' — '+esc(s.score)+' 分 <span style="opacity:.55">'+esc(s.date||'')+'</span></div>';}).join(''):'<div style="text-align:center;opacity:.75">还没有记录，先跑一局吧。</div>';
         this.panel.innerHTML='<h1 class="rr-title">🏆 高分榜</h1><div class="rr-list">'+rows+'</div><button class="rr-menu-btn" data-action="title">返回标题</button>';
     };
 
     DanboRocketRoad.prototype.finish=function(win,reason){
-        if(this.state!=='playing')return;this.state='result';this.hud.style.display='none';this.touchLayer.style.display='none';this.panel.style.display='block';
+        if(this.state!=='playing'&&this.state!=='countdown')return;this.stopMusic();if(win)this.playFinishJingle();this.state='result';this.hud.style.display='none';this.touchLayer.style.display='none';this.panel.style.display='block';this.countdownEl.style.display='none';this.stageEl.style.display='none';
         var finalScore=this.R.score(this.progress,this.fuel,this.pickups,this.crashes,win?1:0);this.score=finalScore;this.saveScore(finalScore);
         if(this.ctx.net)this.ctx.net.send('minigame.finishIntent',{pluginId:this.ctx.pluginId,score:finalScore,finished:!!win,reason:reason||'',time:this.elapsed,crashes:this.crashes,pickups:this.pickups});
         this.panel.innerHTML='<h1 class="rr-title">'+(win?'🏁 通关！':'💥 挑战结束')+'</h1>'+ 
@@ -206,11 +288,62 @@
     DanboRocketRoad.prototype.getScores=function(){return (this.ctx.storage&&this.ctx.storage.get('rocketRoadScores',[]))||[];};
     DanboRocketRoad.prototype.saveScore=function(score){var list=this.getScores();list.push({score:score,name:this.ch.displayName||this.ch.name||'Danbo',date:new Date().toISOString().slice(0,10)});list.sort(function(a,b){return b.score-a.score;});list=list.slice(0,8);if(this.ctx.storage)this.ctx.storage.set('rocketRoadScores',list);};
     DanboRocketRoad.prototype.showToast=function(text){this.toast.textContent=text;this.toast.style.display='block';this.toastTimer=2.2;};
-    DanboRocketRoad.prototype.exit=function(){if(this.ctx.net)this.ctx.net.send('minigame.stopIntent',{pluginId:this.ctx.pluginId,status:'exit'});this.ctx.api.finish({status:'exit',pluginId:this.ctx.pluginId});};
+    DanboRocketRoad.prototype.exit=function(){this.stopMusic();if(this.ctx.net)this.ctx.net.send('minigame.stopIntent',{pluginId:this.ctx.pluginId,status:'exit'});this.ctx.api.finish({status:'exit',pluginId:this.ctx.pluginId});};
+
+    DanboRocketRoad.prototype.ensureAudio=function(){
+        if(this.audioCtx)return this.audioCtx;
+        var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+        this.audioCtx=new AC();this.musicGain=this.audioCtx.createGain();this.musicGain.gain.value=0.055;this.musicGain.connect(this.audioCtx.destination);return this.audioCtx;
+    };
+
+    DanboRocketRoad.prototype.tone=function(freq,dur,delay,type,gain){
+        var ctx=this.ensureAudio();if(!ctx||!this.musicGain)return;
+        var when=ctx.currentTime+(delay||0), osc=ctx.createOscillator(), g=ctx.createGain();
+        osc.type=type||'square';osc.frequency.setValueAtTime(freq,when);
+        g.gain.setValueAtTime(0.0001,when);g.gain.linearRampToValueAtTime(gain||0.18,when+0.015);g.gain.exponentialRampToValueAtTime(0.0001,when+Math.max(0.04,dur||0.12));
+        osc.connect(g);g.connect(this.musicGain);osc.start(when);osc.stop(when+(dur||0.12)+0.05);
+    };
+
+    DanboRocketRoad.prototype.startMusic=function(){
+        var ctx=this.ensureAudio();if(!ctx)return;this.stopMusic(false);if(ctx.state==='suspended'&&ctx.resume)ctx.resume();
+        var self=this, melody=[392,494,587,659,587,494,440,392,330,392,494,587,740,659,587,494], bass=[196,196,247,247,220,220,196,196];
+        this.musicPlaying=true;this.musicBeat=0;
+        var tick=function(){
+            if(!self.musicPlaying||!self.running)return;
+            var i=self.musicBeat++,
+                lead=melody[i%melody.length],
+                b=bass[Math.floor(i/2)%bass.length];
+            self.tone(lead,0.12,0,'square',0.12);
+            if(i%2===0)self.tone(b,0.18,0,'triangle',0.08);
+            if(i%8===6)self.tone(lead*1.5,0.08,0.04,'sine',0.055);
+            self.musicTimer=setTimeout(tick,145);
+        };
+        tick();
+    };
+
+    DanboRocketRoad.prototype.stopMusic=function(){
+        this.musicPlaying=false;if(this.musicTimer){clearTimeout(this.musicTimer);this.musicTimer=0;}
+    };
+
+    DanboRocketRoad.prototype.playCountdownBeep=function(go){
+        this.tone(go?784:523,go?0.22:0.12,0,go?'square':'sine',go?0.26:0.2);
+        if(go)this.tone(1175,0.18,0.06,'square',0.14);
+    };
+
+    DanboRocketRoad.prototype.playFinishJingle=function(){
+        this.tone(523,0.15,0,'square',0.22);this.tone(659,0.15,0.16,'square',0.22);this.tone(784,0.16,0.32,'square',0.22);this.tone(1046,0.32,0.5,'triangle',0.24);
+    };
 
     DanboRocketRoad.prototype.inputState=function(){
         var left=this.keys.ArrowLeft||this.keys.KeyA||this.touch.left,right=this.keys.ArrowRight||this.keys.KeyD||this.touch.right;
         return {steer:(right?1:0)-(left?1:0),turbo:!!(this.keys.ArrowUp||this.keys.KeyW||this.keys.Space||this.touch.boost),brake:!!(this.keys.ArrowDown||this.keys.KeyS||this.touch.brake)};
+    };
+
+    DanboRocketRoad.prototype.updateCountdown=function(dt){
+        this.countdown-=dt;
+        var text=this.countdown>2.15?'3':(this.countdown>1.15?'2':(this.countdown>0.15?'1':'GO!'));
+        if(text!==this.countdownText){this.countdownText=text;this.countdownEl.textContent=text;this.countdownEl.style.display='block';this.playCountdownBeep(text==='GO!');}
+        if(this.countdown<=-0.32){this.state='playing';this.countdownEl.style.display='none';this.stageEl.style.display='none';this.countdownText='';}
     };
 
     DanboRocketRoad.prototype.updatePlaying=function(dt){
@@ -252,8 +385,16 @@
         var first=this.progress-(this.progress%ROAD_SEG_LEN)-32;
         for(var i=0;i<this.roadSegments.length;i++){
             var abs=first+i*ROAD_SEG_LEN, rel=abs-this.progress, g=this.roadSegments[i], width=this.R.roadWidthAt(abs);
-            g.position.z=PLAYER_Z+rel;g.road.scale.x=width;g.road.scale.z=ROAD_SEG_LEN+0.35;g.leftRail.position.x=-width*0.5-0.18;g.rightRail.position.x=width*0.5+0.18;
+            g.position.z=PLAYER_Z+rel;g.road.scale.x=width;g.road.scale.z=ROAD_SEG_LEN+0.35;
+            g.leftField.position.x=-width*0.5-2.35;g.rightField.position.x=width*0.5+2.35;g.leftField.scale.z=g.rightField.scale.z=ROAD_SEG_LEN+0.35;
+            g.leftRail.position.x=-width*0.5-0.18;g.rightRail.position.x=width*0.5+0.18;
             for(var m=0;m<g.marks.length;m++){var mk=g.marks[m];mk.position.x=(-width*0.25)+(m*width*0.25);mk.visible=((Math.floor(abs/ROAD_SEG_LEN)+m)%2)===0;}
+            for(var f=0;f<g.flowers.length;f++){
+                var fl=g.flowers[f], side=f<6?-1:1, row=f%6, wob=((Math.floor(abs/ROAD_SEG_LEN)+row)%2)*0.24;
+                fl.position.x=side*(width*0.5+0.72+(row%3)*0.78+wob);
+                fl.position.z=-ROAD_SEG_LEN*0.42+row*1.45;
+                fl.visible=((Math.floor(abs/ROAD_SEG_LEN)+f)%3)!==0;
+            }
         }
     };
 
@@ -270,16 +411,43 @@
         }
     };
 
+    DanboRocketRoad.prototype.updateScenery=function(){
+        if(!this.decorItems)return;
+        for(var i=0;i<this.decorItems.length;i++){
+            var d=this.decorItems[i], rel=d.abs-this.progress, mesh=d.mesh;
+            if(rel<-58||rel>150){mesh.visible=false;continue;}
+            var width=this.R.roadWidthAt(d.abs), x=d.side*(width*0.5+d.offset);
+            mesh.visible=true;mesh.position.set(x,0,PLAYER_Z+rel);mesh.scale.setScalar(d.scale);
+            mesh.rotation.y=(d.kind===6||d.kind===7)?0:(d.side<0?0.42:-0.42);
+            if((i%6)===3&&d.kind!==6)mesh.rotation.y+=Math.sin(this.elapsed*1.2+d.spin)*0.12;
+        }
+    };
+
+    DanboRocketRoad.prototype.updateFinishGate=function(){
+        if(!this.finishGroup)return;
+        var finish=this.R.levelLength(), rel=finish-this.progress, g=this.finishGroup;
+        if(rel<-12||rel>150){g.visible=false;return;}
+        var width=this.R.roadWidthAt(finish);
+        g.visible=true;g.position.set(0,0,PLAYER_Z+rel);
+        g.stripe.scale.x=width+0.6;g.leftPole.position.x=-(width*0.5+0.95);g.rightPole.position.x=width*0.5+0.95;g.topBar.scale.x=width+2.1;
+        for(var i=0;i<g.flags.length;i++){
+            var f=g.flags[i], side=f.userData.side||1;
+            f.position.x=side*(width*0.5+0.95)+(side<0?-0.56:0.56);f.position.z=0;f.rotation.y=side<0?Math.PI:0;
+            f.position.y=3.15+(i%2)*0.62+Math.sin(this.elapsed*5+i)*0.05;
+        }
+        if(g.banner)g.banner.position.x=0;
+    };
+
     DanboRocketRoad.prototype.updateVisuals=function(dt){
-        this.updateRoad();this.updateObjects();
+        this.updateRoad();this.updateObjects();this.updateScenery();this.updateFinishGate();
         this.player.position.x=this.carX||0;this.player.rotation.z=-(this.carVx||0)*0.018+(this.spin>0?Math.sin(this.elapsed*28)*0.18*this.spinDir:0);this.player.rotation.y=(this.spin>0?Math.sin(this.elapsed*21)*0.22*this.spinDir:0);
         if(this.player.flame){var inp=this.inputState();var s=inp.turbo&&this.state==='playing'?1.35:0.65;this.player.flame.scale.set(s,s,0.75+Math.sin(this.elapsed*28)*0.2);this.player.flame.visible=this.state==='playing'&&this.speed>2;}
         this.world.position.x=-(this.carX||0)*0.06;
-        this.camera.position.x=(this.carX||0)*0.18;this.camera.lookAt((this.carX||0)*0.1,0,8);
+        this.camera.position.x=(this.carX||0)*0.18;this.camera.lookAt((this.carX||0)*0.1,0,14);
     };
 
     DanboRocketRoad.prototype.updateHud=function(){
-        if(this.state!=='playing')return;var pct=clamp(this.progress/this.R.levelLength(),0,1), fuelPct=clamp(this.fuel/this.R.maxFuel(),0,1);
+        if(this.state!=='playing'&&this.state!=='countdown')return;var pct=clamp(this.progress/this.R.levelLength(),0,1), fuelPct=clamp(this.fuel/this.R.maxFuel(),0,1);
         this.root.querySelector('[data-score]').textContent='⭐ '+Math.floor(this.score);
         this.root.querySelector('[data-speed]').textContent=Math.floor(this.speed*7.0)+' km/h';
         this.root.querySelector('[data-dist]').textContent=Math.floor(pct*100)+'%';
@@ -289,13 +457,13 @@
     DanboRocketRoad.prototype.loop=function(t){
         if(!this.running)return;var dt=Math.min(0.04,(t-this.last)/1000||0.016);this.last=t;
         if(this.toastTimer>0){this.toastTimer-=dt;if(this.toastTimer<=0)this.toast.style.display='none';}
-        if(this.state==='playing')this.updatePlaying(dt);
+        if(this.state==='countdown')this.updateCountdown(dt);else if(this.state==='playing')this.updatePlaying(dt);
         this.updateVisuals(dt);this.updateHud();this.renderer.render(this.scene,this.camera);
         var self=this;this.raf=requestAnimationFrame(function(nt){self.loop(nt);});
     };
 
     DanboRocketRoad.prototype.dispose=function(){
-        this.running=false;if(this.raf)cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKeyDown,true);window.removeEventListener('keyup',this.onKeyUp,true);if(this.root)this.root.removeEventListener('click',this.onClick);
+        this.running=false;this.stopMusic();if(this.raf)cancelAnimationFrame(this.raf);window.removeEventListener('resize',this.onResize);window.removeEventListener('keydown',this.onKeyDown,true);window.removeEventListener('keyup',this.onKeyUp,true);if(this.root)this.root.removeEventListener('click',this.onClick);
         if(this.renderer){var dispose=function(o){if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(function(m){if(m.map)m.map.dispose();m.dispose();});else{if(o.material.map)o.material.map.dispose();o.material.dispose();}}};this.scene.traverse(dispose);this.renderer.dispose();}
         if(this.root&&this.root.parentNode)this.root.parentNode.removeChild(this.root);
     };
