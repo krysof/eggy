@@ -9,7 +9,7 @@ raceGroup.visible = false;
 scene.add(raceGroup);
 const obstacleObjects = [];
 const raceCoins = [];
-const TRACK_W = RACE_CONFIG.trackWidth;
+const TRACK_W = (window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race)?DANBO_MINIGAME_WASM.race.trackWidth():RACE_CONFIG.trackWidth;
 let trackSegments = [];
 
 function clearRace() {
@@ -34,6 +34,8 @@ function getHW(z){const s=getSegAt(z);return s?s.width:TRACK_W;}
 function getFloorY(z,x){
     const s=getSegAt(z);
     if(!s) return 0;
+    var rw=window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race;
+    if(rw&&typeof rw.floorY==='function')return rw.floorY(s,z);
     if(s.type==='platforms') return -100; // no floor — must land on moving platforms
     if(s.type==='ramp'){const t=(z-s.startZ)/(s.endZ-s.startZ);return s.startY+t*(s.endY-s.startY);}
     return s.floorY||0;

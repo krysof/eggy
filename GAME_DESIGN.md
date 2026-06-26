@@ -1,7 +1,7 @@
 # 蛋宝世界（DANBO World）游戏设计与现有内容说明
 
 > 更新时间：2026-06-26
-> 当前版本：v20260626.4
+> 当前版本：v20260626.5
 > 运行方式：静态 Web / Three.js / GitHub Pages
 
 ## 1. 游戏定位
@@ -273,6 +273,7 @@ plugins/
 - 角色从复杂细节回退为更圆、更干净、更可爱的软萌样式。
 - 新增网页端 HUD 视角按钮，并支持真正第一人称视角。
 - 修复/放宽传送门与水管触发，让“走进入口”更可靠。
+- v20260626.5 新增小游戏独立 WASM 规范和模块：`wasm/danbo_race.wasm`、`wasm/danbo_platformer.wasm` 分别承载竞速/平台关纯规则，`js/minigame-wasm.js` 负责加载和 fallback；新增 `MINIGAME_PLUGIN_WASM_SPEC.md` 供同事制作插件。
 - v20260626.4 将旧小游戏核心迁入插件目录：`js/race.js`、`js/platformer.js` 不再由主加载器加载；竞速核心/流程位于 `plugins/legacy-race/`，平台关核心位于 `plugins/legacy-platformer/`，manifest 支持 `scripts` 多文件插件。
 - v20260626.3 将旧小游戏入口插件化：竞速赛道和横版平台关由 `plugins/legacy-race/`、`plugins/legacy-platformer/` 适配启动，城市入口不再直接调用旧小游戏函数。
 - v20260626.2 新增小游戏插件底座：`plugins/` 每个子目录可作为小游戏插件，通过 `DANBO_PLUGIN_HOST` 获取角色快照，并预留 `DANBO_NET` 房间接口以便未来网游化。

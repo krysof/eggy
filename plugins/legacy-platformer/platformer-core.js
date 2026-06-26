@@ -7,6 +7,7 @@
 var _pfActive=false;
 var _pfSavedCity=-1;
 var _pfTile=4;
+function _pfWasm(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.platformer;}
 
 function _pfStart(){try{
     if(typeof _resetViewMode==='function')_resetViewMode();
@@ -37,7 +38,8 @@ function _pfStart(){try{
     var npcPool=[];
     for(var ci=0;ci<CHARACTERS.length;ci++){if(ci!==selectedChar)npcPool.push(ci);}
     for(var si=npcPool.length-1;si>0;si--){var sj=Math.floor(Math.random()*(si+1));var t=npcPool[si];npcPool[si]=npcPool[sj];npcPool[sj]=t;}
-    var total=4;
+    var _pfw=_pfWasm();
+    var total=_pfw?_pfw.partySize():4;
     for(var ni=1;ni<total;ni++){
         var nch=CHARACTERS[npcPool[(ni-1)%npcPool.length]];
         var npc=createEgg(2+ni*3,0,nch.color,nch.accent,false,undefined,nch.type);
@@ -58,8 +60,10 @@ function _pfStart(){try{
 }catch(e){console.error('_pfStart ERROR:',e);alert('Start error: '+e.message);}}
 
 function _pfBuildLevel(){try{
-    var T=_pfTile,L=200,D=T*3;
-    var W=T*L;
+    var _pfw=_pfWasm();
+    var T=_pfw?_pfw.tileSize():_pfTile;_pfTile=T;
+    var L=_pfw?_pfw.levelLength():200,D=_pfw?_pfw.depth(T):T*3;
+    var W=_pfw?_pfw.width(T,L):T*L;
     // Global arrays for dynamic elements
     window._pfMovingPlatforms=[];
     window._pfCrumblePlatforms=[];
@@ -393,7 +397,7 @@ function _pfBuildLevel(){try{
     cityNPCs.push(bossEnemy);
     allEggs.push(bossEnemy);
     // Final castle (bigger version)
-    var castleX=(L-3)*T;
+    var castleX=_pfw?_pfw.castleX(T,L):(L-3)*T;
     var castle=new THREE.Mesh(new THREE.BoxGeometry(T*10,T*8,D*2),toon(0xAA8866));
     castle.position.set(castleX,T*4,0);raceGroup.add(castle);
     cityColliders.push({x:castleX,z:0,hw:T*5,hd:D,h:T*8,y:0});
@@ -414,7 +418,7 @@ function _pfBuildLevel(){try{
     var flag=new THREE.Mesh(new THREE.PlaneGeometry(T*3,T*1.5),new THREE.MeshBasicMaterial({color:0xFF4444,side:THREE.DoubleSide}));
     flag.position.set(castleX+T*1.5,T*13,0);raceGroup.add(flag);
     // Goal trigger zone — touching the flag pole = victory
-    window._pfGoalX=castleX-T*3; // trigger zone starts before the castle
+    window._pfGoalX=_pfw?_pfw.goalX(T,L):(castleX-T*3); // trigger zone starts before the castle
 
     // ================================================================
     //  SKY + CLOUDS (shared across all zones)
@@ -480,7 +484,8 @@ function _pfUpdateMoving(){try{
         for(var i=0;i<window._pfMovingPlatforms.length;i++){
             var mp=window._pfMovingPlatforms[i];
             mp.phase+=mp.speed;
-            var newX=mp.baseX+Math.sin(mp.phase)*mp.range;
+            var _pfw=_pfWasm();
+            var newX=_pfw?_pfw.movingX(mp.baseX,mp.phase,mp.range):(mp.baseX+Math.sin(mp.phase)*mp.range);
             mp.mesh.position.x=newX;
             mp.collider.x=newX;
         }
@@ -490,8 +495,10 @@ function _pfUpdateMoving(){try{
         for(var ri=0;ri<window._pfRotatingPlatforms.length;ri++){
             var rp=window._pfRotatingPlatforms[ri];
             rp.angle+=rp.speed;
-            var nx=rp.centerX+Math.cos(rp.angle)*rp.radius;
-            var ny=rp.centerY+Math.sin(rp.angle)*rp.radius*0.3;
+            var _pfw2=_pfWasm();
+            var _rxy=_pfw2?_pfw2.rotatingXY(rp.centerX,rp.centerY,rp.radius,rp.angle):null;
+            var nx=_rxy?_rxy[0]:(rp.centerX+Math.cos(rp.angle)*rp.radius);
+            var ny=_rxy?_rxy[1]:(rp.centerY+Math.sin(rp.angle)*rp.radius*0.3);
             rp.mesh.position.x=nx;
             rp.mesh.position.y=ny;
             rp.collider.x=nx;
@@ -524,8 +531,10 @@ function _pfUpdateMoving(){try{
                 fr.triggered=true;fr.falling=true;fr.vy=0;
             }
             if(fr.falling){
-                fr.vy-=0.008;
-                fr.mesh.position.y+=fr.vy;
+                var _pfw3=_pfWasm();
+                var _frs=_pfw3?_pfw3.fallingRockStep(fr.mesh.position.y,fr.vy,0.008,-5):null;
+                if(_frs){fr.mesh.position.y=_frs[0];fr.vy=_frs[1];}
+                else {fr.vy-=0.008;fr.mesh.position.y+=fr.vy;}
                 fr.mesh.rotation.x+=0.03;fr.mesh.rotation.z+=0.02;
                 if(fr.mesh.position.y<-5){
                     raceGroup.remove(fr.mesh);
@@ -563,8 +572,9 @@ function _pfUpdateCamera(){try{
     if(window._pfCrumblePlatforms&&playerEgg&&playerEgg.onGround){
         for(var ci=0;ci<window._pfCrumblePlatforms.length;ci++){
             var cp=window._pfCrumblePlatforms[ci];
-            if(!cp.triggered&&DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,cp.collider.x,cp.collider.hw+1)&&
-               DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.y,(cp.collider.h||cp.collider.y||0),2)){
+            var _pfw4=_pfWasm();
+            if(!cp.triggered&&(_pfw4?_pfw4.crumbleTrigger(playerEgg.mesh.position.x,playerEgg.mesh.position.y,cp.collider.x,(cp.collider.h||cp.collider.y||0),cp.collider.hw):(DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,cp.collider.x,cp.collider.hw+1)&&
+               DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.y,(cp.collider.h||cp.collider.y||0),2)))){
                 cp.triggered=true;cp.timer=120;
             }
         }
@@ -573,8 +583,9 @@ function _pfUpdateCamera(){try{
     if(window._pfMushroomColliders&&playerEgg&&playerEgg.vy<=0){
         for(var mi=0;mi<window._pfMushroomColliders.length;mi++){
             var mc=window._pfMushroomColliders[mi];
-            if(DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,mc.x,mc.hw+0.5)&&
-               playerEgg.mesh.position.y<=mc.h+0.5&&playerEgg.mesh.position.y>=mc.h-1.5){
+            var _pfw5=_pfWasm();
+            if(_pfw5?_pfw5.mushroomBounce(playerEgg.mesh.position.x,playerEgg.mesh.position.y,playerEgg.vy,mc.x,mc.h,mc.hw):(DANBO_WASM.absDeltaWithin(playerEgg.mesh.position.x,mc.x,mc.hw+0.5)&&
+               playerEgg.mesh.position.y<=mc.h+0.5&&playerEgg.mesh.position.y>=mc.h-1.5)){
                 playerEgg.vy=0.4;
                 playerEgg.mesh.position.y=mc.h+0.5;
                 playerEgg.squash=0.6;
@@ -596,9 +607,9 @@ function _pfUpdateCamera(){try{
     if(window._pfWindZones&&playerEgg){
         for(var wi=0;wi<window._pfWindZones.length;wi++){
             var wz=window._pfWindZones[wi];
-            if(playerEgg.mesh.position.x>=wz.x1&&playerEgg.mesh.position.x<=wz.x2){
-                playerEgg.vx+=wz.force;
-            }
+            var _pfw6=_pfWasm();
+            var _wf=_pfw6?_pfw6.windForce(playerEgg.mesh.position.x,wz.x1,wz.x2,wz.force):((playerEgg.mesh.position.x>=wz.x1&&playerEgg.mesh.position.x<=wz.x2)?wz.force:0);
+            if(_wf)playerEgg.vx+=_wf;
         }
     }
     // Key collection
@@ -625,7 +636,8 @@ function _pfUpdateCamera(){try{
     camera.position.z=45;
     camera.lookAt(new THREE.Vector3(camera.position.x,camera.position.y-4,0));
     // Goal check — reach the flag pole to win!
-    if(window._pfGoalX&&playerEgg.mesh.position.x>=window._pfGoalX&&!window._pfGoalReached){
+    var _pfw7=_pfWasm();
+    if(_pfw7?_pfw7.goalReached(playerEgg.mesh.position.x,window._pfGoalX,window._pfGoalReached):(window._pfGoalX&&playerEgg.mesh.position.x>=window._pfGoalX&&!window._pfGoalReached)){
         window._pfGoalReached=true;
         // Victory! Show result screen
         playerFinished=true;

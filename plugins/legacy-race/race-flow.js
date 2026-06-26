@@ -40,8 +40,9 @@ function enterRace(raceIndex){
 
     // Spawn race eggs — lined up in rows (no bunching)
     const skin=CHARACTERS[selectedChar];
-    const total=14+raceIndex*2;
-    var _cols=Math.min(total,Math.floor(TRACK_W*2/2.5));
+    var _raceWasm=window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race;
+    const total=_raceWasm?_raceWasm.totalEggs(raceIndex):(14+raceIndex*2);
+    var _cols=_raceWasm?_raceWasm.startCols(total,TRACK_W):Math.min(total,Math.floor(TRACK_W*2/2.5));
     var _spacing=TRACK_W*2/(_cols+1);
     // Save race start positions BEFORE Bifrost moves eggs around
     window._bfRacePositions=[];
@@ -53,8 +54,11 @@ function enterRace(raceIndex){
         const ci=(i-1)%AI_COLORS.length;
         var _row=Math.floor(i/_cols);
         var _col=i%_cols;
-        var _sx=-TRACK_W+_spacing*(_col+1)+(Math.random()-0.5)*1.5;
-        var _sz=-2-_row*3+(Math.random()-0.5)*1.2;
+        var _jx=(Math.random()-0.5)*1.5,_jz=(Math.random()-0.5)*1.2;
+        var _slot=_raceWasm?_raceWasm.startSlot(i,_cols,TRACK_W,_jx,_jz):null;
+        if(_slot){_row=_slot[0];_col=_slot[1];}
+        var _sx=_slot?_slot[2]:(-TRACK_W+_spacing*(_col+1)+_jx);
+        var _sz=_slot?_slot[3]:(-2-_row*3+_jz);
         var _rEgg=createEgg(_sx, _sz, AI_COLORS[ci], AI_COLORS[(ci+3)%AI_COLORS.length], false, undefined, CHARACTERS[i%CHARACTERS.length].type);
         window._bfRacePositions.push({egg:_rEgg, x:_sx, y:_rEgg.mesh.position.y, z:_sz});
         _rEgg.mesh.visible=false;
@@ -597,7 +601,8 @@ function checkRaceEnd(){
         return;
     }
     const raceEggs=allEggs.filter(e=>!e.cityNPC);
-    const surviveCount=Math.ceil(raceEggs.length*0.6);
+    var _rw=window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race;
+    const surviveCount=_rw?_rw.surviveCount(raceEggs.length):Math.ceil(raceEggs.length*0.6);
     if(finishedEggs.length>=surviveCount&&!playerFinished){
         showRaceResult();
     }
@@ -610,7 +615,8 @@ function showRaceResult(){
     // Exploration points for finishing a race (+2, +5 for 1st). One-shot per race.
     if(playerFinished&&!_raceExpAwarded&&typeof Explorer!=='undefined'){_raceExpAwarded=true;Explorer.raceFinish(place);}
     const total=allEggs.filter(e=>!e.cityNPC).length;
-    const won=playerFinished && place<=Math.ceil(total*0.6);
+    var _rw=window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race;
+    const won=playerFinished && (_rw?_rw.isWinningPlace(place,total):(place<=Math.ceil(total*0.6)));
     document.getElementById('result-emoji').textContent=won?'🎉':'😵';
     document.getElementById('result-title').textContent=won?I18N.resultWin(place):L('resultLose');
     document.getElementById('result-sub').textContent=won?I18N.resultSub(raceCoinScore):L('tryAgain');
@@ -622,7 +628,8 @@ function showRaceResult(){
 
 function updateRaceHUD(){
     if(gameState!=='racing'||!playerEgg)return;
-    const progress=Math.min(1,(-playerEgg.mesh.position.z)/trackLength);
+    var _rw=window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race;
+    const progress=_rw?_rw.progress(-playerEgg.mesh.position.z,trackLength):Math.min(1,(-playerEgg.mesh.position.z)/trackLength);
     document.getElementById('pbar-fill').style.width=(progress*100)+'%';
     let place=1;
     const pz=-playerEgg.mesh.position.z;

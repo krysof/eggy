@@ -359,7 +359,8 @@ function updateEggPhysics(egg, isCity){
         if(egg._shieldTimer>0)egg._shieldTimer--;
         if(egg._coinMagnet>0)egg._coinMagnet--;
         // Finish — cross the finish line (arch gate at trackLength)
-        if(!egg.finished&&!_pfActive&&trackLength>0&&gz>=trackLength-2){
+        var _rw=window.DANBO_MINIGAME_WASM&&DANBO_MINIGAME_WASM.race;
+        if(_rw?_rw.finishCrossed(egg.finished,_pfActive,trackLength,gz):(!egg.finished&&!_pfActive&&trackLength>0&&gz>=trackLength-2)){
             egg.finished=true;egg.finishOrder=finishedEggs.length;finishedEggs.push(egg);
             egg.squash=0.5; // celebrate squash
             if(egg.isPlayer){
