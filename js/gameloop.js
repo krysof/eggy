@@ -2239,7 +2239,10 @@ function confirmPortalEnter(){
     var bd=_portalConfirmBabelDir;
     hidePortalConfirm();
     document.getElementById('portal-prompt').style.display='none';
-    if(ri>=0){ enterRace(ri); }
+    if(ri>=0){
+        if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('legacy-race'))DANBO_PLUGIN_HOST.start('legacy-race',{raceIndex:ri,source:'portal'});
+        else enterRace(ri);
+    }
     else if(wp&&playerEgg){
         startPipeTravel(wp.x,wp.z,wp.target);
     }
@@ -2266,7 +2269,10 @@ function confirmPortalEnter(){
         var _retStyle=(_prevCityStyle>=0&&_prevCityStyle<5)?_prevCityStyle:0;
         startPipeTravel(playerEgg.mesh.position.x,playerEgg.mesh.position.z,_retStyle,playerEgg.mesh.position.y);
     }
-    else if(ht==='platformer'){if(typeof _pfStart==='function'){_pfStart();}}
+    else if(ht==='platformer'){
+        if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.get('legacy-platformer'))DANBO_PLUGIN_HOST.start('legacy-platformer',{source:'portal'});
+        else if(typeof _pfStart==='function'){_pfStart();}
+    }
     else if(ts>=0){ switchCity(ts); }
 }
 document.getElementById('portal-yes').addEventListener('click',function(){confirmPortalEnter();});

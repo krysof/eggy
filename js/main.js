@@ -196,6 +196,9 @@ addEventListener('keydown',function(e){
 
 // Back to city (shared logic)
 function goBackToCity(){
+    if(window.DANBO_PLUGIN_HOST&&DANBO_PLUGIN_HOST.getActive&&DANBO_PLUGIN_HOST.getActive()){
+        try{DANBO_PLUGIN_HOST.stop({status:'backToCity'});}catch(e){console.warn('Plugin stop failed',e);}
+    }
     if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
     if(typeof _resetViewMode==='function')_resetViewMode();
     // Reset all blocking states
