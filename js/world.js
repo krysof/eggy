@@ -135,6 +135,309 @@ function buildCityCoins() {
     }
 }
 
+// ============================================================
+//  TREASURE CHESTS — reward + exploration system
+//  Common (wooden, no FX): 20-50 coins.  Rare (blue, faint glow): 100 coins.
+//  Fixed per area: every city 20 chests; cloud world 10 chests.
+// ============================================================
+var cityChests = []; // {id,group,x,z,y,tier,opened,lid,glow,area,inScene,lidAngle}
+var CHEST_CITY_TOTAL = 20, CHEST_CLOUD_TOTAL = 10;
+function _tierFromRoll(r){ return r<0.08?'legendary':(r<0.30?'rare':'common'); }
+
+// ============================================================
+//  EXPLORER POINTS SYSTEM (single-player / per-player)
+//  EXP is exploration-only. No combat stats, no P2W. Persisted locally.
+//  saveData = {explorerPoints, explorerLevel, cityProgress, titles,
+//              cosmetics, achievements, chests, hidden, claimed, daily}
+// ============================================================
+var Explorer=(function(){
+    var KEY='danbo_save_v2';
+    var LEVELS=[
+        {lv:1,min:0,name:'\u65B0\u624B\u63A2\u9669\u5BB6'},   // 新手探险家
+        {lv:2,min:50,name:'\u65C5\u884C\u8005'},              // 旅行者
+        {lv:3,min:100,name:'\u5192\u9669\u5BB6'},             // 冒险家
+        {lv:4,min:200,name:'\u8D44\u6DF1\u63A2\u9669\u5BB6'}, // 资深探险家
+        {lv:5,min:400,name:'\u4E16\u754C\u65C5\u4EBA'},       // 世界旅人
+        {lv:6,min:800,name:'\u4F20\u5947\u63A2\u9669\u5BB6'}  // 传奇探险家
+    ];
+    function norm(o){
+        o=o||{};
+        o.explorerPoints=o.explorerPoints||0; o.explorerLevel=o.explorerLevel||1;
+        o.cityProgress=o.cityProgress||{}; o.titles=o.titles||{}; o.cosmetics=o.cosmetics||{};
+        o.achievements=o.achievements||{}; o.chests=o.chests||{}; o.hidden=o.hidden||{};
+        o.claimed=o.claimed||{}; o.daily=o.daily||{date:'',count:0};
+        return o;
+    }
+    var d=(function(){try{var s=localStorage.getItem(KEY);if(s)return norm(JSON.parse(s));}catch(e){}return norm({});})();
+    function save(){try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}}
+    function levelFor(p){var lv=LEVELS[0];for(var i=0;i<LEVELS.length;i++)if(p>=LEVELS[i].min)lv=LEVELS[i];return lv;}
+    function today(){var t=new Date();return t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();}
+    function cityCount(area){var n=0,pre=area+'_';for(var k in d.chests)if(d.chests[k]&&k.indexOf(pre)===0)n++;return n;}
+    function addPoints(n,reason){
+        if(!n)return;
+        var before=d.explorerPoints; d.explorerPoints+=n;
+        var lb=levelFor(before).lv, la=levelFor(d.explorerPoints).lv; d.explorerLevel=la; save();
+        if(typeof _showExpGain==='function')_showExpGain(n);
+        if(la>lb&&typeof _showLevelUp==='function')_showLevelUp(levelFor(d.explorerPoints));
+        if(typeof _updateChestHud==='function')_updateChestHud();
+        if(typeof _updatePlayerTag==='function')_updatePlayerTag(true);
+    }
+    return {
+        data:function(){return d;}, save:save,
+        points:function(){return d.explorerPoints;},
+        levelInfo:function(){return levelFor(d.explorerPoints);},
+        levels:function(){return LEVELS;},
+        cityCount:cityCount,
+        isChestOpened:function(id){return !!d.chests[id];},
+        addPoints:addPoints,
+        openChest:function(ch){
+            if(!ch||ch.opened||d.chests[ch.id])return false;
+            ch.opened=true; d.chests[ch.id]=true;
+            d.cityProgress[ch.area]=cityCount(ch.area);
+            var base=ch.tier==='legendary'?10:(ch.tier==='rare'?3:1);
+            var t=today(); if(d.daily.date!==t){d.daily.date=t;d.daily.count=0;}
+            var dbl=false; if(d.daily.count<5){dbl=true;d.daily.count++;}
+            var coinGain=ch.tier==='legendary'?120:(ch.tier==='rare'?60:(20+Math.floor(Math.random()*31)));
+            if(typeof coins!=='undefined'){coins+=coinGain;var ce=document.getElementById('coin-hud');if(ce)ce.textContent='\u2B50 '+coins;}
+            save();
+            if(typeof playChestSound==='function')playChestSound(ch.tier!=='common');
+            if(typeof _showChestReward==='function')_showChestReward(coinGain,ch.tier);
+            addPoints(dbl?base*2:base,'chest');
+            if(dbl&&typeof _showDailyBonus==='function')_showDailyBonus(dbl?base:0);
+            if(typeof _updateChestHud==='function')_updateChestHud();
+            if(typeof _checkAreaCompletion==='function')_checkAreaCompletion(ch.area);
+            return true;
+        },
+        discoverHidden:function(id,label){
+            if(d.hidden[id])return false; d.hidden[id]=true; save();
+            addPoints(5,'hidden');
+            if(typeof _showHiddenArea==='function')_showHiddenArea(label||id);
+            return true;
+        },
+        raceFinish:function(place){ addPoints(2,'race'); if(place===1)addPoints(5,'race1'); },
+        isClaimed:function(area){return !!d.claimed[area];},
+        grantArea:function(area,def){
+            if(d.claimed[area])return false; d.claimed[area]=true;
+            if(def.coins&&typeof coins!=='undefined'){coins+=def.coins;var ce=document.getElementById('coin-hud');if(ce)ce.textContent='\u2B50 '+coins;}
+            if(def.title)d.titles[def.title]=true;
+            (def.cosmetics||[]).forEach(function(c){d.cosmetics[c]=true;});
+            if(def.achievement)d.achievements[def.achievement]=true;
+            save();
+            if(def.points)addPoints(def.points,'cityComplete');
+            return true;
+        }
+    };
+})();
+
+function _makeChestMesh(tier){
+    var g=new THREE.Group();
+    var rare=(tier==='rare'), leg=(tier==='legendary');
+    var bodyHex=leg?0xE0A52A:(rare?0x2E6FB0:0x8B5A2B);
+    var lidHex =leg?0xFFD23F:(rare?0x3D86D6:0xA0703A);
+    var emiHex =leg?0xC8860A:(rare?0x2E70C0:0x000000);
+    var bodyMat=toon(bodyHex,{emissive:emiHex,emissiveIntensity:leg?0.4:(rare?0.25:0)});
+    var lidMat =toon(lidHex,{emissive:emiHex,emissiveIntensity:leg?0.45:(rare?0.30:0)});
+    var bandMat=toon(leg?0xFFE680:0x6E6E78,{emissive:leg?0x8A6E10:0x222228,emissiveIntensity:leg?0.3:0.1});
+    var base=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.6,0.7),bodyMat);
+    base.position.y=0.3;g.add(base);
+    [-0.34,0.34].forEach(function(bx){
+        var band=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.62,0.72),bandMat);
+        band.position.set(bx,0.3,0);g.add(band);
+    });
+    var lidPivot=new THREE.Group();lidPivot.position.set(0,0.6,-0.35);
+    var lid=new THREE.Mesh(new THREE.BoxGeometry(1.0,0.28,0.7),lidMat);
+    lid.position.set(0,0.0,0.35);lidPivot.add(lid);
+    var lidBand=new THREE.Mesh(new THREE.BoxGeometry(1.04,0.30,0.09),bandMat);
+    lidBand.position.set(0,0.0,0.35);lidPivot.add(lidBand);
+    g.add(lidPivot);
+    var lock=new THREE.Mesh(new THREE.BoxGeometry(0.15,0.18,0.08),toon(0xD4AF37,{emissive:0x8A6E10,emissiveIntensity:0.2}));
+    lock.position.set(0,0.5,0.37);g.add(lock);
+    var glow=null;
+    if(rare||leg){
+        glow=new THREE.Mesh(new THREE.SphereGeometry(leg?1.15:0.95,12,10),new THREE.MeshBasicMaterial({
+            color:leg?0xFFE066:0x66BBFF,transparent:true,opacity:leg?0.26:0.16,depthWrite:false,blending:THREE.AdditiveBlending,fog:false
+        }));
+        glow.position.y=0.4;g.add(glow);
+    }
+    g.userData._lidPivot=lidPivot;g.userData._glow=glow;
+    return g;
+}
+function _spawnChest(id,area,x,y,z,rot,tier,inScene){
+    var grp=_makeChestMesh(tier);
+    grp.position.set(x,y,z);grp.rotation.y=rot;
+    (inScene?scene:cityGroup).add(grp);
+    var opened=Explorer.isChestOpened(id);
+    var ch={id:id,group:grp,x:x,z:z,y:y,tier:tier,area:area,opened:opened,
+        lid:grp.userData._lidPivot,glow:grp.userData._glow,inScene:!!inScene,lidAngle:0};
+    if(opened&&ch.lid){ch.lidAngle=1.2;ch.lid.rotation.x=-1.2;}
+    cityChests.push(ch);
+    return ch;
+}
+function buildCityChests(){
+    var area='city'+currentCityStyle;
+    var groundY=(currentCityStyle===7)?3.0:0.0;
+    var spread=(currentCityStyle===5?MOON_CITY_SIZE:CITY_SIZE)*0.9;
+    var placed=0,attempts=0;
+    while(placed<CHEST_CITY_TOTAL&&attempts<CHEST_CITY_TOTAL*60){
+        attempts++;
+        var cx=(Math.random()-0.5)*spread*2, cz=(Math.random()-0.5)*spread*2;
+        if(currentCityStyle!==5){
+            var skip=false;
+            for(var i=0;i<cityColliders.length;i++){var c=cityColliders[i];if(DANBO_WASM.aabb2D(cx,cz,c.x,c.z,c.hw,c.hd,1.2)){skip=true;break;}}
+            if(skip)continue;
+            if(DANBO_WASM.within2D(cx,cz,0,0,7))continue; // keep spawn center clear
+        }
+        _spawnChest(area+'_'+placed,area,cx,groundY,cz,Math.random()*Math.PI*2,_tierFromRoll(Math.random()),false);
+        placed++;
+    }
+    _updateChestHud();
+    _ensureLeaderboardBtn();
+}
+function _updateChestHud(){
+    var el=document.getElementById('chest-hud');
+    if(!el){
+        el=document.createElement('div');el.id='chest-hud';
+        el.style.cssText='position:fixed;top:44px;left:12px;z-index:50;font:bold 15px system-ui,Segoe UI,sans-serif;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.85);pointer-events:none;line-height:1.5;';
+        document.body.appendChild(el);
+    }
+    var lv=Explorer.levelInfo();
+    var co=Explorer.cityCount('city'+currentCityStyle);
+    var l1='\uD83E\uDDED Lv'+lv.lv+' '+lv.name+'   \u2728 '+Explorer.points()+' EXP';
+    var l2='\uD83E\uDDF0 '+co+'/'+CHEST_CITY_TOTAL;
+    if(currentCityStyle<=4)l2+='   \u2601\uFE0F '+Explorer.cityCount('cloud')+'/'+CHEST_CLOUD_TOTAL;
+    el.innerHTML=l1+'<br>'+l2;
+}
+function _floatToast(text,color,topFrom,topTo,life){
+    var t=document.createElement('div');t.textContent=text;
+    t.style.cssText='position:fixed;left:50%;top:'+topFrom+';transform:translateX(-50%);z-index:61;'+
+        'font:bold 18px system-ui,Segoe UI,sans-serif;color:'+color+';text-shadow:0 2px 6px rgba(0,0,0,0.85);'+
+        'pointer-events:none;transition:top 0.8s ease-out,opacity 0.8s ease-out;opacity:1;';
+    document.body.appendChild(t);
+    requestAnimationFrame(function(){t.style.top=topTo;t.style.opacity='0';});
+    setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},life||900);
+}
+function _showExpGain(n){ _floatToast('+'+n+' \u2728 EXP','#9FE8FF','18%','12%',850); }
+function _showDailyBonus(){ _floatToast('\u2728 \u4ECA\u65E5\u63A2\u7D22\u5956\u52B1\uFF01\u53CC\u500D\u79EF\u5206','#FFE066','26%','21%',1400); }
+function _showHiddenArea(label){ _floatToast('\uD83D\uDD0D \u53D1\u73B0\u9690\u85CF\u533A\u57DF\uFF1A'+label+'  +5 \u2728','#C8FFB0','23%','18%',1800); }
+function _showChestReward(amount,tier){
+    var col=tier==='legendary'?'#FFD23F':(tier==='rare'?'#7FD0FF':'#FFE066');
+    var label=tier==='legendary'?'\uD83D\uDC51 \u4F20\u8BF4\u5B9D\u7BB1':(tier==='rare'?'\uD83D\uDC8E \u7A00\u6709\u5B9D\u7BB1':'\uD83E\uDDF0');
+    _floatToast(label+'  +'+amount+' \u2B50',col,'58%','49%',1000);
+}
+function _showLevelUp(lv){
+    var w=document.createElement('div');
+    w.innerHTML='<div style="font-size:14px;opacity:.85;">\u63A2\u7D22\u7B49\u7EA7\u63D0\u5347</div>'+
+        '<div style="font-size:24px;font-weight:800;color:#FFD86B;margin-top:4px;">Lv'+lv.lv+'  '+lv.name+'</div>';
+    w.style.cssText='position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);z-index:121;padding:16px 28px;border-radius:14px;'+
+        'background:linear-gradient(160deg,rgba(20,30,50,.96),rgba(40,30,64,.96));border:2px solid #7FD0FF;'+
+        'box-shadow:0 8px 36px rgba(0,0,0,.6),0 0 22px rgba(127,208,255,.5);color:#fff;text-align:center;'+
+        'font-family:system-ui,Segoe UI,sans-serif;opacity:0;transition:opacity .4s,top .4s;pointer-events:none;';
+    document.body.appendChild(w);
+    requestAnimationFrame(function(){w.style.opacity='1';w.style.top='28%';});
+    setTimeout(function(){w.style.opacity='0';},2600);
+    setTimeout(function(){if(w.parentNode)w.parentNode.removeChild(w);},3100);
+}
+
+// ---- Local exploration leaderboard (single-player shows local player) ----
+function _ensureLeaderboardBtn(){
+    if(document.getElementById('lb-btn'))return;
+    var b=document.createElement('div');b.id='lb-btn';b.textContent='\uD83C\uDFC6';
+    b.style.cssText='position:fixed;top:86px;right:12px;z-index:55;width:38px;height:38px;border-radius:10px;'+
+        'background:rgba(20,24,40,0.7);border:1px solid rgba(255,255,255,0.25);color:#FFD86B;font-size:21px;'+
+        'line-height:38px;text-align:center;cursor:pointer;user-select:none;';
+    b.onclick=_openLeaderboard;
+    document.body.appendChild(b);
+}
+function _openLeaderboard(){
+    var old=document.getElementById('lb-panel');if(old){old.parentNode.removeChild(old);return;}
+    var lv=Explorer.levelInfo();
+    var name=(typeof CHARACTERS!=='undefined'&&CHARACTERS[selectedChar])?CHARACTERS[selectedChar].name:'Player';
+    var p=document.createElement('div');p.id='lb-panel';
+    p.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:130;min-width:300px;max-width:86vw;'+
+        'padding:18px 22px;border-radius:16px;background:linear-gradient(160deg,rgba(18,22,38,0.97),rgba(40,30,60,0.97));'+
+        'border:2px solid #FFD86B;box-shadow:0 10px 44px rgba(0,0,0,0.6);color:#fff;font-family:system-ui,Segoe UI,sans-serif;';
+    var h='<div style="font-size:20px;font-weight:800;color:#FFD86B;text-align:center;margin-bottom:10px;">\uD83C\uDFC6 \u63A2\u7D22\u6392\u884C\u699C</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:15px;">';
+    h+='<tr style="opacity:.7;"><td style="padding:4px 6px;">#</td><td>\u6635\u79F0</td><td>\u7B49\u7EA7</td><td style="text-align:right;">\u79EF\u5206</td></tr>';
+    h+='<tr style="background:rgba(255,216,107,0.12);"><td style="padding:6px;">1</td><td>'+name+'</td><td>Lv'+lv.lv+' '+lv.name+'</td><td style="text-align:right;font-weight:700;">'+Explorer.points()+'</td></tr>';
+    h+='</table>';
+    h+='<div style="font-size:12px;opacity:.7;margin-top:12px;line-height:1.5;">\u5355\u673A\u6A21\u5F0F\u4EC5\u663E\u793A\u672C\u5730\u73A9\u5BB6\u3002\u8DE8\u73A9\u5BB6\u5B9E\u65F6\u6392\u884C\u699C\u9700\u8054\u7F51\u670D\u52A1\u5668\u3002</div>';
+    h+='<div id="lb-close" style="margin-top:14px;text-align:center;color:#9FE8FF;cursor:pointer;">\u5173\u95ED</div>';
+    p.innerHTML=h;document.body.appendChild(p);
+    document.getElementById('lb-close').onclick=function(){if(p.parentNode)p.parentNode.removeChild(p);};
+}
+
+// ============================================================
+//  CITY EXPLORATION REWARDS — granted ONCE at 100% per area.
+// ============================================================
+var REWARDS={
+    city0:{coins:500, points:20,title:'title_egg_explorer',           cosmetics:['cosmetic_explorer_hat'],   achievement:'achievement_first_adventure'},
+    city1:{coins:500, points:20,title:'title_desert_wanderer',        cosmetics:['cosmetic_desert_scarf'],   achievement:'achievement_lost_ruins'},
+    city2:{coins:500, points:20,title:'title_ice_explorer',           cosmetics:['cosmetic_snow_footprints'],achievement:'achievement_frozen_master'},
+    city3:{coins:500, points:20,title:'title_lava_challenger',        cosmetics:['cosmetic_flame_trail'],    achievement:'achievement_lava_runner'},
+    city4:{coins:500, points:20,title:'title_candy_collector',        cosmetics:['cosmetic_lollipop_hat'],   achievement:'achievement_sweet_journey'},
+    city6:{coins:500, points:20,title:'title_sakura_traveler',        cosmetics:['cosmetic_sakura_halo'],    achievement:'achievement_hanami_master'},
+    city7:{coins:500, points:20,title:'title_snow_village_guardian',  cosmetics:['cosmetic_winter_hat'],     achievement:'achievement_winter_visitor'},
+    city5:{coins:1000,points:30,title:'title_moon_explorer',          cosmetics:['cosmetic_space_helmet'],   achievement:'achievement_to_the_moon'},
+    cloud:{coins:1000,points:30,title:'title_cloud_traveler',         cosmetics:['cosmetic_cloud_halo'],     achievement:'achievement_above_the_sky'},
+    all:  {coins:5000,points:100,title:'title_legendary_explorer',    cosmetics:['cosmetic_rainbow_footprints','cosmetic_rainbow_halo'], achievement:'achievement_world_explorer'}
+};
+var REWARD_NAMES={
+    title_egg_explorer:'\u86CB\u5B9D\u57CE\u63A2\u9669\u5BB6', title_desert_wanderer:'\u6C99\u6D77\u65C5\u4EBA',
+    title_ice_explorer:'\u51B0\u539F\u63A2\u7D22\u5BB6', title_lava_challenger:'\u7194\u5CA9\u6311\u6218\u8005',
+    title_candy_collector:'\u7CD6\u679C\u6536\u85CF\u5BB6', title_sakura_traveler:'\u6A31\u82B1\u65C5\u4EBA',
+    title_snow_village_guardian:'\u96EA\u6751\u5B88\u62A4\u8005', title_moon_explorer:'\u6708\u9762\u63A2\u9669\u5BB6',
+    title_cloud_traveler:'\u4E91\u7AEF\u65C5\u8005', title_legendary_explorer:'\u4F20\u5947\u63A2\u9669\u5BB6',
+    cosmetic_explorer_hat:'\u63A2\u9669\u5E3D', cosmetic_desert_scarf:'\u6C99\u6F20\u56F4\u5DFE', cosmetic_snow_footprints:'\u96EA\u5730\u811A\u5370',
+    cosmetic_flame_trail:'\u706B\u7130\u62D6\u5C3E', cosmetic_lollipop_hat:'\u68D2\u68D2\u7CD6\u5E3D', cosmetic_sakura_halo:'\u6A31\u82B1\u5149\u73AF',
+    cosmetic_winter_hat:'\u51AC\u65E5\u5E3D', cosmetic_space_helmet:'\u592A\u7A7A\u5934\u76D4', cosmetic_cloud_halo:'\u4E91\u6735\u5149\u73AF',
+    cosmetic_rainbow_footprints:'\u5F69\u8679\u811A\u5370', cosmetic_rainbow_halo:'\u5F69\u8679\u5149\u73AF',
+    achievement_first_adventure:'\u521D\u6B21\u5192\u9669', achievement_lost_ruins:'\u5931\u843D\u9057\u8FF9', achievement_frozen_master:'\u51B0\u5C01\u5927\u5E08',
+    achievement_lava_runner:'\u7194\u5CA9\u5954\u8DD1\u8005', achievement_sweet_journey:'\u751C\u871C\u65C5\u7A0B', achievement_hanami_master:'\u8D4F\u82B1\u5927\u5E08',
+    achievement_winter_visitor:'\u51AC\u65E5\u8BBF\u5BA2', achievement_to_the_moon:'\u767B\u4E0A\u6708\u7403', achievement_above_the_sky:'\u4E91\u7AEF\u4E4B\u4E0A',
+    achievement_world_explorer:'\u4E16\u754C\u63A2\u7D22\u8005'
+};
+function _rn(id){return REWARD_NAMES[id]||id;}
+function _areaDisplayName(area){
+    if(area==='all')return '\uD83C\uDF08 \u5168\u5730\u56FE\u63A2\u7D22\u5B8C\u6210\uFF01';
+    if(area==='cloud')return '\u2601\uFE0F \u4E91\u4E2D\u754C \u63A2\u7D22 100%\uFF01';
+    var idx=parseInt(area.replace('city',''),10);
+    var nm=(typeof CITY_STYLES!=='undefined'&&CITY_STYLES[idx])?CITY_STYLES[idx].name:area;
+    return nm+' \u63A2\u7D22 100%\uFF01';
+}
+function _checkAreaCompletion(area){
+    if(REWARDS[area]){
+        var total=(area==='cloud')?CHEST_CLOUD_TOTAL:CHEST_CITY_TOTAL;
+        if(Explorer.cityCount(area)>=total&&Explorer.grantArea(area,REWARDS[area]))_showRewardBanner(area,REWARDS[area]);
+    }
+    var keys=['city0','city1','city2','city3','city4','city5','city6','city7','cloud'];
+    var allDone=keys.every(function(k){var t=(k==='cloud')?CHEST_CLOUD_TOTAL:CHEST_CITY_TOTAL;return Explorer.cityCount(k)>=t;});
+    if(allDone&&Explorer.grantArea('all',REWARDS.all))_showRewardBanner('all',REWARDS.all);
+}
+function _showRewardBanner(area,def){
+    var wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;left:50%;top:36%;transform:translate(-50%,-50%);z-index:120;min-width:280px;max-width:82vw;'+
+        'padding:18px 26px;border-radius:16px;background:linear-gradient(160deg,rgba(20,24,40,0.96),rgba(44,30,64,0.96));'+
+        'border:2px solid #FFD86B;box-shadow:0 8px 40px rgba(0,0,0,0.6),0 0 26px rgba(255,216,107,0.45);color:#fff;'+
+        'font-family:system-ui,Segoe UI,sans-serif;text-align:center;opacity:0;transition:opacity 0.4s ease,top 0.4s ease;pointer-events:none;';
+    var h='<div style="font-size:22px;font-weight:800;color:#FFD86B;margin-bottom:6px;">'+_areaDisplayName(area)+'</div>';
+    h+='<div style="font-size:13px;opacity:0.82;margin-bottom:10px;">\u63A2\u7D22\u5956\u52B1\u5DF2\u53D1\u653E</div>';
+    h+='<div style="font-size:16px;line-height:1.7;text-align:left;display:inline-block;">';
+    if(def.title)h+='\uD83C\uDFC5 \u79F0\u53F7\uFF1A'+_rn(def.title)+'<br>';
+    (def.cosmetics||[]).forEach(function(c){h+='\uD83C\uDF80 \u88C5\u626E\uFF1A'+_rn(c)+'<br>';});
+    if(def.points)h+='\u2728 +'+def.points+' \u63A2\u7D22\u79EF\u5206<br>';
+    if(def.coins)h+='\u2B50 '+def.coins+' \u91D1\u5E01<br>';
+    if(def.achievement)h+='\uD83C\uDFC6 \u6210\u5C31\uFF1A'+_rn(def.achievement)+'<br>';
+    h+='</div>';
+    wrap.innerHTML=h;
+    document.body.appendChild(wrap);
+    requestAnimationFrame(function(){wrap.style.opacity='1';wrap.style.top='33%';});
+    setTimeout(function(){wrap.style.opacity='0';},4600);
+    setTimeout(function(){if(wrap.parentNode)wrap.parentNode.removeChild(wrap);},5200);
+}
+
+
+
 // ---- Warp Pipes (Mario 3D World style transparent tubes) ----
 function buildWarpPipes(){
     warpPipeMeshes.forEach(function(wp){cityGroup.remove(wp.group);});
@@ -214,6 +517,9 @@ function clearCity(){
     // Remove scene-added coins (cloud world coins)
     for(var ci=0;ci<cityCoins.length;ci++){if(cityCoins[ci].inScene)scene.remove(cityCoins[ci].mesh);}
     cityCoins.length=0;
+    // Remove scene-added chests (cloud world) and reset chest list
+    for(var chi=0;chi<cityChests.length;chi++){if(cityChests[chi].inScene&&cityChests[chi].group)scene.remove(cityChests[chi].group);}
+    cityChests.length=0;
     cityProps.length=0;
     warpPipeMeshes.length=0;
     window._fountainParticles=null;
@@ -499,6 +805,7 @@ function updatePipeTravel(){
         buildCity();
         buildPortals();
         buildCityCoins();
+        buildCityChests();
         buildWarpPipes();
         addClouds();
         spawnCityNPCs();
@@ -548,6 +855,7 @@ function switchCity(targetStyle){
     buildCity();
     buildPortals();
     buildCityCoins();
+    buildCityChests();
     buildWarpPipes();
     addClouds();
     spawnCityNPCs();
@@ -764,7 +1072,12 @@ function addClouds(){
         scene.add(coin);
         cityCoins.push({mesh:coin,collected:false,baseY:ccY,inScene:true});
     }
-    // ---- Cloud World Cherubs (小天使) ----
+    // Cloud-world treasure chests (10) — sit on the cloud platforms
+    for(var cwc=0;cwc<CHEST_CLOUD_TOTAL;cwc++){
+        var cwa=Math.random()*Math.PI*2, cwr=6+Math.random()*22;
+        var cgx=Math.cos(cwa)*cwr, cgz=Math.sin(cwa)*cwr, cgy=cwY+0.6;
+        _spawnChest('cloud_'+cwc,'cloud',cgx,cgy,cgz,Math.random()*Math.PI*2,_tierFromRoll(Math.random()),true);
+    }
     if(!window._cityAnimals)window._cityAnimals=[];
     for(var _chi=0;_chi<8;_chi++){
         var cg=new THREE.Group();
@@ -1010,6 +1323,7 @@ function _buildBabylonTower(){
 function _triggerBabylonEvent(){
     if(_babylonTriggered)return;
     if(currentCityStyle===5)return; // not on moon
+    if(typeof Explorer!=='undefined')Explorer.discoverHidden('babel_tower','\u5DF4\u522B\u5854');
     _babylonTriggered=true;
     _earthquakeTimer=180; // 3 seconds at 60fps
     _earthquakeIntensity=0.5;

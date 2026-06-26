@@ -529,6 +529,27 @@ function updateCity(){
         }
     }
 
+    // ---- Treasure chests: auto-open on proximity (personal collection) ----
+    for(var _chi=0;_chi<cityChests.length;_chi++){
+        var ch=cityChests[_chi];
+        if(ch.opened){
+            if(ch.lid&&ch.lidAngle<1.2){ch.lidAngle=Math.min(1.2,ch.lidAngle+0.12);ch.lid.rotation.x=-ch.lidAngle;}
+            continue;
+        }
+        if(ch.glow)ch.glow.material.opacity=(ch.tier==='legendary'?0.22:0.12)+Math.sin(Date.now()*0.005+ch.x)*0.06;
+        if(DANBO_WASM.within3D(px,py,pz,ch.x,ch.y+0.4,ch.z,1.8)){
+            if(typeof Explorer!=='undefined')Explorer.openChest(ch);
+            if(coins>=10&&!_babylonTriggered){_triggerBabylonEvent();}
+        }
+    }
+    // ---- Hidden-area discovery (+5 EXP, first time only) ----
+    if(typeof Explorer!=='undefined'){
+        if(currentCityStyle===5)Explorer.discoverHidden('moon_city','\u6708\u9762\u90FD\u5E02');
+        else if(currentCityStyle<=4&&py>40)Explorer.discoverHidden('cloud_world','\u4E91\u4E2D\u754C');
+    }
+    // ---- House-door proximity prompt ----
+    if(typeof _interiorDoorScan==='function')_interiorDoorScan(px,pz);
+
     // NPC AI
     for(const npc of cityNPCs){
         var _ndx=npc.mesh.position.x-px,_ndz=npc.mesh.position.z-pz;
@@ -2374,6 +2395,7 @@ function enterRace(raceIndex){
     currentRaceIndex=raceIndex;
     finishedEggs=[]; playerFinished=false;
     raceCoinScore=0;
+    _raceExpAwarded=false;
 
     // Hide all UI
     document.getElementById('city-hud').classList.add('hidden');
@@ -2970,9 +2992,12 @@ function checkRaceEnd(){
     }
 }
 
+var _raceExpAwarded=false;
 function showRaceResult(){
     gameState='raceResult';
     const place=playerFinished ? playerEgg.finishOrder+1 : 999;
+    // Exploration points for finishing a race (+2, +5 for 1st). One-shot per race.
+    if(playerFinished&&!_raceExpAwarded&&typeof Explorer!=='undefined'){_raceExpAwarded=true;Explorer.raceFinish(place);}
     const total=allEggs.filter(e=>!e.cityNPC).length;
     const won=playerFinished && place<=Math.ceil(total*0.6);
     document.getElementById('result-emoji').textContent=won?'🎉':'😵';
@@ -3061,12 +3086,38 @@ function animate(now){
 
 function _gameUpdate(){
     const dt=1/60;
+    // Shell status above EVERY character, every mode (player + race rivals + city NPCs).
+    if(typeof _updateAllShellStatus==='function')_updateAllShellStatus();
+    // Cosmetic shop / equipped looks / footprints (single-player, local).
+    if(typeof Cosmetics!=='undefined'&&Cosmetics.update)Cosmetics.update();
+    // Chest exploration HUD only shows while roaming a city (not inside a house).
+    var _inCity=(gameState==='city'&&!window._interiorActive);
+    var _chHud=document.getElementById('chest-hud');
+    if(_chHud)_chHud.style.display=_inCity?'block':'none';
+    var _lbBtn=document.getElementById('lb-btn');
+    if(_lbBtn)_lbBtn.style.display=_inCity?'block':'none';
+    // Map UI visibility (mini-map + map button) — city only.
+    var _mm=document.getElementById('minimap-wrap'),_mb=document.getElementById('map-btn');
+    if(_mm)_mm.style.display=_inCity?'block':'none';
+    if(_mb)_mb.style.display=_inCity?'block':'none';
+    var _dp=document.getElementById('door-prompt');
+    if(_dp&&!_inCity)_dp.style.display='none';
+    if(_inCity&&typeof _updateMiniMap==='function')_updateMiniMap();
 
     if(gameState==='city'){
+        // ---- Inside a house: run isolated interior loop, skip all city updates ----
+        if(window._interiorActive){
+            if(!window._worldMapOpen&&typeof handlePlayerInput==='function')handlePlayerInput();
+            if(typeof _interiorPhysics==='function')_interiorPhysics(playerEgg);
+            if(typeof _interiorCheckExit==='function')_interiorCheckExit();
+            if(playerEgg){_updateStunStars(playerEgg);_updatePainFace(playerEgg);}
+            updateCamera();
+            return;
+        }
         if(_pipeTraveling){
             updatePipeTravel();
         } else {
-            handlePlayerInput();
+            if(!window._worldMapOpen&&!window._shopOpen)handlePlayerInput(); // pause movement while a UI panel is open
         }
         if(playerEgg&&!_pipeTraveling) updateEggPhysics(playerEgg, true);
         if(playerEgg){_updateStunStars(playerEgg);_updatePainFace(playerEgg);}

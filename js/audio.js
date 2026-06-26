@@ -902,6 +902,21 @@ function playCoinSound(){
         osc.start(ctx.currentTime+i*0.08); osc.stop(ctx.currentTime+i*0.08+0.12);
     });
 }
+function playChestSound(rare){
+    if(!sfxEnabled) return;
+    const ctx=ensureAudio();
+    const notes=rare?[523,659,784,1047]:[440,587,784]; // rare = brighter 4-note flourish
+    notes.forEach((f,i)=>{
+        const osc=ctx.createOscillator();
+        const g=ctx.createGain();
+        osc.type='triangle'; osc.frequency.value=f;
+        const t0=ctx.currentTime+i*0.07;
+        g.gain.setValueAtTime(0.13,t0);
+        g.gain.exponentialRampToValueAtTime(0.001,t0+0.18);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(t0); osc.stop(t0+0.18);
+    });
+}
 
 // Hit/bump sound
 var _splashCooldown=0;

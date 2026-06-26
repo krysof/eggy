@@ -5,6 +5,7 @@
 buildCity();
 buildPortals();
 buildCityCoins();
+buildCityChests();
 buildWarpPipes();
 applyCityTheme();
 // Initial portrait draw (after entity.js loaded)
