@@ -1,3 +1,5 @@
+// race-core.js — Legacy race runtime loaded by plugins/legacy-race
+// Source moved from js/race.js so race minigames live under plugins/.
 // race.js — DANBO World
 // ============================================================
 //  RACE TRACK SYSTEM

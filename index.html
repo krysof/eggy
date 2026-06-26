@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <title>DANBO World</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="style.css?v=20260626.3">
+<link rel="stylesheet" href="style.css?v=20260626.4">
 </head>
 <body>
 <div id="game-container">
@@ -142,7 +142,7 @@
 
 <script>
 (function(){
-  var cache='v=20260626.3';
+  var cache='v=20260626.4';
   window.DANBO_ASSET_VERSION=cache;
   var loaderLang=(function(){
     var mode='auto';
@@ -178,6 +178,7 @@
     'js/net-client.js',
     'js/plugin-host.js',
     'plugins/manifest.js',
+    'js/minigame-bridge.js',
     'js/data-cities.js',
     'js/data-races.js',
     'js/moves.js',
@@ -196,13 +197,11 @@
     'js/map.js',
     'js/interior.js',
     'js/cosmetics.js',
-    'js/race.js',
     'js/physics.js',
     'js/ai.js',
     'js/player.js',
     'js/camera.js',
     'js/gameloop.js',
-    'js/platformer.js',
     'js/main.js'
   ];
   function setEngineLoading(text,percent,data){
@@ -244,7 +243,12 @@
     });
   }
   function loadPluginsThenFinish(){
-    var list=(window.DANBO_PLUGIN_MANIFEST||[]).filter(function(p){return p&&p.enabled!==false&&p.script;}).map(function(p){return p.script;});
+    var list=[];
+    (window.DANBO_PLUGIN_MANIFEST||[]).forEach(function(p){
+      if(!p||p.enabled===false)return;
+      if(Array.isArray(p.scripts))p.scripts.forEach(function(src){if(src)list.push(src);});
+      else if(p.script)list.push(p.script);
+    });
     if(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.setManifest)window.DANBO_PLUGIN_HOST.setManifest(window.DANBO_PLUGIN_MANIFEST||[]);
     loadPluginScriptList(0,list);
   }

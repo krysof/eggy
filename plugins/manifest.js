@@ -4,22 +4,22 @@
         {
             id:'legacy-race',
             name:'经典竞速赛道',
-            version:'0.1.0',
+            version:'0.2.0',
             enabled:true,
-            script:'plugins/legacy-race/plugin.js',
+            scripts:['plugins/legacy-race/race-core.js','plugins/legacy-race/race-flow.js','plugins/legacy-race/plugin.js'],
             networkReady:true,
-            legacyAdapter:true,
-            description:'旧竞速赛道小游戏适配器：传入 raceIndex 后启动原 enterRace 流程。'
+            legacyAdapter:false,
+            description:'竞速赛道插件：核心赛道构建代码位于本插件目录，入口通过 DANBO_PLUGIN_HOST 启动。'
         },
         {
             id:'legacy-platformer',
             name:'蛋宝冒险',
-            version:'0.1.0',
+            version:'0.2.0',
             enabled:true,
-            script:'plugins/legacy-platformer/plugin.js',
+            scripts:['plugins/legacy-platformer/platformer-core.js','plugins/legacy-platformer/plugin.js'],
             networkReady:true,
-            legacyAdapter:true,
-            description:'旧横版平台关小游戏适配器：启动原 _pfStart 流程。'
+            legacyAdapter:false,
+            description:'横版平台关插件：核心关卡代码位于本插件目录，入口通过 DANBO_PLUGIN_HOST 启动。'
         },
         {
             id:'ability-card',

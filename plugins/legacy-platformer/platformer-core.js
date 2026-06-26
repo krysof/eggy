@@ -1,3 +1,5 @@
+// platformer-core.js — Legacy platformer runtime loaded by plugins/legacy-platformer
+// Source moved from js/platformer.js so this minigame lives under plugins/.
 // ============================================================
 //  platformer.js — Side-scrolling adventure using existing city engine
 //  Creates a new long narrow map with side-view camera

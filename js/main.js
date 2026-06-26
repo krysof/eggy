@@ -210,8 +210,8 @@ function goBackToCity(){
     finishedEggs=[];playerFinished=false;
     _pfActive=false; // reset platformer flag
     gameState='city';
-    raceGroup.visible=false;
-    clearRace();
+    if(typeof raceGroup!=='undefined')raceGroup.visible=false;
+    if(typeof clearRace==='function')clearRace();
     document.getElementById('race-hud').classList.add('hidden');
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     cityGroup.visible=true;

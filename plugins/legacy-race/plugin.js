@@ -4,9 +4,9 @@
 
     window.DANBO_PLUGIN_HOST.register({
         id:'legacy-race',
-        version:'0.1.0',
+        version:'0.2.0',
         name:{zhs:'经典竞速赛道',en:'Legacy Race Course'},
-        description:'Adapter plugin for the existing race-course minigames. Keeps old race code but starts it through the plugin host.',
+        description:'Race-course minigame plugin. Runtime code is loaded from plugins/legacy-race/race-core.js and started through the plugin host.',
         create:function(ctx){
             var raceIndex=Number(ctx.options&&ctx.options.raceIndex);
             if(!isFinite(raceIndex))raceIndex=0;
