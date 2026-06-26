@@ -3,9 +3,9 @@
 (function(){
     'use strict';
 
-    var PLAYER_Z=-28;
+    var PLAYER_Z=-16;
     var ROAD_SEG_LEN=8;
-    var BUILD=202606268;
+    var BUILD=202606269;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
