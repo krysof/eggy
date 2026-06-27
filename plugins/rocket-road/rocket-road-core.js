@@ -5,7 +5,7 @@
 
     var PLAYER_Z=-8.5;
     var ROAD_SEG_LEN=8;
-    var BUILD=2026062714;
+    var BUILD=2026062715;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
@@ -204,12 +204,13 @@
         '.rr-steer-pad{position:absolute;left:24px;bottom:calc(92px + env(safe-area-inset-bottom));width:122px;height:122px;border-radius:50%;border:4px solid rgba(255,255,255,.38);background:radial-gradient(circle,rgba(255,255,255,.24),rgba(255,255,255,.08));box-shadow:0 8px 24px rgba(0,0,0,.28),inset 0 0 0 2px rgba(255,255,255,.13);pointer-events:auto;touch-action:none;}'+
         '.rr-steer-pad:before{content:"方向";position:absolute;left:0;right:0;top:-25px;text-align:center;color:rgba(255,255,255,.82);font-size:13px;font-weight:1000;text-shadow:0 2px 3px #000;}'+
         '.rr-steer-knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 5px 16px rgba(0,0,0,.35),inset 0 0 0 4px rgba(255,255,255,.42);color:#2c4762;font-size:22px;font-weight:1000;display:flex;align-items:center;justify-content:center;}'+
-        '.rr-pedal{position:absolute;right:104px;width:86px;height:86px;border-radius:50%;border:4px solid rgba(255,255,255,.42);color:#fff;font-size:18px;font-weight:1000;pointer-events:auto;text-shadow:0 2px 3px #000;box-shadow:0 8px 22px rgba(0,0,0,.34),inset 0 0 0 3px rgba(255,255,255,.12);}'+
-        '.rr-throttle{bottom:calc(92px + env(safe-area-inset-bottom));background:rgba(255,181,55,.42)!important;border-color:rgba(255,224,128,.62)!important;}'+
-        '.rr-brake{bottom:calc(188px + env(safe-area-inset-bottom));background:rgba(92,173,255,.32)!important;border-color:rgba(160,220,255,.62)!important;}'+
-        '.rr-pedal.rr-pressed{filter:brightness(1.24);transform:scale(.96);box-shadow:0 4px 12px rgba(0,0,0,.4),0 0 22px rgba(255,232,120,.45),inset 0 0 0 4px rgba(255,255,255,.22);}'+
+        '.rr-pedal{position:absolute;bottom:calc(108px + env(safe-area-inset-bottom));width:118px;height:58px;border-radius:18px 18px 26px 26px;border:3px solid rgba(255,255,255,.42);color:#fff;font-size:17px;font-weight:1000;pointer-events:auto;text-shadow:0 2px 3px #000;transform:skewX(-8deg);box-shadow:0 10px 18px rgba(0,0,0,.38),inset 0 6px 0 rgba(255,255,255,.18),inset 0 -7px 0 rgba(0,0,0,.18);}'+
+        '.rr-pedal:after{content:"";position:absolute;left:16px;right:16px;top:12px;bottom:12px;border-radius:10px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.32) 0 4px,transparent 4px 12px);opacity:.65;pointer-events:none;}'+
+        '.rr-throttle{right:92px;background:linear-gradient(180deg,rgba(255,230,105,.64),rgba(255,145,31,.58))!important;border-color:rgba(255,224,128,.7)!important;}'+
+        '.rr-brake{right:220px;background:linear-gradient(180deg,rgba(135,220,255,.58),rgba(58,132,255,.48))!important;border-color:rgba(160,220,255,.72)!important;}'+
+        '.rr-pedal.rr-pressed{filter:brightness(1.24);transform:skewX(-8deg) translateY(5px) scale(.98);box-shadow:0 4px 10px rgba(0,0,0,.42),0 0 22px rgba(255,232,120,.45),inset 0 4px 0 rgba(255,255,255,.16),inset 0 -3px 0 rgba(0,0,0,.24);}'+
         '.rr-list{margin:12px 0;text-align:left;background:rgba(255,255,255,.08);border-radius:18px;padding:12px 16px;line-height:1.8;}'+
-        '@media (max-width:760px){.rr-title{font-size:28px}.rr-panel{padding:18px}.rr-touch{display:block}.rr-menu-btn{padding:12px;font-size:16px}.rr-side{width:84px}.rr-top-track{right:84px}.rr-countdown,.rr-stage-banner,.rr-start-rank{left:calc(50% - 42px)}.rr-meter{height:102px;width:18px}.rr-steer-pad{left:22px;bottom:calc(104px + env(safe-area-inset-bottom));width:116px;height:116px}.rr-pedal{right:96px;width:82px;height:82px}.rr-throttle{bottom:calc(104px + env(safe-area-inset-bottom))}.rr-brake{bottom:calc(196px + env(safe-area-inset-bottom))}}'+
+        '@media (max-width:760px){.rr-title{font-size:28px}.rr-panel{padding:18px}.rr-touch{display:block}.rr-menu-btn{padding:12px;font-size:16px}.rr-side{width:84px}.rr-top-track{right:84px}.rr-countdown,.rr-stage-banner,.rr-start-rank{left:calc(50% - 42px)}.rr-meter{height:102px;width:18px}.rr-steer-pad{left:22px;bottom:calc(108px + env(safe-area-inset-bottom));width:116px;height:116px}.rr-pedal{bottom:calc(112px + env(safe-area-inset-bottom));width:112px;height:56px}.rr-throttle{right:88px}.rr-brake{right:208px}}'+
         '</style><canvas></canvas><div class="rr-hud"><div class="rr-top-track"><b>START</b><i><em data-progress-line></em></i><b>CHECK</b></div><div class="rr-side"><div class="rr-hi">HI<br>10000</div><div class="rr-label">RANK</div><div class="rr-value" data-rank>40</div><div class="rr-label">TIME</div><div class="rr-value yellow" data-time>0′00</div><div class="rr-label">CARS</div><div class="rr-value" data-cars>0</div><div class="rr-km" data-km>000Km</div><div class="rr-meter-wrap"><div class="rr-meter-col"><div class="rr-meter rpm"><i data-rpm></i></div><span>RPM</span></div><div class="rr-meter-col"><div class="rr-meter fuel"><i data-fuel></i></div><span>FUEL</span></div></div><button class="rr-top-exit" data-action="quit-run">退出</button></div></div><div class="rr-start-rank"><span>RANK</span><b data-start-rank>40</b></div><div class="rr-panel"></div><div class="rr-stage-banner"></div><div class="rr-countdown"></div><div class="rr-toast"></div><div class="rr-touch"><div class="rr-steer-pad" data-steer-pad><div class="rr-steer-knob">↔</div></div><button class="rr-pedal rr-brake" data-touch="brake">刹车</button><button class="rr-pedal rr-throttle" data-touch="boost">油门</button></div>';
     };
 
@@ -582,7 +583,7 @@
 
     DanboRocketRoad.prototype.inputState=function(){
         var left=this.keys.ArrowLeft||this.keys.KeyA||this.touch.left,right=this.keys.ArrowRight||this.keys.KeyD||this.touch.right;
-        var pad=n(this.touch.steer,0), steer=Math.abs(pad)>0.04?pad:((right?1:0)-(left?1:0));
+        var pad=n(this.touch.steer,0), steer=Math.abs(pad)>0.04?-pad:((left?1:0)-(right?1:0));
         return {steer:steer,turbo:!!(this.keys.ArrowUp||this.keys.KeyW||this.keys.Space||this.touch.boost),brake:!!(this.keys.ArrowDown||this.keys.KeyS||this.touch.brake)};
     };
 
