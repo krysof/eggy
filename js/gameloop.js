@@ -2512,6 +2512,8 @@ function _gameUpdate(){
         var _mmBusy=document.getElementById('minimap-wrap');if(_mmBusy)_mmBusy.style.display='none';
         var _mbBusy=document.getElementById('map-btn');if(_mbBusy)_mbBusy.style.display='none';
         var _lbBusy=document.getElementById('lb-btn');if(_lbBusy)_lbBusy.style.display='none';
+        var _areaBusy=document.getElementById('area-name-overlay');if(_areaBusy)_areaBusy.style.display='none';
+        var _shopBusy=document.getElementById('shop-prompt');if(_shopBusy)_shopBusy.style.display='none';
         return;
     }
     // Shell status above EVERY character, every mode (player + race rivals + city NPCs).

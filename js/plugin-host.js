@@ -211,97 +211,192 @@
         var colors=[0xFF0000,0xFF8800,0xFFDD00,0x44DD44,0x4488FF,0x4400CC,0x8800CC];
         var origin={x:playerEgg.mesh.position.x,y:playerEgg.mesh.position.y,z:playerEgg.mesh.position.z};
         var rotY=playerEgg.mesh.rotation.y;
-        var rings=[],pillars=[],particles=[];
-        function mb(c,o){return new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,depthWrite:false,side:THREE.DoubleSide});}
+        var camStart=(typeof camera!=='undefined'&&camera)?{x:camera.position.x,y:camera.position.y,z:camera.position.z}:null;
+        var rings=[],runes=[],pillars=[],particles=[],audioNodes=[];
+        function mat(color,opacity){return new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:opacity,depthWrite:false,side:THREE.DoubleSide});}
+        function disposeMesh(mesh){
+            if(!mesh)return;
+            if(mesh.geometry)mesh.geometry.dispose();
+            if(mesh.material){
+                if(Array.isArray(mesh.material))mesh.material.forEach(function(m){if(m)m.dispose();});
+                else mesh.material.dispose();
+            }
+        }
+        function setGeom(mesh,geom){if(mesh.geometry)mesh.geometry.dispose();mesh.geometry=geom;}
+
+        // 2026-06-17 old Bifrost shape: tiny ground rings that grow, 6 golden runes, 14 participant beams, 30 white particles.
         for(var i=0;i<7;i++){
-            var ring=new THREE.Mesh(new THREE.TorusGeometry(0.35+i*0.38,0.075,8,40),mb(colors[i],0));
-            ring.rotation.x=Math.PI/2;ring.position.set(origin.x,0.12+i*0.045,origin.z);ring.renderOrder=900;
+            var ring=new THREE.Mesh(new THREE.TorusGeometry(0.1,0.08,6,32),mat(colors[i],0.8));
+            ring.rotation.x=Math.PI/2;
+            ring.position.set(origin.x,0.1+i*0.05,origin.z);
+            ring.renderOrder=900;
             group.add(ring);rings.push(ring);
         }
-        for(var p=0;p<18;p++){
-            var pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.34,1,8,1,true),mb(colors[p%7],0));
-            pillar.position.set(origin.x,40,origin.z);pillar.scale.y=80;pillar.renderOrder=895;
+        for(var rn=0;rn<6;rn++){
+            var rune=new THREE.Mesh(new THREE.TorusKnotGeometry(0.15,0.04,32,6,2,3),mat(0xFFDD88,0.7));
+            rune.position.set(origin.x,0.2,origin.z);
+            rune.scale.set(0.01,0.01,0.01);
+            rune.renderOrder=905;
+            group.add(rune);runes.push(rune);
+        }
+        var pillarCount=14;
+        for(var p=0;p<pillarCount;p++){
+            var pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.3,0.1,8),mat(colors[p%7],0.6));
+            pillar.position.set(origin.x,0.05,origin.z);
+            pillar.renderOrder=895;
             group.add(pillar);pillars.push(pillar);
         }
-        for(var q=0;q<36;q++){
-            var sp=new THREE.Mesh(new THREE.SphereGeometry(0.11+Math.random()*0.08,6,4),mb(0xFFFFFF,0));
-            sp.userData={angle:Math.random()*Math.PI*2,rad:0.4+Math.random()*2.8,spd:0.6+Math.random()*1.6,off:Math.random()*80};sp.renderOrder=910;
-            group.add(sp);particles.push(sp);
+        for(var q=0;q<30;q++){
+            var sp=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,3),mat(0xFFFFFF,0.7));
+            sp.visible=false;sp.renderOrder=910;
+            group.add(sp);particles.push({mesh:sp,angle:Math.random()*Math.PI*2,speed:0.5+Math.random(),y:Math.random()*120});
         }
         var flash=new THREE.Mesh(new THREE.PlaneGeometry(220,220),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0,depthTest:false,depthWrite:false,side:THREE.DoubleSide}));
         flash.renderOrder=9999;scene.add(flash);
-        var audioNodes=[];
+
+        // Use the original 6-second city-side audio timing from 2026-06-17, not the compressed 3.2s version.
         if(typeof sfxEnabled==='undefined'||sfxEnabled){
             try{
                 var ac=(typeof ensureAudio==='function')?ensureAudio():null;
                 if(ac){
                     if(ac.state==='suspended'&&ac.resume)ac.resume();
                     var t0=ac.currentTime;
-                    function osc(type,f0,f1,tA,tB,g0,g1){
+                    function addOsc(type,f0,events,stopAt){
                         var o=ac.createOscillator(),g=ac.createGain();
-                        o.type=type;
-                        o.frequency.setValueAtTime(Math.max(1,f0),t0+tA);
-                        o.frequency.exponentialRampToValueAtTime(Math.max(1,f1),t0+tB);
-                        g.gain.setValueAtTime(0.0001,t0+tA);
-                        g.gain.linearRampToValueAtTime(g0,t0+tA+0.08);
-                        g.gain.linearRampToValueAtTime(g1,t0+Math.max(tA+0.12,tB-0.18));
-                        g.gain.exponentialRampToValueAtTime(0.0001,t0+tB);
-                        o.connect(g);g.connect(ac.destination);
-                        o.start(t0+tA);o.stop(t0+tB+0.03);
-                        audioNodes.push(o);
+                        o.type=type;o.frequency.setValueAtTime(Math.max(1,f0),t0);
+                        for(var ei=0;ei<events.length;ei++){
+                            var ev=events[ei];
+                            if(ev.kind==='freq')o.frequency.exponentialRampToValueAtTime(Math.max(1,ev.value),t0+ev.at);
+                            else if(ev.kind==='gainSet')g.gain.setValueAtTime(ev.value,t0+ev.at);
+                            else if(ev.kind==='gainLinear')g.gain.linearRampToValueAtTime(ev.value,t0+ev.at);
+                            else if(ev.kind==='gainExp')g.gain.exponentialRampToValueAtTime(Math.max(0.0001,ev.value),t0+ev.at);
+                        }
+                        o.connect(g);g.connect(ac.destination);o.start(t0);o.stop(t0+stopAt);audioNodes.push(o);
                     }
-                    // Matches the old mini-game Bifrost feel: descending shimmer, low rumble, upward whoosh, arrival flash.
-                    osc('triangle',2000,220,0.00,0.95,0.13,0.08);
-                    osc('sine',42,55,0.05,2.95,0.085,0.03);
-                    osc('sawtooth',105,3200,0.62,2.35,0.11,0.075);
-                    osc('sawtooth',900,180,2.18,3.10,0.10,0.035);
-                    for(var ai=0;ai<4;ai++)osc('triangle',520+ai*120,360+ai*50,2.46+ai*0.09,2.72+ai*0.09,0.05,0.012);
+                    addOsc('triangle',2000,[
+                        {kind:'freq',value:200,at:2},
+                        {kind:'gainSet',value:0,at:0},{kind:'gainLinear',value:0.12,at:0.3},{kind:'gainLinear',value:0.08,at:1.5},{kind:'gainExp',value:0.001,at:2.5}
+                    ],2.5);
+                    addOsc('sine',40,[
+                        {kind:'freq',value:45,at:6.4},
+                        {kind:'gainSet',value:0,at:0},{kind:'gainLinear',value:0.1,at:1},{kind:'gainExp',value:0.001,at:6.4}
+                    ],6.45);
+                    var whoosh=ac.createOscillator(),whooshG=ac.createGain();
+                    whoosh.type='sawtooth';whoosh.frequency.setValueAtTime(100,t0+2);
+                    whoosh.frequency.exponentialRampToValueAtTime(3000,t0+5);
+                    whoosh.frequency.exponentialRampToValueAtTime(500,t0+6);
+                    whooshG.gain.setValueAtTime(0,t0);whooshG.gain.setValueAtTime(0,t0+2);
+                    whooshG.gain.linearRampToValueAtTime(0.12,t0+3);
+                    whooshG.gain.linearRampToValueAtTime(0.15,t0+5);
+                    whooshG.gain.exponentialRampToValueAtTime(0.001,t0+6.5);
+                    whoosh.connect(whooshG);whooshG.connect(ac.destination);whoosh.start(t0+2);whoosh.stop(t0+6.5);audioNodes.push(whoosh);
+                    var arrive=ac.createOscillator(),arriveG=ac.createGain();
+                    arrive.type='sawtooth';arrive.frequency.setValueAtTime(800,t0+6.0);arrive.frequency.exponentialRampToValueAtTime(220,t0+6.45);
+                    arriveG.gain.setValueAtTime(0,t0);arriveG.gain.setValueAtTime(0.09,t0+6.0);arriveG.gain.exponentialRampToValueAtTime(0.001,t0+6.48);
+                    arrive.connect(arriveG);arriveG.connect(ac.destination);arrive.start(t0+6.0);arrive.stop(t0+6.5);audioNodes.push(arrive);
                 }
             }catch(eAudio){}
         }
-        var start=Date.now(),dur=durationMs||3200,raf=0,done=false;
+
+        var start=Date.now(),dur=durationMs||6500,raf=0,done=false;
         function ease(x){return x<0?0:(x>1?1:(x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2));}
         function frame(){
             if(done)return;
-            var elapsed=Date.now()-start,t=Math.min(1,elapsed/dur);
-            var p1=Math.min(1,t/0.38),p2=Math.max(0,Math.min(1,(t-0.20)/0.62));
-            var beamH=116, descend=ease(p1);
-            for(var a=0;a<pillars.length;a++){
-                var m=pillars[a];
-                var spiral=elapsed*0.0035+a*(Math.PI*2/pillars.length);
-                var sr=0.35+(a%6)*0.28+Math.floor(a/6)*0.42;
-                m.position.x=origin.x+Math.cos(spiral)*sr;
-                m.position.z=origin.z+Math.sin(spiral)*sr;
-                m.position.y=beamH*(1-descend)+beamH*0.5+Math.sin(elapsed*0.006+a)*1.4;
-                m.scale.y=beamH*(0.22+0.78*descend);
-                m.material.opacity=(0.18+0.42*descend)*(1-Math.max(0,t-0.86)/0.14);
+            var elapsed=Date.now()-start;
+            var t=Math.min(1,elapsed/dur);
+            var pillarTop=120;
+            // Phase 1: old 2s rainbow descends from sky.
+            if(elapsed<2000){
+                var p1=elapsed/2000;
+                var pillarBot=pillarTop*(1-p1);
+                var pillarH=pillarTop-pillarBot;
+                for(var a=0;a<pillars.length;a++){
+                    var pl=pillars[a];
+                    setGeom(pl,new THREE.CylinderGeometry(0.12,0.25,Math.max(0.1,pillarH),6));
+                    var spiral=elapsed*0.003+a*(Math.PI*2/pillarCount);
+                    var sr=0.3+(a%5)*0.25+Math.floor(a/5)*0.4;
+                    pl.position.set(origin.x+Math.cos(spiral)*sr,pillarBot+pillarH/2,origin.z+Math.sin(spiral)*sr);
+                    pl.material.opacity=0.3+p1*0.5;
+                }
+                for(var r=0;r<rings.length;r++){
+                    var ringP=Math.max(0,(p1-0.5)*2);
+                    var targetR=0.3+r*0.4;
+                    setGeom(rings[r],new THREE.TorusGeometry(Math.max(0.001,targetR*ringP),0.06+ringP*0.06,6,32));
+                    rings[r].rotation.x=Math.PI/2;rings[r].rotation.z=elapsed*0.002+r*0.5;
+                    rings[r].position.set(origin.x,0.1+r*0.05,origin.z);
+                    rings[r].material.opacity=ringP*0.8;
+                }
+                for(var rn1=0;rn1<runes.length;rn1++)runes[rn1].scale.set(0.01,0.01,0.01);
+                for(var pt1=0;pt1<particles.length;pt1++){
+                    var pa=particles[pt1];pa.mesh.visible=true;pa.y-=pa.speed*2;if(pa.y<0)pa.y=pillarTop;pa.angle+=0.03;
+                    var pr=0.8+Math.sin(pa.angle*3)*0.4;
+                    pa.mesh.position.set(origin.x+Math.cos(pa.angle)*pr,pa.y,origin.z+Math.sin(pa.angle)*pr);
+                    pa.mesh.material.opacity=0.3+p1*0.5;
+                }
+                if(camStart&&typeof camera!=='undefined'&&camera){
+                    camera.position.x=camStart.x;camera.position.y=camStart.y;camera.position.z=camStart.z;
+                    camera.lookAt(origin.x,origin.y+20+p1*30,origin.z);
+                }
             }
-            for(var r=0;r<rings.length;r++){
-                var rg=rings[r],rp=Math.max(0,Math.min(1,(t-0.10-r*0.018)/0.34));
-                var suck=Math.max(0,Math.min(1,(t-0.48)/0.34));
-                rg.scale.setScalar(0.18+ease(rp)*(1.15-suck*0.58));
-                rg.rotation.z=elapsed*0.006+r*0.55;
-                rg.position.y=0.12+r*0.045+p2*26;
-                rg.material.opacity=Math.max(0,0.86*rp*(1-t*0.35));
+            // Phase 2: old 4s rings lock on + player sucked into the light.
+            else if(elapsed<6000){
+                var p2=(elapsed-2000)/4000;
+                var ep2=ease(p2);
+                for(var b=0;b<pillars.length;b++){
+                    var pl2=pillars[b];
+                    setGeom(pl2,new THREE.CylinderGeometry(0.12,0.25,120,6));
+                    var spiral2=elapsed*0.003+b*(Math.PI*2/pillarCount);
+                    var sr2=0.3+(b%5)*0.25+Math.floor(b/5)*0.4;
+                    pl2.position.set(origin.x+Math.cos(spiral2)*sr2,60,origin.z+Math.sin(spiral2)*sr2);
+                    pl2.material.opacity=0.6+Math.sin(elapsed*0.01+b)*0.3;
+                }
+                for(var r2=0;r2<rings.length;r2++){
+                    var fullR=0.3+r2*0.4;
+                    var constrict=1-p2*0.3;
+                    setGeom(rings[r2],new THREE.TorusGeometry(Math.max(0.001,fullR*constrict),0.12,6,32));
+                    rings[r2].rotation.x=Math.PI/2;rings[r2].rotation.z=elapsed*0.005+r2*0.5;
+                    rings[r2].position.set(origin.x,origin.y+ep2*40,origin.z);
+                    rings[r2].material.opacity=0.8;
+                }
+                for(var rn2=0;rn2<runes.length;rn2++){
+                    var runeA=elapsed*0.005+rn2*(Math.PI*2/6);
+                    var runeR=1.5*(1-p2);
+                    runes[rn2].visible=true;
+                    runes[rn2].position.set(origin.x+Math.cos(runeA)*runeR,origin.y+ep2*40,origin.z+Math.sin(runeA)*runeR);
+                    runes[rn2].scale.set(1-p2,1-p2,1-p2);
+                    runes[rn2].rotation.y=elapsed*0.008;
+                }
+                if(playerEgg&&playerEgg.mesh){
+                    var riseY=origin.y+ep2*40;
+                    playerEgg.mesh.position.set(origin.x,riseY,origin.z);
+                    playerEgg.mesh.rotation.y=rotY+elapsed*0.006;
+                    var sc=1-ep2*0.28;playerEgg.mesh.scale.set(sc,sc,sc);
+                }
+                if(camStart&&typeof camera!=='undefined'&&camera){
+                    camera.position.x=camStart.x+Math.sin(elapsed*0.06)*0.15*p2;
+                    camera.position.y=camStart.y+ep2*35;
+                    camera.position.z=camStart.z+ep2*5;
+                    camera.lookAt(origin.x,origin.y+ep2*40+5,origin.z);
+                }
+                for(var pt2=0;pt2<particles.length;pt2++){
+                    var pb=particles[pt2];pb.mesh.visible=true;pb.y+=pb.speed*1.5;if(pb.y>120)pb.y=0;pb.angle+=0.03;
+                    var pr2=0.6+Math.sin(pb.angle*3)*0.3;
+                    pb.mesh.position.set(origin.x+Math.cos(pb.angle)*pr2,pb.y,origin.z+Math.sin(pb.angle)*pr2);
+                    pb.mesh.material.opacity=0.5+Math.sin(elapsed*0.01+pt2)*0.4;
+                }
             }
-            for(var c=0;c<particles.length;c++){
-                var pt=particles[c],ud=pt.userData;
-                ud.angle+=0.035*ud.spd;
-                var py=(ud.off+elapsed*0.055*ud.spd)%86;
-                pt.position.set(origin.x+Math.cos(ud.angle)*ud.rad,py,origin.z+Math.sin(ud.angle)*ud.rad);
-                pt.material.opacity=0.25+0.55*Math.sin(Math.min(1,t)*Math.PI);
+            // Final flash: plugin replaces the destination scene after the original city-side suck-up.
+            else{
+                var pf=Math.min(1,(elapsed-6000)/Math.max(1,dur-6000));
+                for(var c=0;c<pillars.length;c++)pillars[c].material.opacity=Math.max(0,0.7*(1-pf));
+                for(var rr=0;rr<rings.length;rr++)rings[rr].material.opacity=Math.max(0,0.7*(1-pf));
+                for(var ru=0;ru<runes.length;ru++)runes[ru].material.opacity=Math.max(0,0.5*(1-pf));
+                for(var pp=0;pp<particles.length;pp++)particles[pp].mesh.material.opacity=Math.max(0,0.4*(1-pf));
+                if(playerEgg&&playerEgg.mesh){playerEgg.mesh.position.set(origin.x,origin.y+40,origin.z);playerEgg.mesh.rotation.y+=0.12;}
+                flash.material.opacity=Math.max(0,0.95*(1-Math.abs(pf-0.22)/0.22));
             }
-            if(playerEgg&&playerEgg.mesh){
-                var rise=ease(p2);
-                playerEgg.mesh.position.set(origin.x,origin.y+rise*40,origin.z);
-                playerEgg.mesh.rotation.y=rotY+rise*Math.PI*2+elapsed*0.003;
-                var sc=1-rise*0.38;playerEgg.mesh.scale.set(sc,sc,sc);
-            }
-            if(typeof camera!=='undefined'&&camera){
-                camera.lookAt(origin.x,origin.y+4+p2*18,origin.z);
-            }
-            flash.position.copy(camera.position);flash.quaternion.copy(camera.quaternion);flash.translateZ(-1);
-            flash.material.opacity=t>0.72?Math.max(0,0.62*(1-Math.abs(t-0.82)/0.10)):0;
+            if(typeof camera!=='undefined'&&camera){flash.position.copy(camera.position);flash.quaternion.copy(camera.quaternion);flash.translateZ(-1);}
+            if(typeof R!=='undefined'&&R&&typeof R.render==='function')R.render(scene,camera);
             raf=requestAnimationFrame(frame);
         }
         frame();
@@ -309,8 +404,8 @@
             done=true;if(raf)cancelAnimationFrame(raf);
             for(var n=0;n<audioNodes.length;n++){try{audioNodes[n].stop(0);}catch(eStop){}}
             if(playerEgg&&playerEgg.mesh){playerEgg.mesh.position.set(origin.x,origin.y,origin.z);playerEgg.mesh.rotation.y=rotY;playerEgg.mesh.scale.set(1,1,1);}
-            for(var i=group.children.length-1;i>=0;i--){var ch=group.children[i];if(ch.geometry)ch.geometry.dispose();if(ch.material)ch.material.dispose();group.remove(ch);}
-            scene.remove(group);if(flash.geometry)flash.geometry.dispose();if(flash.material)flash.material.dispose();scene.remove(flash);
+            for(var i=group.children.length-1;i>=0;i--){var ch=group.children[i];disposeMesh(ch);group.remove(ch);}
+            scene.remove(group);disposeMesh(flash);scene.remove(flash);
         };
     }
 
@@ -486,7 +581,7 @@
         stop({status:'replaced'});
         var seq=++loadSeq;
         var bridgeStarted=Date.now();
-        var bridgeDuration=3200;
+        var bridgeDuration=6500;
         setLayerVisible(true);
         window._danboPluginTransition=true;
         beginPluginIsolation();
