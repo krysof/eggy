@@ -64,21 +64,21 @@
 
     function rrRoadWidth(distance){
         var d=Math.max(0,Math.min(3300,n(distance)));
-        if(d<520)return 14.2;
-        if(d<930)return 13.2-(d-520)/410*1.0;
-        if(d<1420)return 10.2;
-        if(d<1820)return 11.2;
-        if(d<2380)return 8.8;
-        if(d<2840)return 10.0;
-        return 11.8;
+        if(d<420)return 10.8;
+        if(d<880)return 11.4;
+        if(d<1260)return 9.7;
+        if(d<1710)return 11.1;
+        if(d<2260)return 8.9;
+        if(d<2860)return 10.2;
+        return 11.7;
     }
-    function rrLaneX(lane,width){lane=Math.max(0,Math.min(3,lane|0));var inner=n(width)*0.72;return -inner*0.5+inner*(lane+0.5)/4;}
+    function rrLaneX(lane,width){lane=Math.max(0,Math.min(3,lane|0));var inner=n(width)*0.84;return -inner*0.5+inner*(lane+0.5)/4;}
     function rrEventAt(i){
-        i=Math.max(0,Math.min(59,i|0));var j,z,l,t,b=0;
-        if(i<12){j=i;z=180+j*70;l=(j*2+1)%4;t=(j===2||j===9)?5:(j%5===0?2:1);b=t===5?18:0;return [z,l,t,0,j%3,b];}
-        if(i<28){j=i-12;z=980+j*62;l=(j*3+2)%4;t=(j===1||j===12)?5:(j%6===0?6:(j%5===0?4:(j%3===0?3:2)));b=t===5?20:0;return [z,l,t,0,j%4,b];}
-        if(i<44){j=i-28;z=1980+j*54;l=(j*5+1)%4;t=(j===4)?5:(j%4===0?6:(j%5===2?4:(j%2===0?3:2)));b=t===5?22:0;return [z,l,t,0,j%5,b];}
-        j=i-44;z=2850+j*38;l=(j*7+3)%4;t=(j===10)?5:(j%7===0?6:(j%4===0?4:(j%3===0?3:2)));b=t===5?24:0;return [z,l,t,0,j%6,b];
+        i=Math.max(0,Math.min(89,i|0));var j,z,l,t,b=0;
+        if(i<18){j=i;z=46+j*38;l=(j*2+1)%4;t=(j===5||j===14)?5:(j%6===0?2:1);b=t===5?18:0;return [z,l,t,0,j%3,b];}
+        if(i<42){j=i-18;z=970+j*45;l=(j*3+2)%4;t=(j===4||j===17)?5:(j%8===0?6:(j%7===0?4:(j%3===0?3:2)));b=t===5?20:0;return [z,l,t,0,j%4,b];}
+        if(i<68){j=i-42;z=1880+j*40;l=(j*5+1)%4;t=(j===8||j===21)?5:(j%6===0?6:(j%7===2?4:(j%2===0?3:2)));b=t===5?22:0;return [z,l,t,0,j%5,b];}
+        j=i-68;z=2850+j*29;l=(j*7+3)%4;t=(j===11)?5:(j%9===0?6:(j%5===0?4:(j%3===0?3:2)));b=t===5?24:0;return [z,l,t,0,j%6,b];
     }
     function rrCollide(px,pz,ox,oz,type){
         var hx=1.1,hz=2.05,t=type|0;
@@ -90,12 +90,12 @@
     rocketRoad.maxFuel=function(){var e=this.exports;return e&&e.danbo_rocket_road_max_fuel?e.danbo_rocket_road_max_fuel():100;};
     rocketRoad.roadWidthAt=function(distance){var e=this.exports;distance=n(distance);return e&&e.danbo_rocket_road_road_width_at?e.danbo_rocket_road_road_width_at(distance):rrRoadWidth(distance);};
     rocketRoad.laneX=function(lane,width){var e=this.exports;lane=lane|0;width=n(width);return e&&e.danbo_rocket_road_lane_x?e.danbo_rocket_road_lane_x(lane,width):rrLaneX(lane,width);};
-    rocketRoad.eventCount=function(){var e=this.exports;return e&&e.danbo_rocket_road_event_count?e.danbo_rocket_road_event_count():60;};
+    rocketRoad.eventCount=function(){var e=this.exports;return e&&e.danbo_rocket_road_event_count?e.danbo_rocket_road_event_count():90;};
     rocketRoad.eventAt=function(i){var e=this.exports;i=i|0;if(e&&e.danbo_rocket_road_event_at&&this._outView){e.danbo_rocket_road_event_at(i);return this._readOut(6);}var ev=rrEventAt(i),t=this._tmp;for(var k=0;k<6;k++)t[k]=ev[k];return t;};
-    rocketRoad.speedFor=function(turbo,brake,spinning,fuel){var e=this.exports;turbo=turbo?1:0;brake=brake?1:0;spinning=spinning?1:0;fuel=n(fuel);if(e&&e.danbo_rocket_road_speed_for)return e.danbo_rocket_road_speed_for(turbo,brake,spinning,fuel);if(fuel<=0)return 0;var s=brake?24:(turbo?58:38);if(spinning)s=18;if(fuel<12)s*=0.72;return s;};
-    rocketRoad.speedStep=function(current,turbo,brake,spinning,fuel,dt){var e=this.exports;current=n(current);turbo=turbo?1:0;brake=brake?1:0;spinning=spinning?1:0;fuel=n(fuel);dt=n(dt);if(e&&e.danbo_rocket_road_speed_step)return e.danbo_rocket_road_speed_step(current,turbo,brake,spinning,fuel,dt);var target=this.speedFor(turbo,brake,spinning,fuel),rate;if(target>current)rate=turbo?23:14;else if(fuel<=0)rate=56;else if(spinning)rate=46;else if(brake)rate=38;else rate=16;if(current<4&&target>current)rate*=1.25;var maxDelta=rate*Math.max(0,Math.min(0.08,dt)),delta=target-current;if(Math.abs(delta)<=maxDelta)return target;return Math.max(0,Math.min(80,current+(delta<0?-1:1)*maxDelta));};
+    rocketRoad.speedFor=function(turbo,brake,spinning,fuel){var e=this.exports;turbo=turbo?1:0;brake=brake?1:0;spinning=spinning?1:0;fuel=n(fuel);if(e&&e.danbo_rocket_road_speed_for)return e.danbo_rocket_road_speed_for(turbo,brake,spinning,fuel);if(fuel<=0)return 0;var s=brake?26:(turbo?62:48);if(spinning)s=20;if(fuel<12)s*=0.72;return s;};
+    rocketRoad.speedStep=function(current,turbo,brake,spinning,fuel,dt){var e=this.exports;current=n(current);turbo=turbo?1:0;brake=brake?1:0;spinning=spinning?1:0;fuel=n(fuel);dt=n(dt);if(e&&e.danbo_rocket_road_speed_step)return e.danbo_rocket_road_speed_step(current,turbo,brake,spinning,fuel,dt);var target=this.speedFor(turbo,brake,spinning,fuel),rate;if(target>current)rate=turbo?50:36;else if(fuel<=0)rate=64;else if(spinning)rate=58;else if(brake)rate=56;else rate=26;if(current<5&&target>current)rate*=1.35;var maxDelta=rate*Math.max(0,Math.min(0.08,dt)),delta=target-current;if(Math.abs(delta)<=maxDelta)return target;return Math.max(0,Math.min(84,current+(delta<0?-1:1)*maxDelta));};
     rocketRoad.fuelAfter=function(fuel,dt,turbo,brake){var e=this.exports;fuel=n(fuel);dt=n(dt);turbo=turbo?1:0;brake=brake?1:0;if(e&&e.danbo_rocket_road_fuel_after)return e.danbo_rocket_road_fuel_after(fuel,dt,turbo,brake);var rate=turbo?1.55:(brake?0.55:0.82);return Math.max(0,Math.min(100,fuel-rate*dt));};
-    rocketRoad.playerStep=function(x,vx,steer,dt,spinning,width){var e=this.exports,t=this._tmp;x=n(x);vx=n(vx);steer=n(steer);dt=n(dt);spinning=spinning?1:0;width=n(width);if(e&&e.danbo_rocket_road_player_step&&this._outView){e.danbo_rocket_road_player_step(x,vx,steer,dt,spinning,width);return this._readOut(2);}var control=spinning?0.22:1;vx+=Math.max(-1,Math.min(1,steer))*42*control*dt;var drag=Math.abs(steer)<0.01?7.5:3.2;vx*=Math.max(0,Math.min(1,1-drag*dt));vx=Math.max(-18,Math.min(18,vx));var half=width*0.5-0.75;x+=vx*dt;if(x>half){x=half;vx=-Math.abs(vx)*0.35;}if(x<-half){x=-half;vx=Math.abs(vx)*0.35;}t[0]=x;t[1]=vx;return t;};
+    rocketRoad.playerStep=function(x,vx,steer,dt,spinning,width){var e=this.exports,t=this._tmp;x=n(x);vx=n(vx);steer=n(steer);dt=n(dt);spinning=spinning?1:0;width=n(width);if(e&&e.danbo_rocket_road_player_step&&this._outView){e.danbo_rocket_road_player_step(x,vx,steer,dt,spinning,width);return this._readOut(2);}var control=spinning?0.22:1;vx+=Math.max(-1,Math.min(1,steer))*58*control*dt;var drag=Math.abs(steer)<0.01?10.0:4.8;vx*=Math.max(0,Math.min(1,1-drag*dt));vx=Math.max(-21,Math.min(21,vx));var half=width*0.5-0.68;x+=vx*dt;if(x>half){x=half;vx=-Math.abs(vx)*0.32;}if(x<-half){x=-half;vx=Math.abs(vx)*0.32;}t[0]=x;t[1]=vx;return t;};
     rocketRoad.collide=function(px,pz,ox,oz,type){var e=this.exports;px=n(px);pz=n(pz);ox=n(ox);oz=n(oz);type=type|0;if(e&&e.danbo_rocket_road_collide)return !!e.danbo_rocket_road_collide(px,pz,ox,oz,type);return rrCollide(px,pz,ox,oz,type);};
     rocketRoad.score=function(progress,fuel,pickups,crashes,finished){var e=this.exports;progress=n(progress);fuel=n(fuel);pickups=pickups|0;crashes=crashes|0;finished=finished?1:0;if(e&&e.danbo_rocket_road_score)return e.danbo_rocket_road_score(progress,fuel,pickups,crashes,finished);var s=Math.floor(Math.max(0,Math.min(3300,progress))*3)+pickups*500+Math.floor(Math.max(0,fuel)*22)-crashes*350+(finished?2500:0);return Math.max(0,s);};
     rocketRoad.finishReached=function(progress){var e=this.exports;progress=n(progress);if(e&&e.danbo_rocket_road_finish_reached)return !!e.danbo_rocket_road_finish_reached(progress);return progress>=3300;};
