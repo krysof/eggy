@@ -3,9 +3,9 @@
 (function(){
     'use strict';
 
-    var PLAYER_Z=-16;
+    var PLAYER_Z=-8.5;
     var ROAD_SEG_LEN=8;
-    var BUILD=2026062713;
+    var BUILD=2026062714;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
@@ -161,7 +161,7 @@
     function DanboRocketRoad(ctx){
         this.ctx=ctx;this.ch=ctx.character||{};this.R=rules();this.stageId=0;this.unlockedStage=this.getUnlockedStage();this.state='title';this.keys={};this.touch={};this.objects={};this.hitEvents={};this.eventCache=[];this.running=true;this.last=performance.now();this.menuIndex=0;this.toastTimer=0;
         this.root=document.createElement('div');this.root.className='rr-root';this.root.innerHTML=this.html();ctx.mount.appendChild(this.root);
-        this.canvas=this.root.querySelector('canvas');this.panel=this.root.querySelector('.rr-panel');this.hud=this.root.querySelector('.rr-hud');this.toast=this.root.querySelector('.rr-toast');this.touchLayer=this.root.querySelector('.rr-touch');this.countdownEl=this.root.querySelector('.rr-countdown');this.stageEl=this.root.querySelector('.rr-stage-banner');this.startRankEl=this.root.querySelector('.rr-start-rank');
+        this.canvas=this.root.querySelector('canvas');this.panel=this.root.querySelector('.rr-panel');this.hud=this.root.querySelector('.rr-hud');this.toast=this.root.querySelector('.rr-toast');this.touchLayer=this.root.querySelector('.rr-touch');this.steerPad=this.root.querySelector('[data-steer-pad]');this.steerKnob=this.root.querySelector('.rr-steer-knob');this.countdownEl=this.root.querySelector('.rr-countdown');this.stageEl=this.root.querySelector('.rr-stage-banner');this.startRankEl=this.root.querySelector('.rr-start-rank');
         this.init3D();this.bind();this.showTitle();
         if(ctx.net)ctx.net.send('minigame.ready',{pluginId:ctx.pluginId,characterId:this.ch.id,build:BUILD});
         var self=this;this.raf=requestAnimationFrame(function(t){self.loop(t);});
@@ -201,11 +201,16 @@
         '.rr-stage-banner{position:absolute;left:calc(50% - 46px);top:8%;transform:translate(-50%,-50%);display:none;pointer-events:none;padding:5px 12px;border-radius:4px;background:#0b1642;border:2px solid #f5bc32;font-size:clamp(12px,3.3vw,17px);font-weight:1000;color:#fff;text-shadow:2px 2px 0 #000;letter-spacing:.04em;white-space:nowrap;}'+
         '.rr-countdown{position:absolute;left:calc(50% - 46px);top:43%;transform:translate(-50%,-50%);display:none;pointer-events:none;font-size:clamp(56px,16vw,126px);font-weight:1000;color:#fff6a0;text-shadow:0 7px 0 #c6512d,0 0 28px rgba(255,232,88,.8),0 18px 40px rgba(0,0,0,.45);letter-spacing:.04em;}'+
         '.rr-touch{position:absolute;inset:0;display:none;pointer-events:none;}'+
-        '.rr-touch button{position:absolute;bottom:24px;width:74px;height:74px;border-radius:50%;border:3px solid rgba(255,255,255,.38);background:rgba(255,255,255,.16);color:#fff;font-size:28px;font-weight:1000;pointer-events:auto;}'+
-        '.rr-left{left:24px}.rr-right{left:112px}.rr-boost{right:106px;background:rgba(255,180,60,.32)!important}.rr-brake{right:194px;background:rgba(100,180,255,.24)!important}'+
+        '.rr-steer-pad{position:absolute;left:24px;bottom:calc(92px + env(safe-area-inset-bottom));width:122px;height:122px;border-radius:50%;border:4px solid rgba(255,255,255,.38);background:radial-gradient(circle,rgba(255,255,255,.24),rgba(255,255,255,.08));box-shadow:0 8px 24px rgba(0,0,0,.28),inset 0 0 0 2px rgba(255,255,255,.13);pointer-events:auto;touch-action:none;}'+
+        '.rr-steer-pad:before{content:"方向";position:absolute;left:0;right:0;top:-25px;text-align:center;color:rgba(255,255,255,.82);font-size:13px;font-weight:1000;text-shadow:0 2px 3px #000;}'+
+        '.rr-steer-knob{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 5px 16px rgba(0,0,0,.35),inset 0 0 0 4px rgba(255,255,255,.42);color:#2c4762;font-size:22px;font-weight:1000;display:flex;align-items:center;justify-content:center;}'+
+        '.rr-pedal{position:absolute;right:104px;width:86px;height:86px;border-radius:50%;border:4px solid rgba(255,255,255,.42);color:#fff;font-size:18px;font-weight:1000;pointer-events:auto;text-shadow:0 2px 3px #000;box-shadow:0 8px 22px rgba(0,0,0,.34),inset 0 0 0 3px rgba(255,255,255,.12);}'+
+        '.rr-throttle{bottom:calc(92px + env(safe-area-inset-bottom));background:rgba(255,181,55,.42)!important;border-color:rgba(255,224,128,.62)!important;}'+
+        '.rr-brake{bottom:calc(188px + env(safe-area-inset-bottom));background:rgba(92,173,255,.32)!important;border-color:rgba(160,220,255,.62)!important;}'+
+        '.rr-pedal.rr-pressed{filter:brightness(1.24);transform:scale(.96);box-shadow:0 4px 12px rgba(0,0,0,.4),0 0 22px rgba(255,232,120,.45),inset 0 0 0 4px rgba(255,255,255,.22);}'+
         '.rr-list{margin:12px 0;text-align:left;background:rgba(255,255,255,.08);border-radius:18px;padding:12px 16px;line-height:1.8;}'+
-        '@media (max-width:760px){.rr-title{font-size:28px}.rr-panel{padding:18px}.rr-touch{display:block}.rr-menu-btn{padding:12px;font-size:16px}.rr-side{width:84px}.rr-top-track{right:84px}.rr-countdown,.rr-stage-banner,.rr-start-rank{left:calc(50% - 42px)}.rr-meter{height:102px;width:18px}.rr-boost{right:92px}.rr-brake{right:180px}}'+
-        '</style><canvas></canvas><div class="rr-hud"><div class="rr-top-track"><b>START</b><i><em data-progress-line></em></i><b>CHECK</b></div><div class="rr-side"><div class="rr-hi">HI<br>10000</div><div class="rr-label">RANK</div><div class="rr-value" data-rank>40</div><div class="rr-label">TIME</div><div class="rr-value yellow" data-time>0′00</div><div class="rr-label">CARS</div><div class="rr-value" data-cars>0</div><div class="rr-km" data-km>000Km</div><div class="rr-meter-wrap"><div class="rr-meter-col"><div class="rr-meter rpm"><i data-rpm></i></div><span>RPM</span></div><div class="rr-meter-col"><div class="rr-meter fuel"><i data-fuel></i></div><span>FUEL</span></div></div><button class="rr-top-exit" data-action="quit-run">退出</button></div></div><div class="rr-start-rank"><span>RANK</span><b data-start-rank>40</b></div><div class="rr-panel"></div><div class="rr-stage-banner"></div><div class="rr-countdown"></div><div class="rr-toast"></div><div class="rr-touch"><button class="rr-left" data-touch="left">◀</button><button class="rr-right" data-touch="right">▶</button><button class="rr-brake" data-touch="brake">▼</button><button class="rr-boost" data-touch="boost">▲</button></div>';
+        '@media (max-width:760px){.rr-title{font-size:28px}.rr-panel{padding:18px}.rr-touch{display:block}.rr-menu-btn{padding:12px;font-size:16px}.rr-side{width:84px}.rr-top-track{right:84px}.rr-countdown,.rr-stage-banner,.rr-start-rank{left:calc(50% - 42px)}.rr-meter{height:102px;width:18px}.rr-steer-pad{left:22px;bottom:calc(104px + env(safe-area-inset-bottom));width:116px;height:116px}.rr-pedal{right:96px;width:82px;height:82px}.rr-throttle{bottom:calc(104px + env(safe-area-inset-bottom))}.rr-brake{bottom:calc(196px + env(safe-area-inset-bottom))}}'+
+        '</style><canvas></canvas><div class="rr-hud"><div class="rr-top-track"><b>START</b><i><em data-progress-line></em></i><b>CHECK</b></div><div class="rr-side"><div class="rr-hi">HI<br>10000</div><div class="rr-label">RANK</div><div class="rr-value" data-rank>40</div><div class="rr-label">TIME</div><div class="rr-value yellow" data-time>0′00</div><div class="rr-label">CARS</div><div class="rr-value" data-cars>0</div><div class="rr-km" data-km>000Km</div><div class="rr-meter-wrap"><div class="rr-meter-col"><div class="rr-meter rpm"><i data-rpm></i></div><span>RPM</span></div><div class="rr-meter-col"><div class="rr-meter fuel"><i data-fuel></i></div><span>FUEL</span></div></div><button class="rr-top-exit" data-action="quit-run">退出</button></div></div><div class="rr-start-rank"><span>RANK</span><b data-start-rank>40</b></div><div class="rr-panel"></div><div class="rr-stage-banner"></div><div class="rr-countdown"></div><div class="rr-toast"></div><div class="rr-touch"><div class="rr-steer-pad" data-steer-pad><div class="rr-steer-knob">↔</div></div><button class="rr-pedal rr-brake" data-touch="brake">刹车</button><button class="rr-pedal rr-throttle" data-touch="boost">油门</button></div>';
     };
 
     DanboRocketRoad.prototype.init3D=function(){
@@ -414,8 +419,23 @@
         window.addEventListener('keydown',this.onKeyDown,true);window.addEventListener('keyup',this.onKeyUp,true);
         this.onClick=function(e){var b=e.target&&e.target.closest?e.target.closest('[data-action]'):null;if(!b||b.disabled)return;var a=b.getAttribute('data-action');if(a==='single')self.showStages();else if(a==='stage')self.startGame(Number(b.getAttribute('data-stage')||0));else if(a==='next-stage')self.startGame(Math.min(STAGE_COUNT-1,(self.stageId||0)+1));else if(a==='multi')self.showToast('多人模式已预留，等服务器房间接入后开放');else if(a==='scores')self.showScores();else if(a==='exit')self.exit();else if(a==='title')self.showTitle();else if(a==='retry')self.startGame(self.stageId||0);else if(a==='quit-run')self.finish(false,'quit');};
         this.root.addEventListener('click',this.onClick);
-        this.onPointer=function(e){var b=e.target&&e.target.closest?e.target.closest('[data-touch]'):null;if(!b)return;e.preventDefault();var k=b.getAttribute('data-touch');self.touch[k]=e.type!=='pointerup'&&e.type!=='pointercancel';};
+        function resetSteer(){self.touch.steer=0;if(self.steerKnob)self.steerKnob.style.transform='translateX(0px)';}
+        function steerFromEvent(e){
+            if(!self.steerPad)return;
+            var r=self.steerPad.getBoundingClientRect(), dx=e.clientX-(r.left+r.width*0.5), v=clamp(dx/(r.width*0.32),-1,1);
+            self.touch.steer=v;if(self.steerKnob)self.steerKnob.style.transform='translateX('+Math.round(v*r.width*0.25)+'px)';
+        }
+        this.onPointer=function(e){
+            var b=e.target&&e.target.closest?e.target.closest('[data-touch]'):null;if(!b)return;e.preventDefault();
+            var k=b.getAttribute('data-touch'), down=e.type==='pointerdown';self.touch[k]=down&&e.type!=='pointercancel';
+            b.classList.toggle('rr-pressed',!!self.touch[k]);
+            if(down){var ac=self.ensureAudio();if(ac&&ac.state==='suspended'&&ac.resume)ac.resume();}
+        };
+        this.onSteerDown=function(e){if(!self.steerPad)return;e.preventDefault();self.steerPointer=e.pointerId;if(self.steerPad.setPointerCapture)try{self.steerPad.setPointerCapture(e.pointerId);}catch(_e){}steerFromEvent(e);var ac=self.ensureAudio();if(ac&&ac.state==='suspended'&&ac.resume)ac.resume();};
+        this.onSteerMove=function(e){if(self.steerPointer!==e.pointerId)return;e.preventDefault();steerFromEvent(e);};
+        this.onSteerEnd=function(e){if(self.steerPointer!==e.pointerId)return;e.preventDefault();self.steerPointer=null;resetSteer();if(self.steerPad&&self.steerPad.releasePointerCapture)try{self.steerPad.releasePointerCapture(e.pointerId);}catch(_e2){};};
         this.touchLayer.addEventListener('pointerdown',this.onPointer);this.touchLayer.addEventListener('pointerup',this.onPointer);this.touchLayer.addEventListener('pointercancel',this.onPointer);this.touchLayer.addEventListener('pointerleave',this.onPointer);
+        if(this.steerPad){this.steerPad.addEventListener('pointerdown',this.onSteerDown);this.steerPad.addEventListener('pointermove',this.onSteerMove);this.steerPad.addEventListener('pointerup',this.onSteerEnd);this.steerPad.addEventListener('pointercancel',this.onSteerEnd);}
     };
 
     DanboRocketRoad.prototype.resize=function(){
@@ -451,7 +471,7 @@
         if(stageId>this.getUnlockedStage()){this.showToast('先通关前一关才能挑战这里');this.showStages();return;}
         this.stageId=stageId;this.rebuildScenery();
         this.state='countdown';this.panel.style.display='none';this.hud.style.display='flex';this.touchLayer.style.display=(('ontouchstart' in window)||(navigator.maxTouchPoints>0))?'block':'none';
-        this.R=rules();this.progress=0;this.fuel=this.R.maxFuel();this.speed=0;this.score=0;this.pickups=0;this.crashes=0;this.carX=0;this.carVx=0;this.spin=0;this.spinDir=1;this.elapsed=0;this.netAcc=0;this.hitEvents={};
+        this.R=rules();this.progress=0;this.fuel=this.R.maxFuel();this.speed=0;this.score=0;this.pickups=0;this.crashes=0;this.carX=0;this.carVx=0;this.spin=0;this.spinDir=1;this.elapsed=0;this.netAcc=0;this.hitEvents={};this.throttleSfxT=0;this.brakeSfxT=0;this.touch={steer:0};if(this.steerKnob)this.steerKnob.style.transform='translateX(0px)';
         this.countdown=3.15;this.countdownText='';this.countdownEl.textContent='3';this.countdownEl.style.display='block';this.stageEl.textContent=(STAGES[this.stageId]||STAGES[0]).name;this.stageEl.style.display='block';if(this.startRankEl)this.startRankEl.style.display='block';this.startMusic();
         for(var k in this.objects){if(this.objects[k]&&this.objects[k].mesh)this.objects[k].mesh.visible=false;}
         if(this.ctx.net)this.ctx.net.send('minigame.startIntent',{pluginId:this.ctx.pluginId,characterId:this.ch.id,mode:'single',stage:this.stageId,seed:BUILD});
@@ -492,7 +512,8 @@
     DanboRocketRoad.prototype.ensureAudio=function(){
         if(this.audioCtx)return this.audioCtx;
         var AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
-        this.audioCtx=new AC();this.musicGain=this.audioCtx.createGain();this.musicGain.gain.value=0.055;this.musicGain.connect(this.audioCtx.destination);return this.audioCtx;
+        this.audioCtx=new AC();this.musicGain=this.audioCtx.createGain();this.musicGain.gain.value=0.055;this.musicGain.connect(this.audioCtx.destination);
+        this.sfxGain=this.audioCtx.createGain();this.sfxGain.gain.value=0.22;this.sfxGain.connect(this.audioCtx.destination);return this.audioCtx;
     };
 
     DanboRocketRoad.prototype.tone=function(freq,dur,delay,type,gain){
@@ -533,9 +554,36 @@
         this.tone(523,0.15,0,'square',0.22);this.tone(659,0.15,0.16,'square',0.22);this.tone(784,0.16,0.32,'square',0.22);this.tone(1046,0.32,0.5,'triangle',0.24);
     };
 
+    DanboRocketRoad.prototype.sfxTone=function(freq,dur,type,gain,endFreq){
+        var ctx=this.ensureAudio();if(!ctx||!this.sfxGain)return;if(ctx.state==='suspended'&&ctx.resume)ctx.resume();
+        var when=ctx.currentTime, osc=ctx.createOscillator(), g=ctx.createGain();
+        osc.type=type||'sawtooth';osc.frequency.setValueAtTime(freq,when);
+        if(endFreq)osc.frequency.exponentialRampToValueAtTime(Math.max(20,endFreq),when+Math.max(0.03,dur||0.1));
+        g.gain.setValueAtTime(0.0001,when);g.gain.linearRampToValueAtTime(gain||0.12,when+0.012);g.gain.exponentialRampToValueAtTime(0.0001,when+Math.max(0.04,dur||0.1));
+        osc.connect(g);g.connect(this.sfxGain);osc.start(when);osc.stop(when+(dur||0.1)+0.04);
+    };
+
+    DanboRocketRoad.prototype.playThrottleSfx=function(){
+        var base=90+clamp(this.speed||0,0,68)*2.1;
+        this.sfxTone(base,0.105,'sawtooth',0.10,base*1.35);
+        this.sfxTone(base*0.52,0.12,'triangle',0.055,base*0.64);
+    };
+
+    DanboRocketRoad.prototype.playBrakeSfx=function(){
+        this.sfxTone(520,0.16,'sawtooth',0.12,210);
+        this.sfxTone(880,0.08,'square',0.045,420);
+    };
+
+    DanboRocketRoad.prototype.updateControlSfx=function(inp,dt){
+        if(this.state!=='playing')return;
+        if(inp.turbo){this.throttleSfxT=(this.throttleSfxT||0)-dt;if(this.throttleSfxT<=0){this.playThrottleSfx();this.throttleSfxT=0.105;}}else this.throttleSfxT=0;
+        if(inp.brake){this.brakeSfxT=(this.brakeSfxT||0)-dt;if(this.brakeSfxT<=0){this.playBrakeSfx();this.brakeSfxT=0.18;}}else this.brakeSfxT=0;
+    };
+
     DanboRocketRoad.prototype.inputState=function(){
         var left=this.keys.ArrowLeft||this.keys.KeyA||this.touch.left,right=this.keys.ArrowRight||this.keys.KeyD||this.touch.right;
-        return {steer:(left?1:0)-(right?1:0),turbo:!!(this.keys.ArrowUp||this.keys.KeyW||this.keys.Space||this.touch.boost),brake:!!(this.keys.ArrowDown||this.keys.KeyS||this.touch.brake)};
+        var pad=n(this.touch.steer,0), steer=Math.abs(pad)>0.04?pad:((right?1:0)-(left?1:0));
+        return {steer:steer,turbo:!!(this.keys.ArrowUp||this.keys.KeyW||this.keys.Space||this.touch.boost),brake:!!(this.keys.ArrowDown||this.keys.KeyS||this.touch.brake)};
     };
 
     DanboRocketRoad.prototype.updateCountdown=function(dt){
@@ -547,6 +595,7 @@
 
     DanboRocketRoad.prototype.updatePlaying=function(dt){
         this.elapsed+=dt;var inp=this.inputState(), width=effectiveRoadWidth(this.R.roadWidthAt(this.progress),this.progress,this.stageId||0);
+        this.updateControlSfx(inp,dt);
         var step=this.R.playerStep(this.carX,this.carVx,inp.steer,dt,this.spin>0?1:0,width);this.carX=step[0];this.carVx=step[1];
         if(this.spin>0)this.spin=Math.max(0,this.spin-dt);
         this.targetSpeed=this.R.speedFor(inp.turbo?1:0,inp.brake?1:0,this.spin>0?1:0,this.fuel);
