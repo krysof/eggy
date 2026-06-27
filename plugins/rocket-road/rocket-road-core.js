@@ -5,7 +5,7 @@
 
     var PLAYER_Z=-16;
     var ROAD_SEG_LEN=8;
-    var BUILD=202606273;
+    var BUILD=2026062711;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
@@ -80,6 +80,7 @@
             j=i-44;z=2850+j*38;l=(j*7+3)%4;t=(j===10)?5:(j%7===0?6:(j%4===0?4:(j%3===0?3:2)));b=t===5?24:0;return [z,l,t,0,j%6,b];
         },
         speedFor:function(turbo,brake,spinning,fuel){if(fuel<=0)return 0;var s=brake?24:(turbo?58:38);if(spinning)s=18;if(fuel<12)s*=0.72;return s;},
+        speedStep:function(current,turbo,brake,spinning,fuel,dt){current=clamp(n(current),0,80);var target=fallback.speedFor(turbo,brake,spinning,fuel),rate;if(target>current)rate=turbo?23:14;else if(fuel<=0)rate=56;else if(spinning)rate=46;else if(brake)rate=38;else rate=16;if(current<4&&target>current)rate*=1.25;var maxDelta=rate*clamp(n(dt),0,0.08),delta=target-current;if(Math.abs(delta)<=maxDelta)return target;return clamp(current+(delta<0?-1:1)*maxDelta,0,80);},
         fuelAfter:function(fuel,dt,turbo,brake){var r=turbo?1.55:(brake?0.55:0.82);return clamp(n(fuel)-r*n(dt),0,100);},
         playerStep:function(x,vx,steer,dt,spinning,width){var control=spinning?0.22:1;vx+=clamp(steer,-1,1)*42*control*dt;var drag=Math.abs(steer)<0.01?7.5:3.2;vx*=clamp(1-drag*dt,0,1);vx=clamp(vx,-18,18);var half=width*0.5-0.75;x+=vx*dt;if(x>half){x=half;vx=-Math.abs(vx)*0.35;}if(x<-half){x=-half;vx=Math.abs(vx)*0.35;}return [x,vx];},
         collide:function(px,pz,ox,oz,t){var hx=1.1,hz=2.05;if(t===4){hx=1.55;hz=3.15;}else if(t===5){hx=1.18;hz=2.15;}else if(t===6){hx=1.65;hz=1.15;}else if(t===3){hx=1.16;hz=2.2;}else if(t===2){hx=1.2;hz=2.25;}return Math.abs(px-ox)<=hx&&Math.abs(pz-oz)<=hz;},
@@ -98,6 +99,7 @@
             eventCount:function(){return a&&a.eventCount?a.eventCount():fallback.eventCount();},
             eventAt:function(i){return a&&a.eventAt?a.eventAt(i):fallback.eventAt(i);},
             speedFor:function(t,b,s,f){return a&&a.speedFor?a.speedFor(t,b,s,f):fallback.speedFor(t,b,s,f);},
+            speedStep:function(cur,t,b,s,f,dt){return a&&a.speedStep?a.speedStep(cur,t,b,s,f,dt):fallback.speedStep(cur,t,b,s,f,dt);},
             fuelAfter:function(f,dt,t,b){return a&&a.fuelAfter?a.fuelAfter(f,dt,t,b):fallback.fuelAfter(f,dt,t,b);},
             playerStep:function(x,vx,st,dt,sp,w){return a&&a.playerStep?a.playerStep(x,vx,st,dt,sp,w):fallback.playerStep(x,vx,st,dt,sp,w);},
             collide:function(px,pz,ox,oz,t){return a&&a.collide?a.collide(px,pz,ox,oz,t):fallback.collide(px,pz,ox,oz,t);},
@@ -415,7 +417,8 @@
         this.elapsed+=dt;var inp=this.inputState(), width=this.R.roadWidthAt(this.progress);
         var step=this.R.playerStep(this.carX,this.carVx,inp.steer,dt,this.spin>0?1:0,width);this.carX=step[0];this.carVx=step[1];
         if(this.spin>0)this.spin=Math.max(0,this.spin-dt);
-        this.speed=this.R.speedFor(inp.turbo?1:0,inp.brake?1:0,this.spin>0?1:0,this.fuel);
+        this.targetSpeed=this.R.speedFor(inp.turbo?1:0,inp.brake?1:0,this.spin>0?1:0,this.fuel);
+        this.speed=this.R.speedStep(this.speed||0,inp.turbo?1:0,inp.brake?1:0,this.spin>0?1:0,this.fuel,dt);
         this.progress+=this.speed*dt;this.fuel=this.R.fuelAfter(this.fuel,dt,inp.turbo?1:0,inp.brake?1:0);
         this.checkCollisions();
         if(Math.abs(this.carX)>width*0.5-0.82&&this.spin<=0){this.crash(0.8,this.carX>0?-1:1,2.4);}
@@ -535,7 +538,7 @@
     DanboRocketRoad.prototype.updateVisuals=function(dt){
         this.updateRoad();this.updateObjects();this.updateStartGrid();this.updateScenery();this.updateFinishGate();
         this.player.position.x=this.carX||0;this.player.rotation.z=-(this.carVx||0)*0.018+(this.spin>0?Math.sin(this.elapsed*28)*0.18*this.spinDir:0);this.player.rotation.y=(this.spin>0?Math.sin(this.elapsed*21)*0.22*this.spinDir:0);
-        if(this.player.flame){var inp=this.inputState();var s=inp.turbo&&this.state==='playing'?1.35:0.65;this.player.flame.scale.set(s,s,0.75+Math.sin(this.elapsed*28)*0.2);this.player.flame.visible=this.state==='playing'&&this.speed>2;}
+        if(this.player.flame){var inp=this.inputState(),thrust=clamp((this.speed||0)/58,0.15,1);var s=(inp.turbo&&this.state==='playing')?(0.95+0.45*thrust):(0.42+0.42*thrust);this.player.flame.scale.set(s,s,0.55+thrust*0.45+Math.sin(this.elapsed*28)*0.16);this.player.flame.visible=this.state==='playing'&&this.speed>2;}
         this.world.position.x=-(this.carX||0)*0.06;
         this.camera.position.x=(this.carX||0)*0.18;this.camera.lookAt((this.carX||0)*0.1,0,14);
     };
