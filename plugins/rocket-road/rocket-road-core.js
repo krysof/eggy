@@ -5,7 +5,7 @@
 
     var PLAYER_Z=-16;
     var ROAD_SEG_LEN=8;
-    var BUILD=2026062712;
+    var BUILD=2026062713;
 
     function api(){return window.DANBO_MINIGAME_WASM&&window.DANBO_MINIGAME_WASM.rocketRoad;}
     function n(v,d){v=Number(v);return isFinite(v)?v:(d||0);}
@@ -31,6 +31,35 @@
     ];
     function stageIndexAt(distance){return Math.max(0,Math.min(STAGE_COUNT-1,Math.floor(clamp(n(distance),0,TOTAL_LENGTH-0.001)/STAGE_LENGTH)));}
     function stageLocal(distance){var d=clamp(n(distance),0,TOTAL_LENGTH);return d-stageIndexAt(d)*STAGE_LENGTH;}
+    function mergeT(local){return smooth(n(local)/85);}
+    function splitActive(stage,local){return (stage|0)===0&&n(local)<135;}
+    function driveCenterAt(local,stage){
+        local=n(local);stage=stage|0;
+        var base=roadCenterAt(stage*STAGE_LENGTH+local);
+        return splitActive(stage,local)?base+3.05*(1-mergeT(local)):base;
+    }
+    function sideRoadCenterAt(local,stage){
+        local=n(local);stage=stage|0;
+        var base=roadCenterAt(stage*STAGE_LENGTH+local);
+        return splitActive(stage,local)?base-3.05*(1-mergeT(local)):base;
+    }
+    function effectiveRoadWidth(width,local,stage){
+        width=n(width,10);local=n(local);stage=stage|0;
+        return splitActive(stage,local)?(5.15+(width-5.15)*mergeT(local)):width;
+    }
+    function sideRoadWidth(local,stage){
+        local=n(local);stage=stage|0;
+        if(!splitActive(stage,local))return 0;
+        return 5.15*(1-smooth((local-45)/65));
+    }
+    function roadOuterBounds(local,stage,width){
+        var cx=driveCenterAt(local,stage), half=n(width,10)*0.5, minX=cx-half, maxX=cx+half, bw=sideRoadWidth(local,stage);
+        if(bw>0.08){
+            var sc=sideRoadCenterAt(local,stage), bh=bw*0.5;
+            minX=Math.min(minX,sc-bh);maxX=Math.max(maxX,sc+bh);
+        }
+        return {min:minX,max:maxX,center:(minX+maxX)*0.5,width:maxX-minX};
+    }
     function esc(s){return String(s===undefined||s===null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
     function mat(color,opts){opts=opts||{};return new THREE.MeshStandardMaterial({color:color,roughness:opts.roughness===undefined?0.72:opts.roughness,metalness:opts.metalness||0,emissive:opts.emissive||0x000000,emissiveIntensity:opts.emissiveIntensity||0});}
     function colorFromCharacter(ch){var c=ch&&ch.style&&ch.style.color;if(!(typeof c==='number'&&isFinite(c)))c=ch&&ch.color;return (typeof c==='number'&&isFinite(c))?c:0x80EA7A;}
@@ -213,6 +242,9 @@
             var lf=new THREE.Mesh(roadGeo,fieldMats[i%fieldMats.length]), rf=new THREE.Mesh(roadGeo,fieldMats[(i+2)%fieldMats.length]);lf.scale.set(4.2,0.45,ROAD_SEG_LEN+0.35);rf.scale.set(4.2,0.45,ROAD_SEG_LEN+0.35);lf.position.y=rf.position.y=-0.03;lf.receiveShadow=rf.receiveShadow=true;g.add(lf);g.add(rf);g.leftField=lf;g.rightField=rf;
             var l=new THREE.Mesh(railGeo,edgeMat), r=new THREE.Mesh(railGeo,edgeMat);l.scale.z=r.scale.z=ROAD_SEG_LEN+0.35;l.position.y=r.position.y=0.22;g.add(l);g.add(r);g.leftRail=l;g.rightRail=r;
             g.marks=[];for(var m=0;m<3;m++){var mk=new THREE.Mesh(markGeo,markMat);mk.position.y=0.08;g.add(mk);g.marks.push(mk);}
+            var br=new THREE.Mesh(roadGeo,roadMat);br.scale.set(5.15,1,ROAD_SEG_LEN+0.35);br.position.y=0.005;br.receiveShadow=true;br.visible=false;g.add(br);g.branchRoad=br;
+            g.branchRails=[];for(var brs=0;brs<2;brs++){var brRail=new THREE.Mesh(railGeo,edgeMat);brRail.scale.z=ROAD_SEG_LEN+0.35;brRail.position.y=0.23;brRail.visible=false;g.add(brRail);g.branchRails.push(brRail);}
+            g.branchMarks=[];for(var bm=0;bm<2;bm++){var bmk=new THREE.Mesh(markGeo,markMat);bmk.position.y=0.09;bmk.visible=false;g.add(bmk);g.branchMarks.push(bmk);}
             g.flowers=[];for(var f=0;f<12;f++){var fl=new THREE.Mesh(flowerGeo,flowerMats[(i+f)%flowerMats.length]);fl.position.y=0.07;fl.receiveShadow=true;g.add(fl);g.flowers.push(fl);}
             this.roadGroup.add(g);this.roadSegments.push(g);
         }
@@ -252,13 +284,26 @@
             var crown=new THREE.Mesh(new THREE.ConeGeometry(0.95,1.8,9),mat(0x2abf62,{roughness:0.84}));crown.position.y=1.78;g.add(crown);
             var dot=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,6),mat(0xfff07a,{emissive:0x553300,emissiveIntensity:0.1}));dot.position.set(0.28,1.85,0.18);g.add(dot);
         }else if(kind===1){
-            addBox(g,2.4,1.9,1.2,0xffd8a8,0,0.95,0);addBox(g,2.1,0.22,1.38,0xff7e67,0,1.98,0);
-            for(var i=0;i<3;i++)addBox(g,0.38,0.38,0.04,0x9edfff,-0.65+i*0.65,1.12,0.62);
-            addBox(g,1.7,0.34,0.08,0xffffff,0,0.35,0.66);addBox(g,1.42,0.18,0.09,0x3a8fff,0,0.36,0.72);
+            addBox(g,2.65,0.18,1.65,0x58c86f,0,0.08,0.05);
+            addBox(g,2.35,1.35,1.18,0xffd8a8,0,0.76,0);
+            addBox(g,2.65,0.28,1.45,0xff7e67,0,1.54,0);
+            addBox(g,2.9,0.12,0.2,0xd65746,0,1.68,-0.68);addBox(g,2.9,0.12,0.2,0xd65746,0,1.68,0.68);
+            for(var i=0;i<3;i++){addBox(g,0.36,0.22,0.05,0x9edfff,-0.72+i*0.72,1.05,0.62);addBox(g,0.28,0.04,0.06,0xffffff,-0.72+i*0.72,1.18,0.66);}
+            addBox(g,0.48,0.5,0.06,0x7a4b2a,0,0.42,0.66);addBox(g,0.08,0.08,0.03,0xffe56a,0.16,0.5,0.71);
+            addBox(g,1.15,0.08,1.75,0xd9d2ba,-1.85,0.08,0.05);
+            addBox(g,0.78,0.18,1.15,0x52c8f2,1.75,0.12,-0.15);addBox(g,0.9,0.06,1.28,0xeaffff,1.75,0.25,-0.15);
+            addBox(g,0.58,0.18,0.98,0xffc94a,-1.9,0.2,-0.62);addBox(g,0.4,0.08,0.22,0x222831,-1.9,0.34,-0.28);
+            for(var fp=0;fp<5;fp++){addBox(g,0.08,0.18,0.08,0xffffff,-1.28+fp*0.64,0.18,-1.02);addBox(g,0.08,0.18,0.08,0xffffff,-1.28+fp*0.64,0.18,1.02);}
         }else if(kind===2){
-            addBox(g,0.18,2.2,0.18,0xffffff,-0.9,1.1,0);addBox(g,0.18,2.2,0.18,0xffffff,0.9,1.1,0);
-            var board=new THREE.Mesh(new THREE.BoxGeometry(2.2,1.1,0.12),mat(0xfff49a,{emissive:0x443300,emissiveIntensity:0.08}));board.position.y=1.72;g.add(board);
-            addBox(g,1.55,0.16,0.14,0xff5f6d,0,1.86,0.08);addBox(g,1.2,0.14,0.14,0x43c6ff,0,1.54,0.08);
+            addBox(g,2.8,0.12,1.45,0xc9d9e6,0,0.06,0.22);
+            addBox(g,2.45,1.1,1.08,0xfff0b5,0,0.62,0.2);
+            addBox(g,2.7,0.18,1.25,0x4aa3ff,0,1.22,0.2);
+            addBox(g,1.9,0.18,0.11,0xff5f6d,0,1.4,0.82);addBox(g,1.45,0.12,0.12,0xffffff,0,1.18,0.84);
+            addBox(g,0.5,0.52,0.06,0x2a3748,-0.74,0.36,0.76);addBox(g,0.5,0.52,0.06,0x2a3748,0,0.36,0.76);addBox(g,0.5,0.52,0.06,0x2a3748,0.74,0.36,0.76);
+            addBox(g,0.18,2.3,0.18,0xffffff,-1.45,1.15,0.85);addBox(g,0.18,2.3,0.18,0xffffff,1.45,1.15,0.85);
+            var board=new THREE.Mesh(new THREE.BoxGeometry(2.35,0.78,0.12),mat(0xfff49a,{emissive:0x443300,emissiveIntensity:0.08}));board.position.set(0,1.9,0.92);g.add(board);
+            addBox(g,1.55,0.14,0.14,0xff5f6d,0,2.08,1.0);addBox(g,1.05,0.12,0.14,0x43c6ff,0,1.82,1.0);
+            addBox(g,1.05,0.08,1.65,0xb0b6bd,1.9,0.08,0.1);addBox(g,0.52,0.18,0.96,0x4f8dff,1.95,0.2,-0.28);
         }else if(kind===3){
             for(var b=0;b<4;b++){var bal=new THREE.Mesh(new THREE.SphereGeometry(0.28,12,8),mat([0xff6978,0xffe36d,0x62d6ff,0xa7f56d][b],{emissive:0x111111,emissiveIntensity:0.04}));bal.position.set((b-1.5)*0.25,1.8+(b%2)*0.28,(b%3)*0.12);g.add(bal);}
             addBox(g,0.08,1.45,0.08,0xffffff,0,0.9,0);
@@ -297,13 +342,13 @@
     DanboRocketRoad.prototype.buildScenery=function(){
         this.decorItems=[];
         var length=this.R.levelLength?this.R.levelLength():3300, sid=this.stageId||0, st=STAGES[sid]||STAGES[0];
-        for(var i=0;i<78;i++){
-            var abs=35+i*46+(i%5)*7;if(abs>length+220)break;
+        for(var i=0;i<104;i++){
+            var abs=18+i*34+(i%5)*5;if(abs>length+220)break;
             for(var s=0;s<2;s++){
                 var side=s?1:-1, kind;
                 if(side>0&&i%5===1)kind=st.decor[(i+s)%st.decor.length];else if(i%9===0)kind=st.decor[(i+2+s)%st.decor.length];else kind=st.decor[(i+s*3)%st.decor.length];
-                var mesh=this.makeDecor(kind), off=kind===6?3.9:(2.8+((i+s)%4)*0.9);
-                this.decorItems.push({abs:abs+(s?10:0),side:side,offset:off,kind:kind,mesh:mesh,scale:kind===6?1:(0.82+((i+s)%3)*0.12),spin:(i%7)*0.2});
+                var mesh=this.makeDecor(kind), isBuilding=(kind===1||kind===2), off=kind===6?3.9:(isBuilding?(0.62+((i+s)%3)*0.36):(2.05+((i+s)%4)*0.72));
+                this.decorItems.push({abs:abs+(s?10:0),side:side,offset:off,kind:kind,mesh:mesh,scale:kind===6?1:(isBuilding?(1.02+((i+s)%3)*0.1):(0.84+((i+s)%3)*0.12)),spin:(i%7)*0.2});
                 this.sceneryGroup.add(mesh);
             }
         }
@@ -490,7 +535,7 @@
 
     DanboRocketRoad.prototype.inputState=function(){
         var left=this.keys.ArrowLeft||this.keys.KeyA||this.touch.left,right=this.keys.ArrowRight||this.keys.KeyD||this.touch.right;
-        return {steer:(right?1:0)-(left?1:0),turbo:!!(this.keys.ArrowUp||this.keys.KeyW||this.keys.Space||this.touch.boost),brake:!!(this.keys.ArrowDown||this.keys.KeyS||this.touch.brake)};
+        return {steer:(left?1:0)-(right?1:0),turbo:!!(this.keys.ArrowUp||this.keys.KeyW||this.keys.Space||this.touch.boost),brake:!!(this.keys.ArrowDown||this.keys.KeyS||this.touch.brake)};
     };
 
     DanboRocketRoad.prototype.updateCountdown=function(dt){
@@ -501,7 +546,7 @@
     };
 
     DanboRocketRoad.prototype.updatePlaying=function(dt){
-        this.elapsed+=dt;var inp=this.inputState(), width=this.R.roadWidthAt(this.progress);
+        this.elapsed+=dt;var inp=this.inputState(), width=effectiveRoadWidth(this.R.roadWidthAt(this.progress),this.progress,this.stageId||0);
         var step=this.R.playerStep(this.carX,this.carVx,inp.steer,dt,this.spin>0?1:0,width);this.carX=step[0];this.carVx=step[1];
         if(this.spin>0)this.spin=Math.max(0,this.spin-dt);
         this.targetSpeed=this.R.speedFor(inp.turbo?1:0,inp.brake?1:0,this.spin>0?1:0,this.fuel);
@@ -520,8 +565,8 @@
         var count=this.R.eventCount();
         for(var i=0;i<count;i++){
             if(this.hitEvents[i])continue;var ev=this.R.eventAt(i), type=ev[2]|0, rel=this.eventRel(ev,i,type);if(rel<-4||rel>6)continue;
-            var width=this.R.roadWidthAt(ev[0]),x=roadCenterAt(ev[0]+(this.stageId||0)*STAGE_LENGTH)+this.R.laneX(ev[1]|0,width);x+=this.objectSway(type,ev[4],i);
-            var px=roadCenterAt((this.progress||0)+(this.stageId||0)*STAGE_LENGTH)+(this.carX||0);
+            var width=effectiveRoadWidth(this.R.roadWidthAt(ev[0]),ev[0],this.stageId||0),x=driveCenterAt(ev[0],this.stageId||0)+this.R.laneX(ev[1]|0,width);x+=this.objectSway(type,ev[4],i);
+            var px=driveCenterAt(this.progress||0,this.stageId||0)+(this.carX||0);
             if(this.R.collide(px,0,x,rel,type)){
                 this.hitEvents[i]=true;
                 if(type===5){this.pickups++;this.fuel=clamp(this.fuel+(ev[5]||20),0,this.R.maxFuel());this.showToast('补油 +'+Math.floor(ev[5]||20));if(this.objects[i])this.objects[i].mesh.visible=false;}
@@ -555,15 +600,23 @@
     DanboRocketRoad.prototype.updateRoad=function(){
         var first=this.progress-(this.progress%ROAD_SEG_LEN)-32;
         for(var i=0;i<this.roadSegments.length;i++){
-            var abs=first+i*ROAD_SEG_LEN, themeAbs=abs+(this.stageId||0)*STAGE_LENGTH, rel=abs-this.progress, g=this.roadSegments[i], width=this.R.roadWidthAt(abs), cx=roadCenterAt(themeAbs), mats=this.stageMats&&this.stageMats[this.stageId||0];
-            if(mats){g.road.material=mats.road;g.leftRail.material=g.rightRail.material=mats.edge;g.leftField.material=mats.fields[i%mats.fields.length];g.rightField.material=mats.fields[(i+2)%mats.fields.length];for(var mm=0;mm<g.marks.length;mm++)g.marks[mm].material=mats.mark;}
+            var abs=first+i*ROAD_SEG_LEN, sid=this.stageId||0, rel=abs-this.progress, g=this.roadSegments[i], rawWidth=this.R.roadWidthAt(abs), width=effectiveRoadWidth(rawWidth,abs,sid), cx=driveCenterAt(abs,sid), mats=this.stageMats&&this.stageMats[sid];
+            if(mats){g.road.material=mats.road;g.leftRail.material=g.rightRail.material=mats.edge;g.leftField.material=mats.fields[i%mats.fields.length];g.rightField.material=mats.fields[(i+2)%mats.fields.length];for(var mm=0;mm<g.marks.length;mm++)g.marks[mm].material=mats.mark;if(g.branchRoad)g.branchRoad.material=mats.road;if(g.branchRails)for(var rr=0;rr<g.branchRails.length;rr++)g.branchRails[rr].material=mats.edge;if(g.branchMarks)for(var bb=0;bb<g.branchMarks.length;bb++)g.branchMarks[bb].material=mats.mark;}
+            var bounds=roadOuterBounds(abs,sid,width);
             g.position.set(cx,0,PLAYER_Z+rel);g.road.scale.x=width;g.road.scale.z=ROAD_SEG_LEN+0.35;
-            g.leftField.position.x=-width*0.5-2.35;g.rightField.position.x=width*0.5+2.35;g.leftField.scale.z=g.rightField.scale.z=ROAD_SEG_LEN+0.35;
+            g.leftField.position.x=(bounds.min-cx)-2.35;g.rightField.position.x=(bounds.max-cx)+2.35;g.leftField.scale.z=g.rightField.scale.z=ROAD_SEG_LEN+0.35;
             g.leftRail.position.x=-width*0.5-0.18;g.rightRail.position.x=width*0.5+0.18;
             for(var m=0;m<g.marks.length;m++){var mk=g.marks[m];mk.position.x=(-width*0.25)+(m*width*0.25);mk.visible=((Math.floor(abs/ROAD_SEG_LEN)+m)%2)===0;}
+            var bw=sideRoadWidth(abs,sid), bcx=sideRoadCenterAt(abs,sid)-cx;
+            if(g.branchRoad){
+                var showBranch=bw>0.08;
+                g.branchRoad.visible=showBranch;g.branchRoad.position.x=bcx;g.branchRoad.scale.x=bw;g.branchRoad.scale.z=ROAD_SEG_LEN+0.35;
+                for(var bi=0;bi<g.branchRails.length;bi++){var br=g.branchRails[bi];br.visible=showBranch;br.position.x=bcx+(bi===0?-bw*0.5-0.16:bw*0.5+0.16);br.scale.z=ROAD_SEG_LEN+0.35;}
+                for(var bj=0;bj<g.branchMarks.length;bj++){var bm=g.branchMarks[bj];bm.visible=showBranch&&((Math.floor(abs/ROAD_SEG_LEN)+bj)%2)===0;bm.position.x=bcx+(-bw*0.18+bj*bw*0.36);}
+            }
             for(var f=0;f<g.flowers.length;f++){
                 var fl=g.flowers[f], side=f<6?-1:1, row=f%6, wob=((Math.floor(abs/ROAD_SEG_LEN)+row)%2)*0.24;
-                fl.position.x=side*(width*0.5+0.72+(row%3)*0.78+wob);
+                fl.position.x=(side<0?(bounds.min-cx):(bounds.max-cx))+side*(0.72+(row%3)*0.78+wob);
                 fl.position.z=-ROAD_SEG_LEN*0.42+row*1.45;
                 fl.visible=((Math.floor(abs/ROAD_SEG_LEN)+f)%3)!==0;
             }
@@ -577,7 +630,7 @@
             var obj=this.objects[i];
             if(rel<-14||rel>110||this.hitEvents[i]&&type===5){if(obj)obj.mesh.visible=false;continue;}
             if(!obj){obj={mesh:this.makeObject(type,i),type:type};this.objects[i]=obj;this.objectGroup.add(obj.mesh);}obj.mesh.visible=true;
-            var themeAbs=ev[0]+(this.stageId||0)*STAGE_LENGTH, width=this.R.roadWidthAt(ev[0]), x=roadCenterAt(themeAbs)+this.R.laneX(ev[1]|0,width)+this.objectSway(type,ev[4],i);
+            var width=effectiveRoadWidth(this.R.roadWidthAt(ev[0]),ev[0],this.stageId||0), x=driveCenterAt(ev[0],this.stageId||0)+this.R.laneX(ev[1]|0,width)+this.objectSway(type,ev[4],i);
             obj.mesh.position.set(x,0.02,PLAYER_Z+rel);
             obj.mesh.rotation.y=(type===3?Math.PI:0)+Math.sin(this.elapsed*1.5+i)*0.025;
             if(obj.mesh.halo)obj.mesh.halo.rotation.z+=0.04;
@@ -592,7 +645,7 @@
         for(var i=0;i<this.startGridCars.length;i++){
             var c=this.startGridCars[i], mesh=c.mesh;
             if(!show){mesh.visible=false;continue;}
-            var width=this.R.roadWidthAt(this.progress), x=roadCenterAt(this.progress+c.z+(this.stageId||0)*STAGE_LENGTH)+this.R.laneX(c.lane,width), launch=this.state==='playing'?this.elapsed*(c.launch+22):0;
+            var width=effectiveRoadWidth(this.R.roadWidthAt(this.progress+c.z),this.progress+c.z,this.stageId||0), x=driveCenterAt(this.progress+c.z,this.stageId||0)+this.R.laneX(c.lane,width), launch=this.state==='playing'?this.elapsed*(c.launch+22):0;
             mesh.visible=true;mesh.position.set(x,0.02,PLAYER_Z+c.z+launch);
             mesh.rotation.y=0;mesh.rotation.z=Math.sin((this.elapsed||0)*4+i)*0.015;
         }
@@ -603,7 +656,7 @@
         for(var i=0;i<this.decorItems.length;i++){
             var d=this.decorItems[i], rel=d.abs-this.progress, mesh=d.mesh;
             if(rel<-58||rel>150){mesh.visible=false;continue;}
-            var width=this.R.roadWidthAt(d.abs), x=roadCenterAt(d.abs+(this.stageId||0)*STAGE_LENGTH)+d.side*(width*0.5+d.offset);
+            var sid=this.stageId||0, width=effectiveRoadWidth(this.R.roadWidthAt(d.abs),d.abs,sid), bounds=roadOuterBounds(d.abs,sid,width), x=(d.side<0?bounds.min-d.offset:bounds.max+d.offset);
             mesh.visible=true;mesh.position.set(x,0,PLAYER_Z+rel);mesh.scale.setScalar(d.scale);
             mesh.rotation.y=(d.kind===6||d.kind===7)?0:(d.side<0?0.42:-0.42);
             if((i%6)===3&&d.kind!==6)mesh.rotation.y+=Math.sin(this.elapsed*1.2+d.spin)*0.12;
@@ -614,8 +667,8 @@
         if(!this.finishGroup)return;
         var finish=this.R.levelLength(), rel=finish-this.progress, g=this.finishGroup;
         if(rel<-12||rel>150){g.visible=false;return;}
-        var width=this.R.roadWidthAt(finish);
-        g.visible=true;g.position.set(roadCenterAt(finish+(this.stageId||0)*STAGE_LENGTH),0,PLAYER_Z+rel);
+        var width=effectiveRoadWidth(this.R.roadWidthAt(finish),finish,this.stageId||0);
+        g.visible=true;g.position.set(driveCenterAt(finish,this.stageId||0),0,PLAYER_Z+rel);
         g.stripe.scale.x=width+0.6;g.leftPole.position.x=-(width*0.5+0.95);g.rightPole.position.x=width*0.5+0.95;g.topBar.scale.x=width+2.1;
         for(var i=0;i<g.flags.length;i++){
             var f=g.flags[i], side=f.userData.side||1;
@@ -627,7 +680,7 @@
 
     DanboRocketRoad.prototype.updateVisuals=function(dt){
         this.updateRoad();this.updateObjects();this.updateStartGrid();this.updateScenery();this.updateFinishGate();
-        var cx=roadCenterAt((this.progress||0)+(this.stageId||0)*STAGE_LENGTH);
+        var cx=driveCenterAt(this.progress||0,this.stageId||0);
         this.player.position.x=cx+(this.carX||0);this.player.rotation.z=-(this.carVx||0)*0.018+(this.spin>0?Math.sin(this.elapsed*28)*0.18*this.spinDir:0);this.player.rotation.y=(this.spin>0?Math.sin(this.elapsed*21)*0.22*this.spinDir:0);
         if(this.player.flame){var inp=this.inputState(),thrust=clamp((this.speed||0)/58,0.15,1);var s=(inp.turbo&&this.state==='playing')?(0.95+0.45*thrust):(0.42+0.42*thrust);this.player.flame.scale.set(s,s,0.55+thrust*0.45+Math.sin(this.elapsed*28)*0.16);this.player.flame.visible=this.state==='playing'&&this.speed>2;}
         this.world.position.x=0;
