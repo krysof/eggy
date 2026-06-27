@@ -12,6 +12,7 @@
     var pluginIsolationActive=false;
     var pluginIsolationPrevSfxMuted=false;
     var pluginUiState=null;
+    var pluginSceneState=null;
 
     function clonePlain(obj){
         if(obj===undefined||obj===null)return obj;
@@ -183,6 +184,38 @@
         }
         if(restartCityBgm&&typeof gameState!=='undefined'&&gameState==='city'&&typeof startBGM==='function'){
             try{startBGM();}catch(e){}
+        }
+    }
+
+    function beginPluginSceneSwitch(){
+        if(pluginSceneState)return;
+        var seen=[];
+        pluginSceneState={items:[]};
+        window._danboPluginSceneActive=true;
+        function remember(obj){
+            if(!obj||typeof obj.visible!=='boolean'||seen.indexOf(obj)>=0)return;
+            seen.push(obj);
+            pluginSceneState.items.push({obj:obj,visible:obj.visible});
+            obj.visible=false;
+        }
+        try{if(typeof cityGroup!=='undefined')remember(cityGroup);}catch(e){}
+        try{if(typeof raceGroup!=='undefined')remember(raceGroup);}catch(e2){}
+        try{if(typeof playerEgg!=='undefined'&&playerEgg&&playerEgg.mesh)remember(playerEgg.mesh);}catch(e3){}
+        try{if(typeof allEggs!=='undefined'&&Array.isArray(allEggs))allEggs.forEach(function(egg){if(egg&&egg.mesh)remember(egg.mesh);});}catch(e4){}
+        try{if(typeof cityNPCs!=='undefined'&&Array.isArray(cityNPCs))cityNPCs.forEach(function(npc){if(npc&&npc.mesh)remember(npc.mesh);});}catch(e5){}
+        try{if(typeof _babylonTower!=='undefined'&&_babylonTower&&_babylonTower.group)remember(_babylonTower.group);}catch(e6){}
+        try{if(typeof cityCloudPlatforms!=='undefined'&&Array.isArray(cityCloudPlatforms))cityCloudPlatforms.forEach(function(cp){if(cp&&cp.group)remember(cp.group);});}catch(e7){}
+        try{if(window._cityAnimals&&Array.isArray(window._cityAnimals))window._cityAnimals.forEach(function(a){if(a&&a.group)remember(a.group);});}catch(e8){}
+    }
+
+    function endPluginSceneSwitch(){
+        var st=pluginSceneState;
+        pluginSceneState=null;
+        window._danboPluginSceneActive=false;
+        if(!st||!st.items)return;
+        for(var i=0;i<st.items.length;i++){
+            var item=st.items[i];
+            try{if(item&&item.obj&&typeof item.obj.visible==='boolean')item.obj.visible=item.visible;}catch(e){}
         }
     }
 
@@ -567,6 +600,7 @@
         beginPluginIsolation();
         var ctx=makeContext(pluginId,options||{});
         cleanupSceneBifrost();
+        beginPluginSceneSwitch();
         setLayerVisible(true);
         window._danboPluginTransition=false;
         var instance=def.create(ctx)||{};
@@ -624,6 +658,7 @@
         if(isReplace){
             hideTransientCityUi();
         }else{
+            endPluginSceneSwitch();
             endPluginIsolation(hadActive||hadTransition);
         }
     }
