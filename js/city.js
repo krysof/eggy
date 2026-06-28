@@ -14,18 +14,14 @@ const cityProps = []; // {group, x, z, radius, type, grabbed, origY}
 const CITY_SIZE = CITY_CONFIG.size;
 var currentCityStyle=0;
 var _prevCityStyle=0; // track previous city for earth return
-var CITY_STYLES=[
-    {name:'\uD83C\uDFD9\uFE0F \u5E0C\u671B\u4E4B\u57CE',ground:0x55AA88,path:0xBBCCAA,sky:0x87CEEB,bColors:[0xFF8888,0x88BBFF,0xFFDD66,0xAADD88,0xDDAA88,0xBB99DD,0xFF99CC,0x88DDCC],roof:0xDD6644,tree:0x44BB44,fog:null},
-    {name:'🏜️ 沙漠城',ground:0xDDCC88,path:0xCCBB77,sky:0xFFCC66,bColors:[0xDDAA66,0xCC9955,0xEEBB77,0xBB8844,0xDDCC88,0xCCAA55,0xEECC99,0xBB9966],roof:0xAA6633,tree:0x88AA44,fog:0xFFEECC},
-    {name:'❄️ 冰雪城',ground:0xDDEEFF,path:0xBBCCDD,sky:0xAABBDD,bColors:[0xAADDFF,0x88BBEE,0xCCEEFF,0x99CCEE,0xBBDDFF,0x77AADD,0xDDEEFF,0xAABBCC],roof:0x6699BB,tree:0x88CCAA,fog:0xCCDDEE},
-    {name:'🔥 熔岩城',ground:0x443322,path:0x554433,sky:0x331111,bColors:[0x884422,0x663311,0xAA5533,0x774422,0x995544,0x553311,0xBB6644,0x664422],roof:0x442211,tree:0x556633,fog:0x221100},
-    {name:'🍬 糖果城',ground:0xFFBBDD,path:0xFFDDEE,sky:0xFFCCEE,bColors:[0xFF88BB,0xBB88FF,0xFFBB88,0x88FFBB,0xFF88FF,0xFFFF88,0x88BBFF,0xFFAA88],roof:0xDD66AA,tree:0xFF88CC,fog:null},
-    {name:'\uD83C\uDF19 \u6708\u9762\u90FD\u5E02',ground:0x888899,path:0xAAAABB,sky:0x0A0015,bColors:[0x9999AA,0x7777AA,0xBBBBCC,0x8888AA,0xAAAABB,0x6666AA,0xCCCCDD,0x9999BB],roof:0x6666AA,tree:0x99AACC,fog:null},
-    {name:'\uD83C\uDF38 \u6A31\u4E4B\u56FD',ground:0xDDCCBB,path:0xBBAA99,sky:0x7BC8F6,bColors:[0xCC8888,0xEEBBAA,0xDDAA99,0xCCBBAA,0xDDCCBB,0xBB9988,0xEECCBB,0xDDBBAA],roof:0x884444,tree:0xFFAABB,fog:null},
-    {name:'\uD83C\uDFD4\uFE0F \u96EA\u4E4B\u4E61',ground:0xC8D0DD,path:0x998877,sky:0x1A2844,bColors:[0xF5F0E8,0xE8DDD0,0xDDD5C8,0xF0EBE0,0xE0D8CC,0xD8D0C0,0xEEE8DD,0xE5DDD0],roof:0x8B7355,tree:0x2D5A3D,fog:null}
-];
-// Warp pipe definitions: 4 pipes at city edges
-var WARP_PIPES=[
+var CITY_STYLES=(window.DANBO_CITY_REGISTRY&&DANBO_CITY_REGISTRY.getStyles)?DANBO_CITY_REGISTRY.getStyles():[];
+if(!CITY_STYLES||!CITY_STYLES.length){
+    // Fallback only: real editable city data lives in js/cities/*.js
+    CITY_STYLES=CITY_THEME_DATA.map(function(st){return {
+        name:st.nameKey,ground:st.ground,path:st.path,sky:st.sky,bColors:st.bColors,roof:st.roof,tree:st.tree,fog:st.fog
+    };});
+}
+var WARP_PIPES=(window.DANBO_CITY_REGISTRY&&DANBO_CITY_REGISTRY.getWarpPipes?DANBO_CITY_REGISTRY.getWarpPipes():null)||[
     {x:0,z:-65,targetStyle:1,rot:0,label:'🏜️ 沙漠'},
     {x:65,z:0,targetStyle:2,rot:-Math.PI/2,label:'❄️ 冰雪'},
     {x:0,z:65,targetStyle:3,rot:Math.PI,label:'🔥 熔岩'},
@@ -34,6 +30,25 @@ var WARP_PIPES=[
 var warpPipeMeshes=[]; // {group, x, z, targetStyle, entered}
 // Apply localized city names
 for(var _si=0;_si<CITY_STYLES.length;_si++){CITY_STYLES[_si].name=I18N.cityNames[_langCode][_si]||CITY_STYLES[_si].name;}
+
+function _getCityDef(style){
+    return (window.DANBO_CITY_REGISTRY&&DANBO_CITY_REGISTRY.getCity)?DANBO_CITY_REGISTRY.getCity(style):null;
+}
+function _getCityLayout(style){
+    var def=_getCityDef(style);
+    return (def&&def.layout)||{};
+}
+function _getCityPaths(style){
+    if(window.DANBO_CITY_REGISTRY&&DANBO_CITY_REGISTRY.getPathList)return DANBO_CITY_REGISTRY.getPathList(style);
+    return null;
+}
+function _getCityBuildings(style){
+    if(window.DANBO_CITY_REGISTRY&&DANBO_CITY_REGISTRY.getBuildingList)return DANBO_CITY_REGISTRY.getBuildingList(style);
+    return null;
+}
+function _cityLayoutHasFeature(layout,name){
+    return !!(layout&&layout.features&&layout.features.indexOf(name)!==-1);
+}
 
 function _cityMixHex(a,b,t){
     if(typeof _mixHex==='function')return _mixHex(a,b,t);
@@ -151,8 +166,10 @@ function _decorateDefaultBuilding(b,bMeshes,col,st,i){
 
 function buildCity() {
     var st=CITY_STYLES[currentCityStyle];
+    var cityLayout=_getCityLayout(currentCityStyle);
+    var cityGroundMode=cityLayout.ground||(currentCityStyle===5?'moon':(currentCityStyle===7?'snowIsland':'plain'));
     // Ground
-    if(currentCityStyle===5){
+    if(cityGroundMode==='moon'){
         // Moon: large flat ground plane
         var moonGroundGeo=new THREE.PlaneGeometry(MOON_CITY_SIZE*2,MOON_CITY_SIZE*2,16,16);
         var moonGround=new THREE.Mesh(moonGroundGeo,toon(st.ground));
@@ -168,7 +185,7 @@ function buildCity() {
             patch.position.set(ppx,0.02,ppz);
             cityGroup.add(patch);
         }
-    } else if(currentCityStyle===7){
+    } else if(cityGroundMode==='snowIsland'){
     // Snow Village: irregular island rising from dark lake
     var _snowGR=CITY_SIZE*0.8; // island radius ~128
     var _islandY=3; // island surface height
@@ -222,18 +239,11 @@ function buildCity() {
     cityGroup.add(ground);
     }
 
-    // Paths (not on moon) — organized grid street system
-    if(currentCityStyle!==5&&currentCityStyle!==6&&currentCityStyle!==7){
+    // Paths — data is now editable in js/cities/common-layout.js or each city file.
+    var cityPathList=_getCityPaths(currentCityStyle);
+    if(cityPathList&&cityPathList.length){
     const pathM = toon(st.path);
-    // Main cross avenues (wide)
-    [{w:CITY_SIZE*2,d:8,x:0,z:0},{w:8,d:CITY_SIZE*2,x:0,z:0},
-    // Inner ring road (radius ~45)
-     {w:90,d:6,x:0,z:45},{w:90,d:6,x:0,z:-45},{w:6,d:90,x:45,z:0},{w:6,d:90,x:-45,z:0},
-    // Outer ring road (radius ~100)
-     {w:200,d:5,x:0,z:100},{w:200,d:5,x:0,z:-100},{w:5,d:200,x:100,z:0},{w:5,d:200,x:-100,z:0},
-    // Diagonal boulevards
-     {w:4,d:70,x:30,z:30},{w:4,d:70,x:-30,z:-30},{w:70,d:4,x:-30,z:30},{w:70,d:4,x:30,z:-30}
-    ].forEach(p=>{
+    cityPathList.forEach(p=>{
         const path=new THREE.Mesh(new THREE.BoxGeometry(p.w,0.06,p.d),pathM);
         path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
     });
@@ -273,7 +283,7 @@ function buildCity() {
     // ---- Buildings (not on moon) — organized blocks along streets ----
     if(currentCityStyle!==5){
     const bColors = st.bColors;
-    const buildings = [
+    const buildings = _getCityBuildings(currentCityStyle) || [
         // ===== Inner commercial district (tall, near center) =====
         // NE block
         {x:22,z:-22,w:10,d:10,h:16},{x:35,z:-22,w:8,d:10,h:20},{x:22,z:-35,w:10,d:8,h:14},
@@ -359,7 +369,7 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    var _treeCount=currentCityStyle===6?40:80; // sakura: fewer random trees (river trees are separate)
+    var _treeCount=(cityLayout&&cityLayout.treeCount!==undefined)?cityLayout.treeCount:(currentCityStyle===6?40:80); // sakura: fewer random trees (river trees are separate)
     for(let i=0;i<_treeCount;i++){
         var tx,tz;
         if(currentCityStyle===6){

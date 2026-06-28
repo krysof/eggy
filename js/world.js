@@ -191,7 +191,8 @@ function buildPortals() {
 
 // ---- Collectible coins in city ----
 function buildCityCoins() {
-    var coinCount=currentCityStyle===5?200:180;
+    var _coinCityLayout=(typeof _getCityLayout==='function')?_getCityLayout(currentCityStyle):null;
+    var coinCount=(_coinCityLayout&&_coinCityLayout.coinCount!==undefined)?_coinCityLayout.coinCount:(currentCityStyle===5?200:180);
     if(!window._sharedCityCoinGeo)window._sharedCityCoinGeo=new THREE.CylinderGeometry(0.35,0.35,0.08,12);
     if(!window._sharedCityCoinMat)window._sharedCityCoinMat=toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3});
     for(let i=0;i<coinCount;i++){
@@ -969,7 +970,8 @@ function switchCity(targetStyle){
 
 // ---- NPC eggs wandering city ----
 function spawnCityNPCs() {
-    var npcCount=currentCityStyle===5?24:(currentCityStyle===6?48:36);
+    var _npcCityLayout=(typeof _getCityLayout==='function')?_getCityLayout(currentCityStyle):null;
+    var npcCount=(_npcCityLayout&&_npcCityLayout.npcCount!==undefined)?_npcCityLayout.npcCount:(currentCityStyle===5?24:(currentCityStyle===6?48:36));
     for(let i=0;i<npcCount;i++){
         var nx2,nz2,spawnY=0;
         if(currentCityStyle===5){

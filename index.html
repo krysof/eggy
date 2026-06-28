@@ -183,6 +183,8 @@
     'js/plugin-host.js',
     'js/minigame-bridge.js',
     'js/data-cities.js',
+    'js/cities/registry.js',
+    'js/cities/wasm-city-loader.js',
     'js/data-races.js',
     'js/moves.js',
     'js/intro.js',
@@ -298,6 +300,11 @@
       if(gameFiles[i]==='js/plugin-host.js'){
         if(window.DANBO_PLUGIN_HOST&&window.DANBO_PLUGIN_HOST.setManifest)window.DANBO_PLUGIN_HOST.setManifest(window.DANBO_PLUGIN_MANIFEST||[]);
         loadEntranceScriptList(0,entranceFiles,function(){loadGameScript(i+1);});
+      }else if(gameFiles[i]==='js/cities/wasm-city-loader.js'&&window._danboCityDataReady){
+        window._danboCityDataReady.then(function(){loadGameScript(i+1);},function(err){
+          console.warn('City data WASM fallback',err);
+          loadGameScript(i+1);
+        });
       }else{
         loadGameScript(i+1);
       }
