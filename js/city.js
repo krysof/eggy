@@ -46,6 +46,22 @@ function _getCityBuildings(style){
     if(window.DANBO_CITY_REGISTRY&&DANBO_CITY_REGISTRY.getBuildingList)return DANBO_CITY_REGISTRY.getBuildingList(style);
     return null;
 }
+function _getCityNpc(style){
+    var def=_getCityDef(style);
+    return (def&&def.npc)||{};
+}
+function _getCityWildlife(style){
+    var def=_getCityDef(style);
+    return (def&&def.wildlife)||{};
+}
+function _getCityCollectibles(style){
+    var def=_getCityDef(style);
+    return (def&&def.collectibles)||{};
+}
+function _getCityFlora(style){
+    var layout=_getCityLayout(style);
+    return (layout&&layout.flora)||{};
+}
 function _cityLayoutHasFeature(layout,name){
     return !!(layout&&layout.features&&layout.features.indexOf(name)!==-1);
 }
@@ -283,43 +299,7 @@ function buildCity() {
     // ---- Buildings (not on moon) — organized blocks along streets ----
     if(currentCityStyle!==5){
     const bColors = st.bColors;
-    const buildings = _getCityBuildings(currentCityStyle) || [
-        // ===== Inner commercial district (tall, near center) =====
-        // NE block
-        {x:22,z:-22,w:10,d:10,h:16},{x:35,z:-22,w:8,d:10,h:20},{x:22,z:-35,w:10,d:8,h:14},
-        // NW block
-        {x:-22,z:-22,w:10,d:10,h:18},{x:-35,z:-22,w:8,d:10,h:15},{x:-22,z:-35,w:10,d:8,h:13},
-        // SE block
-        {x:22,z:22,w:10,d:10,h:17},{x:35,z:22,w:8,d:10,h:14},{x:22,z:35,w:10,d:8,h:19},
-        // SW block
-        {x:-22,z:22,w:10,d:10,h:15},{x:-35,z:22,w:8,d:10,h:21},{x:-22,z:35,w:10,d:8,h:12},
-
-        // ===== Mid-ring residential (medium height) =====
-        // North street
-        {x:-30,z:-60,w:12,d:8,h:10},{x:-8,z:-60,w:10,d:8,h:12},{x:10,z:-60,w:10,d:8,h:9},{x:28,z:-60,w:12,d:8,h:11},
-        // South street
-        {x:-30,z:60,w:12,d:8,h:11},{x:-8,z:60,w:10,d:8,h:9},{x:10,z:60,w:10,d:8,h:13},{x:28,z:60,w:12,d:8,h:10},
-        // West street
-        {x:-60,z:-25,w:8,d:12,h:12},{x:-60,z:-8,w:8,d:10,h:10},{x:-60,z:10,w:8,d:10,h:14},{x:-60,z:28,w:8,d:12,h:11},
-        // East street
-        {x:60,z:-25,w:8,d:12,h:11},{x:60,z:-8,w:8,d:10,h:13},{x:60,z:10,w:8,d:10,h:10},{x:60,z:28,w:8,d:12,h:15},
-
-        // ===== Outer suburbs (shorter, spread out) =====
-        // NE quarter
-        {x:80,z:-60,w:10,d:8,h:8},{x:80,z:-80,w:8,d:10,h:7},{x:60,z:-80,w:10,d:8,h:9},
-        // NW quarter
-        {x:-80,z:-60,w:10,d:8,h:7},{x:-80,z:-80,w:8,d:10,h:9},{x:-60,z:-80,w:10,d:8,h:8},
-        // SE quarter
-        {x:80,z:60,w:10,d:8,h:9},{x:80,z:80,w:8,d:10,h:8},{x:60,z:80,w:10,d:8,h:7},
-        // SW quarter
-        {x:-80,z:60,w:10,d:8,h:8},{x:-80,z:80,w:8,d:10,h:7},{x:-60,z:80,w:10,d:8,h:9},
-
-        // ===== Landmark towers (corners & axis endpoints) =====
-        {x:-120,z:-120,w:10,d:10,h:22},{x:120,z:-120,w:10,d:10,h:18},
-        {x:-120,z:120,w:10,d:10,h:16},{x:120,z:120,w:10,d:10,h:24},
-        {x:-130,z:0,w:8,d:8,h:14},{x:130,z:0,w:8,d:8,h:12},
-        {x:0,z:-130,w:8,d:8,h:11},{x:0,z:130,w:8,d:8,h:13},
-    ];
+    const buildings = _getCityBuildings(currentCityStyle) || [];
     buildings.forEach((b,i)=>{
         // Sakura/Snow: skip ALL default buildings — custom layout built below
         if(currentCityStyle===6||currentCityStyle===7)return;
@@ -369,7 +349,8 @@ function buildCity() {
     });
 
     // ---- Trees ----
-    var _treeCount=(cityLayout&&cityLayout.treeCount!==undefined)?cityLayout.treeCount:(currentCityStyle===6?40:80); // sakura: fewer random trees (river trees are separate)
+    var cityFlora=_getCityFlora(currentCityStyle);
+    var _treeCount=(cityFlora&&cityFlora.treeCount!==undefined)?cityFlora.treeCount:((cityLayout&&cityLayout.treeCount!==undefined)?cityLayout.treeCount:(currentCityStyle===6?40:80)); // sakura: fewer random trees (river trees are separate)
     for(let i=0;i<_treeCount;i++){
         var tx,tz;
         if(currentCityStyle===6){

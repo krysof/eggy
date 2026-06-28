@@ -143,7 +143,7 @@
 <script>
 (function(){
   var cache='v=20260627.16';
-  window.DANBO_ASSET_VERSION=cache;
+  window.DANBO_ASSET_VERSION=cache;\n  window.DANBO_CITY_LOAD_MODE='wasm';
   var warmStart=false;
   try{warmStart=localStorage.getItem('danbo_loader_version')===cache;}catch(e){}
   var loaderLang=(function(){
@@ -184,6 +184,8 @@
     'js/minigame-bridge.js',
     'js/data-cities.js',
     'js/cities/registry.js',
+    'js/cities/common-layout.js',
+    'js/cities/index.js',
     'js/cities/wasm-city-loader.js',
     'js/data-races.js',
     'js/moves.js',

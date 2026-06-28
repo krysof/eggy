@@ -192,7 +192,8 @@ function buildPortals() {
 // ---- Collectible coins in city ----
 function buildCityCoins() {
     var _coinCityLayout=(typeof _getCityLayout==='function')?_getCityLayout(currentCityStyle):null;
-    var coinCount=(_coinCityLayout&&_coinCityLayout.coinCount!==undefined)?_coinCityLayout.coinCount:(currentCityStyle===5?200:180);
+    var _coinCityData=(typeof _getCityCollectibles==='function')?_getCityCollectibles(currentCityStyle):null;
+    var coinCount=(_coinCityData&&_coinCityData.coinCount!==undefined)?_coinCityData.coinCount:((_coinCityLayout&&_coinCityLayout.coinCount!==undefined)?_coinCityLayout.coinCount:(currentCityStyle===5?200:180));
     if(!window._sharedCityCoinGeo)window._sharedCityCoinGeo=new THREE.CylinderGeometry(0.35,0.35,0.08,12);
     if(!window._sharedCityCoinMat)window._sharedCityCoinMat=toon(0xFFDD00,{emissive:0xFFAA00,emissiveIntensity:0.3});
     for(let i=0;i<coinCount;i++){
@@ -721,8 +722,27 @@ var _pipeStartX=0, _pipeStartZ=0, _pipeEndX=0, _pipeEndZ=0;
 var _pipeTubeGroup=null, _pipeTargetStyle=0;
 var _pipeMidX=0, _pipeMidZ=0;
 var _pipeStartY=3; // starting Y height for pipe travel
+var _pipeCityLoadPending=false;
+var _pipeCityLoadFailed=false;
+
+function _ensureCityDataLoaded(style,done){
+    if(!window.DANBO_CITY_DATA||!DANBO_CITY_DATA.ensureCityLoaded){done(true);return;}
+    if(DANBO_CITY_DATA.isLoaded&&DANBO_CITY_DATA.isLoaded(style)){done(true);return;}
+    DANBO_CITY_DATA.ensureCityLoaded(style).then(function(){done(true);}).catch(function(err){
+        console.error('Failed to load city '+style,err);
+        done(false);
+    });
+}
 
 function startPipeTravel(fromX,fromZ,targetStyle,fromY){
+    _pipeCityLoadFailed=false;
+    if(window.DANBO_CITY_DATA&&DANBO_CITY_DATA.ensureCityLoaded&&DANBO_CITY_DATA.isLoaded&&!DANBO_CITY_DATA.isLoaded(targetStyle)&&!_pipeCityLoadPending){
+        // Start loading the target city during the pipe flight. If it is still
+        // not ready at the rebuild point, updatePipeTravel pauses briefly high
+        // above the scene instead of making the entrance feel unresponsive.
+        _pipeCityLoadPending=true;
+        _ensureCityDataLoaded(targetStyle,function(ok){_pipeCityLoadPending=false;if(!ok)_pipeCityLoadFailed=true;});
+    }
     if(typeof _resetViewMode==='function')_resetViewMode();
     if(playerEgg&&playerEgg.mesh)playerEgg.mesh.visible=true;
     _pipeTraveling=true;_pipeTimer=0;_pipeTargetStyle=targetStyle;
@@ -875,6 +895,13 @@ function updatePipeTravel(){
     camera.lookAt(px,py,pz);
     // At 40% — rebuild city (while player is high up and can't see ground)
     if(_pipeTimer===Math.floor(_pipeDuration*0.4)){
+        if(window.DANBO_CITY_DATA&&DANBO_CITY_DATA.isLoaded&&!DANBO_CITY_DATA.isLoaded(_pipeTargetStyle)){
+            if(!_pipeCityLoadFailed){
+                _pipeTimer--;
+                return;
+            }
+            console.warn('Continue pipe travel with unloaded city '+_pipeTargetStyle);
+        }
         _prevCityStyle=currentCityStyle;
         currentCityStyle=_pipeTargetStyle;
         clearCity();
@@ -922,6 +949,10 @@ function updatePipeTravel(){
 
 function switchCity(targetStyle){
     if(targetStyle===currentCityStyle)return;
+    if(window.DANBO_CITY_DATA&&DANBO_CITY_DATA.ensureCityLoaded&&DANBO_CITY_DATA.isLoaded&&!DANBO_CITY_DATA.isLoaded(targetStyle)){
+        _ensureCityDataLoaded(targetStyle,function(ok){if(ok)switchCity(targetStyle);});
+        return;
+    }
     if(typeof _resetViewMode==='function')_resetViewMode();
     _prevCityStyle=currentCityStyle;
     currentCityStyle=targetStyle;
@@ -971,7 +1002,8 @@ function switchCity(targetStyle){
 // ---- NPC eggs wandering city ----
 function spawnCityNPCs() {
     var _npcCityLayout=(typeof _getCityLayout==='function')?_getCityLayout(currentCityStyle):null;
-    var npcCount=(_npcCityLayout&&_npcCityLayout.npcCount!==undefined)?_npcCityLayout.npcCount:(currentCityStyle===5?24:(currentCityStyle===6?48:36));
+    var _npcCityData=(typeof _getCityNpc==='function')?_getCityNpc(currentCityStyle):null;
+    var npcCount=(_npcCityData&&_npcCityData.count!==undefined)?_npcCityData.count:((_npcCityLayout&&_npcCityLayout.npcCount!==undefined)?_npcCityLayout.npcCount:(currentCityStyle===5?24:(currentCityStyle===6?48:36)));
     for(let i=0;i<npcCount;i++){
         var nx2,nz2,spawnY=0;
         if(currentCityStyle===5){
