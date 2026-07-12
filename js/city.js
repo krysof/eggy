@@ -249,8 +249,9 @@ function buildCity() {
         path7.position.set(p7.x,_islandY+0.04,p7.z);cityGroup.add(path7);
     });
     } else {
-    const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 16, 16);
-    const ground = new THREE.Mesh(groundGeo, toon(st.ground));
+    const groundGeo = new THREE.PlaneGeometry(CITY_SIZE*2, CITY_SIZE*2, 32, 32);
+    const groundMat=(currentCityStyle===0&&typeof _visualSurfaceMaterial==='function')?_visualSurfaceMaterial('grass',st.ground,{roughness:0.96}):toon(st.ground);
+    const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     cityGroup.add(ground);
     }
@@ -258,10 +259,13 @@ function buildCity() {
     // Paths — data is now editable in js/cities/common-layout.js or each city file.
     var cityPathList=_getCityPaths(currentCityStyle);
     if(cityPathList&&cityPathList.length){
-    const pathM = toon(st.path);
+    const pathM = (currentCityStyle===0&&typeof _visualSurfaceMaterial==='function')?_visualSurfaceMaterial('path',st.path,{roughness:0.90}):toon(st.path);
     cityPathList.forEach(p=>{
-        const path=new THREE.Mesh(new THREE.BoxGeometry(p.w,0.06,p.d),pathM);
-        path.position.set(p.x,0.03,p.z); path.receiveShadow=true; cityGroup.add(path);
+        var pathGeo=(currentCityStyle===0&&typeof _visualRoundedRectGeometry==='function')?_visualRoundedRectGeometry(p.w,p.d,Math.min(1.6,Math.min(p.w,p.d)*0.22)):new THREE.BoxGeometry(p.w,0.06,p.d);
+        const path=new THREE.Mesh(pathGeo,pathM);
+        if(currentCityStyle===0){path.rotation.x=-Math.PI/2;path.position.set(p.x,0.068,p.z);}
+        else path.position.set(p.x,0.03,p.z);
+        path.receiveShadow=true; cityGroup.add(path);
     });
     }
     // Sakura City: 銀山温泉 — high terrain + deep gorge + ryokan facing river
@@ -304,7 +308,9 @@ function buildCity() {
         // Sakura/Snow: skip ALL default buildings — custom layout built below
         if(currentCityStyle===6||currentCityStyle===7)return;
         const col = bColors[i%bColors.length];
-        const bm = new THREE.Mesh(new THREE.BoxGeometry(b.w,b.h,b.d), toon(col));
+        const bodyMat=(currentCityStyle===0&&typeof _visualSurfaceMaterial==='function')?_visualSurfaceMaterial('facade',col,{roughness:0.78}):toon(col);
+        var useRoundedBody=currentCityStyle===0&&typeof _visualRoundedBoxGeometry==='function'&&!(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low);
+        const bm = new THREE.Mesh(useRoundedBody?_visualRoundedBoxGeometry(b.w,b.h,b.d,0.52):new THREE.BoxGeometry(b.w,b.h,b.d,2,2,2), bodyMat);
         bm.position.set(b.x, b.h/2, b.z); bm.castShadow=true; bm.receiveShadow=true;
         cityGroup.add(bm);
         const bMeshes = [bm]; // collect all meshes for this building
@@ -324,12 +330,13 @@ function buildCity() {
             var engawa=new THREE.Mesh(new THREE.BoxGeometry(b.w+1.5,0.15,b.d+1.5),toon(0xBB9966));
             engawa.position.set(b.x,0.08,b.z);cityGroup.add(engawa);bMeshes.push(engawa);
         } else {
-        const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, BUILDING_CONFIG.roofHeight, 4), toon(st.roof));
+        var roofMat=(currentCityStyle===0&&typeof _visualSurfaceMaterial==='function')?_visualSurfaceMaterial('roof',st.roof,{roughness:0.58}):toon(st.roof);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, BUILDING_CONFIG.roofHeight, currentCityStyle===0?8:4), roofMat);
         roof.position.set(b.x, b.h+BUILDING_CONFIG.roofHeight/2, b.z); roof.rotation.y=Math.PI/4; roof.castShadow=true;
         cityGroup.add(roof); bMeshes.push(roof);
         }
         // Windows — warm shouji for Sakura City, blue glass for others
-        const winM = currentCityStyle===6?toon(0xFFEECC,{emissive:0xFFDD88,emissiveIntensity:0.3}):toon(0xAADDFF, {emissive:0x4488AA, emissiveIntensity:0.2});
+        const winM = currentCityStyle===6?toon(0xFFEECC,{emissive:0xFFDD88,emissiveIntensity:0.3}):(currentCityStyle===0&&typeof softPBR==='function'?softPBR(0xB9E8FF,{roughness:0.22,metalness:0.04,emissive:0x173F52,emissiveIntensity:0.28}):toon(0xAADDFF, {emissive:0x4488AA, emissiveIntensity:0.2}));
         for(let wy=2; wy<b.h-1; wy+=BUILDING_CONFIG.windowSpacingY){
             for(let wx=-b.w/2+1.5; wx<b.w/2-1; wx+=BUILDING_CONFIG.windowSpacingX){
                 const win=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.windowSize.w,BUILDING_CONFIG.windowSize.h,BUILDING_CONFIG.windowSize.d), winM);
@@ -339,7 +346,8 @@ function buildCity() {
             }
         }
         // Door
-        const door=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.doorSize.w,BUILDING_CONFIG.doorSize.h,BUILDING_CONFIG.doorSize.d), toon(0x885533));
+        var doorMat=(currentCityStyle===0&&typeof _visualSurfaceMaterial==='function')?_visualSurfaceMaterial('facade',0x885533,{roughness:0.88}):toon(0x885533);
+        const door=new THREE.Mesh(new THREE.BoxGeometry(BUILDING_CONFIG.doorSize.w,BUILDING_CONFIG.doorSize.h,BUILDING_CONFIG.doorSize.d), doorMat);
         door.position.set(b.x, BUILDING_CONFIG.doorSize.h/2, b.z+b.d/2+0.07); cityGroup.add(door); bMeshes.push(door);
 
         _decorateDefaultBuilding(b,bMeshes,col,st,i);
@@ -418,9 +426,11 @@ function buildCity() {
 
 // ---- Grand Roman Wishing Fountain (Trevi-style) — skip for Sakura City ----
     if(currentCityStyle!==6&&currentCityStyle!==7){
-    var stoneM=toon(0xCCBBAA);var stoneD=toon(0xAA9988);var marbleM=toon(0xEEE8DD);
-    var waterM=toon(0x44AADD,{transparent:true,opacity:0.55});
-    var goldM=toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
+    var stoneM=currentCityStyle===0&&typeof softPBR==='function'?softPBR(0xCCBBAA,{roughness:0.82}):toon(0xCCBBAA);
+    var stoneD=currentCityStyle===0&&typeof softPBR==='function'?softPBR(0xAA9988,{roughness:0.88}):toon(0xAA9988);
+    var marbleM=currentCityStyle===0&&typeof softPBR==='function'?softPBR(0xEEE8DD,{roughness:0.48}):toon(0xEEE8DD);
+    var waterM=currentCityStyle===0?(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?new THREE.MeshPhongMaterial({color:0x52BFEA,shininess:70,transparent:true,opacity:0.62,depthWrite:false}):new THREE.MeshPhysicalMaterial({color:0x52BFEA,roughness:0.14,metalness:0.0,clearcoat:0.75,clearcoatRoughness:0.16,transparent:true,opacity:0.62,depthWrite:false})):toon(0x44AADD,{transparent:true,opacity:0.55});
+    var goldM=currentCityStyle===0&&typeof softPBR==='function'?softPBR(0xFFD84B,{roughness:0.28,metalness:0.28,emissive:0x7A4300,emissiveIntensity:0.16}):toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
     // Outer pool — large circular basin
     var poolOuter=new THREE.Mesh(new THREE.TorusGeometry(7,0.8,8,24),stoneM);
     poolOuter.position.y=0.4;poolOuter.rotation.x=Math.PI/2;cityGroup.add(poolOuter);
@@ -547,8 +557,8 @@ function buildCity() {
 
     // ---- Streams & Canals (water city style 0) ----
     if(currentCityStyle===0){
-        var streamMat=toon(0x44AACC,{transparent:true,opacity:0.5});
-        var bankMat=toon(0x88AA77);
+        var streamMat=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?new THREE.MeshPhongMaterial({color:0x48B9E6,shininess:60,transparent:true,opacity:0.54,depthWrite:false}):new THREE.MeshPhysicalMaterial({color:0x48B9E6,roughness:0.16,clearcoat:0.68,clearcoatRoughness:0.18,transparent:true,opacity:0.54,depthWrite:false});
+        var bankMat=typeof softPBR==='function'?softPBR(0x88AA77,{roughness:0.90}):toon(0x88AA77);
         // 4 canals radiating from central fountain to city edges
         var canalDirs=[{dx:1,dz:0},{dx:-1,dz:0},{dx:0,dz:1},{dx:0,dz:-1}];
         for(var cdi=0;cdi<4;cdi++){

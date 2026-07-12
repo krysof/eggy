@@ -679,7 +679,14 @@ function applyCityTheme(){
         if(currentCityStyle===7){rimLight.color.setHex(0xE3EFFF);rimLight.intensity=0.28;}
         else if(currentCityStyle===3){rimLight.color.setHex(0xFFC2A6);rimLight.intensity=0.18;}
         else if(currentCityStyle===2){rimLight.color.setHex(0xE5F6FF);rimLight.intensity=0.24;}
-        else{rimLight.color.setHex(0xD0F0FF);rimLight.intensity=0.18;}
+        else if(currentCityStyle===0){rimLight.color.setHex(0xD8F6FF);rimLight.intensity=0.36;}
+        else{rimLight.color.setHex(0xD0F0FF);rimLight.intensity=0.22;}
+    }
+    if(typeof softFillLight!=='undefined'){
+        softFillLight.visible=currentCityStyle!==5;
+        if(currentCityStyle===0){softFillLight.color.setHex(0xFFD8C2);softFillLight.intensity=0.24;}
+        else if(currentCityStyle===3){softFillLight.color.setHex(0xFF8A55);softFillLight.intensity=0.18;}
+        else{softFillLight.color.setHex(0xFFE3D4);softFillLight.intensity=0.14;}
     }
     // Sun visibility — only in ground cities, not on moon
     var isMoon=(currentCityStyle===5);

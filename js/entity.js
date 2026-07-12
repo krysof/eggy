@@ -368,9 +368,10 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
     var type=charType||'egg';
     accent=(accent===undefined||accent===null)?0xFF6F7D:accent;
     var bodyGeo=new THREE.SphereGeometry(0.62,24,16);
-    var body=new THREE.Mesh(bodyGeo,toon(color,{pastelAmount:0.20}));
+    var bodyMat=typeof softPBR==='function'?softPBR(color,{pastelAmount:0.11,roughness:0.43,metalness:0.0}):toon(color,{pastelAmount:0.16});
+    var body=new THREE.Mesh(bodyGeo,bodyMat);
     body.position.y=0.72;
-    body.receiveShadow=true;
+    body.castShadow=true;body.receiveShadow=true;
     var bodyScale={x:1,y:1.03,z:1};
     if(type==='bull'||type==='cat')bodyScale={x:1.06,y:0.99,z:1.04};
     else if(type==='bear')bodyScale={x:1.12,y:1.04,z:1.08};
@@ -429,7 +430,7 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
 
     // Soft side nubs, not gloves/human arms.
     var decorArms=[];
-    var armMat=toon(color,{pastelAmount:0.20});
+    var armMat=typeof softPBR==='function'?softPBR(color,{pastelAmount:0.11,roughness:0.48}):toon(color,{pastelAmount:0.16});
     [-1,1].forEach(function(s){
         var armG=new THREE.Group();
         var arm=new THREE.Mesh(new THREE.SphereGeometry(type==='bear'?0.15:0.12,12,8),armMat);
@@ -442,10 +443,11 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
 
     // Feet are the main accent, like a simple round mascot.
     var ftG=new THREE.SphereGeometry(0.15,12,8);ftG.scale(1.35,0.48,1.60);
-    var ftM=toon(_charMixHex(accent,0xFF7777,0.15),{emissive:accent,emissiveIntensity:0.05});
+    var footColor=_charMixHex(accent,0xFF7777,0.15);
+    var ftM=typeof softPBR==='function'?softPBR(footColor,{roughness:0.40,emissive:accent,emissiveIntensity:0.035}):toon(footColor,{emissive:accent,emissiveIntensity:0.05});
     var feet=[];
     [-1,1].forEach(function(s){
-        var ft=new THREE.Mesh(ftG,ftM);
+        var ft=new THREE.Mesh(ftG,ftM);ft.castShadow=true;
         ft.position.set(s*0.24,0.07,0.12);g.add(ft);feet.push(ft);
     });
 

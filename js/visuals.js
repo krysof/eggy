@@ -52,6 +52,76 @@ function _visualCreateFlareTexture(){
 }
 var _visualSoftTex=_visualCreateSoftCircleTexture();
 var _visualFlareTex=_visualCreateFlareTexture();
+var _visualSurfaceTextures={};
+
+function _visualSeededRandom(seed){
+    var s=seed>>>0;
+    return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296;};
+}
+function _visualSurfaceTexture(kind){
+    if(_visualSurfaceTextures[kind])return _visualSurfaceTextures[kind];
+    var size=kind==='facade'?256:512;
+    var c=document.createElement('canvas');c.width=size;c.height=size;
+    var ctx=c.getContext('2d');
+    var rnd=_visualSeededRandom(kind==='grass'?713:kind==='path'?1223:kind==='roof'?2213:3371);
+    ctx.fillStyle=kind==='grass'?'#eef3e8':(kind==='path'?'#eee9df':(kind==='roof'?'#eee9e3':'#f2f0ec'));
+    ctx.fillRect(0,0,size,size);
+    var count=kind==='grass'?2100:(kind==='path'?1500:900);
+    for(var i=0;i<count;i++){
+        var v=Math.floor(205+rnd()*46);
+        var alpha=kind==='facade'?0.12:(kind==='roof'?0.16:0.20);
+        ctx.fillStyle='rgba('+v+','+v+','+v+','+alpha+')';
+        var x=rnd()*size,y=rnd()*size;
+        var w=kind==='grass'?(0.5+rnd()*2.2):(1+rnd()*3.2);
+        var h=kind==='grass'?(1+rnd()*5.5):(0.7+rnd()*2.3);
+        ctx.save();ctx.translate(x,y);ctx.rotate((rnd()-0.5)*1.2);ctx.fillRect(-w/2,-h/2,w,h);ctx.restore();
+    }
+    if(kind==='path'){
+        ctx.strokeStyle='rgba(130,115,92,.11)';ctx.lineWidth=2;
+        for(var p=0;p<22;p++){ctx.beginPath();ctx.moveTo(0,rnd()*size);ctx.bezierCurveTo(size*.3,rnd()*size,size*.7,rnd()*size,size,rnd()*size);ctx.stroke();}
+    } else if(kind==='facade'){
+        ctx.strokeStyle='rgba(120,110,105,.08)';ctx.lineWidth=1;
+        for(var fy=12;fy<size;fy+=18){ctx.beginPath();ctx.moveTo(0,fy);ctx.lineTo(size,fy+(rnd()-0.5)*2);ctx.stroke();}
+    } else if(kind==='roof'){
+        ctx.strokeStyle='rgba(105,85,75,.13)';ctx.lineWidth=2;
+        for(var ry=8;ry<size;ry+=16){ctx.beginPath();ctx.moveTo(0,ry);ctx.lineTo(size,ry);ctx.stroke();}
+    }
+    var tex=new THREE.CanvasTexture(c);
+    tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+    tex.repeat.set(kind==='grass'?18:(kind==='path'?7:4),kind==='grass'?18:(kind==='path'?7:4));
+    tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;
+    tex.anisotropy=Math.min(8,(typeof R!=='undefined'&&R.capabilities)?R.capabilities.getMaxAnisotropy():4);
+    if(THREE.SRGBColorSpace!==undefined)tex.colorSpace=THREE.SRGBColorSpace;
+    _visualSurfaceTextures[kind]=tex;
+    return tex;
+}
+function _visualSurfaceMaterial(kind,color,opts){
+    opts=opts||{};
+    var base={map:_visualSurfaceTexture(kind),roughness:kind==='roof'?0.60:(kind==='facade'?0.76:0.92),metalness:0};
+    for(var k in opts)base[k]=opts[k];
+    return typeof softPBR==='function'?softPBR(color,base):toon(color,base);
+}
+function _visualRoundedRectGeometry(w,d,r){
+    r=Math.max(0.1,Math.min(r===undefined?1.1:r,w*0.48,d*0.48));
+    var x=-w/2,z=-d/2,s=new THREE.Shape();
+    s.moveTo(x+r,z);s.lineTo(x+w-r,z);s.quadraticCurveTo(x+w,z,x+w,z+r);
+    s.lineTo(x+w,z+d-r);s.quadraticCurveTo(x+w,z+d,x+w-r,z+d);
+    s.lineTo(x+r,z+d);s.quadraticCurveTo(x,z+d,x,z+d-r);
+    s.lineTo(x,z+r);s.quadraticCurveTo(x,z,x+r,z);
+    return new THREE.ShapeGeometry(s,4);
+}
+function _visualRoundedBoxGeometry(w,h,d,r){
+    r=Math.max(0.12,Math.min(r===undefined?0.48:r,w*0.22,h*0.22));
+    var x=-w/2,y=-h/2,s=new THREE.Shape();
+    s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);
+    s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);
+    s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);
+    var bevel=Math.min(0.16,d*0.08,r*0.34);
+    var geo=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.1,d-bevel*2),steps:1,curveSegments:3,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:2});
+    geo.center();geo.computeVertexNormals();
+    return geo;
+}
 
 function _visualColorToCss(hex){
     hex=(hex===undefined?0xffffff:hex)>>>0;
@@ -134,13 +204,64 @@ function _visualAddGlow(x,y,z,color,w,h,opacity,phase,tex){
 }
 
 function _visualAddPlayerShadow(style){
-    var mat=new THREE.MeshBasicMaterial({map:_visualSoftTex,color:0x000000,transparent:true,opacity:style===5?0.22:0.18,depthWrite:false,depthTest:true});
+    var mat=new THREE.MeshBasicMaterial({map:_visualSoftTex,color:0x172719,transparent:true,opacity:style===0?0.27:(style===5?0.22:0.18),depthWrite:false,depthTest:true});
     var sh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),mat);
     sh.rotation.x=-Math.PI/2;
     sh.scale.set(3.2,2.1,1);
     sh.renderOrder=3;
     _visualFXGroup.add(sh);
     _visualFXState.playerShadow=sh;
+}
+
+function _visualAddBuildingContactShadows(style){
+    if(style!==0||typeof cityBuildingMeshes==='undefined'||!cityBuildingMeshes.length)return;
+    var mat=new THREE.MeshBasicMaterial({
+        map:_visualSoftTex,color:0x183622,transparent:true,opacity:0.17,
+        depthWrite:false,depthTest:true,polygonOffset:true,polygonOffsetFactor:-2
+    });
+    var geo=new THREE.PlaneGeometry(1,1);
+    var mesh=new THREE.InstancedMesh(geo,mat,cityBuildingMeshes.length);
+    var d=new THREE.Object3D();
+    for(var i=0;i<cityBuildingMeshes.length;i++){
+        var b=cityBuildingMeshes[i];
+        d.position.set(b.x,0.071,b.z+0.18);
+        d.rotation.set(-Math.PI/2,0,0);
+        d.scale.set(Math.max(3,(b.hw||3)*2.55),Math.max(3,(b.hd||3)*2.55),1);
+        d.updateMatrix();mesh.setMatrixAt(i,d.matrix);
+    }
+    mesh.name='hope-building-contact-shadows';mesh.renderOrder=2;
+    _visualFXGroup.add(mesh);_visualFXState.instanced.push(mesh);
+}
+
+function _visualAddHopeGroundPatches(){
+    var count=34,geo=new THREE.CircleGeometry(1,18);
+    var mat=new THREE.MeshBasicMaterial({color:0xD9F0AA,transparent:true,opacity:0.105,depthWrite:false,fog:true});
+    var mesh=new THREE.InstancedMesh(geo,mat,count),d=new THREE.Object3D();
+    for(var i=0;i<count;i++){
+        var p=_visualRandomInCity(0),sx=4+Math.random()*14,sz=3+Math.random()*10;
+        d.position.set(p.x,0.066,p.z);d.rotation.set(-Math.PI/2,0,Math.random()*Math.PI);d.scale.set(sx,sz,1);
+        d.updateMatrix();mesh.setMatrixAt(i,d.matrix);
+    }
+    mesh.name='hope-soft-meadow-patches';mesh.renderOrder=1;
+    _visualFXGroup.add(mesh);_visualFXState.instanced.push(mesh);
+}
+
+function _visualAddPuffyClouds(){
+    var clusters=13,per=5,count=clusters*per;
+    var geo=new THREE.SphereGeometry(1,10,7);
+    var mat=typeof softPBR==='function'?softPBR(0xFFFFFF,{roughness:1,transparent:true,opacity:0.88,depthWrite:false,fog:true}):toon(0xFFFFFF,{transparent:true,opacity:0.88,depthWrite:false});
+    var mesh=new THREE.InstancedMesh(geo,mat,count),d=new THREE.Object3D(),n=0;
+    for(var c=0;c<clusters;c++){
+        var a=c/clusters*Math.PI*2+0.2,rad=125+(c%4)*22,cy=45+(c%5)*7;
+        for(var j=0;j<per;j++){
+            var size=4.5+(j%3)*1.8;
+            d.position.set(Math.cos(a)*rad+(j-2)*4.2,cy+Math.sin(j*1.7)*2.2,Math.sin(a)*rad+(j%2)*3.2);
+            d.scale.set(size*(1.25+(j%2)*0.18),size*(0.58+(j%3)*0.08),size);
+            d.rotation.set(0,a,0);d.updateMatrix();mesh.setMatrixAt(n++,d.matrix);
+        }
+    }
+    mesh.name='hope-puffy-clouds';mesh.frustumCulled=false;
+    _visualFXGroup.add(mesh);_visualFXState.instanced.push(mesh);
 }
 
 function _visualAddHorizon(style,st,mood){
@@ -171,6 +292,7 @@ function _visualAddHorizon(style,st,mood){
 
 function _visualAddAtmosphericClouds(style,mood){
     if(style===5||style===7)return;
+    if(style===0){_visualAddPuffyClouds();return;}
     var cloudColor=style===3?0xFF7744:(style===1?0xFFE4A8:(style===4?0xFFE7FF:0xFFFFFF));
     var cloudCount=style===3?10:18;
     for(var i=0;i<cloudCount;i++){
@@ -297,7 +419,7 @@ function _visualAddGroundInstanced(style,st,mood){
 }
 
 function _visualAddBuildingHalos(style,mood){
-    if(typeof cityBuildingMeshes==='undefined'||style===5)return;
+    if(typeof cityBuildingMeshes==='undefined'||style===5||style===0)return;
     var max=Math.min(cityBuildingMeshes.length,style===7?42:34);
     var color=(style===7)?0xFFD28A:(style===3?0xFF6A22:(style===2?0xCCF8FF:(style===6?0xFFB0C8:0xFFF3B0)));
     for(var i=0;i<max;i++){
@@ -445,6 +567,7 @@ function _rebuildCityVisualFX(style,st){
     _visualAddHorizon(style,st,mood);
     _visualAddAtmosphericClouds(style,mood);
     _visualAddGroundInstanced(style,st,mood);
+    if(style===0){_visualAddHopeGroundPatches();_visualAddBuildingContactShadows(style);}
     _visualAddBuildingHalos(style,mood);
     _visualAddCitySpecific(style,st,mood);
 }

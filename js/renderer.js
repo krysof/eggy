@@ -3,8 +3,30 @@
 const root = document.getElementById('three-root');
 const R = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance', stencil:false});
 R.setSize(innerWidth,innerHeight);
+var _visualQualityPref='auto';
+try{_visualQualityPref=localStorage.getItem('danbo_visual_quality')||'auto';}catch(e){}
+var _visualQualityMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||'');
+var _visualQualityMemory=Number(navigator.deviceMemory||4);
+var _visualQualityCores=Number(navigator.hardwareConcurrency||4);
+var _visualQualityMode=_visualQualityPref;
+if(['low','balanced','high'].indexOf(_visualQualityMode)<0){
+    _visualQualityMode=(!_visualQualityMobile&&_visualQualityMemory>=6&&_visualQualityCores>=6)?'high':'balanced';
+}
+window.DANBO_VISUAL_QUALITY={
+    requested:_visualQualityPref,
+    mode:_visualQualityMode,
+    high:_visualQualityMode==='high',
+    low:_visualQualityMode==='low',
+    postScale:_visualQualityMode==='high'?1.0:(_visualQualityMode==='low'?0.68:0.84)
+};
+window.setDanboVisualQuality=function(mode){
+    mode=['low','balanced','high','auto'].indexOf(mode)>=0?mode:'auto';
+    try{localStorage.setItem('danbo_visual_quality',mode);}catch(e){}
+    location.reload();
+};
 var _pixelRatioMin=RENDER_CONFIG.pixelRatioMin||1.0;
-var _pixelRatioMax=Math.min(devicePixelRatio||1,RENDER_CONFIG.pixelRatioMax||2);
+var _qualityDprCap=_visualQualityMode==='high'?(RENDER_CONFIG.pixelRatioMax||2):(_visualQualityMode==='low'?1.25:1.65);
+var _pixelRatioMax=Math.min(devicePixelRatio||1,_qualityDprCap);
 var _renderPixelRatio=_pixelRatioMax;
 function _setRenderPixelRatio(v){
     _renderPixelRatio=Math.max(_pixelRatioMin,Math.min(_pixelRatioMax,v));
@@ -14,9 +36,10 @@ _setRenderPixelRatio(_renderPixelRatio);
 R.shadowMap.enabled = true;
 R.shadowMap.type = THREE.PCFSoftShadowMap;
 R.outputColorSpace = THREE.SRGBColorSpace;
-if(THREE.LinearToneMapping!==undefined)R.toneMapping=THREE.LinearToneMapping;
-else if(THREE.ACESFilmicToneMapping!==undefined)R.toneMapping=THREE.ACESFilmicToneMapping;
-R.toneMappingExposure=RENDER_CONFIG.toneExposure||1.06;
+if(THREE.ColorManagement)THREE.ColorManagement.enabled=true;
+if(THREE.ACESFilmicToneMapping!==undefined)R.toneMapping=THREE.ACESFilmicToneMapping;
+else if(THREE.LinearToneMapping!==undefined)R.toneMapping=THREE.LinearToneMapping;
+R.toneMappingExposure=RENDER_CONFIG.toneExposure||1.0;
 root.appendChild(R.domElement);
 
 const scene = new THREE.Scene();
@@ -26,7 +49,7 @@ scene.fog = new THREE.Fog(RENDER_CONFIG.fogColor, RENDER_CONFIG.fogNear, RENDER_
 const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 2000000);
 window.addEventListener('resize', ()=>{
     R.setSize(innerWidth,innerHeight);
-    _pixelRatioMax=Math.min(devicePixelRatio||1,RENDER_CONFIG.pixelRatioMax||2);
+    _pixelRatioMax=Math.min(devicePixelRatio||1,_qualityDprCap);
     _setRenderPixelRatio(_renderPixelRatio);
     camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
 });
@@ -35,15 +58,20 @@ window.addEventListener('resize', ()=>{
 scene.add(new THREE.AmbientLight(0xffffff, RENDER_CONFIG.ambientIntensity));
 const sun = new THREE.DirectionalLight(RENDER_CONFIG.sunColor, RENDER_CONFIG.sunIntensity);
 sun.position.set(RENDER_CONFIG.sunPos.x,RENDER_CONFIG.sunPos.y,RENDER_CONFIG.sunPos.z); sun.castShadow=true;
-sun.shadow.mapSize.set(RENDER_CONFIG.shadowMapSize,RENDER_CONFIG.shadowMapSize);
+var _shadowQualitySize=_visualQualityMode==='high'?RENDER_CONFIG.shadowMapSize:(_visualQualityMode==='low'?1024:2048);
+sun.shadow.mapSize.set(_shadowQualitySize,_shadowQualitySize);
 const ssc=sun.shadow.camera; ssc.left=-RENDER_CONFIG.shadowRange;ssc.right=RENDER_CONFIG.shadowRange;ssc.top=RENDER_CONFIG.shadowRange;ssc.bottom=-RENDER_CONFIG.shadowRange;ssc.near=RENDER_CONFIG.shadowNear;ssc.far=RENDER_CONFIG.shadowFar;
 sun.shadow.bias=RENDER_CONFIG.shadowBias;
-sun.shadow.radius=4.5;
+sun.shadow.normalBias=0.025;
+sun.shadow.radius=_visualQualityMode==='high'?4.8:3.0;
 scene.add(sun); scene.add(sun.target);
 scene.add(new THREE.HemisphereLight(RENDER_CONFIG.hemiSkyColor,RENDER_CONFIG.hemiGroundColor,RENDER_CONFIG.hemiIntensity));
-const rimLight = new THREE.DirectionalLight(0xD0F0FF,0.18);
+const rimLight = new THREE.DirectionalLight(0xD8F4FF,0.34);
 rimLight.position.set(-50,45,-60);
 scene.add(rimLight);
+const softFillLight = new THREE.DirectionalLight(0xFFD9C7,0.20);
+softFillLight.position.set(35,24,55);
+scene.add(softFillLight);
 // Sun visual mesh (visible in ground cities)
 var _sunMesh=new THREE.Mesh(new THREE.SphereGeometry(8,16,12),new THREE.MeshBasicMaterial({color:0xFFEE44,fog:false}));
 _sunMesh.position.copy(sun.position).multiplyScalar(3);

@@ -97,12 +97,11 @@ function L(key){var v=I18N[key];if(!v)return key;if(typeof v==='string')return v
 
 // ---- Toon gradient ----
 const _tc = document.createElement('canvas');
-_tc.width = 4; _tc.height = 1;
+_tc.width = 8; _tc.height = 1;
 const _tg = _tc.getContext('2d');
-_tg.fillStyle='#888';_tg.fillRect(0,0,1,1);
-_tg.fillStyle='#b8b8b8';_tg.fillRect(1,0,1,1);
-_tg.fillStyle='#e8e8e8';_tg.fillRect(2,0,1,1);
-_tg.fillStyle='#fff';_tg.fillRect(3,0,1,1);
+['#696969','#818181','#999999','#b1b1b1','#c9c9c9','#dddddd','#eeeeee','#ffffff'].forEach(function(c,i){
+    _tg.fillStyle=c;_tg.fillRect(i,0,1,1);
+});
 const toonTex = new THREE.CanvasTexture(_tc);
 toonTex.minFilter = THREE.NearestFilter; toonTex.magFilter = THREE.NearestFilter;
 
@@ -137,4 +136,24 @@ function toon(color, opts) {
     delete opts.noPastel;delete opts.pastelAmount;
     var pastelColor=noPastel?color:_cutePastelHex(color,pastelAmount);
     return new THREE.MeshToonMaterial({color:pastelColor, gradientMap:toonTex, ...opts});
+}
+
+// Soft stylized PBR for hero surfaces. It keeps the rounded Nintendo-like
+// toy finish while still reacting to the real sun, fill and environment light.
+function softPBR(color,opts){
+    if(color===undefined||color===null)color=0xffffff;
+    opts=_cleanMaterialOptions(opts);
+    var pastelAmount=opts.pastelAmount;
+    delete opts.pastelAmount;
+    var c=_cutePastelHex(color,pastelAmount===undefined?0.07:pastelAmount);
+    if(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low){
+        delete opts.roughness;delete opts.metalness;delete opts.clearcoat;delete opts.clearcoatRoughness;
+        return new THREE.MeshLambertMaterial({color:c,...opts});
+    }
+    return new THREE.MeshStandardMaterial({
+        color:c,
+        roughness:opts.roughness===undefined?0.72:opts.roughness,
+        metalness:opts.metalness===undefined?0.0:opts.metalness,
+        ...opts
+    });
 }

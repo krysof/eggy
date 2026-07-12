@@ -12,7 +12,7 @@ var _postFXSize=new THREE.Vector2(1,1);
 var _postFXFrame=0;
 
 var _postFXMood=[
-    {bloom:0.20,sat:0.99,contrast:0.94,exposure:1.06,vignette:0.10,warm:0.040,threshold:0.70},
+    {bloom:0.18,sat:1.035,contrast:0.995,exposure:1.045,vignette:0.12,warm:0.018,threshold:0.72},
     {bloom:0.18,sat:1.00,contrast:0.94,exposure:1.06,vignette:0.12,warm:0.075,threshold:0.68},
     {bloom:0.20,sat:0.98,contrast:0.93,exposure:1.08,vignette:0.10,warm:-0.015,threshold:0.68},
     {bloom:0.26,sat:1.02,contrast:0.96,exposure:1.04,vignette:0.18,warm:0.070,threshold:0.63},
@@ -82,39 +82,32 @@ function _initCinematicPostFX(){
             '  vec2 uv=vUv;',
             '  vec2 px=1.0/max(resolution,vec2(1.0));',
             '  float edge=length(uv-0.5);',
-            '  vec2 chroma=(uv-0.5)*px*0.75*smoothstep(0.45,0.95,edge);',
-            '  vec3 col;',
-            '  col.r=texture2D(tDiffuse,uv+chroma).r;',
-            '  col.g=texture2D(tDiffuse,uv).g;',
-            '  col.b=texture2D(tDiffuse,uv-chroma).b;',
+            '  vec3 col=texture2D(tDiffuse,uv).rgb;',
+            '  vec3 n1=texture2D(tDiffuse,uv+vec2(px.x,0.0)).rgb;',
+            '  vec3 n2=texture2D(tDiffuse,uv-vec2(px.x,0.0)).rgb;',
+            '  vec3 n3=texture2D(tDiffuse,uv+vec2(0.0,px.y)).rgb;',
+            '  vec3 n4=texture2D(tDiffuse,uv-vec2(0.0,px.y)).rgb;',
+            '  vec3 localAvg=(n1+n2+n3+n4)*0.25;',
+            '  col += (col-localAvg)*0.12;',
             '  vec3 bloom=vec3(0.0);',
-            '  vec2 d1=px*vec2(2.0,2.0);',
-            '  vec2 d2=px*vec2(5.0,5.0);',
-            '  vec2 d3=px*vec2(9.0,9.0);',
-            '  bloom += brightSample(uv+vec2( d1.x, 0.0));',
-            '  bloom += brightSample(uv+vec2(-d1.x, 0.0));',
-            '  bloom += brightSample(uv+vec2(0.0,  d1.y));',
-            '  bloom += brightSample(uv+vec2(0.0, -d1.y));',
-            '  bloom += brightSample(uv+vec2( d2.x, d2.y))*0.72;',
-            '  bloom += brightSample(uv+vec2(-d2.x, d2.y))*0.72;',
-            '  bloom += brightSample(uv+vec2( d2.x,-d2.y))*0.72;',
-            '  bloom += brightSample(uv+vec2(-d2.x,-d2.y))*0.72;',
-            '  bloom += brightSample(uv+vec2( d3.x, 0.0))*0.42;',
-            '  bloom += brightSample(uv+vec2(-d3.x, 0.0))*0.42;',
-            '  bloom += brightSample(uv+vec2(0.0,  d3.y))*0.42;',
-            '  bloom += brightSample(uv+vec2(0.0, -d3.y))*0.42;',
-            '  bloom/=8.2;',
+            '  vec2 d1=px*2.25;',
+            '  vec2 d2=px*5.25;',
+            '  bloom += brightSample(uv+vec2( d1.x, 0.0))*1.0;',
+            '  bloom += brightSample(uv+vec2(-d1.x, 0.0))*1.0;',
+            '  bloom += brightSample(uv+vec2(0.0,  d1.y))*1.0;',
+            '  bloom += brightSample(uv+vec2(0.0, -d1.y))*1.0;',
+            '  bloom += brightSample(uv+vec2( d2.x, d2.y))*0.55;',
+            '  bloom += brightSample(uv+vec2(-d2.x, d2.y))*0.55;',
+            '  bloom += brightSample(uv+vec2( d2.x,-d2.y))*0.55;',
+            '  bloom += brightSample(uv+vec2(-d2.x,-d2.y))*0.55;',
+            '  bloom/=6.2;',
             '  col += bloom*uBloom;',
             '  col *= vec3(1.0+uWarmth*0.75,1.0+uWarmth*0.16,1.0-uWarmth*0.60);',
             '  col = (col-0.5)*uContrast+0.5;',
             '  float g=luma(col);',
             '  col=mix(vec3(g),col,uSaturation);',
             '  col=max(col,vec3(0.0))*uExposure;',
-            '  vec3 shoulder=col/(col+vec3(0.62))*1.36;',
-            '  col=mix(col,shoulder,0.04);',
-            '  col=pow(max(col,vec3(0.0)),vec3(0.98));',
-            '  col=col*0.940+vec3(0.058,0.052,0.055);',
-            '  col=mix(col,vec3(1.0,0.960,0.935),0.065);',
+            '  col=col*0.987+vec3(0.013,0.012,0.010);',
             '  float vig=smoothstep(uVignette,0.92,edge);',
             '  col*=mix(1.0,0.92,vig);',
             '  col += (hash(gl_FragCoord.xy+time*17.0)-0.5)/255.0;',
@@ -129,8 +122,9 @@ function _initCinematicPostFX(){
 function _updatePostFXSize(){
     if(!_postFXRT)return;
     R.getDrawingBufferSize(_postFXSize);
-    var w=Math.max(1,Math.floor(_postFXSize.x));
-    var h=Math.max(1,Math.floor(_postFXSize.y));
+    var scale=(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.postScale)||1;
+    var w=Math.max(1,Math.floor(_postFXSize.x*scale));
+    var h=Math.max(1,Math.floor(_postFXSize.y*scale));
     if(_postFXRT.width!==w||_postFXRT.height!==h){
         _postFXRT.setSize(w,h);
         _postFXMat.uniforms.resolution.value.set(w,h);
@@ -142,7 +136,8 @@ function _updatePostFXMood(){
     var style=(typeof currentCityStyle==='number')?currentCityStyle:0;
     var m=_postFXMood[style]||_postFXMood[0];
     var u=_postFXMat.uniforms;
-    u.uBloom.value=m.bloom;
+    var q=(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.mode)||'high';
+    u.uBloom.value=m.bloom*(q==='low'?0.58:(q==='balanced'?0.82:1));
     u.uSaturation.value=m.sat;
     u.uContrast.value=m.contrast;
     u.uExposure.value=m.exposure;

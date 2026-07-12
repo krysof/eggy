@@ -86,14 +86,14 @@ var CAMERA_CONFIG={
 var RENDER_CONFIG={
     fogNear:80, fogFar:400,
     fogColor:0x87CEEB,
-    sunColor:0xFFF8EA, sunIntensity:0.78,
+    sunColor:0xFFF4DE, sunIntensity:1.18,
     sunPos:{x:60,y:80,z:40},
     shadowMapSize:4096, shadowBias:-0.001,
     shadowRange:120, shadowNear:1, shadowFar:300,
-    ambientIntensity:1.28,
-    hemiSkyColor:0xe5f8ff, hemiGroundColor:0xd7efbd, hemiIntensity:1.05,
+    ambientIntensity:0.78,
+    hemiSkyColor:0xDDF4FF, hemiGroundColor:0x9DBD87, hemiIntensity:0.96,
     pixelRatioMin:1.0, pixelRatioMax:2.0,
-    toneExposure:1.06
+    toneExposure:1.14
 };
 
 // ---- Portal (race entrance) parameters ----
