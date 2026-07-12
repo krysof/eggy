@@ -12,7 +12,7 @@ var _postFXSize=new THREE.Vector2(1,1);
 var _postFXFrame=0;
 
 var _postFXMood=[
-    {bloom:0.18,sat:1.035,contrast:0.995,exposure:1.045,vignette:0.12,warm:0.018,threshold:0.72},
+    {bloom:0.22,sat:1.10,contrast:1.015,exposure:1.10,vignette:0.07,warm:0.028,threshold:0.69},
     {bloom:0.18,sat:1.00,contrast:0.94,exposure:1.06,vignette:0.12,warm:0.075,threshold:0.68},
     {bloom:0.20,sat:0.98,contrast:0.93,exposure:1.08,vignette:0.10,warm:-0.015,threshold:0.68},
     {bloom:0.26,sat:1.02,contrast:0.96,exposure:1.04,vignette:0.18,warm:0.070,threshold:0.63},

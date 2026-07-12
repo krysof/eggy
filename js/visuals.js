@@ -122,6 +122,19 @@ function _visualRoundedBoxGeometry(w,h,d,r){
     geo.center();geo.computeVertexNormals();
     return geo;
 }
+function _visualStarExtrudeGeometry(outerR,innerR,depth){
+    var shape=new THREE.Shape(),points=5;
+    for(var i=0;i<points*2;i++){
+        var a=-Math.PI/2+i*Math.PI/points;
+        var rr=i%2===0?outerR:innerR;
+        var x=Math.cos(a)*rr,y=Math.sin(a)*rr;
+        if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y);
+    }
+    shape.closePath();
+    var geo=new THREE.ExtrudeGeometry(shape,{depth:depth,steps:1,bevelEnabled:true,bevelThickness:depth*0.28,bevelSize:depth*0.20,bevelSegments:2});
+    geo.center();geo.computeVertexNormals();
+    return geo;
+}
 
 function _visualColorToCss(hex){
     hex=(hex===undefined?0xffffff:hex)>>>0;
@@ -246,6 +259,90 @@ function _visualAddHopeGroundPatches(){
     _visualFXGroup.add(mesh);_visualFXState.instanced.push(mesh);
 }
 
+function _visualAddHopeMeadowShowcase(){
+    var rnd=_visualSeededRandom(7122026);
+    var dummy=new THREE.Object3D();
+    // Rounded terrain pillows replace the impression of one perfectly flat plane.
+    var moundCount=22,moundGeo=new THREE.SphereGeometry(1,14,8,0,Math.PI*2,0,Math.PI*0.52);
+    var moundMat=typeof softPBR==='function'?softPBR(0xFFFFFF,{roughness:0.98}):toon(0xFFFFFF);
+    var mounds=new THREE.InstancedMesh(moundGeo,moundMat,moundCount);
+    var moundColors=[new THREE.Color(0x5BBE61),new THREE.Color(0x79CD68),new THREE.Color(0x9AD879)];
+    for(var mi=0;mi<moundCount;mi++){
+        var ma=mi/moundCount*Math.PI*2+0.12, mr=34+(mi%4)*19;
+        dummy.position.set(Math.cos(ma)*mr,-0.15,Math.sin(ma)*mr);
+        dummy.scale.set(5.5+rnd()*7.5,1.2+rnd()*1.8,4.5+rnd()*6.5);
+        dummy.rotation.set(0,rnd()*Math.PI,0);dummy.updateMatrix();mounds.setMatrixAt(mi,dummy.matrix);
+        mounds.setColorAt(mi,moundColors[mi%moundColors.length]);
+    }
+    if(mounds.instanceColor)mounds.instanceColor.needsUpdate=true;
+    mounds.name='hope-rounded-meadow-mounds';mounds.receiveShadow=true;
+    _visualFXGroup.add(mounds);_visualFXState.instanced.push(mounds);
+
+    // Dense but inexpensive flower field: two instanced draw calls for stems and heads.
+    var flowerCount=(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low)?90:180;
+    var stemGeo=new THREE.CylinderGeometry(0.032,0.052,0.72,6);
+    var stemMat=typeof softPBR==='function'?softPBR(0x4E9E4A,{roughness:0.92}):toon(0x4E9E4A);
+    var stems=new THREE.InstancedMesh(stemGeo,stemMat,flowerCount);
+    var headGeo=_visualStarExtrudeGeometry(0.31,0.145,0.082);
+    var headMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,fog:true});
+    var heads=new THREE.InstancedMesh(headGeo,headMat,flowerCount);
+    var flowerColors=[new THREE.Color(0xFF7DAF),new THREE.Color(0xFFE06A),new THREE.Color(0x79D9FF),new THREE.Color(0xB79CFF),new THREE.Color(0xFFFFFF)];
+    var placed=0,tries=0;
+    var flowerRing=Math.min(44,flowerCount);
+    while(placed<flowerCount&&tries<flowerCount*20){
+        tries++;
+        var fa,fr;
+        if(placed<flowerRing){
+            var ringTry=tries-1;
+            fa=(ringTry%flowerRing)/flowerRing*Math.PI*2+(ringTry%3)*0.018;
+            fr=12.2+(ringTry%4)*1.05;
+        }else{
+            fa=rnd()*Math.PI*2;fr=17+rnd()*108;
+        }
+        var fx=Math.cos(fa)*fr,fz=Math.sin(fa)*fr;
+        if(Math.abs(fx)<5.5||Math.abs(fz)<5.5||_visualAvoidColliders(fx,fz,1.3))continue;
+        var fs=(placed<flowerRing?1.25:0.92)+rnd()*(placed<flowerRing?0.42:1.05);
+        dummy.position.set(fx,0.36*fs,fz);dummy.scale.set(fs,fs,fs);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.updateMatrix();stems.setMatrixAt(placed,dummy.matrix);
+        dummy.position.set(fx,0.79*fs,fz);dummy.scale.set(fs,fs,fs);dummy.rotation.set(-0.12+rnd()*0.24,rnd()*Math.PI*2,-0.12+rnd()*0.24);dummy.updateMatrix();heads.setMatrixAt(placed,dummy.matrix);heads.setColorAt(placed,flowerColors[placed%flowerColors.length]);
+        placed++;
+    }
+    stems.count=heads.count=placed;stems.name='hope-flower-stems';heads.name='hope-star-flowers';
+    if(heads.instanceColor)heads.instanceColor.needsUpdate=true;
+    _visualFXGroup.add(stems);_visualFXGroup.add(heads);_visualFXState.instanced.push(stems,heads);
+
+    // Oversized star stepping stones make the central plaza read clearly from the gameplay camera.
+    var plazaStarCount=18,plazaStarGeo=_visualStarExtrudeGeometry(0.88,0.41,0.12);
+    var plazaStarMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,fog:true});
+    var plazaStars=new THREE.InstancedMesh(plazaStarGeo,plazaStarMat,plazaStarCount);
+    var plazaColors=[new THREE.Color(0xFFE56C),new THREE.Color(0xFF91BA),new THREE.Color(0x84DDFF),new THREE.Color(0xC2A5FF)];
+    for(var psi=0;psi<plazaStarCount;psi++){
+        var psa=psi/plazaStarCount*Math.PI*2,psr=10.7;
+        dummy.position.set(Math.cos(psa)*psr,0.12,Math.sin(psa)*psr);
+        dummy.scale.set(1,1,1);dummy.rotation.set(Math.PI/2,0,-psa+Math.PI/2);dummy.updateMatrix();
+        plazaStars.setMatrixAt(psi,dummy.matrix);plazaStars.setColorAt(psi,plazaColors[psi%plazaColors.length]);
+    }
+    if(plazaStars.instanceColor)plazaStars.instanceColor.needsUpdate=true;
+    plazaStars.name='hope-plaza-star-steps';plazaStars.receiveShadow=true;
+    _visualFXGroup.add(plazaStars);_visualFXState.instanced.push(plazaStars);
+
+    // Soft shrubs give the streets a crafted diorama border instead of an empty lawn.
+    var bushCount=(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low)?42:92;
+    var bushGeo=new THREE.SphereGeometry(1,10,7);
+    var bushMat=typeof softPBR==='function'?softPBR(0xFFFFFF,{roughness:0.88}):toon(0xFFFFFF);
+    var bushes=new THREE.InstancedMesh(bushGeo,bushMat,bushCount);
+    var bushColors=[new THREE.Color(0x45A856),new THREE.Color(0x67C65C),new THREE.Color(0x8DD36B)];
+    placed=0;tries=0;
+    while(placed<bushCount&&tries<bushCount*14){
+        tries++;var ba=rnd()*Math.PI*2,br=18+rnd()*110,bx=Math.cos(ba)*br,bz=Math.sin(ba)*br;
+        if(Math.abs(bx)<8||Math.abs(bz)<8||_visualAvoidColliders(bx,bz,2.4))continue;
+        var bs=0.55+rnd()*1.20;
+        dummy.position.set(bx,0.42*bs,bz);dummy.scale.set(1.15*bs,0.72*bs,bs);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.updateMatrix();bushes.setMatrixAt(placed,dummy.matrix);bushes.setColorAt(placed,bushColors[placed%bushColors.length]);placed++;
+    }
+    bushes.count=placed;bushes.name='hope-round-shrubs';bushes.castShadow=true;bushes.receiveShadow=true;
+    if(bushes.instanceColor)bushes.instanceColor.needsUpdate=true;
+    _visualFXGroup.add(bushes);_visualFXState.instanced.push(bushes);
+}
+
 function _visualAddPuffyClouds(){
     var clusters=13,per=5,count=clusters*per;
     var geo=new THREE.SphereGeometry(1,10,7);
@@ -270,7 +367,7 @@ function _visualAddHorizon(style,st,mood){
     var count=style===1?22:28;
     var baseColor=(style===3)?0x2A1410:(style===1?0xD9A35B:(style===4?0xFF9AC9:(style===7?0x23334E:mood.horizon)));
     var mat=new THREE.MeshBasicMaterial({color:baseColor,transparent:true,opacity:style===3?0.62:0.48,depthWrite:false,fog:true});
-    var geo=(style===4)?new THREE.SphereGeometry(1,10,6):new THREE.ConeGeometry(1,1,5);
+    var geo=(style===4)?new THREE.SphereGeometry(1,10,6):(style===0?new THREE.SphereGeometry(1,12,8,0,Math.PI*2,0,Math.PI*0.52):new THREE.ConeGeometry(1,1,5));
     var dummy=new THREE.Object3D();
     var mesh=new THREE.InstancedMesh(geo,mat,count);
     mesh.name='horizon-silhouette';mesh.frustumCulled=false;
@@ -282,6 +379,7 @@ function _visualAddHorizon(style,st,mood){
         if(style===4)h=10+Math.random()*16;
         dummy.position.set(Math.cos(a)*r,h*0.5-2,Math.sin(a)*r);
         if(style===4)dummy.scale.set(14+Math.random()*16,h*0.42,14+Math.random()*16);
+        else if(style===0)dummy.scale.set(24+Math.random()*34,h*0.28,20+Math.random()*28);
         else dummy.scale.set(22+Math.random()*35,h,22+Math.random()*35);
         dummy.rotation.set(0,-a+Math.PI/2,0);
         dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
@@ -567,7 +665,7 @@ function _rebuildCityVisualFX(style,st){
     _visualAddHorizon(style,st,mood);
     _visualAddAtmosphericClouds(style,mood);
     _visualAddGroundInstanced(style,st,mood);
-    if(style===0){_visualAddHopeGroundPatches();_visualAddBuildingContactShadows(style);}
+    if(style===0){_visualAddHopeGroundPatches();_visualAddHopeMeadowShowcase();_visualAddBuildingContactShadows(style);}
     _visualAddBuildingHalos(style,mood);
     _visualAddCitySpecific(style,st,mood);
 }

@@ -227,7 +227,14 @@ function updateCity(){
     }
     if(window._fountainInnerWater){
         var wt2=Date.now()*0.003;
-        window._fountainInnerWater.position.y=1.35+Math.sin(wt2+1)*0.02;
+        window._fountainInnerWater.position.y=(window._hopeStarFountain?1.10:1.35)+Math.sin(wt2+1)*0.02;
+    }
+    if(window._hopeStarFountain){
+        var hft=Date.now()*0.001;
+        window._hopeStarFountain.position.y=4.62+Math.sin(hft*1.7)*0.10;
+        // Keep the landmark readable from every gameplay camera instead of showing its thin edge.
+        window._hopeStarFountain.lookAt(camera.position.x,window._hopeStarFountain.position.y,camera.position.z);
+        window._hopeStarFountain.rotation.z=Math.sin(hft*0.72)*0.045;
     }
     // ---- Fish animation (swim + jump + crawl back when thrown) ----
     if(window._waterWheels){
