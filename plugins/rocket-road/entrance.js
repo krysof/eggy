@@ -37,6 +37,7 @@
 
             var THREE=ctx.THREE;
             var toon=ctx.toon||function(color){return new THREE.MeshBasicMaterial({color:color});};
+            var soft=window.softPBR||toon;
             var positions=ctx.positions||{};
             var basePos=positions.rocketRoadPortal||{x:15,z:-15};
             var lang=ctx.lang||'en';
@@ -45,7 +46,10 @@
 
             function box(w,h,d,c,x,y,z,parent){
                 parent=parent||group;
-                var m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),toon(c));
+                var hero=ctx.currentCityStyle===0&&w>0.45&&h>0.45&&d>0.28&&typeof window._visualRoundedBoxGeometry==='function';
+                var geo=hero?window._visualRoundedBoxGeometry(w,h,d,Math.min(0.24,h*0.16)):new THREE.BoxGeometry(w,h,d);
+                var mat=ctx.currentCityStyle===0?soft(c,{pastelAmount:0.025,roughness:0.42,clearcoat:0.18,clearcoatRoughness:0.36,envMapIntensity:0.42}):toon(c);
+                var m=new THREE.Mesh(geo,mat);
                 m.position.set(x||0,y||0,z||0);
                 m.castShadow=true;
                 m.receiveShadow=true;
@@ -70,10 +74,10 @@
                 }
             }
 
-            var tireMat=toon(0x151922);
+            var tireMat=ctx.currentCityStyle===0?soft(0x151922,{pastelAmount:0,roughness:0.92,envMapIntensity:0.12}):toon(0x151922);
             for(var side=0;side<2;side++){
                 for(var ti=0;ti<3;ti++){
-                    var tire=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.14,8,18),tireMat);
+                    var tire=new THREE.Mesh(new THREE.TorusGeometry(0.42,0.14,ctx.currentCityStyle===0?12:8,ctx.currentCityStyle===0?28:18),tireMat);
                     tire.rotation.x=Math.PI/2;
                     tire.position.set((side?1:-1)*4.35,0.45+ti*0.32,2.35);
                     tire.castShadow=true;
@@ -88,7 +92,7 @@
             carBox(0.32,0.2,0.7,0xFF3348,0,0.34,1.22);
             carBox(1.85,0.12,0.32,0x111827,0,0.33,-1.18);
             for(var wi=0;wi<4;wi++){
-                var wh=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.18,10),toon(0x151922));
+                var wh=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.18,ctx.currentCityStyle===0?18:10),tireMat);
                 wh.rotation.z=Math.PI/2;
                 wh.position.set(wi<2?-0.72:0.72,0.2,wi%2?-0.72:0.62);
                 car.add(wh);

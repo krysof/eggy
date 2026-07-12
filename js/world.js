@@ -606,7 +606,6 @@ function clearCity(){
     window._sakuraCanalWater=null;
     window._sakuraStreamAnimals=null;
     window._fountainInnerWater=null;
-    window._hopeStarFountain=null;
     window._cityFish=null;
     window._waterWheels=null;
     window._oceanMesh=null;

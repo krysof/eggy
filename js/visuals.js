@@ -53,53 +53,145 @@ function _visualCreateFlareTexture(){
 var _visualSoftTex=_visualCreateSoftCircleTexture();
 var _visualFlareTex=_visualCreateFlareTexture();
 var _visualSurfaceTextures={};
+var _visualSurfaceTextureSets={};
 
 function _visualSeededRandom(seed){
     var s=seed>>>0;
     return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296;};
 }
-function _visualSurfaceTexture(kind){
-    if(_visualSurfaceTextures[kind])return _visualSurfaceTextures[kind];
-    var size=kind==='facade'?256:512;
-    var c=document.createElement('canvas');c.width=size;c.height=size;
-    var ctx=c.getContext('2d');
-    var rnd=_visualSeededRandom(kind==='grass'?713:kind==='path'?1223:kind==='roof'?2213:3371);
-    ctx.fillStyle=kind==='grass'?'#eef3e8':(kind==='path'?'#eee9df':(kind==='roof'?'#eee9e3':'#f2f0ec'));
-    ctx.fillRect(0,0,size,size);
-    var count=kind==='grass'?2100:(kind==='path'?1500:900);
-    for(var i=0;i<count;i++){
-        var v=Math.floor(205+rnd()*46);
-        var alpha=kind==='facade'?0.12:(kind==='roof'?0.16:0.20);
-        ctx.fillStyle='rgba('+v+','+v+','+v+','+alpha+')';
-        var x=rnd()*size,y=rnd()*size;
-        var w=kind==='grass'?(0.5+rnd()*2.2):(1+rnd()*3.2);
-        var h=kind==='grass'?(1+rnd()*5.5):(0.7+rnd()*2.3);
-        ctx.save();ctx.translate(x,y);ctx.rotate((rnd()-0.5)*1.2);ctx.fillRect(-w/2,-h/2,w,h);ctx.restore();
-    }
-    if(kind==='path'){
-        ctx.strokeStyle='rgba(130,115,92,.11)';ctx.lineWidth=2;
-        for(var p=0;p<22;p++){ctx.beginPath();ctx.moveTo(0,rnd()*size);ctx.bezierCurveTo(size*.3,rnd()*size,size*.7,rnd()*size,size,rnd()*size);ctx.stroke();}
-    } else if(kind==='facade'){
-        ctx.strokeStyle='rgba(120,110,105,.08)';ctx.lineWidth=1;
-        for(var fy=12;fy<size;fy+=18){ctx.beginPath();ctx.moveTo(0,fy);ctx.lineTo(size,fy+(rnd()-0.5)*2);ctx.stroke();}
-    } else if(kind==='roof'){
-        ctx.strokeStyle='rgba(105,85,75,.13)';ctx.lineWidth=2;
-        for(var ry=8;ry<size;ry+=16){ctx.beginPath();ctx.moveTo(0,ry);ctx.lineTo(size,ry);ctx.stroke();}
-    }
-    var tex=new THREE.CanvasTexture(c);
-    tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
-    tex.repeat.set(kind==='grass'?18:(kind==='path'?7:4),kind==='grass'?18:(kind==='path'?7:4));
+function _visualCanvasTexture(canvas,isColor,repeat){
+    var tex=new THREE.CanvasTexture(canvas);
+    tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(repeat,repeat);
     tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;
-    tex.anisotropy=Math.min(8,(typeof R!=='undefined'&&R.capabilities)?R.capabilities.getMaxAnisotropy():4);
-    if(THREE.SRGBColorSpace!==undefined)tex.colorSpace=THREE.SRGBColorSpace;
-    _visualSurfaceTextures[kind]=tex;
+    tex.anisotropy=Math.min(16,(typeof R!=='undefined'&&R.capabilities)?R.capabilities.getMaxAnisotropy():4);
+    if(isColor&&THREE.SRGBColorSpace!==undefined)tex.colorSpace=THREE.SRGBColorSpace;
+    else if(THREE.NoColorSpace!==undefined)tex.colorSpace=THREE.NoColorSpace;
     return tex;
 }
+function _visualExternalSurfaceTextureSet(kind){
+    var ids={grass:'leafy_grass',facade:'grey_plaster',roof:'clay_roof_tiles_02',path:'rectangular_paving',stone:'marble_01'};
+    var id=ids[kind];if(!id)return null;
+    var repeat=kind==='grass'?22:(kind==='path'?9:(kind==='roof'?5:(kind==='facade'?4:7)));
+    var suffix=(window.DANBO_ASSET_VERSION?'?'+window.DANBO_ASSET_VERSION:'');
+    var loader=new THREE.TextureLoader();
+    function load(channel,isColor){
+        var tex=loader.load('assets/pbr/'+id+'_'+channel+'.jpg'+suffix);
+        tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(repeat,repeat);
+        tex.minFilter=THREE.LinearMipmapLinearFilter;tex.magFilter=THREE.LinearFilter;
+        tex.anisotropy=Math.min(16,(typeof R!=='undefined'&&R.capabilities)?R.capabilities.getMaxAnisotropy():4);
+        if(isColor&&THREE.SRGBColorSpace!==undefined)tex.colorSpace=THREE.SRGBColorSpace;
+        else if(THREE.NoColorSpace!==undefined)tex.colorSpace=THREE.NoColorSpace;
+        return tex;
+    }
+    var low=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low;
+    return {map:load('diff',true),normalMap:low?null:load('normal',false),roughnessMap:low?null:load('rough',false),external:true};
+}
+function _visualSurfaceTextureSet(kind){
+    if(_visualSurfaceTextureSets[kind])return _visualSurfaceTextureSets[kind];
+    var external=_visualExternalSurfaceTextureSet(kind);
+    if(external){_visualSurfaceTextureSets[kind]=external;_visualSurfaceTextures[kind]=external.map;return external;}
+    var high=!(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low),size=high?512:256;
+    var albedo=document.createElement('canvas'),height=document.createElement('canvas'),rough=document.createElement('canvas');
+    albedo.width=albedo.height=height.width=height.height=rough.width=rough.height=size;
+    var ac=albedo.getContext('2d'),hc=height.getContext('2d'),rc=rough.getContext('2d');
+    var seed={grass:713,path:1223,roof:2213,facade:3371,stone:4517,bark:5519}[kind]||6619;
+    var rnd=_visualSeededRandom(seed);
+    ac.fillStyle='#d8d8d8';ac.fillRect(0,0,size,size);
+    hc.fillStyle='#808080';hc.fillRect(0,0,size,size);
+    rc.fillStyle=kind==='roof'?'#a8a8a8':(kind==='facade'?'#c2c2c2':'#dddddd');rc.fillRect(0,0,size,size);
+    // Dense micro variation.  It is deliberately stored in material channels instead of
+    // spawning geometry, so the original scene gains surface depth without extra clutter.
+    var img=ac.getImageData(0,0,size,size),himg=hc.getImageData(0,0,size,size),rimg=rc.getImageData(0,0,size,size);
+    for(var p=0;p<size*size;p++){
+        var n=(rnd()+rnd()+rnd())/3-0.5,large=Math.sin((p%size)*0.031)+Math.sin(Math.floor(p/size)*0.027);
+        var av=Math.max(0,Math.min(255,216+n*32+large*2.2));
+        var hv=Math.max(0,Math.min(255,128+n*(kind==='stone'?24:40)));
+        var rv=Math.max(0,Math.min(255,(kind==='roof'?168:(kind==='facade'?194:220))+n*22));
+        img.data[p*4]=img.data[p*4+1]=img.data[p*4+2]=av;img.data[p*4+3]=255;
+        himg.data[p*4]=himg.data[p*4+1]=himg.data[p*4+2]=hv;himg.data[p*4+3]=255;
+        rimg.data[p*4]=rimg.data[p*4+1]=rimg.data[p*4+2]=rv;rimg.data[p*4+3]=255;
+    }
+    ac.putImageData(img,0,0);hc.putImageData(himg,0,0);rc.putImageData(rimg,0,0);
+    if(kind==='grass'){
+        for(var gi=0;gi<(high?4200:1400);gi++){
+            var gx=rnd()*size,gy=rnd()*size,gl=1.5+rnd()*5;
+            ac.strokeStyle=rnd()>.5?'rgba(250,255,238,.24)':'rgba(45,65,36,.20)';ac.lineWidth=.45+rnd();
+            hc.strokeStyle='rgba(230,230,230,.48)';hc.lineWidth=.6;
+            ac.beginPath();ac.moveTo(gx,gy);ac.lineTo(gx+(rnd()-.5)*2,gy-gl);ac.stroke();
+            hc.beginPath();hc.moveTo(gx,gy);hc.lineTo(gx+(rnd()-.5)*2,gy-gl);hc.stroke();
+        }
+    }else if(kind==='path'||kind==='stone'){
+        for(var si=0;si<(high?520:180);si++){
+            var sx=rnd()*size,sy=rnd()*size,sr=.8+rnd()*3.8;
+            ac.fillStyle=rnd()>.5?'rgba(255,255,255,.13)':'rgba(70,60,48,.10)';ac.beginPath();ac.ellipse(sx,sy,sr,sr*.55,rnd()*Math.PI,0,Math.PI*2);ac.fill();
+            hc.fillStyle='rgba('+(rnd()>.35?185:82)+','+(rnd()>.35?185:82)+','+(rnd()>.35?185:82)+',.42)';hc.beginPath();hc.ellipse(sx,sy,sr,sr*.55,0,0,Math.PI*2);hc.fill();
+        }
+        ac.strokeStyle='rgba(72,62,54,.18)';hc.strokeStyle='rgba(55,55,55,.48)';
+        for(var ci=0;ci<(kind==='stone'?18:32);ci++){
+            var cy=rnd()*size;ac.lineWidth=.6+rnd()*1.2;hc.lineWidth=.8;
+            ac.beginPath();hc.beginPath();ac.moveTo(0,cy);hc.moveTo(0,cy);
+            for(var cx=0;cx<=size;cx+=32){cy+=(rnd()-.5)*9;ac.lineTo(cx,cy);hc.lineTo(cx,cy);}ac.stroke();hc.stroke();
+        }
+    }else if(kind==='facade'){
+        for(var fi=0;fi<(high?2600:800);fi++){
+            var fx=rnd()*size,fy=rnd()*size,fr=.35+rnd()*1.4;
+            ac.fillStyle=rnd()>.5?'rgba(255,255,255,.15)':'rgba(60,55,52,.09)';ac.fillRect(fx,fy,fr,fr);
+            hc.fillStyle='rgba(205,205,205,.35)';hc.fillRect(fx,fy,fr,fr);
+        }
+    }else if(kind==='roof'){
+        ac.strokeStyle='rgba(65,54,50,.24)';hc.strokeStyle='rgba(45,45,45,.55)';
+        for(var ry=0;ry<size;ry+=24){
+            ac.lineWidth=1.4;hc.lineWidth=2;ac.beginPath();hc.beginPath();ac.moveTo(0,ry);hc.moveTo(0,ry);ac.lineTo(size,ry);hc.lineTo(size,ry);ac.stroke();hc.stroke();
+            for(var rx=(ry/24%2)*18;rx<size;rx+=36){ac.beginPath();hc.beginPath();ac.moveTo(rx,ry);hc.moveTo(rx,ry);ac.lineTo(rx,ry+24);hc.lineTo(rx,ry+24);ac.stroke();hc.stroke();}
+        }
+    }else if(kind==='water'){
+        hc.strokeStyle='rgba(218,218,218,.34)';hc.lineWidth=1.2;
+        for(var wi=0;wi<72;wi++){
+            var wy=rnd()*size,phase=rnd()*Math.PI*2;amp=1+rnd()*3.5;
+            hc.beginPath();hc.moveTo(0,wy);
+            for(var wx=0;wx<=size;wx+=12)hc.lineTo(wx,wy+Math.sin(wx*.045+phase)*amp);
+            hc.stroke();
+        }
+        rc.fillStyle='rgba(90,90,90,.22)';rc.fillRect(0,0,size,size);
+    }else if(kind==='bark'){
+        ac.strokeStyle='rgba(48,30,18,.28)';hc.strokeStyle='rgba(224,224,224,.45)';
+        for(var bi=0;bi<120;bi++){var bx=rnd()*size;ac.lineWidth=.5+rnd()*2;hc.lineWidth=1;ac.beginPath();hc.beginPath();ac.moveTo(bx,0);hc.moveTo(bx,0);for(var by=0;by<=size;by+=28){bx+=(rnd()-.5)*7;ac.lineTo(bx,by);hc.lineTo(bx,by);}ac.stroke();hc.stroke();}
+    }
+    var repeat=kind==='grass'?20:(kind==='path'?8:(kind==='roof'?5:(kind==='facade'?4:(kind==='bark'?3:6))));
+    var set={map:_visualCanvasTexture(albedo,true,repeat),bumpMap:_visualCanvasTexture(height,false,repeat),roughnessMap:_visualCanvasTexture(rough,false,repeat)};
+    _visualSurfaceTextureSets[kind]=set;_visualSurfaceTextures[kind]=set.map;
+    return set;
+}
+function _visualSurfaceTexture(kind){return _visualSurfaceTextureSet(kind).map;}
 function _visualSurfaceMaterial(kind,color,opts){
     opts=opts||{};
-    var base={map:_visualSurfaceTexture(kind),roughness:kind==='roof'?0.60:(kind==='facade'?0.76:0.92),metalness:0};
+    var set=_visualSurfaceTextureSet(kind);
+    var base={map:set.map,roughnessMap:set.roughnessMap,roughness:kind==='roof'?0.64:(kind==='facade'?0.82:0.96),metalness:0,envMapIntensity:kind==='roof'?0.42:0.24};
+    if(set.normalMap){base.normalMap=set.normalMap;base.normalScale=new THREE.Vector2(kind==='grass'?0.58:(kind==='roof'?0.72:(kind==='facade'?0.42:0.52)),kind==='grass'?0.58:(kind==='roof'?0.72:(kind==='facade'?0.42:0.52)));}
+    else{base.bumpMap=set.bumpMap;base.bumpScale=kind==='grass'?0.16:(kind==='facade'?0.11:(kind==='roof'?0.20:0.14));}
+    if(set.external&&typeof _mixHex==='function'){
+        var tintLift=kind==='grass'?0.34:(kind==='facade'?0.22:(kind==='roof'?0.12:(kind==='path'?0.38:0.44)));
+        color=_mixHex(color,0xFFFFFF,tintLift);
+    }
     for(var k in opts)base[k]=opts[k];
-    return typeof softPBR==='function'?softPBR(color,base):toon(color,base);
+    var mat=typeof softPBR==='function'?softPBR(color,base):toon(color,base);
+    if(set.external){
+        var blend=kind==='facade'?0.38:(kind==='grass'?0.58:(kind==='roof'?0.68:(kind==='path'?0.58:0.55)));
+        mat.onBeforeCompile=function(shader){
+            shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',[
+                '#ifdef USE_MAP',
+                '  vec4 sampledDiffuseColor=texture2D(map,vMapUv);',
+                '  #ifdef DECODE_VIDEO_TEXTURE',
+                '    sampledDiffuseColor=sRGBTransferEOTF(sampledDiffuseColor);',
+                '  #endif',
+                '  diffuseColor.rgb=mix(diffuseColor.rgb,sampledDiffuseColor.rgb,'+blend.toFixed(3)+');',
+                '  diffuseColor.a*=sampledDiffuseColor.a;',
+                '#endif'
+            ].join('\n'));
+        };
+        mat.customProgramCacheKey=function(){return 'danbo-pbr-blend-'+kind+'-'+blend;};
+    }
+    return mat;
 }
 function _visualRoundedRectGeometry(w,d,r){
     r=Math.max(0.1,Math.min(r===undefined?1.1:r,w*0.48,d*0.48));
@@ -117,22 +209,35 @@ function _visualRoundedBoxGeometry(w,h,d,r){
     s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
     s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);
     s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);
-    var bevel=Math.min(0.16,d*0.08,r*0.34);
-    var geo=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.1,d-bevel*2),steps:1,curveSegments:3,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:2});
+    var high=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high;
+    var bevel=Math.min(high?0.26:0.16,d*0.085,r*0.40);
+    var geo=new THREE.ExtrudeGeometry(s,{depth:Math.max(0.1,d-bevel*2),steps:1,curveSegments:high?6:3,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:high?4:2});
     geo.center();geo.computeVertexNormals();
     return geo;
 }
-function _visualStarExtrudeGeometry(outerR,innerR,depth){
-    var shape=new THREE.Shape(),points=5;
-    for(var i=0;i<points*2;i++){
-        var a=-Math.PI/2+i*Math.PI/points;
-        var rr=i%2===0?outerR:innerR;
-        var x=Math.cos(a)*rr,y=Math.sin(a)*rr;
-        if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y);
-    }
-    shape.closePath();
-    var geo=new THREE.ExtrudeGeometry(shape,{depth:depth,steps:1,bevelEnabled:true,bevelThickness:depth*0.28,bevelSize:depth*0.20,bevelSegments:2});
-    geo.center();geo.computeVertexNormals();
+function _visualGableRoofGeometry(w,d,h){
+    var hw=w/2,hd=d/2;
+    // Duplicated vertices keep the two roof planes and gable ends crisply faceted while
+    // still carrying useful UVs for the authored roof-tile normal/roughness maps.
+    var p=[
+        -hw,0,-hd, 0,h,-hd, 0,h,hd, -hw,0,hd,
+         0,h,-hd, hw,0,-hd, hw,0,hd, 0,h,hd,
+        -hw,0,hd, 0,h,hd, hw,0,hd,
+         hw,0,-hd, 0,h,-hd, -hw,0,-hd,
+        -hw,0,-hd, -hw,0,hd, hw,0,hd, hw,0,-hd
+    ];
+    var uv=[
+        0,0, 1,0, 1,1, 0,1,
+        0,0, 1,0, 1,1, 0,1,
+        0,0, .5,1, 1,0,
+        0,0, .5,1, 1,0,
+        0,0, 0,1, 1,1, 1,0
+    ];
+    var idx=[0,1,2,0,2,3, 4,5,6,4,6,7, 8,9,10, 11,12,13, 14,15,16,14,16,17];
+    var geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
+    geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+    geo.setIndex(idx);geo.computeVertexNormals();geo.computeBoundingSphere();
     return geo;
 }
 
@@ -259,90 +364,6 @@ function _visualAddHopeGroundPatches(){
     _visualFXGroup.add(mesh);_visualFXState.instanced.push(mesh);
 }
 
-function _visualAddHopeMeadowShowcase(){
-    var rnd=_visualSeededRandom(7122026);
-    var dummy=new THREE.Object3D();
-    // Rounded terrain pillows replace the impression of one perfectly flat plane.
-    var moundCount=22,moundGeo=new THREE.SphereGeometry(1,14,8,0,Math.PI*2,0,Math.PI*0.52);
-    var moundMat=typeof softPBR==='function'?softPBR(0xFFFFFF,{roughness:0.98}):toon(0xFFFFFF);
-    var mounds=new THREE.InstancedMesh(moundGeo,moundMat,moundCount);
-    var moundColors=[new THREE.Color(0x5BBE61),new THREE.Color(0x79CD68),new THREE.Color(0x9AD879)];
-    for(var mi=0;mi<moundCount;mi++){
-        var ma=mi/moundCount*Math.PI*2+0.12, mr=34+(mi%4)*19;
-        dummy.position.set(Math.cos(ma)*mr,-0.15,Math.sin(ma)*mr);
-        dummy.scale.set(5.5+rnd()*7.5,1.2+rnd()*1.8,4.5+rnd()*6.5);
-        dummy.rotation.set(0,rnd()*Math.PI,0);dummy.updateMatrix();mounds.setMatrixAt(mi,dummy.matrix);
-        mounds.setColorAt(mi,moundColors[mi%moundColors.length]);
-    }
-    if(mounds.instanceColor)mounds.instanceColor.needsUpdate=true;
-    mounds.name='hope-rounded-meadow-mounds';mounds.receiveShadow=true;
-    _visualFXGroup.add(mounds);_visualFXState.instanced.push(mounds);
-
-    // Dense but inexpensive flower field: two instanced draw calls for stems and heads.
-    var flowerCount=(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low)?90:180;
-    var stemGeo=new THREE.CylinderGeometry(0.032,0.052,0.72,6);
-    var stemMat=typeof softPBR==='function'?softPBR(0x4E9E4A,{roughness:0.92}):toon(0x4E9E4A);
-    var stems=new THREE.InstancedMesh(stemGeo,stemMat,flowerCount);
-    var headGeo=_visualStarExtrudeGeometry(0.31,0.145,0.082);
-    var headMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,fog:true});
-    var heads=new THREE.InstancedMesh(headGeo,headMat,flowerCount);
-    var flowerColors=[new THREE.Color(0xFF7DAF),new THREE.Color(0xFFE06A),new THREE.Color(0x79D9FF),new THREE.Color(0xB79CFF),new THREE.Color(0xFFFFFF)];
-    var placed=0,tries=0;
-    var flowerRing=Math.min(44,flowerCount);
-    while(placed<flowerCount&&tries<flowerCount*20){
-        tries++;
-        var fa,fr;
-        if(placed<flowerRing){
-            var ringTry=tries-1;
-            fa=(ringTry%flowerRing)/flowerRing*Math.PI*2+(ringTry%3)*0.018;
-            fr=12.2+(ringTry%4)*1.05;
-        }else{
-            fa=rnd()*Math.PI*2;fr=17+rnd()*108;
-        }
-        var fx=Math.cos(fa)*fr,fz=Math.sin(fa)*fr;
-        if(Math.abs(fx)<5.5||Math.abs(fz)<5.5||_visualAvoidColliders(fx,fz,1.3))continue;
-        var fs=(placed<flowerRing?1.25:0.92)+rnd()*(placed<flowerRing?0.42:1.05);
-        dummy.position.set(fx,0.36*fs,fz);dummy.scale.set(fs,fs,fs);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.updateMatrix();stems.setMatrixAt(placed,dummy.matrix);
-        dummy.position.set(fx,0.79*fs,fz);dummy.scale.set(fs,fs,fs);dummy.rotation.set(-0.12+rnd()*0.24,rnd()*Math.PI*2,-0.12+rnd()*0.24);dummy.updateMatrix();heads.setMatrixAt(placed,dummy.matrix);heads.setColorAt(placed,flowerColors[placed%flowerColors.length]);
-        placed++;
-    }
-    stems.count=heads.count=placed;stems.name='hope-flower-stems';heads.name='hope-star-flowers';
-    if(heads.instanceColor)heads.instanceColor.needsUpdate=true;
-    _visualFXGroup.add(stems);_visualFXGroup.add(heads);_visualFXState.instanced.push(stems,heads);
-
-    // Oversized star stepping stones make the central plaza read clearly from the gameplay camera.
-    var plazaStarCount=18,plazaStarGeo=_visualStarExtrudeGeometry(0.88,0.41,0.12);
-    var plazaStarMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,fog:true});
-    var plazaStars=new THREE.InstancedMesh(plazaStarGeo,plazaStarMat,plazaStarCount);
-    var plazaColors=[new THREE.Color(0xFFE56C),new THREE.Color(0xFF91BA),new THREE.Color(0x84DDFF),new THREE.Color(0xC2A5FF)];
-    for(var psi=0;psi<plazaStarCount;psi++){
-        var psa=psi/plazaStarCount*Math.PI*2,psr=10.7;
-        dummy.position.set(Math.cos(psa)*psr,0.12,Math.sin(psa)*psr);
-        dummy.scale.set(1,1,1);dummy.rotation.set(Math.PI/2,0,-psa+Math.PI/2);dummy.updateMatrix();
-        plazaStars.setMatrixAt(psi,dummy.matrix);plazaStars.setColorAt(psi,plazaColors[psi%plazaColors.length]);
-    }
-    if(plazaStars.instanceColor)plazaStars.instanceColor.needsUpdate=true;
-    plazaStars.name='hope-plaza-star-steps';plazaStars.receiveShadow=true;
-    _visualFXGroup.add(plazaStars);_visualFXState.instanced.push(plazaStars);
-
-    // Soft shrubs give the streets a crafted diorama border instead of an empty lawn.
-    var bushCount=(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low)?42:92;
-    var bushGeo=new THREE.SphereGeometry(1,10,7);
-    var bushMat=typeof softPBR==='function'?softPBR(0xFFFFFF,{roughness:0.88}):toon(0xFFFFFF);
-    var bushes=new THREE.InstancedMesh(bushGeo,bushMat,bushCount);
-    var bushColors=[new THREE.Color(0x45A856),new THREE.Color(0x67C65C),new THREE.Color(0x8DD36B)];
-    placed=0;tries=0;
-    while(placed<bushCount&&tries<bushCount*14){
-        tries++;var ba=rnd()*Math.PI*2,br=18+rnd()*110,bx=Math.cos(ba)*br,bz=Math.sin(ba)*br;
-        if(Math.abs(bx)<8||Math.abs(bz)<8||_visualAvoidColliders(bx,bz,2.4))continue;
-        var bs=0.55+rnd()*1.20;
-        dummy.position.set(bx,0.42*bs,bz);dummy.scale.set(1.15*bs,0.72*bs,bs);dummy.rotation.set(0,rnd()*Math.PI*2,0);dummy.updateMatrix();bushes.setMatrixAt(placed,dummy.matrix);bushes.setColorAt(placed,bushColors[placed%bushColors.length]);placed++;
-    }
-    bushes.count=placed;bushes.name='hope-round-shrubs';bushes.castShadow=true;bushes.receiveShadow=true;
-    if(bushes.instanceColor)bushes.instanceColor.needsUpdate=true;
-    _visualFXGroup.add(bushes);_visualFXState.instanced.push(bushes);
-}
-
 function _visualAddPuffyClouds(){
     var clusters=13,per=5,count=clusters*per;
     var geo=new THREE.SphereGeometry(1,10,7);
@@ -367,7 +388,7 @@ function _visualAddHorizon(style,st,mood){
     var count=style===1?22:28;
     var baseColor=(style===3)?0x2A1410:(style===1?0xD9A35B:(style===4?0xFF9AC9:(style===7?0x23334E:mood.horizon)));
     var mat=new THREE.MeshBasicMaterial({color:baseColor,transparent:true,opacity:style===3?0.62:0.48,depthWrite:false,fog:true});
-    var geo=(style===4)?new THREE.SphereGeometry(1,10,6):(style===0?new THREE.SphereGeometry(1,12,8,0,Math.PI*2,0,Math.PI*0.52):new THREE.ConeGeometry(1,1,5));
+    var geo=(style===4)?new THREE.SphereGeometry(1,10,6):new THREE.ConeGeometry(1,1,5);
     var dummy=new THREE.Object3D();
     var mesh=new THREE.InstancedMesh(geo,mat,count);
     mesh.name='horizon-silhouette';mesh.frustumCulled=false;
@@ -379,7 +400,6 @@ function _visualAddHorizon(style,st,mood){
         if(style===4)h=10+Math.random()*16;
         dummy.position.set(Math.cos(a)*r,h*0.5-2,Math.sin(a)*r);
         if(style===4)dummy.scale.set(14+Math.random()*16,h*0.42,14+Math.random()*16);
-        else if(style===0)dummy.scale.set(24+Math.random()*34,h*0.28,20+Math.random()*28);
         else dummy.scale.set(22+Math.random()*35,h,22+Math.random()*35);
         dummy.rotation.set(0,-a+Math.PI/2,0);
         dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
@@ -614,7 +634,8 @@ function _visualAddMoonVisuals(){
 function _visualAddCitySpecific(style,st,mood){
     var range=(style===5?MOON_CITY_SIZE:CITY_SIZE);
     if(style===0){
-        _visualAddPointsCloud('hope-fireflies',240,style,{xMin:-range,xMax:range,zMin:-range,zMax:range,yMin:0.7,yMax:8},0xFFF7A0,0xAAFFDD,1.45,{opacity:0.62,vxRand:0.02,vyRand:0.012,vzRand:0.02,wrap:true,twinkle:true});
+        // Hope City intentionally stays compositionally clean: its quality comes from the
+        // original surfaces, lighting and depth pass rather than extra decorative objects.
     } else if(style===1){
         _visualAddPointsCloud('desert-gold-dust',300,style,{xMin:-range,xMax:range,zMin:-range,zMax:range,yMin:0.4,yMax:18},0xFFE39A,0xFFAA55,1.25,{opacity:0.42,vx:0.018,vxRand:0.025,vyRand:0.006,vzRand:0.018,wrap:true,twinkle:true});
     } else if(style===2){
@@ -662,10 +683,9 @@ function _rebuildCityVisualFX(style,st){
         document.body.style.setProperty('--city-accent',_visualColorToCss(mood.accent));
     }
     _visualAddPlayerShadow(style);
-    _visualAddHorizon(style,st,mood);
-    _visualAddAtmosphericClouds(style,mood);
-    _visualAddGroundInstanced(style,st,mood);
-    if(style===0){_visualAddHopeGroundPatches();_visualAddHopeMeadowShowcase();_visualAddBuildingContactShadows(style);}
+    if(style!==0){_visualAddHorizon(style,st,mood);_visualAddAtmosphericClouds(style,mood);}
+    if(style!==0)_visualAddGroundInstanced(style,st,mood);
+    if(style===0)_visualAddBuildingContactShadows(style);
     _visualAddBuildingHalos(style,mood);
     _visualAddCitySpecific(style,st,mood);
 }

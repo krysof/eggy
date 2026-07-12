@@ -367,8 +367,9 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
     var g=new THREE.Group();
     var type=charType||'egg';
     accent=(accent===undefined||accent===null)?0xFF6F7D:accent;
-    var bodyGeo=new THREE.SphereGeometry(0.62,24,16);
-    var bodyMat=typeof softPBR==='function'?softPBR(color,{pastelAmount:0.11,roughness:0.43,metalness:0.0}):toon(color,{pastelAmount:0.16});
+    var _heroHigh=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high;
+    var bodyGeo=new THREE.SphereGeometry(0.62,_heroHigh?40:24,_heroHigh?28:16);
+    var bodyMat=typeof softPBR==='function'?softPBR(color,{pastelAmount:0.07,roughness:0.34,metalness:0.0,clearcoat:0.38,clearcoatRoughness:0.24,envMapIntensity:0.58}):toon(color,{pastelAmount:0.12});
     var body=new THREE.Mesh(bodyGeo,bodyMat);
     body.position.y=0.72;
     body.castShadow=true;body.receiveShadow=true;
@@ -396,7 +397,7 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
     gloss.position.set(-0.22,1.02,0.585);gloss.scale.set(1.0,0.48,1);gloss.rotation.z=-0.25;body.add(gloss);
 
     // Simple Kirby-like eyes: dark vertical ovals + two tiny highlights.
-    var eyeG=new THREE.SphereGeometry(0.105,14,10);
+    var eyeG=new THREE.SphereGeometry(0.105,_heroHigh?20:14,_heroHigh?14:10);
     var eyeMat=toon(0x171A2A,{noPastel:true});
     var lowerMat=toon(0x334B95,{emissive:0x243B88,emissiveIntensity:0.08,noPastel:true});
     var shineMat=toon(0xFFFFFF,{emissive:0xFFFFFF,emissiveIntensity:0.18,noPastel:true});
@@ -430,7 +431,7 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
 
     // Soft side nubs, not gloves/human arms.
     var decorArms=[];
-    var armMat=typeof softPBR==='function'?softPBR(color,{pastelAmount:0.11,roughness:0.48}):toon(color,{pastelAmount:0.16});
+    var armMat=typeof softPBR==='function'?softPBR(color,{pastelAmount:0.07,roughness:0.39,clearcoat:0.24,clearcoatRoughness:0.30,envMapIntensity:0.46}):toon(color,{pastelAmount:0.12});
     [-1,1].forEach(function(s){
         var armG=new THREE.Group();
         var arm=new THREE.Mesh(new THREE.SphereGeometry(type==='bear'?0.15:0.12,12,8),armMat);
@@ -442,9 +443,9 @@ function _createCuteRoundCharacterMesh(color,accent,charType){
     g.userData._decorArms=decorArms;
 
     // Feet are the main accent, like a simple round mascot.
-    var ftG=new THREE.SphereGeometry(0.15,12,8);ftG.scale(1.35,0.48,1.60);
+    var ftG=new THREE.SphereGeometry(0.15,_heroHigh?20:12,_heroHigh?14:8);ftG.scale(1.35,0.48,1.60);
     var footColor=_charMixHex(accent,0xFF7777,0.15);
-    var ftM=typeof softPBR==='function'?softPBR(footColor,{roughness:0.40,emissive:accent,emissiveIntensity:0.035}):toon(footColor,{emissive:accent,emissiveIntensity:0.05});
+    var ftM=typeof softPBR==='function'?softPBR(footColor,{roughness:0.31,clearcoat:0.42,clearcoatRoughness:0.21,envMapIntensity:0.60,emissive:accent,emissiveIntensity:0.018}):toon(footColor,{emissive:accent,emissiveIntensity:0.04});
     var feet=[];
     [-1,1].forEach(function(s){
         var ft=new THREE.Mesh(ftG,ftM);ft.castShadow=true;

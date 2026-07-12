@@ -340,10 +340,10 @@ function _ensureShopNPC(){
     if(_shopNPC)return;
     var g=new THREE.Group();
     var HX=8, HZ=-8, H=2.5, WH=4; // house centre + half-size + wall height
-    var wallMat=typeof softPBR==='function'?softPBR(0xFF8EAE,{roughness:0.58}):toon(0xFF8EAE);
-    var trimMat=typeof softPBR==='function'?softPBR(0xFFF3D2,{roughness:0.46}):toon(0xFFF3D2);
-    var roofMat=typeof softPBR==='function'?softPBR(0xA88EF2,{roughness:0.42,clearcoat:0.18}):toon(0xA88EF2);
-    var doorMat=typeof softPBR==='function'?softPBR(0x7D537E,{roughness:0.72}):toon(0x7D537E);
+    var wallMat=typeof _visualSurfaceMaterial==='function'?_visualSurfaceMaterial('facade',0xCC4A48,{roughness:0.78}):toon(0xCC4A48);
+    var trimMat=typeof softPBR==='function'?softPBR(0xF2E8D8,{roughness:0.42,envMapIntensity:0.32}):toon(0xF2E8D8);
+    var roofMat=typeof _visualSurfaceMaterial==='function'?_visualSurfaceMaterial('roof',0x8E2B2B,{roughness:0.56}):toon(0x8E2B2B);
+    var doorMat=typeof softPBR==='function'?softPBR(0x5A3A28,{roughness:0.78}):toon(0x5A3A28);
     var back=new THREE.Mesh(new THREE.BoxGeometry(H*2+0.4,WH,0.4),wallMat);back.position.set(HX,WH/2,HZ-H);g.add(back);
     var left=new THREE.Mesh(new THREE.BoxGeometry(0.4,WH,H*2+0.4),wallMat);left.position.set(HX-H,WH/2,HZ);g.add(left);
     var right=new THREE.Mesh(new THREE.BoxGeometry(0.4,WH,H*2+0.4),wallMat);right.position.set(HX+H,WH/2,HZ);g.add(right);
@@ -351,9 +351,13 @@ function _ensureShopNPC(){
     var fR=new THREE.Mesh(new THREE.BoxGeometry(H-0.6,WH,0.4),wallMat);fR.position.set(HX+(H/2+0.3),WH/2,HZ+H);g.add(fR);
     var fTop=new THREE.Mesh(new THREE.BoxGeometry(1.4,WH-2.4,0.4),wallMat);fTop.position.set(HX,WH-(WH-2.4)/2,HZ+H);g.add(fTop);
     var door=new THREE.Mesh(new THREE.BoxGeometry(1.3,2.4,0.2),doorMat);door.position.set(HX,1.2,HZ+H+0.05);g.add(door);
-    [-1.5,1.5].forEach(function(wx){var wf=new THREE.Mesh(new THREE.SphereGeometry(0.58,16,10),trimMat);wf.scale.set(1,1,0.18);wf.position.set(HX+wx,2.3,HZ+H+0.18);g.add(wf);var win=new THREE.Mesh(new THREE.SphereGeometry(0.46,16,10),new THREE.MeshBasicMaterial({color:0xBFE8FF,transparent:true,opacity:0.92}));win.scale.set(1,1,0.20);win.position.set(HX+wx,2.3,HZ+H+0.31);g.add(win);});
-    var roof=new THREE.Mesh(new THREE.ConeGeometry(H*1.7,2.0,8),roofMat);roof.position.set(HX,WH+0.9,HZ);roof.rotation.y=Math.PI/8;g.add(roof);
-    var roofBall=new THREE.Mesh(new THREE.SphereGeometry(0.28,12,8),trimMat);roofBall.position.set(HX,WH+2.0,HZ);g.add(roofBall);
+    var _shopGlass=typeof softPBR==='function'?softPBR(0x3F8DAA,{pastelAmount:0.02,roughness:0.07,metalness:0.08,clearcoat:0.94,clearcoatRoughness:0.07,envMapIntensity:1.0}):toon(0xBFE8FF);
+    [-1.5,1.5].forEach(function(wx){
+        var wf=new THREE.Mesh(typeof _visualRoundedBoxGeometry==='function'?_visualRoundedBoxGeometry(1.10,1.10,0.12,0.18):new THREE.BoxGeometry(1.10,1.10,0.12),trimMat);wf.position.set(HX+wx,2.3,HZ+H+0.18);g.add(wf);
+        var win=new THREE.Mesh(typeof _visualRoundedBoxGeometry==='function'?_visualRoundedBoxGeometry(0.78,0.78,0.08,0.12):new THREE.BoxGeometry(0.78,0.78,0.08),_shopGlass);win.position.set(HX+wx,2.3,HZ+H+0.28);g.add(win);
+    });
+    var roof=new THREE.Mesh(typeof _visualGableRoofGeometry==='function'?_visualGableRoofGeometry(H*2+1.15,H*2+1.15,2.0):new THREE.ConeGeometry(H*1.7,2.0,4),roofMat);roof.position.set(HX,WH,HZ);roof.castShadow=true;g.add(roof);
+    if(typeof _visualGableRoofGeometry==='function'){var _shopRidge=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,H*2+1.28,12),trimMat);_shopRidge.position.set(HX,WH+2.04,HZ);_shopRidge.rotation.x=Math.PI/2;g.add(_shopRidge);}
     // door sign 【蛋堡城杂货铺】
     var sc=document.createElement('canvas');sc.width=320;sc.height=96;var sgx=sc.getContext('2d');
     sgx.fillStyle='#7A3B1E';sgx.fillRect(0,0,320,96);sgx.fillStyle='#F6E3C0';sgx.fillRect(6,6,308,84);

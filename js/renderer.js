@@ -46,6 +46,28 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(RENDER_CONFIG.fogColor);
 scene.fog = new THREE.Fog(RENDER_CONFIG.fogColor, RENDER_CONFIG.fogNear, RENDER_CONFIG.fogFar);
 
+// Procedural reflection environment.  This is not visible geometry: it gives the original
+// glass, painted walls, water and character shells coherent sky/ground reflections.
+function _createDanboReflectionEnvironment(){
+    var faces=[];
+    for(var fi=0;fi<6;fi++){
+        var c=document.createElement('canvas');c.width=c.height=96;var ctx=c.getContext('2d');
+        var g=ctx.createLinearGradient(0,0,0,96);
+        if(fi===2){g.addColorStop(0,'#f9fcff');g.addColorStop(1,'#a9d9f3');}
+        else if(fi===3){g.addColorStop(0,'#82956d');g.addColorStop(1,'#43533f');}
+        else{g.addColorStop(0,'#dff4ff');g.addColorStop(.58,'#9dcde4');g.addColorStop(.62,'#f1d9af');g.addColorStop(1,'#71866a');}
+        ctx.fillStyle=g;ctx.fillRect(0,0,96,96);
+        var rg=ctx.createRadialGradient(fi%2?25:70,fi<2?30:48,2,48,48,65);
+        rg.addColorStop(0,'rgba(255,248,224,.46)');rg.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=rg;ctx.fillRect(0,0,96,96);
+        faces.push(c);
+    }
+    var cube=new THREE.CubeTexture(faces);cube.mapping=THREE.CubeReflectionMapping;
+    if(THREE.SRGBColorSpace!==undefined)cube.colorSpace=THREE.SRGBColorSpace;
+    cube.needsUpdate=true;return cube;
+}
+window._danboReflectionEnvironment=_createDanboReflectionEnvironment();
+scene.environment=window._danboReflectionEnvironment;
+
 const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.5, 2000000);
 window.addEventListener('resize', ()=>{
     R.setSize(innerWidth,innerHeight);
@@ -66,10 +88,10 @@ sun.shadow.normalBias=0.025;
 sun.shadow.radius=_visualQualityMode==='high'?4.8:3.0;
 scene.add(sun); scene.add(sun.target);
 scene.add(new THREE.HemisphereLight(RENDER_CONFIG.hemiSkyColor,RENDER_CONFIG.hemiGroundColor,RENDER_CONFIG.hemiIntensity));
-const rimLight = new THREE.DirectionalLight(0xD8F4FF,0.34);
+const rimLight = new THREE.DirectionalLight(0xD8F4FF,0.28);
 rimLight.position.set(-50,45,-60);
 scene.add(rimLight);
-const softFillLight = new THREE.DirectionalLight(0xFFD9C7,0.20);
+const softFillLight = new THREE.DirectionalLight(0xFFD9C7,0.24);
 softFillLight.position.set(35,24,55);
 scene.add(softFillLight);
 // Sun visual mesh (visible in ground cities)
