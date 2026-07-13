@@ -69,7 +69,11 @@ function _visualCanvasTexture(canvas,isColor,repeat){
     return tex;
 }
 function _visualExternalSurfaceTextureSet(kind){
-    var ids={grass:'leafy_grass',facade:'grey_plaster',roof:'clay_roof_tiles_02',path:'rectangular_paving',stone:'marble_01'};
+    // The photographic grey plaster has dense directional grain which reads as burlap
+    // after it is tinted and stretched over tall procedural buildings. Facades therefore
+    // use the purpose-built low-frequency stucco generator below; authored PBR remains on
+    // materials where the pattern has a real scale (roof tiles, paving, stone and grass).
+    var ids={grass:'leafy_grass',roof:'clay_roof_tiles_02',path:'rectangular_paving',stone:'marble_01'};
     var id=ids[kind];if(!id)return null;
     var repeat=kind==='grass'?22:(kind==='path'?9:(kind==='roof'?5:(kind==='facade'?4:7)));
     var suffix=(window.DANBO_ASSET_VERSION?'?'+window.DANBO_ASSET_VERSION:'');
@@ -104,9 +108,10 @@ function _visualSurfaceTextureSet(kind){
     var img=ac.getImageData(0,0,size,size),himg=hc.getImageData(0,0,size,size),rimg=rc.getImageData(0,0,size,size);
     for(var p=0;p<size*size;p++){
         var n=(rnd()+rnd()+rnd())/3-0.5,large=Math.sin((p%size)*0.031)+Math.sin(Math.floor(p/size)*0.027);
-        var av=Math.max(0,Math.min(255,216+n*32+large*2.2));
-        var hv=Math.max(0,Math.min(255,128+n*(kind==='stone'?24:40)));
-        var rv=Math.max(0,Math.min(255,(kind==='roof'?168:(kind==='facade'?194:220))+n*22));
+        var isStucco=kind==='facade';
+        var av=isStucco?238:Math.max(0,Math.min(255,216+n*32+large*2.2));
+        var hv=isStucco?128:Math.max(0,Math.min(255,128+n*(kind==='stone'?24:40)));
+        var rv=isStucco?218:Math.max(0,Math.min(255,(kind==='roof'?168:220)+n*22));
         img.data[p*4]=img.data[p*4+1]=img.data[p*4+2]=av;img.data[p*4+3]=255;
         himg.data[p*4]=himg.data[p*4+1]=himg.data[p*4+2]=hv;himg.data[p*4+3]=255;
         rimg.data[p*4]=rimg.data[p*4+1]=rimg.data[p*4+2]=rv;rimg.data[p*4+3]=255;
@@ -133,10 +138,19 @@ function _visualSurfaceTextureSet(kind){
             for(var cx=0;cx<=size;cx+=32){cy+=(rnd()-.5)*9;ac.lineTo(cx,cy);hc.lineTo(cx,cy);}ac.stroke();hc.stroke();
         }
     }else if(kind==='facade'){
-        for(var fi=0;fi<(high?2600:800);fi++){
-            var fx=rnd()*size,fy=rnd()*size,fr=.35+rnd()*1.4;
-            ac.fillStyle=rnd()>.5?'rgba(255,255,255,.15)':'rgba(60,55,52,.09)';ac.fillRect(fx,fy,fr,fr);
-            hc.fillStyle='rgba(205,205,205,.35)';hc.fillRect(fx,fy,fr,fr);
+        // Broad trowelled stucco variation, deliberately without 1px fibres or a
+        // directional weave. This stays matte and mineral at phone viewing distances.
+        for(var fi=0;fi<(high?260:110);fi++){
+            var fx=rnd()*size,fy=rnd()*size,fr=5+rnd()*22,fr2=3+rnd()*14;
+            ac.fillStyle=rnd()>.48?'rgba(255,255,255,.045)':'rgba(68,61,55,.035)';
+            ac.beginPath();ac.ellipse(fx,fy,fr,fr2,rnd()*Math.PI,0,Math.PI*2);ac.fill();
+            hc.fillStyle=rnd()>.5?'rgba(145,145,145,.055)':'rgba(112,112,112,.045)';
+            hc.beginPath();hc.ellipse(fx,fy,fr,fr2,rnd()*Math.PI,0,Math.PI*2);hc.fill();
+        }
+        ac.strokeStyle='rgba(70,62,56,.035)';hc.strokeStyle='rgba(100,100,100,.055)';
+        for(var fcr=0;fcr<(high?18:7);fcr++){
+            var px=rnd()*size,py=rnd()*size;ac.lineWidth=0.45;hc.lineWidth=0.45;ac.beginPath();hc.beginPath();ac.moveTo(px,py);hc.moveTo(px,py);
+            for(var fs=0;fs<5;fs++){px+=(rnd()-.5)*18;py+=5+rnd()*16;ac.lineTo(px,py);hc.lineTo(px,py);}ac.stroke();hc.stroke();
         }
     }else if(kind==='roof'){
         ac.strokeStyle='rgba(65,54,50,.24)';hc.strokeStyle='rgba(45,45,45,.55)';
@@ -157,7 +171,7 @@ function _visualSurfaceTextureSet(kind){
         ac.strokeStyle='rgba(48,30,18,.28)';hc.strokeStyle='rgba(224,224,224,.45)';
         for(var bi=0;bi<120;bi++){var bx=rnd()*size;ac.lineWidth=.5+rnd()*2;hc.lineWidth=1;ac.beginPath();hc.beginPath();ac.moveTo(bx,0);hc.moveTo(bx,0);for(var by=0;by<=size;by+=28){bx+=(rnd()-.5)*7;ac.lineTo(bx,by);hc.lineTo(bx,by);}ac.stroke();hc.stroke();}
     }
-    var repeat=kind==='grass'?20:(kind==='path'?8:(kind==='roof'?5:(kind==='facade'?4:(kind==='bark'?3:6))));
+    var repeat=kind==='grass'?20:(kind==='path'?8:(kind==='roof'?5:(kind==='facade'?2:(kind==='bark'?3:6))));
     var set={map:_visualCanvasTexture(albedo,true,repeat),bumpMap:_visualCanvasTexture(height,false,repeat),roughnessMap:_visualCanvasTexture(rough,false,repeat)};
     _visualSurfaceTextureSets[kind]=set;_visualSurfaceTextures[kind]=set.map;
     return set;
@@ -166,9 +180,9 @@ function _visualSurfaceTexture(kind){return _visualSurfaceTextureSet(kind).map;}
 function _visualSurfaceMaterial(kind,color,opts){
     opts=opts||{};
     var set=_visualSurfaceTextureSet(kind);
-    var base={map:set.map,roughnessMap:set.roughnessMap,roughness:kind==='roof'?0.64:(kind==='facade'?0.82:0.96),metalness:0,envMapIntensity:kind==='roof'?0.42:0.24};
-    if(set.normalMap){base.normalMap=set.normalMap;base.normalScale=new THREE.Vector2(kind==='grass'?0.58:(kind==='roof'?0.72:(kind==='facade'?0.42:0.52)),kind==='grass'?0.58:(kind==='roof'?0.72:(kind==='facade'?0.42:0.52)));}
-    else{base.bumpMap=set.bumpMap;base.bumpScale=kind==='grass'?0.16:(kind==='facade'?0.11:(kind==='roof'?0.20:0.14));}
+    var base={map:set.map,roughnessMap:set.roughnessMap,roughness:kind==='roof'?0.62:(kind==='facade'?0.76:0.94),metalness:0,envMapIntensity:kind==='roof'?0.46:(kind==='facade'?0.18:0.24)};
+    if(set.normalMap){var ns=kind==='grass'?0.46:(kind==='roof'?0.68:(kind==='path'?0.40:(kind==='stone'?0.30:0.34)));base.normalMap=set.normalMap;base.normalScale=new THREE.Vector2(ns,ns);}
+    else{base.bumpMap=set.bumpMap;base.bumpScale=kind==='grass'?0.12:(kind==='facade'?0.034:(kind==='roof'?0.18:0.10));}
     if(set.external&&typeof _mixHex==='function'){
         var tintLift=kind==='grass'?0.34:(kind==='facade'?0.22:(kind==='roof'?0.12:(kind==='path'?0.38:0.44)));
         color=_mixHex(color,0xFFFFFF,tintLift);
@@ -176,7 +190,7 @@ function _visualSurfaceMaterial(kind,color,opts){
     for(var k in opts)base[k]=opts[k];
     var mat=typeof softPBR==='function'?softPBR(color,base):toon(color,base);
     if(set.external){
-        var blend=kind==='facade'?0.38:(kind==='grass'?0.58:(kind==='roof'?0.68:(kind==='path'?0.58:0.55)));
+        var blend=kind==='grass'?0.48:(kind==='roof'?0.72:(kind==='path'?0.44:0.38));
         mat.onBeforeCompile=function(shader){
             shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',[
                 '#ifdef USE_MAP',
