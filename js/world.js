@@ -662,17 +662,19 @@ function applyCityTheme(){
     if(typeof _updateSkyDome==='function'){
         var horizon=st.fog||_mixHex(st.sky,0xFFFFFF,currentCityStyle===5?0.08:0.38);
         var groundTint=st.ground||st.path||0x88CCAA;
+        if(currentCityStyle===0){horizon=0x91C5DA;groundTint=0x385E42;}
         if(currentCityStyle===7){horizon=0x91A7C9;groundTint=0x293C5A;}
         if(currentCityStyle===5){horizon=0x111133;groundTint=0x020208;}
         _updateSkyDome(st.sky,horizon,groundTint);
     }
     if(typeof R!=='undefined'){
-        R.toneMappingExposure=currentCityStyle===5?1.06:(currentCityStyle===7?1.08:(RENDER_CONFIG.toneExposure||1.06));
+        R.toneMappingExposure=currentCityStyle===0?1.025:(currentCityStyle===5?1.06:(currentCityStyle===7?1.08:(RENDER_CONFIG.toneExposure||1.06)));
     }
     // Fog / aerial perspective — always keep a little depth haze for richer scenery
     if(st.fog){scene.fog=new THREE.Fog(st.fog,60,180);}
     else if(currentCityStyle===5){scene.fog=new THREE.Fog(0x070712,260,900);}
     else if(currentCityStyle===7){scene.fog=new THREE.Fog(0x91A7C9,130,850);}
+    else if(currentCityStyle===0){scene.fog=new THREE.Fog(0xA8C8D1,185,520);}
     else{scene.fog=new THREE.Fog(_mixHex(st.sky,st.ground||st.path||0xFFFFFF,0.22),140,430);}
     if(typeof rimLight!=='undefined'){
         rimLight.visible=currentCityStyle!==5;
@@ -690,6 +692,8 @@ function applyCityTheme(){
     }
     // Sun visibility — only in ground cities, not on moon
     var isMoon=(currentCityStyle===5);
+    if(currentCityStyle===0){RENDER_CONFIG.sunPos.x=38;RENDER_CONFIG.sunPos.y=45;RENDER_CONFIG.sunPos.z=-100;}
+    else{RENDER_CONFIG.sunPos.x=60;RENDER_CONFIG.sunPos.y=80;RENDER_CONFIG.sunPos.z=40;}
     _sunMesh.visible=!isMoon;
     _sunGlow.visible=!isMoon;
     sun.visible=!isMoon;
@@ -705,6 +709,14 @@ function applyCityTheme(){
             scene.children.forEach(function(c){
                 if(c.isAmbientLight){c.color.setHex(0xB8CBE0);c.intensity=1.15;} // soft pale blue
                 if(c.isHemisphereLight){c.color.setHex(0xD7E6FF);c.groundColor.setHex(0xAFC0D8);c.intensity=0.92;}
+            });
+        } else if(currentCityStyle===0){
+            sun.intensity=2.12;
+            sun.color.setHex(0xFFD08F);
+            _sunMesh.visible=true;_sunGlow.visible=true;
+            scene.children.forEach(function(c){
+                if(c.isAmbientLight){c.color.setHex(0xFFF1DE);c.intensity=0.36;}
+                if(c.isHemisphereLight){c.color.setHex(0xD9EDFF);c.groundColor.setHex(0x665E45);c.intensity=0.60;}
             });
         } else {
             sun.intensity=RENDER_CONFIG.sunIntensity;

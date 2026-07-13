@@ -180,6 +180,144 @@ function _decorateDefaultBuilding(b,bMeshes,col,st,i){
     }
 }
 
+function _decorateHopePremiumBuilding(b,bMeshes,col,i){
+    var high=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high;
+    var near=Math.abs(b.x)<72&&Math.abs(b.z)<72;
+    var stone=softPBR(0xDED6C8,{roughness:0.58,envMapIntensity:0.30});
+    var stoneDark=softPBR(0xAA9C87,{roughness:0.74,envMapIntensity:0.22});
+    var glass=softPBR(0x286E91,{roughness:0.06,metalness:0.08,clearcoat:1,clearcoatRoughness:0.04,envMapIntensity:1.15,emissive:0x061A24,emissiveIntensity:0.06});
+    var shutter=softPBR(_cityMixHex(col,0x153A56,0.58),{roughness:0.50,clearcoat:0.16,envMapIntensity:0.36});
+    var planter=softPBR(0x806044,{roughness:0.82});
+    var leaf=softPBR(0x2F6D35,{roughness:0.86});
+    var flower=softPBR([0xFFD04E,0xFF7DAA,0xF7F0D8,0x8FD7FF][i%4],{roughness:0.62,emissive:0x2A1505,emissiveIntensity:0.04});
+    function add(mesh){mesh.castShadow=true;mesh.receiveShadow=true;cityGroup.add(mesh);bMeshes.push(mesh);return mesh;}
+
+    // Full-height masonry quoins give the original box real architectural edges.
+    [-1,1].forEach(function(sx){[-1,1].forEach(function(sz){
+        var q=new THREE.Mesh(_visualRoundedBoxGeometry(0.44,b.h+0.12,0.44,0.10),stone);
+        q.position.set(b.x+sx*(b.w/2+0.02),(b.h+0.12)/2,b.z+sz*(b.d/2+0.02));add(q);
+    });});
+    if(near){
+        for(var fy=3;fy<b.h-0.8;fy+=3){
+            var belt=new THREE.Mesh(_visualRoundedBoxGeometry(b.w+0.30,0.12,b.d+0.30,0.05),stoneDark);
+            belt.position.set(b.x,fy,b.z);add(belt);
+        }
+    }
+
+    // The old buildings only had front/back windows. Side elevations now use the same
+    // inset glass, stone frames and deep reveals, so the model survives orbit cameras.
+    if(high&&near&&i<20){
+        for(var wy=2;wy<b.h-1;wy+=BUILDING_CONFIG.windowSpacingY){
+            for(var wz=-b.d/2+1.5;wz<b.d/2-1;wz+=BUILDING_CONFIG.windowSpacingX){
+                [-1,1].forEach(function(side){
+                    var fr=new THREE.Mesh(_visualRoundedBoxGeometry(1.18,1.35,0.18,0.17),stone);
+                    fr.position.set(b.x+side*(b.w/2+0.07),wy,b.z+wz);fr.rotation.y=Math.PI/2;add(fr);
+                    var win=new THREE.Mesh(_visualRoundedBoxGeometry(0.76,0.91,0.10,0.11),glass);
+                    win.position.set(b.x+side*(b.w/2+0.18),wy,b.z+wz);win.rotation.y=Math.PI/2;add(win);
+                });
+            }
+        }
+    }
+
+    if(high&&near&&i<12){
+        for(var y=5;y<b.h-1;y+=6){
+            for(var x=-b.w/2+1.5;x<b.w/2-1;x+=BUILDING_CONFIG.windowSpacingX){
+                [-1,1].forEach(function(s){
+                    var sh=new THREE.Mesh(_visualRoundedBoxGeometry(0.26,1.05,0.12,0.07),shutter);
+                    sh.position.set(b.x+x+s*0.58,y,b.z+b.d/2+0.23);add(sh);
+                });
+                var box=new THREE.Mesh(_visualRoundedBoxGeometry(0.92,0.18,0.34,0.07),planter);
+                box.position.set(b.x+x,y-0.68,b.z+b.d/2+0.34);add(box);
+                var foliage=new THREE.Mesh(new THREE.IcosahedronGeometry(0.28,1),leaf);
+                foliage.position.set(b.x+x,y-0.48,b.z+b.d/2+0.34);foliage.scale.set(1.55,0.48,0.70);add(foliage);
+                var bloom=new THREE.Mesh(new THREE.IcosahedronGeometry(0.075,1),flower);bloom.position.set(b.x+x+(i%2?0.15:-0.15),y-0.31,b.z+b.d/2+0.39);add(bloom);
+            }
+        }
+    }
+
+    // A real balcony slab, balustrade and roof drainage replace the toy-flat facade.
+    if(near&&b.h>14&&i%2===0){
+        var deck=new THREE.Mesh(_visualRoundedBoxGeometry(Math.min(4.8,b.w-1),0.20,1.08,0.10),stone);
+        deck.position.set(b.x,5.15,b.z+b.d/2+0.56);add(deck);
+        var railTop=new THREE.Mesh(_visualRoundedBoxGeometry(Math.min(4.6,b.w-1.2),0.10,0.10,0.04),stoneDark);
+        railTop.position.set(b.x,5.94,b.z+b.d/2+1.02);add(railTop);
+        var bars=Math.max(4,Math.floor(Math.min(4.4,b.w-1.4)/0.55));
+        for(var ri=0;ri<bars;ri++){var rx=(ri-(bars-1)/2)*0.55;var rail=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.72,7),stoneDark);rail.position.set(b.x+rx,5.56,b.z+b.d/2+1.02);add(rail);}
+    }
+    var pipeM=softPBR(0x756E63,{roughness:0.42,metalness:0.28});
+    var pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,b.h-0.4,10),pipeM);
+    pipe.position.set(b.x+b.w/2-0.45,b.h/2,b.z+b.d/2+0.19);add(pipe);
+}
+
+function _buildHopeCinematicPlaza(){
+    var high=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high;
+    var paving=_visualSurfaceMaterial('path',0xA89A84,{roughness:0.72,normalScale:new THREE.Vector2(0.72,0.72),envMapIntensity:0.34});
+    var edge=_visualSurfaceMaterial('stone',0xC7BBA6,{roughness:0.76,normalScale:new THREE.Vector2(0.45,0.45)});
+    var garden=_visualSurfaceMaterial('grass',0x326B39,{roughness:0.94,normalScale:new THREE.Vector2(0.55,0.55)});
+    var plaza=new THREE.Mesh(new THREE.CircleGeometry(17.2,high?96:48),paving);
+    plaza.rotation.x=-Math.PI/2;plaza.position.y=0.075;plaza.receiveShadow=true;plaza.name='hope-cinematic-stone-plaza';cityGroup.add(plaza);
+    var curb=new THREE.Mesh(new THREE.TorusGeometry(17.25,0.24,high?12:7,high?96:48),edge);
+    curb.rotation.x=Math.PI/2;curb.position.y=0.13;curb.receiveShadow=true;cityGroup.add(curb);
+
+    // Curved planted quarters preserve the existing layout while giving the fountain a
+    // layered garden composition instead of a flat grass sheet.
+    for(var s=0;s<4;s++){
+        var bed=new THREE.Mesh(new THREE.RingGeometry(12.0,16.55,high?48:24,1,s*Math.PI/2+0.16,Math.PI/2-0.32),garden);
+        bed.rotation.x=-Math.PI/2;bed.position.y=0.115;bed.receiveShadow=true;cityGroup.add(bed);
+    }
+    var stoneGeo=_visualRoundedBoxGeometry(0.95,0.13,1.18,0.10),stoneMesh=new THREE.InstancedMesh(stoneGeo,edge,high?88:48),d=new THREE.Object3D();
+    for(var i=0;i<stoneMesh.count;i++){
+        var a=i/stoneMesh.count*Math.PI*2,r=11.25;
+        d.position.set(Math.cos(a)*r,0.11,Math.sin(a)*r);d.rotation.set(0,-a,0);d.scale.set(1,0.80,1);d.updateMatrix();stoneMesh.setMatrixAt(i,d.matrix);
+    }
+    stoneMesh.castShadow=true;stoneMesh.receiveShadow=true;stoneMesh.name='hope-plaza-cut-stone-ring';cityGroup.add(stoneMesh);
+
+    var rnd=typeof _visualSeededRandom==='function'?_visualSeededRandom(202607133):Math.random;
+    var flowerGeo=new THREE.OctahedronGeometry(0.075,0),stemGeo=new THREE.CylinderGeometry(0.012,0.018,0.22,5),stemMat=softPBR(0x315D2C,{roughness:0.90});
+    var flowerMats=[0xFFCF45,0xFF759E,0xF7F0E0,0x8ED7FF].map(function(c){return softPBR(c,{roughness:0.64,emissive:_cityMixHex(c,0x000000,0.80),emissiveIntensity:0.06});});
+    for(var fc=0;fc<flowerMats.length;fc++){
+        var count=high?44:18,flowers=new THREE.InstancedMesh(flowerGeo,flowerMats[fc],count),stems=new THREE.InstancedMesh(stemGeo,stemMat,count),fd=new THREE.Object3D(),sd=new THREE.Object3D();
+        for(var fi=0;fi<count;fi++){
+            var sector=Math.floor(rnd()*4),ang=sector*Math.PI/2+0.22+rnd()*(Math.PI/2-0.44),rad=12.6+rnd()*3.1,fs=0.62+rnd()*0.58;
+            var fx=Math.cos(ang)*rad,fz=Math.sin(ang)*rad,fh=0.23+rnd()*0.08;
+            fd.position.set(fx,fh+0.10,fz);fd.rotation.set(0,rnd()*Math.PI*2,0);fd.scale.set(fs,fs*0.44,fs);fd.updateMatrix();flowers.setMatrixAt(fi,fd.matrix);
+            sd.position.set(fx,fh*0.52+0.11,fz);sd.scale.set(1,fh/0.22,1);sd.updateMatrix();stems.setMatrixAt(fi,sd.matrix);
+        }
+        flowers.castShadow=true;cityGroup.add(stems);cityGroup.add(flowers);
+    }
+    var shrubCount=high?56:24,shrubMat=softPBR(0x4E8D43,{roughness:0.88,envMapIntensity:0.20}),shrubs=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.48,1),shrubMat,shrubCount),hd=new THREE.Object3D();
+    for(var shi=0;shi<shrubCount;shi++){
+        var ss=Math.floor(rnd()*4),sa=ss*Math.PI/2+0.25+rnd()*(Math.PI/2-0.50),sr=13.0+rnd()*3.0,sc=0.62+rnd()*0.72;
+        hd.position.set(Math.cos(sa)*sr,0.43,Math.sin(sa)*sr);hd.rotation.set(0,rnd()*Math.PI*2,0);hd.scale.set(sc,0.78*sc,sc);hd.updateMatrix();shrubs.setMatrixAt(shi,hd.matrix);
+    }
+    shrubs.castShadow=true;shrubs.receiveShadow=true;cityGroup.add(shrubs);
+
+    // Art-directed trees and lamps make the central view intentional; random city flora
+    // remains outside this ring. Everything is instanced to keep the mobile draw budget low.
+    var treePos=[[-16,-13],[16,-13],[-19,10],[19,10],[-11,-20],[11,-20],[-23,-2],[23,-2]];
+    if(!high)treePos=treePos.slice(0,4);
+    var trunkMat=_visualSurfaceMaterial('bark',0x6C4933,{roughness:0.94,normalScale:new THREE.Vector2(0.45,0.45)});
+    var crownMat=softPBR(0x357A3C,{roughness:0.84,clearcoat:0.05,envMapIntensity:0.24});
+    var trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.25,0.42,3.4,12),trunkMat,treePos.length),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.38,2),crownMat,treePos.length*4),td=new THREE.Object3D(),cn=0;
+    treePos.forEach(function(tp,ti){
+        cityColliders.push({x:tp[0],z:tp[1],hw:0.48,hd:0.48,h:3.4});
+        td.position.set(tp[0],1.70,tp[1]);td.rotation.set(0,ti*0.47,0);td.scale.set(1,1,1);td.updateMatrix();trunks.setMatrixAt(ti,td.matrix);
+        for(var l=0;l<4;l++){
+            var la=l/4*Math.PI*2+ti*0.61,lr=l===0?0:1.02;
+            td.position.set(tp[0]+Math.cos(la)*lr,4.25+(l%2)*0.62,tp[1]+Math.sin(la)*lr);td.rotation.set(0,la,0);td.scale.set(l===0?1.25:0.92,l===0?0.94:0.76,l===0?1.18:0.92);td.updateMatrix();crowns.setMatrixAt(cn++,td.matrix);
+        }
+    });
+    trunks.castShadow=trunks.receiveShadow=crowns.castShadow=true;cityGroup.add(trunks);cityGroup.add(crowns);
+
+    var lampCount=8,poleMat=softPBR(0x2B2A29,{roughness:0.34,metalness:0.62}),bulbMat=new THREE.MeshBasicMaterial({color:0xFFD38A}),poles=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.055,0.11,4.55,10),poleMat,lampCount),bulbs=new THREE.InstancedMesh(new THREE.SphereGeometry(0.22,12,8),bulbMat,lampCount);
+    for(var li=0;li<lampCount;li++){
+        var lang=li/lampCount*Math.PI*2+Math.PI/8,lr=18.4;
+        td.position.set(Math.cos(lang)*lr,2.28,Math.sin(lang)*lr);td.scale.set(1,1,1);td.updateMatrix();poles.setMatrixAt(li,td.matrix);
+        td.position.set(Math.cos(lang)*lr,4.65,Math.sin(lang)*lr);td.scale.set(1,1.35,1);td.updateMatrix();bulbs.setMatrixAt(li,td.matrix);
+    }
+    poles.castShadow=true;cityGroup.add(poles);cityGroup.add(bulbs);
+}
+
 function buildCity() {
     var st=CITY_STYLES[currentCityStyle];
     var cityLayout=_getCityLayout(currentCityStyle);
@@ -255,6 +393,8 @@ function buildCity() {
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     cityGroup.add(ground);
     }
+
+    if(currentCityStyle===0)_buildHopeCinematicPlaza();
 
     // Paths — data is now editable in js/cities/common-layout.js or each city file.
     var cityPathList=_getCityPaths(currentCityStyle);
@@ -382,9 +522,8 @@ function buildCity() {
         const door=new THREE.Mesh(currentCityStyle===0&&typeof _visualRoundedBoxGeometry==='function'?_visualRoundedBoxGeometry(BUILDING_CONFIG.doorSize.w,BUILDING_CONFIG.doorSize.h,BUILDING_CONFIG.doorSize.d,0.18):new THREE.BoxGeometry(BUILDING_CONFIG.doorSize.w,BUILDING_CONFIG.doorSize.h,BUILDING_CONFIG.doorSize.d), doorMat);
         door.position.set(b.x, BUILDING_CONFIG.doorSize.h/2, b.z+b.d/2+(currentCityStyle===0?0.19:0.07)); cityGroup.add(door); bMeshes.push(door);
 
-        // Hope City keeps its original composition; quality here comes from bevelled geometry,
-        // PBR surfaces and lighting rather than bolting extra props onto every facade.
-        if(currentCityStyle!==0)_decorateDefaultBuilding(b,bMeshes,col,st,i);
+        if(currentCityStyle===0)_decorateHopePremiumBuilding(b,bMeshes,col,i);
+        else _decorateDefaultBuilding(b,bMeshes,col,st,i);
 
         cityColliders.push({x:b.x, z:b.z, hw:b.w/2+0.5, hd:b.d/2+0.5, h:b.h, roofR:Math.max(b.w,b.d)*BUILDING_CONFIG.roofHeightMul, roofH:BUILDING_CONFIG.roofHeight});
         cityBuildingMeshes.push({meshes:bMeshes, x:b.x, z:b.z, hw:b.w/2, hd:b.d/2, h:b.h});
@@ -408,6 +547,7 @@ function buildCity() {
             if(c.hw>50)continue; // skip huge terrain colliders for tree placement
             if(DANBO_WASM.aabb2D(tx,tz,c.x,c.z,c.hw,c.hd,2)) skip=true;
         }
+        if(currentCityStyle===0&&Math.hypot(tx,tz)<25)skip=true;
         if(DANBO_WASM.absDeltaLess(tx,0,10)&&currentCityStyle===6) skip=true; // avoid canyon
         else if(DANBO_WASM.aabb2D(tx,tz,0,0,4,4,0)) skip=true;
         if(skip) continue;
@@ -450,24 +590,43 @@ function buildCity() {
             }
         } else {
         var _hopeTree=currentCityStyle===0;
-        var _treeSeg=_hopeTree&&window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high?14:8;
+        var _treeHigh=_hopeTree&&window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high;
+        var _treeSeg=_treeHigh?16:8;
+        var _trunkH=_hopeTree?3.25:TREE_CONFIG.trunkHeight;
         var _trunkMat=_hopeTree&&typeof _visualSurfaceMaterial==='function'?_visualSurfaceMaterial('bark',0x765039,{roughness:0.94,bumpScale:0.13}):toon(0x8B5E3C);
-        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(TREE_CONFIG.trunkRadius.min,TREE_CONFIG.trunkRadius.max,TREE_CONFIG.trunkHeight,_treeSeg),_trunkMat);
-        trunk.position.y=TREE_CONFIG.trunkHeight/2; trunk.castShadow=true; tg.add(trunk);
-        var _crownMat=_hopeTree&&typeof softPBR==='function'?softPBR(st.tree,{roughness:0.78,clearcoat:0.08,clearcoatRoughness:0.72,envMapIntensity:0.22}):toon(st.tree);
-        var _crownGeo=new THREE.SphereGeometry(TREE_CONFIG.crownRadius,_hopeTree?_treeSeg:8,_hopeTree?10:6);
-        if(_hopeTree&&window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.high){
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(_hopeTree?0.27:TREE_CONFIG.trunkRadius.min,_hopeTree?0.43:TREE_CONFIG.trunkRadius.max,_trunkH,_treeSeg),_trunkMat);
+        trunk.position.y=_trunkH/2; trunk.castShadow=true; trunk.receiveShadow=true;tg.add(trunk);
+        if(_treeHigh){
+            for(var _hbi=0;_hbi<3;_hbi++){
+                var _hba=_hbi/3*Math.PI*2+i*0.37;
+                var _branch=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.14,1.95,8),_trunkMat);
+                _branch.position.set(Math.cos(_hba)*0.38,_trunkH*0.82,Math.sin(_hba)*0.38);
+                _branch.rotation.z=Math.cos(_hba)*0.68;_branch.rotation.x=-Math.sin(_hba)*0.68;_branch.castShadow=true;tg.add(_branch);
+            }
+        }
+        var _leafColor=_hopeTree?_cityMixHex(st.tree,0x173E28,0.34):st.tree;
+        var _crownMat=_hopeTree&&typeof softPBR==='function'?softPBR(_leafColor,{roughness:0.86,clearcoat:0.05,clearcoatRoughness:0.80,envMapIntensity:0.20}):toon(st.tree);
+        var _crownR=_hopeTree?2.15:TREE_CONFIG.crownRadius;
+        var _crownGeo=new THREE.IcosahedronGeometry(_crownR,_treeHigh?2:1);
+        if(_treeHigh){
             var _cp=_crownGeo.attributes.position;
             for(var _cvi=0;_cvi<_cp.count;_cvi++){
                 var _cx=_cp.getX(_cvi),_cy=_cp.getY(_cvi),_cz=_cp.getZ(_cvi);
                 var _cl=Math.sqrt(_cx*_cx+_cy*_cy+_cz*_cz)||1;
-                var _warp=1+Math.sin(_cx*3.7+_cz*1.9)*0.055+Math.sin(_cy*4.3-_cz*2.1)*0.040;
-                _cp.setXYZ(_cvi,_cx/_cl*TREE_CONFIG.crownRadius*_warp,_cy/_cl*TREE_CONFIG.crownRadius*_warp,_cz/_cl*TREE_CONFIG.crownRadius*_warp);
+                var _warp=1+Math.sin(_cx*2.7+_cz*1.9+i)*0.105+Math.sin(_cy*3.3-_cz*2.1)*0.075;
+                _cp.setXYZ(_cvi,_cx/_cl*_crownR*_warp,_cy/_cl*_crownR*_warp,_cz/_cl*_crownR*_warp);
             }
             _crownGeo.computeVertexNormals();
         }
         const crown=new THREE.Mesh(_crownGeo,_crownMat);
-        crown.position.y=TREE_CONFIG.trunkHeight+1; crown.scale.y=TREE_CONFIG.crownScaleY; crown.castShadow=true; tg.add(crown);
+        crown.position.y=_hopeTree?_trunkH+1.05:TREE_CONFIG.trunkHeight+1;crown.scale.set(_hopeTree?1.12:1,_hopeTree?0.88:TREE_CONFIG.crownScaleY,_hopeTree?1.05:1);crown.castShadow=true;crown.receiveShadow=true;tg.add(crown);
+        if(_treeHigh){
+            for(var _lobe=0;_lobe<3;_lobe++){
+                var _la=_lobe/3*Math.PI*2+i*0.71;
+                var _lc=new THREE.Mesh(new THREE.IcosahedronGeometry(1.12,1),_crownMat);
+                _lc.position.set(Math.cos(_la)*1.55,_trunkH+0.70+(_lobe%2)*0.55,Math.sin(_la)*1.55);_lc.scale.set(1.15,0.78,1.0);_lc.castShadow=true;tg.add(_lc);
+            }
+        }
         }
         cityGroup.add(tg);
         cityProps.push({group:tg, x:tx, z:tz, radius:TREE_CONFIG.collisionRadius, type:'tree', grabbed:false, origY:0, throwVx:0, throwVy:0, throwVz:0, throwTimer:0, weight:TREE_CONFIG.weight});
@@ -480,8 +639,15 @@ function buildCity() {
     var marbleM=currentCityStyle===0&&typeof _visualSurfaceMaterial==='function'?_visualSurfaceMaterial('stone',0xE8E5DE,{roughness:0.40,bumpScale:0.045,envMapIntensity:0.42}):toon(0xEEE8DD);
     var _waterSet=currentCityStyle===0&&typeof _visualSurfaceTextureSet==='function'?_visualSurfaceTextureSet('water'):null;
     if(_waterSet)window._danboWaterBump=_waterSet.bumpMap;
-    var waterM=currentCityStyle===0?(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?new THREE.MeshPhongMaterial({color:0x52BFEA,shininess:90,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.045,transparent:true,opacity:0.64,depthWrite:false}):new THREE.MeshPhysicalMaterial({color:0x52BFEA,roughness:0.09,metalness:0.0,clearcoat:1.0,clearcoatRoughness:0.10,envMapIntensity:0.92,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.075,transparent:true,opacity:0.66,depthWrite:false})):toon(0x44AADD,{transparent:true,opacity:0.55});
+    var waterM=currentCityStyle===0?(window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?new THREE.MeshPhongMaterial({color:0x258FB5,shininess:110,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.055,transparent:true,opacity:0.72,depthWrite:false}):new THREE.MeshPhysicalMaterial({color:0x208CB2,roughness:0.045,metalness:0.0,clearcoat:1.0,clearcoatRoughness:0.055,envMapIntensity:1.18,ior:1.333,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.095,transparent:true,opacity:0.76,depthWrite:false,side:THREE.DoubleSide})):toon(0x44AADD,{transparent:true,opacity:0.55});
     var goldM=currentCityStyle===0&&typeof softPBR==='function'?softPBR(0xFFD84B,{roughness:0.28,metalness:0.28,emissive:0x7A4300,emissiveIntensity:0.16}):toon(0xFFDD44,{emissive:0xFFAA00,emissiveIntensity:0.3});
+    if(currentCityStyle===0){
+        // Broad cut-stone terraces replace the former floating donut silhouette.
+        [[10.15,9.70,0.18],[9.45,9.05,0.34],[8.75,8.35,0.50]].forEach(function(ti,idx){
+            var terrace=new THREE.Mesh(new THREE.CylinderGeometry(ti[0],ti[1],0.22,currentCityStyle===0?96:32),idx===2?stoneM:stoneD);
+            terrace.position.y=ti[2];terrace.receiveShadow=true;terrace.castShadow=true;cityGroup.add(terrace);
+        });
+    }
     // Outer pool — large circular basin
     var poolOuter=new THREE.Mesh(new THREE.TorusGeometry(7,0.8,currentCityStyle===0?16:8,currentCityStyle===0?64:24),stoneM);
     poolOuter.position.y=0.4;poolOuter.rotation.x=Math.PI/2;cityGroup.add(poolOuter);
@@ -546,6 +712,20 @@ function buildCity() {
         statueHead.position.y=7.8;cityGroup.add(statueHead);
         var shell=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,4,0,Math.PI*2,0,Math.PI/2),goldM);
         shell.position.y=8.2;shell.rotation.x=Math.PI;cityGroup.add(shell);
+    }
+    if(currentCityStyle===0){
+        var _foamMat=new THREE.MeshBasicMaterial({color:0xE7FBFF,transparent:true,opacity:0.58,depthWrite:false,blending:THREE.AdditiveBlending});
+        var _foamOuter=new THREE.Mesh(new THREE.TorusGeometry(6.12,0.075,8,72),_foamMat);_foamOuter.rotation.x=Math.PI/2;_foamOuter.position.y=0.73;cityGroup.add(_foamOuter);
+        var _foamInner=new THREE.Mesh(new THREE.TorusGeometry(2.94,0.060,8,56),_foamMat);_foamInner.rotation.x=Math.PI/2;_foamInner.position.y=1.45;cityGroup.add(_foamInner);
+        var _fallMat=new THREE.MeshPhysicalMaterial({color:0xBCEFFF,roughness:0.04,clearcoat:1,transparent:true,opacity:0.42,depthWrite:false,side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+        var _arcCount=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?4:8;
+        for(var _wai=0;_wai<_arcCount;_wai++){
+            var _waa=_wai/_arcCount*Math.PI*2;
+            var _curve=new THREE.QuadraticBezierCurve3(new THREE.Vector3(Math.cos(_waa)*0.26,8.22,Math.sin(_waa)*0.26),new THREE.Vector3(Math.cos(_waa)*2.1,9.55,Math.sin(_waa)*2.1),new THREE.Vector3(Math.cos(_waa)*2.72,1.54,Math.sin(_waa)*2.72));
+            var _arc=new THREE.Mesh(new THREE.TubeGeometry(_curve,24,0.045,7,false),_fallMat);_arc.renderOrder=3;cityGroup.add(_arc);
+        }
+        var _curtain=new THREE.Mesh(new THREE.CylinderGeometry(0.72,0.93,5.05,40,1,true),_fallMat.clone());
+        _curtain.material.opacity=0.18;_curtain.position.y=4.10;_curtain.renderOrder=2;cityGroup.add(_curtain);
     }
     // 4 lion head spouts around inner basin
     for(var li=0;li<4;li++){
@@ -634,8 +814,8 @@ function buildCity() {
 
     // ---- Streams & Canals (water city style 0) ----
     if(currentCityStyle===0){
-        var streamMat=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?new THREE.MeshPhongMaterial({color:0x48B9E6,shininess:80,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.04,transparent:true,opacity:0.56,depthWrite:false}):new THREE.MeshPhysicalMaterial({color:0x48B9E6,roughness:0.10,clearcoat:0.92,clearcoatRoughness:0.11,envMapIntensity:0.86,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.065,transparent:true,opacity:0.57,depthWrite:false});
-        var bankMat=typeof _visualSurfaceMaterial==='function'?_visualSurfaceMaterial('stone',0x88AA77,{roughness:0.94,bumpScale:0.12}):toon(0x88AA77);
+        var streamMat=window.DANBO_VISUAL_QUALITY&&DANBO_VISUAL_QUALITY.low?new THREE.MeshPhongMaterial({color:0x238DAF,shininess:96,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.05,transparent:true,opacity:0.66,depthWrite:false}):new THREE.MeshPhysicalMaterial({color:0x238DAF,roughness:0.055,clearcoat:1,clearcoatRoughness:0.07,envMapIntensity:1.06,bumpMap:_waterSet&&_waterSet.bumpMap,bumpScale:0.085,transparent:true,opacity:0.68,depthWrite:false});
+        var bankMat=typeof _visualSurfaceMaterial==='function'?_visualSurfaceMaterial('stone',0xB8AA91,{roughness:0.82,bumpScale:0.12}):toon(0xB8AA91);
         // 4 canals radiating from central fountain to city edges
         var canalDirs=[{dx:1,dz:0},{dx:-1,dz:0},{dx:0,dz:1},{dx:0,dz:-1}];
         for(var cdi=0;cdi<4;cdi++){
@@ -644,15 +824,15 @@ function buildCity() {
             // Water surface
             var cw=cd.dx!==0?cLen:3;var ch=cd.dz!==0?cLen:3;
             var canal=new THREE.Mesh(new THREE.BoxGeometry(cw,0.15,ch),streamMat);
-            canal.position.set(cd.dx*cLen/2+cd.dx*8,0.35,cd.dz*cLen/2+cd.dz*8);
+            canal.position.set(cd.dx*cLen/2+cd.dx*12,0.35,cd.dz*cLen/2+cd.dz*12);
             cityGroup.add(canal);
             // Stone banks on both sides
             var bOff=cd.dx!==0?0:1.8;var bOff2=cd.dz!==0?0:1.8;
             var bank1=new THREE.Mesh(new THREE.BoxGeometry(cd.dx!==0?cLen:0.5,0.4,cd.dz!==0?cLen:0.5),bankMat);
-            bank1.position.set(cd.dx*cLen/2+cd.dx*8+bOff2,0.2,cd.dz*cLen/2+cd.dz*8+bOff);
+            bank1.position.set(cd.dx*cLen/2+cd.dx*12+bOff2,0.2,cd.dz*cLen/2+cd.dz*12+bOff);
             cityGroup.add(bank1);
             var bank2=new THREE.Mesh(new THREE.BoxGeometry(cd.dx!==0?cLen:0.5,0.4,cd.dz!==0?cLen:0.5),bankMat);
-            bank2.position.set(cd.dx*cLen/2+cd.dx*8-bOff2,0.2,cd.dz*cLen/2+cd.dz*8-bOff);
+            bank2.position.set(cd.dx*cLen/2+cd.dx*12-bOff2,0.2,cd.dz*cLen/2+cd.dz*12-bOff);
             cityGroup.add(bank2);
         }
         // Ring canal around the fountain (inner)
@@ -666,7 +846,7 @@ function buildCity() {
         var ringBank2=new THREE.Mesh(new THREE.TorusGeometry(55,0.35,6,32),bankMat);
         ringBank2.rotation.x=Math.PI/2;ringBank2.position.y=0.38;cityGroup.add(ringBank2);
         // Stone bridges over canals (inner ring)
-        var bridgeMat=toon(0xCCBBAA);
+        var bridgeMat=_visualSurfaceMaterial('path',0xC7B8A1,{roughness:0.78,normalScale:new THREE.Vector2(0.48,0.48)});
         for(var bri=0;bri<8;bri++){
             var bra=bri/8*Math.PI*2;var brr=25;
             var brx=Math.cos(bra)*brr,brz=Math.sin(bra)*brr;

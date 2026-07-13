@@ -495,7 +495,7 @@ function _visualAddGroundInstanced(style,st,mood){
     var count=(style===6)?420:(style===7?330:(style===3?0:520));
     if(count>0){
         var geo=new THREE.ConeGeometry(0.08,0.95,3);
-        var grassColor=(style===1)?0xC9B96A:(style===2?0xDDF8FF:(style===4?0xFFB7D9:(style===7?0xDCEBFF:(style===6?0xFFB7C9:0x67D56A))));
+        var grassColor=(style===0)?0x3F7A39:((style===1)?0xC9B96A:(style===2?0xDDF8FF:(style===4?0xFFB7D9:(style===7?0xDCEBFF:(style===6?0xFFB7C9:0x67D56A)))));
         var mat=new THREE.MeshBasicMaterial({color:grassColor,transparent:true,opacity:style===7?0.34:0.62,fog:true});
         var mesh=new THREE.InstancedMesh(geo,mat,count);
         mesh.name='instanced-ground-sparkle-grass';mesh.frustumCulled=false;
@@ -506,8 +506,8 @@ function _visualAddGroundInstanced(style,st,mood){
             if(style!==6&&style!==7&&(DANBO_WASM.absDeltaLess(x,0,5)||DANBO_WASM.absDeltaLess(z,0,5)))continue;
             if(_visualAvoidColliders(x,z,1.2))continue;
             var gy=_visualGroundY(style,x,z);
-            dummy.position.set(x,gy+0.45,z);
-            var s=0.45+Math.random()*1.5;
+            dummy.position.set(x,gy+(style===0?0.16:0.45),z);
+            var s=style===0?(0.22+Math.random()*0.42):(0.45+Math.random()*1.5);
             dummy.scale.set(s*(0.7+Math.random()*0.5),s*(0.8+Math.random()*0.9),s*(0.7+Math.random()*0.5));
             dummy.rotation.set((Math.random()-0.5)*0.28,Math.random()*Math.PI*2,(Math.random()-0.5)*0.28);
             dummy.updateMatrix();mesh.setMatrixAt(placed,dummy.matrix);placed++;
@@ -516,8 +516,8 @@ function _visualAddGroundInstanced(style,st,mood){
         _visualFXGroup.add(mesh);_visualFXState.instanced.push(mesh);
     }
     if(style!==3&&style!==1){
-        var fCount=(style===4?180:(style===6?150:(style===7?120:170)));
-        var fGeo=new THREE.OctahedronGeometry(0.13,0);
+        var fCount=(style===0?260:(style===4?180:(style===6?150:(style===7?120:170))));
+        var fGeo=new THREE.OctahedronGeometry(style===0?0.075:0.13,0);
         var fMat=new THREE.MeshBasicMaterial({color:(style===2?0xBFF8FF:(style===7?0xFFF9D8:(style===6?0xFF7FAF:(style===4?0xFFFF88:0xFFEC76)))),transparent:true,opacity:0.72,fog:true});
         var flowers=new THREE.InstancedMesh(fGeo,fMat,fCount);
         flowers.name='instanced-ground-flowers';flowers.frustumCulled=false;
@@ -526,9 +526,9 @@ function _visualAddGroundInstanced(style,st,mood){
             tries2++;var fp=_visualRandomInCity(style);var fx=fp.x,fz=fp.z;
             if(_visualAvoidColliders(fx,fz,1.6))continue;
             var fy=_visualGroundY(style,fx,fz);
-            d2.position.set(fx,fy+0.16,fz);
-            var fs=0.7+Math.random()*1.5;
-            d2.scale.set(fs,fs,fs);d2.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI*2,Math.random()*Math.PI);
+            d2.position.set(fx,fy+(style===0?0.11:0.16),fz);
+            var fs=style===0?(0.32+Math.random()*0.58):(0.7+Math.random()*1.5);
+            d2.scale.set(fs,style===0?fs*0.42:fs,fs);d2.rotation.set(style===0?0:Math.random()*Math.PI,Math.random()*Math.PI*2,style===0?0:Math.random()*Math.PI);
             d2.updateMatrix();flowers.setMatrixAt(placed2,d2.matrix);placed2++;
         }
         flowers.count=placed2;
@@ -634,8 +634,12 @@ function _visualAddMoonVisuals(){
 function _visualAddCitySpecific(style,st,mood){
     var range=(style===5?MOON_CITY_SIZE:CITY_SIZE);
     if(style===0){
-        // Hope City intentionally stays compositionally clean: its quality comes from the
-        // original surfaces, lighting and depth pass rather than extra decorative objects.
+        _visualAddHopeGroundPatches();
+        _visualAddPointsCloud('hope-sunlit-pollen',220,style,{xMin:-82,xMax:82,zMin:-82,zMax:82,yMin:0.6,yMax:13},0xFFE59A,0xFFFFFF,0.72,{opacity:0.38,vx:0.006,vxRand:0.008,vy:0.003,vyRand:0.005,vzRand:0.008,wrap:true,twinkle:true,additive:true});
+        for(var hi=0;hi<10;hi++){
+            var ha=hi/10*Math.PI*2+0.18,hr=18+hi%2*9;
+            _visualAddGlow(Math.cos(ha)*hr,4.4,Math.sin(ha)*hr,0xFFD08A,3.8,3.8,0.075,hi*0.45,_visualFlareTex);
+        }
     } else if(style===1){
         _visualAddPointsCloud('desert-gold-dust',300,style,{xMin:-range,xMax:range,zMin:-range,zMax:range,yMin:0.4,yMax:18},0xFFE39A,0xFFAA55,1.25,{opacity:0.42,vx:0.018,vxRand:0.025,vyRand:0.006,vzRand:0.018,wrap:true,twinkle:true});
     } else if(style===2){
@@ -683,8 +687,9 @@ function _rebuildCityVisualFX(style,st){
         document.body.style.setProperty('--city-accent',_visualColorToCss(mood.accent));
     }
     _visualAddPlayerShadow(style);
-    if(style!==0){_visualAddHorizon(style,st,mood);_visualAddAtmosphericClouds(style,mood);}
-    if(style!==0)_visualAddGroundInstanced(style,st,mood);
+    if(style!==0)_visualAddHorizon(style,st,mood);
+    _visualAddAtmosphericClouds(style,mood);
+    _visualAddGroundInstanced(style,st,mood);
     if(style===0)_visualAddBuildingContactShadows(style);
     _visualAddBuildingHalos(style,mood);
     _visualAddCitySpecific(style,st,mood);
